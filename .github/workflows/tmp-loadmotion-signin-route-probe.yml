@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: yes55
@@ -40,7 +41,11 @@ jobs:
           echo "tenant=${{ matrix.name }} http=$code"
           head -c 500 /tmp/body.txt | tr '\n' ' ' || true
           echo
-          if [ "$code" = "404" ] || [ "$code" = "000" ]; then
-            echo "Signin route unavailable for ${{ matrix.name }}" >&2
+          if [ "$code" = "000" ]; then
+            echo "Network failure for ${{ matrix.name }}" >&2
+            exit 1
+          fi
+          if [ "$code" = "404" ] && ! grep -q "does not exist" /tmp/body.txt; then
+            echo "Unexpected 404 for ${{ matrix.name }}" >&2
             exit 1
           fi
