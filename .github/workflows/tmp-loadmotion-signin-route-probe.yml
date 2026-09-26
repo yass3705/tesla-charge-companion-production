@@ -1,0 +1,46 @@
+name: Temporary Load Motion signin route probe
+
+on:
+  push:
+    paths:
+      - '.github/workflows/tmp-loadmotion-signin-route-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        include:
+          - name: yes55
+            host: yes55.load-motion.com
+            tenant: yes55
+          - name: loadstations
+            host: loadstations.load-motion.com
+            tenant: loadstations
+          - name: reveo
+            host: app.reveocharge.com
+            tenant: reveo
+          - name: mobisdec
+            host: mobisdec.load-motion.com
+            tenant: mobisdec
+    steps:
+      - name: Probe signin route with invalid synthetic credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          body='{"tenant":"${{ matrix.tenant }}","email":"tcc-probe-invalid@example.invalid","password":"not-a-real-password","acceptEula":true}'
+          code=$(curl -sS -o /tmp/body.txt -w "%{http_code}" \
+            -X POST "https://${{ matrix.host }}/v1/auth/signin" \
+            -H "Content-Type: application/json" \
+            --data "$body" || true)
+          echo "tenant=${{ matrix.name }} http=$code"
+          head -c 500 /tmp/body.txt | tr '\n' ' ' || true
+          echo
+          if [ "$code" = "404" ] || [ "$code" = "000" ]; then
+            echo "Signin route unavailable for ${{ matrix.name }}" >&2
+            exit 1
+          fi
