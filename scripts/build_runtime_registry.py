@@ -22,6 +22,8 @@ def build_registry(path):
       "label":"Germany pinned BNetzA/direct-CPO production snapshot",
       "adapter":"germany-national-v1",
       "path":"../snapshot-inputs/DE/all.json.gz",
+      "tileManifest":"../snapshot-inputs/DE/tiles/manifest.json",
+      "tileRoot":"../snapshot-inputs/DE/tiles/",
       "ionityPath":"../snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz",
       "countries":["DE"],
       "capabilities":["inventory","connectors","access","status","tariff"],
