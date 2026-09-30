@@ -168,11 +168,21 @@ def main():
     if avia_rec.exists(): copy_file(avia_rec,overlays/"CH/direct/avia-reconciliation.json")
 
     # Germany national BNetzA/AFIR baseline + current resolution ledger.
-    if a.germany_source:
+    # Prefer the durable Data Lab copy. The optional Actions artifact is now
+    # only a backward-compatible fallback for historical snapshot configs.
+    durable_catalog=national/"germany_non_tesla_catalog_staging_direct_cpo.json.gz"
+    durable_manifest=national/"germany_non_tesla_catalog_staging_direct_cpo_manifest.json"
+    if durable_catalog.exists() and durable_manifest.exists():
+        catalog=durable_catalog
+        source_manifest=durable_manifest
+    elif a.germany_source:
         de_src=pathlib.Path(a.germany_source)
         catalog=de_src/"germany_non_tesla_catalog_staging_direct_cpo.json.gz"
         source_manifest=de_src/"germany_non_tesla_catalog_staging_direct_cpo_manifest.json"
-        assert catalog.exists() and source_manifest.exists(), "Germany source artifact incomplete"
+    else:
+        catalog=source_manifest=None
+    if catalog is not None:
+        assert catalog.exists() and source_manifest.exists(), "Germany source baseline incomplete"
         de=overlays/"DE"
         copy_file(catalog,de/"all.json.gz")
         copy_file(source_manifest,de/"national-source-manifest.json")
