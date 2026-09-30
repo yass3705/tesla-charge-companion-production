@@ -1,0 +1,97 @@
+name: Build V9 2026-09-30 r2 candidate
+
+on:
+  push:
+    paths:
+      - "config/snapshots/2026-09-30-r2.json"
+      - "scripts/build_snapshot.py"
+      - "scripts/validate_built_snapshot.py"
+      - "scripts/validate_stable_parity.py"
+      - "scripts/export_snapshot_meta.py"
+      - ".github/workflows/build-2026-09-30-r2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          path: production
+
+      - name: Read pinned snapshot metadata
+        id: meta
+        run: |
+          python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r2.json >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+
+      - name: Checkout pinned Data Lab
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
+          path: datalab
+          persist-credentials: false
+
+      - name: Download pinned Germany national baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ART_REPO: ${{ steps.meta.outputs.germany_artifact_repo }}
+          ART_ID: ${{ steps.meta.outputs.germany_artifact_id }}
+        run: |
+          gh api "/repos/$ART_REPO/actions/artifacts/$ART_ID/zip" > /tmp/germany.zip
+          mkdir -p germany-source
+          unzip -q /tmp/germany.zip -d germany-source
+          test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo.json.gz
+          test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo_manifest.json
+
+      - name: Build and validate r2 candidate
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30-r2.json
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --config config/snapshots/2026-09-30-r2.json             --out ../dist/v9-2026-09-30-r2
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r2 2026-09-30-r2
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r2
+
+      - name: Verify r2-specific UK/ledger improvements
+        run: |
+          python - <<'PY'
+          import gzip,json,pathlib
+          root=pathlib.Path("dist/v9-2026-09-30-r2")
+          uk=json.load(open(root/"snapshot-inputs/UK/manifest.json"))
+          assert uk["cpoStatusCounts"]["partial"] == 0, uk
+          assert uk["cpoStatusCounts"]["setAside"] == 28, uk
+          lidl=root/"snapshot-inputs/UK/sources/uk_lidl_public_ev_stores.json.gz"
+          assert lidl.exists()
+          with gzip.open(lidl,"rt",encoding="utf-8") as f:
+              payload=json.load(f)
+          assert len(payload["stores"]) == 312, len(payload["stores"])
+          for rel in (
+            "snapshot-inputs/FR/cpo-ledger.json",
+            "snapshot-inputs/IT/cpo-ledger.json",
+            "snapshot-inputs/DE/cpo-progress.json",
+            "snapshot-inputs/v9-country-progress.json",
+          ):
+              assert (root/rel).exists(), rel
+          print({"UK":uk["cpoStatusCounts"],"lidlStores":len(payload["stores"])})
+          PY
+
+      - name: Upload r2 candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcc-v9-2026-09-30-r2-candidate
+          path: dist/v9-2026-09-30-r2
+          compression-level: 0
+          retention-days: 14
