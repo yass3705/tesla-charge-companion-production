@@ -12,6 +12,10 @@ on:
       - ".github/workflows/build-2026-09-30-r8.yml"
   workflow_dispatch:
 
+concurrency:
+  group: tcc-v9-r8-runtime-integration
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
