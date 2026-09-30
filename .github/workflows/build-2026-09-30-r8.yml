@@ -71,6 +71,9 @@ jobs:
           python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --config config/snapshots/2026-09-30-r8.json             --out ../dist/v9-2026-09-30-r8
           python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r8 2026-09-30-r8
           python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r8
+      - name: Runtime DE/GB end-to-end smoke
+        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-2026-09-30-r8
+
       - uses: actions/upload-artifact@v4
         with:
           name: tcc-v9-2026-09-30-r8-candidate
