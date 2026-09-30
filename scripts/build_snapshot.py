@@ -236,6 +236,16 @@ def main():
     ev_delta=dl/"reports/electroverse/daily-delta.json"
     if ev_inventory.exists(): copy_file(ev_inventory,overlays/"FR/platforms/electroverse-france-current.json")
     if ev_delta.exists(): copy_file(ev_delta,overlays/"FR/platforms/electroverse-daily-delta.json")
+    ev_cache=dl/"data/electroverse/tariff_cache"
+    ev_manifest=ev_cache/"manifest.json"
+    if ev_manifest.exists():
+        subprocess.run([
+          sys.executable,
+          str(production_root/"scripts/build_electroverse_runtime_offers.py"),
+          "--cache-dir",str(ev_cache),
+          "--manifest",str(ev_manifest),
+          "--out",str(overlays/"FR/platforms/electroverse-runtime-offers.json")
+        ],check=True)
 
     # Italy validated direct overlays beside the compiled static baseline.
     it_dst=overlays/"IT/direct"
