@@ -9,6 +9,7 @@ on:
       - "scripts/validate_built_snapshot.py"
       - "runtime-overrides/**"
       - "tests/runtime-integration.test.mjs"
+      - "tests/runtime-e2e-smoke.mjs"
       - ".github/workflows/build-2026-09-30-r8.yml"
   workflow_dispatch:
 
