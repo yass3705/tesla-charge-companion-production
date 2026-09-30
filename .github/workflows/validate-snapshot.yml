@@ -1,0 +1,22 @@
+name: Validate V9 snapshot
+
+on:
+  push:
+    paths:
+      - "config/snapshots/**"
+      - "scripts/validate_snapshot.py"
+      - ".github/workflows/validate-snapshot.yml"
+  pull_request:
+    paths:
+      - "config/snapshots/**"
+      - "scripts/validate_snapshot.py"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/validate_snapshot.py config/snapshots/2026-09-30.json
