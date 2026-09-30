@@ -1,0 +1,36 @@
+name: Inspect Atlante Italy r8 input
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/inspect-atlante-italy-input.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: d0996b493bcfee5312b5ca1e38070df87b0d9642
+          persist-credentials: false
+      - name: Inspect Atlante Italy pinned file
+        run: |
+          python - <<'PY'
+          import gzip,json
+          p="data/national/atlante_direct_stations_italy_latest.json.gz"
+          with gzip.open(p,"rt",encoding="utf-8") as f:d=json.load(f)
+          print("TOP",sorted(d.keys()))
+          print("DATASET",d.get("dataset"))
+          print("SCOPE",json.dumps(d.get("scope"),ensure_ascii=False))
+          print("COUNTS",json.dumps(d.get("counts"),ensure_ascii=False))
+          locs=d.get("locations") or []
+          print("LOCATIONS",len(locs))
+          if locs:
+            print("LOCATION_SAMPLE",json.dumps(locs[0],ensure_ascii=False)[:30000])
+          PY
