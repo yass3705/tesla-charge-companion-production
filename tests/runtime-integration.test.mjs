@@ -7,6 +7,7 @@ const uk=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
 const avia=require('../runtime-overrides/assets/v9/adapters/switzerland-avia.js');
 const italyIonity=require('../runtime-overrides/assets/v9/adapters/italy-ionity-exact.js');
 const franceIonity=require('../runtime-overrides/assets/v9/adapters/france-ionity-exact.js');
+const atlanteItaly=require('../runtime-overrides/assets/v9/adapters/atlante-italy-exact.js');
 
 // Germany: inventory remains visible, but non-production-rankable pricing is never exposed.
 {
@@ -195,11 +196,32 @@ const franceIonity=require('../runtime-overrides/assets/v9/adapters/france-ionit
   assert.equal(out.offerRules[0].metadata.matchPolicy,'exact_evse_only');
 }
 
+{
+  const payload={locations:[{
+    id:'L1',locationId:'IT0001',countryCode:'IT',partyId:'ATE',operatorName:'Atlante',name:'Atlante Test',
+    connectors:[
+      {evseId:'IT*ATE*E123*1',connectorId:'C1',connectorType:'CCS',powerType:'DC',powerKw:150,status:'AVAILABLE',pricePerKwhEur:0.69,
+       tariffs:[{priceComponents:[{priceDimension:'ENERGY',currency:'EUR',price:{incl_vat:0.69,excl_vat:0.57},conditions:[]}]}]},
+      {evseId:'IT*ATE*E123*2',connectorId:'C2',connectorType:'CCS',powerType:'DC',powerKw:150,status:'AVAILABLE',pricePerKwhEur:0.69,
+       tariffs:[{priceComponents:[{priceDimension:'ENERGY',currency:'EUR',price:{incl_vat:0.69,excl_vat:0.57},conditions:[{type:'TIME'}]}]}]}
+    ]
+  }]};
+  const out=atlanteItaly.normalizePayload(payload,{id:'italy-atlante-r8',priority:{tariff:135}});
+  assert.equal(out.offerRules.length,1);
+  assert.equal(out.offerRules[0].provider,'Atlante direct');
+  assert.ok(out.offerRules[0].evseIds.includes('IT*ATE*E123*1'));
+  assert.ok(out.offerRules[0].evseIds.includes('ITATEE1231'));
+  assert.equal(out.offerRules[0].pricing.rules[0].pricePerKwh,0.69);
+  assert.equal(out.offerRules[0].metadata.matchPolicy,'exact_evse_only');
+  assert.equal(out.metadata.rejected.unsupported_or_complex,1);
+}
+
 console.log(JSON.stringify({
   ok:true,
   germany:'fail-closed + explicit production-rankable scalar verified',
   uk:'exact tariff-id join + restricted tariff fail-closed verified',
   switzerlandAvia:'exact EVSE CHF/kWh mapping + time-based fail-closed verified',
   italyIonity:'validated reconciliation resolved EVSEs only verified',
-  franceIonity:'exact resolved EVSEs only verified'
+  franceIonity:'exact resolved EVSEs only verified',
+  atlanteItaly:'exact EVSE simple ENERGY only verified'
 }));
