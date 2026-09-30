@@ -62,6 +62,7 @@ def main():
       (dl/"docs/france-cpo-progress-2026-09.json", overlays/"FR/cpo-ledger.json"),
       (dl/"docs/italy-cpo-progress-2026-09.json", overlays/"IT/cpo-ledger.json"),
       (dl/"docs/germany-cpo-progress-2026-09.json", overlays/"DE/cpo-progress.json"),
+      (dl/"docs/morocco-cpo-progress-2026-09.json", overlays/"MA/cpo-ledger.json"),
       (dl/"docs/v9-country-progress-2026-09-30.json", overlays/"v9-country-progress.json"),
     ]
     for src,dst in ledger_pairs:
@@ -113,6 +114,7 @@ def main():
       ("Kilowatt native","reports/morocco/kilowatt/latest-native-connector-tariffs.json","kilowatt-native-tariffs.json"),
       ("Kilowatt overlay","reports/morocco/kilowatt/latest-v9-tariff-overlay-manifest.json","kilowatt-tariff-overlay.json"),
       ("EVOne policy","reports/morocco/evone/production-status-policy.json","evone-status-policy.json"),
+      ("TotalEnergies native","reports/morocco/totalenergies/latest-native-overlay.json","totalenergies-native-overlay.json"),
     ]
     present=[]
     for label,src_rel,dst_name in ma_sources:
@@ -128,7 +130,8 @@ def main():
       "knownSourceCounts":{
         "EVGO":{"stations":17,"evses":43},
         "FastVolt":{"productionCandidates":97},
-        "Kilowatt":{"productionStations":43,"tariffResolvedStations":43}
+        "Kilowatt":{"productionStations":43,"tariffResolvedStations":43},
+        "TotalEnergies":{"stations":18,"connectors":38,"pricedConnectors":38,"liveStatusConnectors":38}
       },
       "deduplication":"Do not sum source station counts. Canonical identity reconciliation is required across CPO/access-network overlaps.",
       "policy":"Publish validated CPO stations and exact tariffs only; unresolved operators and tariff components remain fail-closed."
