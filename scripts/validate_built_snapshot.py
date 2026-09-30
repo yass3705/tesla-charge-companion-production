@@ -81,6 +81,17 @@ def main():
                     unresolved+=1
         assert unresolved==0, unresolved
 
+    # IONITY Germany direct overlay must remain complete if present.
+    ionity_de_path=root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz"
+    if ionity_de_path.exists():
+        with gzip.open(ionity_de_path,"rt",encoding="utf-8") as f:
+            ion_de=json.load(f)
+        assert ion_de["operator"]=="IONITY", ion_de.get("operator")
+        dec=ion_de["counts"]
+        assert dec["countryLocationCount"]>=190, dec
+        assert dec["countryConnectorCount"]>=1500, dec
+        assert dec["countryUnpricedConnectorCount"]==0, dec
+
     ma=load(root/"snapshot-inputs/MA/manifest.json")
     labels={x["label"] for x in ma["sources"]}
     assert {"EVGO","FastVolt","FastVolt tariff","Kilowatt native","Kilowatt overlay","EVOne policy","TotalEnergies native"} <= labels
