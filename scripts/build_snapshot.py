@@ -167,6 +167,9 @@ def main():
         prod_ledger=pathlib.Path("docs/source-ledgers/germany-cpo-second-pass-resolution-180.json")
         ledger_src=dl_ledger if dl_ledger.exists() else prod_ledger
         copy_file(ledger_src,de/"resolution-ledger.json")
+        de_ionity=national/"ionity_direct_stations_germany.json.gz"
+        if de_ionity.exists():
+            copy_file(de_ionity,de/"direct/ionity_direct_stations_germany.json.gz")
         m=load_json(source_manifest)
         ledger=load_json(ledger_src)
         assert m["stats"]["nonTeslaSites"] == 63405
