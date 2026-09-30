@@ -145,6 +145,10 @@ const italyIonity=require('../runtime-overrides/assets/v9/adapters/italy-ionity-
   assert.ok(out.offerRules[0].evseIds.includes('CH*AVI*E123'));
   assert.ok(out.offerRules[0].evseIds.includes('CHAVIE123'));
   assert.equal(out.metadata.rejected.time_based,1);
+  assert.deepEqual(out.offerRules[0].operatorIds,undefined);
+  assert.deepEqual(out.offerRules[0].connectorKinds,undefined);
+  assert.deepEqual(out.offerRules[0].minPowerKw,undefined);
+  assert.equal(out.offerRules[0].metadata.matchPolicy,'exact_evse_only');
 }
 
 {
