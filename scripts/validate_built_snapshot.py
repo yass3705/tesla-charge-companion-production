@@ -48,6 +48,7 @@ def main():
         "assets/v9/adapters/switzerland-avia.js",
         "assets/v9/adapters/italy-ionity-exact.js",
         "assets/v9/adapters/france-ionity-exact.js",
+        "assets/v9/adapters/atlante-italy-exact.js",
         "assets/v9/production-loader-extension.js",
         "assets/v9/production-bootstrap.js",
         "../control/index.html",
@@ -103,6 +104,18 @@ def main():
     assert avia_ch.get("path")=="../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json", avia_ch
     assert avia_ch.get("optional") is False and avia_ch.get("active") is True, avia_ch
     assert (root/"snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json").exists()
+    atlante_it_src=sources.get("italy-atlante-r8") or {}
+    assert atlante_it_src.get("adapter")=="atlante-italy-exact-v1", atlante_it_src
+    assert atlante_it_src.get("path")=="../snapshot-inputs/IT/direct/atlante_direct_stations_italy_latest.json.gz", atlante_it_src
+    assert atlante_it_src.get("optional") is False and atlante_it_src.get("active") is True, atlante_it_src
+    atlante_it_path=root/"snapshot-inputs/IT/direct/atlante_direct_stations_italy_latest.json.gz"
+    assert atlante_it_path.exists(), atlante_it_path
+    with gzip.open(atlante_it_path,"rt",encoding="utf-8") as f:
+        atlante_it=json.load(f)
+    atlante_connectors=sum(len(x.get("connectors") or []) for x in atlante_it.get("locations") or [])
+    atlante_priced=sum(1 for x in atlante_it.get("locations") or [] for y in x.get("connectors") or [] if y.get("pricePerKwhEur") not in (None,0))
+    assert len(atlante_it.get("locations") or [])>=470, len(atlante_it.get("locations") or [])
+    assert atlante_connectors>=1800 and atlante_priced==atlante_connectors, {"connectors":atlante_connectors,"priced":atlante_priced}
     ionity_it_src=sources.get("italy-ionity-r8") or {}
     assert ionity_it_src.get("adapter")=="italy-ionity-exact-v1", ionity_it_src
     assert ionity_it_src.get("path")=="../snapshot-inputs/IT/direct/ionity_italy_exact_reconciliation_20260923.json", ionity_it_src
