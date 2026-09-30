@@ -44,6 +44,32 @@ def main():
     assert de["directCpoPricedSites"]==5471
     assert de["cpoStatus"]=={"totalNamedCpos":591,"complete":244,"partial":347,"blocked":0}
 
+
+    # Direct France operator overlays: fail closed on incomplete IONITY refresh.
+    ionity_path=root/"snapshot-inputs/FR/direct/ionity_direct_stations_france.json.gz"
+    if ionity_path.exists():
+        with gzip.open(ionity_path,"rt",encoding="utf-8") as f:
+            ion=json.load(f)
+        assert ion["operator"]=="IONITY", ion.get("operator")
+        ic=ion["counts"]
+        assert ic["franceLocationCount"]>=180, ic
+        assert ic["franceConnectorCount"]>=1800, ic
+        assert ic["franceUnpricedConnectorCount"]==0, ic
+
+    # Kilowatt production scope must remain tariff-complete even when live
+    # connector status/order changes between refreshes.
+    kw_path=root/"snapshot-inputs/MA/sources/kilowatt-native-tariffs.json"
+    if kw_path.exists():
+        kw=load(kw_path)
+        stations=kw.get("stations") or []
+        assert len(stations)>=43, len(stations)
+        unresolved=0
+        for station in stations:
+            for conn in station.get("connectors") or []:
+                if conn.get("rate_price") is None:
+                    unresolved+=1
+        assert unresolved==0, unresolved
+
     ma=load(root/"snapshot-inputs/MA/manifest.json")
     labels={x["label"] for x in ma["sources"]}
     assert {"EVGO","FastVolt","FastVolt tariff","Kilowatt native","Kilowatt overlay","EVOne policy","TotalEnergies native"} <= labels
