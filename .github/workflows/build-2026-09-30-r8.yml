@@ -40,7 +40,7 @@ jobs:
           idx=json.load(open(dl/"docs/v9-country-progress-2026-09-30.json"))
           fr=idx["countries"]["FR"]["counters"]
           it=idx["countries"]["IT"]["counters"]
-          assert fr == {"totalCpos":291,"treated":93,"setAside":23,"active":175}, fr
+          assert fr == {"totalCpos":291,"treated":94,"setAside":27,"active":170}, fr
           assert it["currentPunPartyIds"]==92 and it["treated"]==26 and it["partialCurrent"]==66, it
           assert it["treated"]+it["partialCurrent"]==92
           de=dl/"data/national/germany_non_tesla_catalog_staging_direct_cpo.json.gz"
