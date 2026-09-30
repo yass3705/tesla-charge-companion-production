@@ -45,6 +45,8 @@ def main():
     for needle in (
         "assets/v9/adapters/germany-national.js",
         "assets/v9/adapters/uk-open-feeds.js",
+        "assets/v9/adapters/switzerland-avia.js",
+        "assets/v9/adapters/italy-ionity-exact.js",
         "assets/v9/production-loader-extension.js",
         "assets/v9/production-bootstrap.js",
         "../control/index.html",
