@@ -57,10 +57,44 @@ def main():
       "CH":dl/"data/national/switzerland_public_charging_v9.json",
     }
     report={}
+    loaded={}
     for name,path in targets.items():
         report[name]={"exists":path.exists(),"path":str(path)}
         if path.exists():
-            report[name].update(summarize(name,load_json(path)))
+            loaded[name]=load_json(path)
+            report[name].update(summarize(name,loaded[name]))
+
+    de=loaded.get("DE") or {}
+    ion=loaded.get("DE_IONITY") or {}
+    de_sites=de.get("sites") if isinstance(de,dict) else []
+    ion_locs=ion.get("locations") if isinstance(ion,dict) else []
+    if isinstance(de_sites,list) and isinstance(ion_locs,list):
+        exact_index={}
+        for s in de_sites:
+            if not isinstance(s,dict): continue
+            co=s.get("coordinates") or {}
+            try:key=(round(float(co.get("latitude")),6),round(float(co.get("longitude")),6))
+            except Exception:continue
+            exact_index.setdefault(key,[]).append(s)
+        matched=[]; unmatched=[]
+        for loc in ion_locs:
+            try:key=(round(float(loc.get("latitude")),6),round(float(loc.get("longitude")),6))
+            except Exception:
+                unmatched.append({"uuid":loc.get("uuid"),"reason":"bad_coords"});continue
+            candidates=exact_index.get(key,[])
+            if len(candidates)==1:
+                s=candidates[0]
+                matched.append({
+                  "uuid":loc.get("uuid"),"locationId":loc.get("locationId"),"name":loc.get("name"),
+                  "baselineId":s.get("id"),"baselineOperator":s.get("operator"),
+                  "baselineEvseIds":s.get("evseIds"),"baselineSourceStationIds":s.get("sourceStationIds")
+                })
+            else:
+                unmatched.append({"uuid":loc.get("uuid"),"locationId":loc.get("locationId"),"name":loc.get("name"),"candidateCount":len(candidates)})
+        report["IONITY_DE_EXACT_COORD_CROSSWALK"]={
+          "locations":len(ion_locs),"uniqueExactCoordinateMatches":len(matched),"unmatchedOrAmbiguous":len(unmatched),
+          "sampleMatches":matched[:5],"sampleUnmatched":unmatched[:10]
+        }
     print(json.dumps(report,ensure_ascii=False,indent=2,default=str))
 
 if __name__=="__main__":
