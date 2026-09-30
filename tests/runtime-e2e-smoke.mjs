@@ -39,7 +39,7 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -59,6 +59,7 @@ assert.equal(typeof loaders['uk-production-open-feeds'],'function');
 assert.equal(typeof loaders['morocco-evgo-native'],'function');
 assert.equal(typeof loaders['morocco-kilowatt-public'],'function');
 assert.equal(typeof loaders['france-national'],'function');
+if(process.env.REQUIRE_ELECTRA_PLATFORM==='1') assert.equal(typeof loaders['france-electra-platform'],'function');
 assert.equal(typeof loaders['italy-pun'],'function');
 assert.equal(typeof loaders['switzerland-national'],'function');
 assert.equal(typeof loaders['switzerland-avia-r8'],'function');
