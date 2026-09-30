@@ -19,6 +19,7 @@ const directOffers=require(path.join(runtime,'assets/v9/adapters/direct-offers.j
 const legacyDirectStations=require(path.join(runtime,'assets/v9/adapters/legacy-direct-stations.js'));
 const switzerlandAvia=require(path.join(runtime,'assets/v9/adapters/switzerland-avia.js'));
 const italyIonityExact=require(path.join(runtime,'assets/v9/adapters/italy-ionity-exact.js'));
+const franceIonityExact=require(path.join(runtime,'assets/v9/adapters/france-ionity-exact.js'));
 const extension=require(path.join(runtime,'assets/v9/production-loader-extension.js'));
 
 function fileFetch(baseRoot){
@@ -37,12 +38,12 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','italy-pun','italy-verified-offers','italy-ionity-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
@@ -61,6 +62,7 @@ assert.equal(typeof loaders['italy-pun'],'function');
 assert.equal(typeof loaders['switzerland-national'],'function');
 assert.equal(typeof loaders['switzerland-avia-r8'],'function');
 assert.equal(typeof loaders['italy-ionity-r8'],'function');
+assert.equal(typeof loaders['france-ionity-r8'],'function');
 
 const engine=dataEngine.createEngine({registry:subRegistry,loaders});
 
