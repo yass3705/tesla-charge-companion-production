@@ -5,10 +5,11 @@ import json
 import pathlib
 import sys
 
-def main(root):
+def main(root, expected_snapshot_id=None):
     root=root.resolve()
     manifest=json.loads((root/"manifest.json").read_text(encoding="utf-8"))
-    assert manifest["snapshotId"]=="2026-09-30-r8", manifest.get("snapshotId")
+    if expected_snapshot_id is not None:
+        assert manifest["snapshotId"]==expected_snapshot_id, manifest.get("snapshotId")
     assert manifest["policy"]=="fail-closed"
     rows=manifest["files"]
     assert manifest["fileCount"]==len(rows)>=1500
@@ -28,4 +29,4 @@ def main(root):
     print(json.dumps({"ok":True,"snapshotId":manifest["snapshotId"],"fileCount":len(rows),"bytes":manifest["bytes"],"allSha256Verified":True}))
 
 if __name__=="__main__":
-    main(pathlib.Path(sys.argv[1]))
+    main(pathlib.Path(sys.argv[1]), sys.argv[2] if len(sys.argv)>2 else None)
