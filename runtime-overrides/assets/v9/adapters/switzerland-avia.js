@@ -23,11 +23,7 @@
       subscriptionId:null,
       countries:['CH'],
       currency:'CHF',
-      operatorIds:['avia','avia-volt'],
       evseIds:evseVariants(evseId),
-      connectorKinds:[kind],
-      minPowerKw:power,
-      maxPowerKw:power,
       pricing:{type:'rules',rules:[{
         scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'CHF',
         pricePerKwh:rate,chargePerMinute:0,connectionFee:0,idlePerMinute:0,
@@ -45,7 +41,10 @@
         tariffIds:uniq(row?.tariffIds||[]),
         vatPercentage:num(price?.vatPercentage),
         pricePerKwhExclVat:num(price?.pricePerKwhExclVat),
-        timeBased:false
+        timeBased:false,
+        connectorKind:kind,
+        powerKw:power,
+        matchPolicy:'exact_evse_only'
       }
     };
   }
