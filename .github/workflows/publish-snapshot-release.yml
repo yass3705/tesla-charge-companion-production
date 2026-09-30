@@ -98,8 +98,8 @@ jobs:
           TAG="v9-snapshot-2026-09-30"
           ZIP="dist/tcc-v9-snapshot-2026-09-30.zip"
           SUM="dist/tcc-v9-snapshot-2026-09-30.sha256"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$ZIP" "$SUM" --clobber
+          if gh release view "$TAG" --repo yass3705/tesla-charge-companion-production >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" "$SUM" --clobber --repo yass3705/tesla-charge-companion-production
           else
-            gh release create "$TAG" "$ZIP" "$SUM"               --title "TCC V9 snapshot — 2026-09-30"               --notes-file /tmp/release-notes.md               --target "$GITHUB_SHA"
+            gh release create "$TAG" "$ZIP" "$SUM"               --repo yass3705/tesla-charge-companion-production               --title "TCC V9 snapshot — 2026-09-30"               --notes-file /tmp/release-notes.md               --target "$GITHUB_SHA"
           fi
