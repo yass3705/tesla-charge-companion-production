@@ -41,10 +41,17 @@ def main():
     assert (root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz").exists()
     assert uk_src.get("adapter")=="uk-open-feeds-v1" and uk_src.get("path")=="../snapshot-inputs/UK/all.json.gz", uk_src
     assert de_src.get("optional") is False and uk_src.get("optional") is False
-    for source_id in ("morocco-fastvolt-public","morocco-totalenergies-hosts"):
+    for source_id in ("morocco-evgo-native","morocco-fastvolt-public","morocco-totalenergies-hosts"):
         src=sources.get(source_id) or {}
         assert str(src.get("path","")).startswith("../snapshot-inputs/MA/sources/"), src
         assert not src.get("url"), src
+    kw_src=sources.get("morocco-kilowatt-public") or {}
+    assert kw_src.get("profile")=="kilowatt-native-local", kw_src
+    assert str((kw_src.get("paths") or {}).get("inventory","")).startswith("../snapshot-inputs/MA/sources/"), kw_src
+    assert str((kw_src.get("paths") or {}).get("native","")).startswith("../snapshot-inputs/MA/sources/"), kw_src
+    assert not kw_src.get("urls"), kw_src
+    prod=registry.get("productionIntegration") or {}
+    assert prod.get("remainingExternalSources")==[], prod
 
     for key,row in contract["datasets"].items():
         for field in ("entry","manifest","canonical","all","offers"):
@@ -147,11 +154,14 @@ def main():
 
     ma=load(root/"snapshot-inputs/MA/manifest.json")
     labels={x["label"] for x in ma["sources"]}
-    base_labels={"EVGO","FastVolt","FastVolt tariff","Kilowatt native","Kilowatt overlay","EVOne policy"}
+    base_labels={"EVGO","FastVolt","FastVolt tariff","Kilowatt inventory","Kilowatt native","Kilowatt overlay","EVOne policy"}
     assert base_labels <= labels
     assert ma["knownSourceCounts"]["EVGO"]["stations"]==17
     assert ma["knownSourceCounts"]["FastVolt"]["productionCandidates"]==97
     assert ma["knownSourceCounts"]["Kilowatt"]["tariffResolvedStations"]==43
+    assert (root/"snapshot-inputs/MA/sources/evgo-production.json").exists()
+    assert (root/"snapshot-inputs/MA/sources/kilowatt-public-station-inventory.json").exists()
+    assert (root/"snapshot-inputs/MA/sources/kilowatt-native-tariffs.json").exists()
     if rev>=4:
         assert "TotalEnergies native" in labels
         assert ma["knownSourceCounts"]["TotalEnergies"]=={"stations":18,"connectors":38,"pricedConnectors":38,"liveStatusConnectors":38}
