@@ -1,13 +1,8 @@
 name: Build V9 2026-09-30 r3 candidate
 
 on:
-  push:
-    paths:
-      - "config/snapshots/2026-09-30-r3.json"
-      - "scripts/build_snapshot.py"
-      - "scripts/validate_built_snapshot.py"
-      - "scripts/validate_stable_parity.py"
-      - ".github/workflows/build-2026-09-30-r3.yml"
+  # Historical revision: manual rebuild only.
+
   workflow_dispatch:
 
 permissions:
