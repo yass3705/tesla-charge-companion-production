@@ -116,3 +116,27 @@ Cloudflare work is paused. Its configuration and tests are retained for possible
 - Unmatched/unsupported pricing remains fail-closed.
 - Historical releases are never overwritten.
 - New Data Lab improvements wait for a future snapshot unless explicitly selected for a new immutable revision.
+
+
+## 2026-09-30 — r9 Electra France candidate validated
+
+- Candidate snapshot: `2026-09-30-r9-electra-fr`.
+- Production build run: `36771235290` — SUCCESS.
+- Pinned Data Lab SHA: `fece067bd58916d493a9479ff9db31bcc94bef6b`.
+- Electra platform overlay validation:
+  - 25,027 published Electra offers.
+  - 88,334 exact national France EVSE identities.
+  - 327 integrity-checked shards.
+  - France national baseline is the sole identity hub.
+  - No Electra→Electroverse dependency; no proximity inference.
+  - Fail-closed exclusions: 11,048 locations without an exact national EVSE, 5,362 heterogeneous-location tariffs, 411 unsupported tariff structures.
+- Runtime smoke on representative France query:
+  - 3,784 national stations surfaced.
+  - 2,295 priced stations.
+  - 2,101 stations with an Electra offer.
+  - 190 stations with an Electroverse offer.
+  - 59 stations independently receiving both Electra and Electroverse offers from the same national station hub.
+- Cross-country smoke remained green for ES, NL, DE, GB, IT, CH and MA.
+- Stable parity passed: 13 critical files / 8 overlays.
+- r8 non-regression build `36771235487` — SUCCESS.
+- No live deployment or mutation of RC1/r8 has occurred.
