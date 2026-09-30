@@ -56,6 +56,17 @@ def main():
     for src,dst in pairs:
         if src.exists(): copy_file(src,dst)
 
+    # Persist country progress ledgers beside their data so every snapshot is
+    # self-describing and auditable.
+    ledger_pairs=[
+      (dl/"docs/france-cpo-progress-2026-09.json", overlays/"FR/cpo-ledger.json"),
+      (dl/"docs/italy-cpo-progress-2026-09.json", overlays/"IT/cpo-ledger.json"),
+      (dl/"docs/germany-cpo-progress-2026-09.json", overlays/"DE/cpo-progress.json"),
+      (dl/"docs/v9-country-progress-2026-09-30.json", overlays/"v9-country-progress.json"),
+    ]
+    for src,dst in ledger_pairs:
+        if src.exists(): copy_file(src,dst)
+
     national=dl/"data/national"
 
     # UK: do NOT use inventory/united_kingdom.json (Tesla inventory).
@@ -138,10 +149,12 @@ def main():
         de=overlays/"DE"
         copy_file(catalog,de/"all.json.gz")
         copy_file(source_manifest,de/"national-source-manifest.json")
+        dl_ledger=dl/"docs/germany-cpo-second-pass-resolution-180.json"
         prod_ledger=pathlib.Path("docs/source-ledgers/germany-cpo-second-pass-resolution-180.json")
-        copy_file(prod_ledger,de/"resolution-ledger.json")
+        ledger_src=dl_ledger if dl_ledger.exists() else prod_ledger
+        copy_file(ledger_src,de/"resolution-ledger.json")
         m=load_json(source_manifest)
-        ledger=load_json(prod_ledger)
+        ledger=load_json(ledger_src)
         assert m["stats"]["nonTeslaSites"] == 63405
         assert m["stats"]["directCpoSites"] == 5471
         assert ledger["canonicalAfter"] == {"totalNamedCpos":591,"complete":244,"partial":347,"blocked":0}
