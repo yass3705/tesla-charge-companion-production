@@ -1,5 +1,10 @@
 name: Read-only V9 source freshness audit
 on:
+  push:
+    paths:
+      - "scripts/inspect_v9_source_deltas.py"
+      - "tests/test_v9_source_deltas.py"
+      - ".github/workflows/v9-source-freshness-audit.yml"
   schedule:
     - cron: "23 23 * * *"
   workflow_dispatch:
