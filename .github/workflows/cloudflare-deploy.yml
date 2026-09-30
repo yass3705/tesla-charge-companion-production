@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       snapshot_id:
-        description: Snapshot to deploy to R2
+        description: Snapshot to build and upload to R2
         required: true
         default: "2026-09-30"
       promote_current:
@@ -18,60 +18,87 @@ permissions:
   actions: read
 
 jobs:
-  deploy:
+  build-validate-deploy:
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          path: production
+
+      - name: Checkout pinned stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+
+      - name: Checkout pinned Data Lab
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: d65546e28240d882bca34a9b177b4622669577c1
+          path: datalab
+          persist-credentials: false
+
+      - name: Download pinned Germany national baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api /repos/yass3705/tesla-charge-companion-data-lab/actions/artifacts/9866595035/zip > /tmp/germany.zip
+          mkdir -p germany-source
+          unzip -q /tmp/germany.zip -d germany-source
+          test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo.json.gz
+          test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo_manifest.json
+
+      - name: Build and validate immutable candidate
+        env:
+          SNAPSHOT_ID: ${{ inputs.snapshot_id }}
+        run: |
+          test "$SNAPSHOT_ID" = "2026-09-30" || (echo "Only pinned snapshot 2026-09-30 is currently configured" && exit 1)
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30.json
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --out ../dist/v9-2026-09-30
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30
+
+      - name: Preflight R2 object plan
+        run: |
+          cd production
+          python scripts/upload_r2_snapshot.py             --root ../dist/v9-2026-09-30             --snapshot-id "${{ inputs.snapshot_id }}"             --bucket tcc-v9-production-data             --dry-run
 
       - name: Require Cloudflare credentials
         run: |
           test -n "$CLOUDFLARE_API_TOKEN" || (echo "Missing CLOUDFLARE_API_TOKEN" && exit 1)
           test -n "$CLOUDFLARE_ACCOUNT_ID" || (echo "Missing CLOUDFLARE_ACCOUNT_ID" && exit 1)
 
-      - name: Download pinned snapshot artifact
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api /repos/yass3705/tesla-charge-companion-production/actions/artifacts/11070310523/zip > /tmp/snapshot.zip
-          mkdir -p dist/snapshot
-          unzip -q /tmp/snapshot.zip -d dist/snapshot
-          test -s dist/snapshot/manifest.json
-
-      - name: Validate requested snapshot
-        run: |
-          python - <<'PY'
-          import json, os
-          m=json.load(open("dist/snapshot/manifest.json"))
-          requested=os.environ["SNAPSHOT_ID"]
-          assert m["snapshotId"] == requested, (m["snapshotId"], requested)
-          print("validated", requested, "files", m["fileCount"], "bytes", m["bytes"])
-          PY
-        env:
-          SNAPSHOT_ID: ${{ inputs.snapshot_id }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
       - name: Install Wrangler
         run: npm install --no-save wrangler@latest
 
-      - name: Create R2 bucket if needed
+      - name: Ensure R2 bucket exists
         run: npx wrangler r2 bucket create tcc-v9-production-data || true
 
-      - name: Upload snapshot objects
+      - name: Upload immutable snapshot to R2
         run: |
-          python scripts/upload_r2_snapshot.py \
-            --root dist/snapshot \
-            --snapshot-id "${{ inputs.snapshot_id }}" \
-            --bucket tcc-v9-production-data
+          cd production
+          python scripts/upload_r2_snapshot.py             --root ../dist/v9-2026-09-30             --snapshot-id "${{ inputs.snapshot_id }}"             --bucket tcc-v9-production-data
+
+      - name: Deploy Worker
+        run: |
+          cd production/cloudflare
+          npx wrangler deploy
 
       - name: Promote current pointer
         if: ${{ inputs.promote_current }}
         run: |
-          printf '{"snapshotId":"%s"}\n' "${{ inputs.snapshot_id }}" > /tmp/current.json
+          printf '{"snapshotId":"%s"}
+' "${{ inputs.snapshot_id }}" > /tmp/current.json
           npx wrangler r2 object put tcc-v9-production-data/current.json --file /tmp/current.json --remote
-
-      - name: Deploy Worker
-        run: |
-          cd cloudflare
-          npx wrangler deploy
