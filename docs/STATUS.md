@@ -61,9 +61,17 @@ The original immutable r8 release and its digest above remain untouched. Passing
 
 Independent browser-asset candidate validation succeeded in [run 36730931772](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36730931772). The offline validator `scripts/validate_browser_asset_graph.py` verified **30 real shell dependencies**, **7 required production registry sources**, correct loader/extension/bootstrap order, and a local fallback. It rebuilt using the same pinned r8 sources; no release was mutated.
 
+### Latest integration verification and performance pass
+
+- Multi-country production candidate succeeded in [run 36733474618](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36733474618), including Tesla local inventory, Spain, Netherlands, Germany, UK, France, Italy, Switzerland and Morocco runtime smoke, and the strictly unpriced three-site IONITY Germany inventory supplement.
+- Browser-asset validation is now a **mandatory gate within the primary r8 candidate CI build**, rather than relying only on a separately launched browser check.
+- The runtime loader now memoizes only immutable UK full-feed, Germany tile manifest and IONITY Germany overlay payloads between map viewport queries; individual German station tiles remain viewport-scoped to limit resident memory. Rejected fetch promises are evicted to permit retries. The loader defaults its basePath to the pinned stable-loader default, `..`.
+- `tests/runtime-loader-cache.test.mjs` covers reuse, viewport isolation, initial fetch failure/retry and path resolution. The latest integrated CI run is responsible for validating these changes; a successful prior candidate must not be represented as verification of this newer commit.
+- Historical published r8 release remains immutable. Do not regenerate or publish over its original ZIP. A new, separately named candidate can be packaged only once all current gates pass.
+
 ### Next production gates
 
-1. Extend actual runtime smoke to Spain, Netherlands and local Tesla inventory, alongside existing six-country tests.
+1. Maintain verified multi-country coverage including Spain, Netherlands and local Tesla inventory; review new CI results after every loader/runtime change.
 2. Keep the independently validated browser-asset graph as a required CI gate before packaging a new integration release.
 3. Package validated integration into a **new, separately named release candidate** when all gates pass; do not overwrite the historical r8 tag or ZIP.
 4. Later implement the scheduled refresh/promotion workflow independently of the frozen integration baseline. Future collection improvements belong in a future pinned snapshot.
