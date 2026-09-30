@@ -6,6 +6,7 @@ const de=require('../runtime-overrides/assets/v9/adapters/germany-national.js');
 const uk=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
 const avia=require('../runtime-overrides/assets/v9/adapters/switzerland-avia.js');
 const italyIonity=require('../runtime-overrides/assets/v9/adapters/italy-ionity-exact.js');
+const franceIonity=require('../runtime-overrides/assets/v9/adapters/france-ionity-exact.js');
 
 // Germany: inventory remains visible, but non-production-rankable pricing is never exposed.
 {
@@ -176,10 +177,29 @@ const italyIonity=require('../runtime-overrides/assets/v9/adapters/italy-ionity-
   assert.equal(out.offerRules[1].connectorKinds[0],'AC');
 }
 
+{
+  const payload={
+    generatedAt:'2026-09-01T00:00:00Z',failClosed:true,evseCount:2,resolvedEvseCount:1,failureCount:1,missingPriceCount:0,
+    stations:[{locationUuid:'FRL1',name:'IONITY Test FR',connectors:[
+      {connectorUuid:'FRC1',sourceEvseId:'FR*IOY*E123456',number:1,type:'CCS',maxPowerW:350000,status:'AVAILABLE',adhocPrice:{unit:'kWh',amount:'0.55',currency:'EUR'},blockingFee:null}
+    ]}]
+  };
+  const out=franceIonity.normalizePayload(payload,{id:'france-ionity-r8',priority:{tariff:135}});
+  assert.equal(out.offerRules.length,1);
+  assert.equal(out.offerRules[0].provider,'IONITY Direct');
+  assert.ok(out.offerRules[0].evseIds.includes('FR*IOY*E123456'));
+  assert.ok(out.offerRules[0].evseIds.includes('FRIOYE123456'));
+  assert.equal(out.offerRules[0].pricing.rules[0].pricePerKwh,0.55);
+  assert.equal(out.offerRules[0].operatorIds,undefined);
+  assert.equal(out.offerRules[0].connectorKinds,undefined);
+  assert.equal(out.offerRules[0].metadata.matchPolicy,'exact_evse_only');
+}
+
 console.log(JSON.stringify({
   ok:true,
   germany:'fail-closed + explicit production-rankable scalar verified',
   uk:'exact tariff-id join + restricted tariff fail-closed verified',
   switzerlandAvia:'exact EVSE CHF/kWh mapping + time-based fail-closed verified',
-  italyIonity:'validated reconciliation resolved EVSEs only verified'
+  italyIonity:'validated reconciliation resolved EVSEs only verified',
+  franceIonity:'exact resolved EVSEs only verified'
 }));
