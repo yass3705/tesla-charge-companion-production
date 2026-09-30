@@ -4,6 +4,8 @@ import hashlib
 import json
 import pathlib
 import shutil
+import subprocess
+import sys
 
 def sha256(path):
     h=hashlib.sha256()
@@ -46,6 +48,17 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    # Production owns the integration layer. Start from the pinned stable
+    # engine, then overlay production-only adapters/loaders and rewrite the
+    # source registry so snapshot inputs are actually consumable at runtime.
+    production_root=pathlib.Path(__file__).resolve().parents[1]
+    overrides=production_root/"runtime-overrides"
+    if overrides.exists():
+        for src in overrides.rglob("*"):
+            if src.is_file():
+                copy_file(src,out/"runtime"/src.relative_to(overrides))
+    registry=out/"runtime/data/v9/source-registry.json"
+    subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
     overlays=out/"snapshot-inputs"
 
     # CH and FR authoritative canonical snapshots newer than legacy runtime.
@@ -215,6 +228,15 @@ def main():
       "schemaVersion":1,
       "snapshotId":cfg["snapshotId"],
       "policy":cfg["policy"],
+      "runtimeIntegration":{
+        "registry":"runtime/data/v9/source-registry.json",
+        "scripts":[
+          "runtime/assets/v9/adapters/germany-national.js",
+          "runtime/assets/v9/adapters/uk-open-feeds.js",
+          "runtime/assets/v9/production-loader-extension.js"
+        ],
+        "loaderExtensionInstall":"TCCV9ProductionLoaders.install()"
+      },
       "datasets":{
         "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current"},
         "ES":{"kind":"static-tiles","manifest":"runtime/data/v9/spain-static/manifest.json","offers":"runtime/data/v9/spain-reve-offers/manifest.json","coverage":"complete"},
