@@ -1,0 +1,28 @@
+name: Inspect V9 runtime input shapes
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "scripts/inspect_runtime_inputs.py"
+      - ".github/workflows/inspect-runtime-inputs.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: d0996b493bcfee5312b5ca1e38070df87b0d9642
+          path: datalab
+          persist-credentials: false
+      - name: Inspect pinned r8 input shapes
+        run: python production/scripts/inspect_runtime_inputs.py datalab
