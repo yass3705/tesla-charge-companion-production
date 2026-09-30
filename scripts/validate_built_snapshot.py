@@ -115,6 +115,36 @@ def main():
         assert dec["countryConnectorCount"]>=1500, dec
         assert dec["countryUnpricedConnectorCount"]==0, dec
 
+        # Production runtime applies IONITY DE only where the national baseline
+        # has one unique station at the exact same 6-decimal coordinates and
+        # that station is explicitly IONITY. Mixed site prices fail closed.
+        if rev>=8:
+            with gzip.open(root/"snapshot-inputs/DE/all.json.gz","rt",encoding="utf-8") as f:
+                de_all=json.load(f)
+            idx={}
+            for site in de_all.get("sites",[]):
+                co=site.get("coordinates") or {}
+                try:key=(round(float(co.get("latitude")),6),round(float(co.get("longitude")),6))
+                except (TypeError,ValueError):continue
+                idx.setdefault(key,[]).append(site)
+            safe=0
+            for loc in ion_de.get("locations",[]):
+                if str(loc.get("country","")).upper()!="DE" or loc.get("cpoIdentifier")!="IONITY_CPO":
+                    continue
+                try:key=(round(float(loc.get("latitude")),6),round(float(loc.get("longitude")),6))
+                except (TypeError,ValueError):continue
+                matches=idx.get(key,[])
+                if len(matches)!=1 or "ionity" not in str(matches[0].get("operator","")).lower():
+                    continue
+                connectors=loc.get("connectors") or []
+                if not connectors or any(c.get("pricePerKwhEur") in (None,0) for c in connectors):
+                    continue
+                prices={round(float(c["pricePerKwhEur"]),6) for c in connectors}
+                kinds={str(c.get("kind","")).upper() for c in connectors}
+                if len(prices)==1 and len(kinds)==1 and next(iter(kinds)) in {"AC","DC"}:
+                    safe+=1
+            assert safe>=120, {"safeIonityGermanySites":safe}
+
     ma=load(root/"snapshot-inputs/MA/manifest.json")
     labels={x["label"] for x in ma["sources"]}
     base_labels={"EVGO","FastVolt","FastVolt tariff","Kilowatt native","Kilowatt overlay","EVOne policy"}
