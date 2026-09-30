@@ -85,6 +85,18 @@ def main():
     assert atlante_fr.get("path")=="../snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz", atlante_fr
     assert atlante_fr.get("active") is True, atlante_fr
     assert (root/"snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz").exists()
+    electroverse_fr=sources.get("france-electroverse-r8") or {}
+    assert electroverse_fr.get("adapter")=="direct-offer-json", electroverse_fr
+    assert electroverse_fr.get("path")=="../snapshot-inputs/FR/platforms/electroverse-runtime-offers.json", electroverse_fr
+    assert electroverse_fr.get("optional") is False and electroverse_fr.get("active") is True, electroverse_fr
+    ev_runtime=root/"snapshot-inputs/FR/platforms/electroverse-runtime-offers.json"
+    assert ev_runtime.exists(), ev_runtime
+    ev_payload=load(ev_runtime)
+    ev_meta=ev_payload.get("metadata") or {}
+    assert len(ev_payload.get("emspOffers") or [])>=1000, ev_meta
+    assert ev_meta.get("publishedStationOffers")==len(ev_payload.get("emspOffers") or []), ev_meta
+    assert (ev_payload.get("policy") or {}).get("complexPricingFailClosed") is True, ev_payload.get("policy")
+    assert (ev_payload.get("policy") or {}).get("heterogeneousConnectorPricingFailClosed") is True, ev_payload.get("policy")
     avia_ch=sources.get("switzerland-avia-r8") or {}
     assert avia_ch.get("adapter")=="switzerland-avia-v1", avia_ch
     assert avia_ch.get("path")=="../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json", avia_ch
