@@ -1,0 +1,41 @@
+name: Validate durable Germany baseline
+
+on:
+  push:
+    paths:
+      - ".github/workflows/validate-durable-germany.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Read r5 metadata
+        id: meta
+        run: python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r5.json >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: main
+          path: datalab
+          persist-credentials: false
+      - name: Build without Germany Actions artifact
+        run: |
+          cd production
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config config/snapshots/2026-09-30-r5.json --out ../dist/durable-de
+          python scripts/validate_built_snapshot.py ../dist/durable-de 2026-09-30-r5
+          python scripts/validate_stable_parity.py ../stable ../dist/durable-de
+          test -s ../dist/durable-de/snapshot-inputs/DE/all.json.gz
+          echo "DURABLE_DE_PASS"
