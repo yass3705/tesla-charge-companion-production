@@ -1,0 +1,60 @@
+name: Browser launch smoke for V9 RC1
+on:
+  push:
+    paths:
+      - ".github/workflows/smoke-v9-rc1-browser.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download exact successful candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/v9-2026-09-30-r8
+          gh run download 36736001077 --repo yass3705/tesla-charge-companion-production --name tcc-v9-2026-09-30-r8-candidate --dir dist/v9-2026-09-30-r8
+      - name: Serve the self-contained package
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/v9-2026-09-30-r8 >/tmp/tcc-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/v9-production-shell/shell-config.json >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/tcc-server.log
+          exit 1
+      - name: Open RC1 shell in actual headless Chrome
+        run: |
+          set -euo pipefail
+          CHROME=$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)
+          test -n "$CHROME"
+          echo "Chrome: $CHROME"
+          timeout 100 "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --disable-background-networking --disable-extensions --virtual-time-budget=20000 \
+            --dump-dom "http://127.0.0.1:8765/v9-production-shell/" >/tmp/tcc-browser-dom.html 2>/tmp/tcc-browser-stderr.log
+          python3 - <<'PY'
+          from pathlib import Path
+          dom=Path("/tmp/tcc-browser-dom.html").read_text(errors="replace")
+          stderr=Path("/tmp/tcc-browser-stderr.log").read_text(errors="replace")
+          assert 'name="tcc-v9-shell"' in dom, "V9 shell marker missing; possible fallback redirect or browser bootstrap failure"
+          assert 'assets/v9/production-bootstrap.js' in dom, "Production bootstrap absent from actual browser document"
+          assert 'assets/v9/production-loader-extension.js' in dom, "Production loader absent from actual browser document"
+          assert not any(k in dom for k in ["production snapshot id mismatch","control build mismatch"]), "Browser shell failed pinned preflight"
+          print({"browserShell":"loaded","productionDependenciesPresent":True,"domBytes":len(dom),"stderrBytes":len(stderr)})
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v9-rc1-browser-smoke-evidence
+          path: |
+            /tmp/tcc-browser-dom.html
+            /tmp/tcc-browser-stderr.log
+            /tmp/tcc-server.log
+          if-no-files-found: ignore
+          retention-days: 7
