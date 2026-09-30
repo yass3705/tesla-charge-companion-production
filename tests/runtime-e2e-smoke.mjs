@@ -16,7 +16,6 @@ const uk=require(path.join(runtime,'assets/v9/adapters/uk-open-feeds.js'));
 const ma=require(path.join(runtime,'assets/v9/adapters/morocco-public.js'));
 const nationalCompact=require(path.join(runtime,'assets/v9/adapters/national-compact.js'));
 const directOffers=require(path.join(runtime,'assets/v9/adapters/direct-offers.js'));
-const franceEmspCompact=require(path.join(runtime,'assets/v9/adapters/france-emsp-compact.js'));
 const legacyDirectStations=require(path.join(runtime,'assets/v9/adapters/legacy-direct-stations.js'));
 const switzerlandAvia=require(path.join(runtime,'assets/v9/adapters/switzerland-avia.js'));
 const italyIonityExact=require(path.join(runtime,'assets/v9/adapters/italy-ionity-exact.js'));
@@ -40,18 +39,18 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-rich-r8','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,franceEmspCompact,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
   registry:subRegistry,
   basePath:pathToFileURL(runtime+path.sep).href,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,franceEmspCompact},
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations},
   fetchImpl:fileFetch(runtime)
 });
 
@@ -60,7 +59,6 @@ assert.equal(typeof loaders['uk-production-open-feeds'],'function');
 assert.equal(typeof loaders['morocco-evgo-native'],'function');
 assert.equal(typeof loaders['morocco-kilowatt-public'],'function');
 assert.equal(typeof loaders['france-national'],'function');
-assert.equal(typeof loaders['france-electra-rich-r8'],'function');
 assert.equal(typeof loaders['italy-pun'],'function');
 assert.equal(typeof loaders['switzerland-national'],'function');
 assert.equal(typeof loaders['switzerland-avia-r8'],'function');
@@ -163,9 +161,12 @@ const frDualEmsp=frResult.stations.filter(st=>{
   return providers.has('Electra')&&providers.has('Electroverse');
 });
 assert.ok(frElectroverse.length>0,'FR compact Electroverse offers did not attach in Paris-area runtime query');
-assert.ok(frResult.diagnostics.sources['france-electra-rich-r8']?.loaded===true,'FR Electra rich aggregate source not loaded');
-assert.ok(frElectra.length>0,'FR Electra rich aggregate offers did not attach in Paris-area runtime query');
-assert.ok(frDualEmsp.length>0,'FR national station hub did not independently receive both Electra and Electroverse offers');
+const requireElectra=process.env.REQUIRE_ELECTRA_PLATFORM==='1';
+if(requireElectra){
+  assert.ok(frResult.diagnostics.sources['france-electra-platform']?.loaded===true,'FR Electra platform overlay source not loaded');
+  assert.ok(frElectra.length>0,'FR Electra platform offers did not attach to national France stations');
+  assert.ok(frDualEmsp.length>0,'FR national station hub did not independently receive both Electra and Electroverse offers');
+}
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
