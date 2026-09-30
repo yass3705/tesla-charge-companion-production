@@ -9,6 +9,7 @@ on:
       - "scripts/build_germany_runtime_tiles.py"
       - "scripts/build_electroverse_runtime_offers.py"
       - "scripts/validate_built_snapshot.py"
+      - "scripts/validate_browser_asset_graph.py"
       - "runtime-overrides/**"
       - "tests/runtime-integration.test.mjs"
       - "tests/runtime-e2e-smoke.mjs"
@@ -74,6 +75,7 @@ jobs:
           python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --config config/snapshots/2026-09-30-r8.json             --out ../dist/v9-2026-09-30-r8
           python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r8 2026-09-30-r8
           python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r8
+          python scripts/validate_browser_asset_graph.py ../dist/v9-2026-09-30-r8
       - name: Runtime multi-country end-to-end smoke
         run: node production/tests/runtime-e2e-smoke.mjs dist/v9-2026-09-30-r8
 
