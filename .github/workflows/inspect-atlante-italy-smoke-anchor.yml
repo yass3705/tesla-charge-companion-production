@@ -1,0 +1,82 @@
+name: Inspect Atlante Italy smoke anchor
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/inspect-atlante-italy-smoke-anchor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: d0996b493bcfee5312b5ca1e38070df87b0d9642
+          path: datalab
+          persist-credentials: false
+      - name: Find exact EVSE overlap
+        run: |
+          python - <<'PY'
+          import gzip,json,pathlib
+          with gzip.open("datalab/data/national/atlante_direct_stations_italy_latest.json.gz","rt",encoding="utf-8") as f:
+              atl=json.load(f)
+          # Scan all Italy static tiles; they are compact arrays and carry PDC IDs.
+          root=pathlib.Path("stable/v9-production-runtime/data/v9/italy-static")
+          pdc_to_station={}
+          tile_files=list(root.rglob("*.json"))+list(root.rglob("*.json.gz"))
+          for p in tile_files:
+              try:
+                  if p.name=="manifest.json": continue
+                  if p.suffix==".gz":
+                      with gzip.open(p,"rt",encoding="utf-8") as f:d=json.load(f)
+                  else:
+                      d=json.loads(p.read_text(encoding="utf-8"))
+              except Exception:
+                  continue
+              rows=d if isinstance(d,list) else d.get("stations",[]) if isinstance(d,dict) else []
+              for r in rows:
+                  if not isinstance(r,list) or len(r)<9: continue
+                  sid=r[0]
+                  groups=r[8] if isinstance(r[8],list) else []
+                  for g in groups:
+                      if not isinstance(g,list) or len(g)<7: continue
+                      for ev in g[6] or []:
+                          raw=str(ev)
+                          compact=''.join(ch for ch in raw.upper() if ch.isalnum())
+                          pdc_to_station[raw]=(sid,r[3],r[4],r[1])
+                          pdc_to_station[compact]=(sid,r[3],r[4],r[1])
+          matches=[]
+          for loc in atl.get("locations",[]):
+              for c in loc.get("connectors",[]):
+                  ev=str(c.get("evseId") or "")
+                  compact=''.join(ch for ch in ev.upper() if ch.isalnum())
+                  hit=pdc_to_station.get(ev) or pdc_to_station.get(compact)
+                  if hit:
+                      matches.append({
+                        "atlanteLocationId":loc.get("locationId") or loc.get("id"),
+                        "atlanteName":loc.get("name"),
+                        "atlanteCoordinates":loc.get("coordinates"),
+                        "evseId":ev,
+                        "pricePerKwhEur":c.get("pricePerKwhEur"),
+                        "baselineStationId":hit[0],
+                        "baselineLat":hit[1],
+                        "baselineLon":hit[2],
+                        "baselineName":hit[3]
+                      })
+                      break
+              if matches: break
+          print(json.dumps({"staticFiles":len(tile_files),"indexedIds":len(pdc_to_station),"firstMatch":matches[0] if matches else None},ensure_ascii=False,indent=2))
+          assert matches, "no exact Atlante EVSE overlap found"
+          PY
