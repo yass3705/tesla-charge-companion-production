@@ -7,6 +7,7 @@ on:
       - "docs/source-ledgers/**"
       - "scripts/build_snapshot.py"
       - "scripts/validate_built_snapshot.py"
+      - "scripts/validate_stable_parity.py"
       - ".github/workflows/build-snapshot.yml"
   workflow_dispatch:
 
@@ -55,6 +56,7 @@ jobs:
             --germany-source ../germany-source \
             --out ../dist/v9-2026-09-30
           python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
