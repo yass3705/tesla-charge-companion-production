@@ -5,6 +5,7 @@ const require=createRequire(import.meta.url);
 const de=require('../runtime-overrides/assets/v9/adapters/germany-national.js');
 const uk=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
 const avia=require('../runtime-overrides/assets/v9/adapters/switzerland-avia.js');
+const italyIonity=require('../runtime-overrides/assets/v9/adapters/italy-ionity-exact.js');
 
 // Germany: inventory remains visible, but non-production-rankable pricing is never exposed.
 {
@@ -146,9 +147,35 @@ const avia=require('../runtime-overrides/assets/v9/adapters/switzerland-avia.js'
   assert.equal(out.metadata.rejected.time_based,1);
 }
 
+{
+  const payload={
+    generatedAt:'2026-09-23T00:00:00Z',
+    counts:{resolvedPanEvses:2,unresolvedPanEvses:1,apiOnlyConnectors:1},
+    matches:[{
+      ionityLocationUuid:'L1',ionityName:'IONITY Test',distanceMeters:0,
+      resolvedEvses:[
+        {evseId:'IT*IOY*E100001',connectorUuid:'C1',number:1,type:'CCS',powerKw:350,pricePerKwhEur:0.85},
+        {evseId:'IT*IOY*E100053',connectorUuid:'C53',number:53,type:'Type 2',powerKw:43,pricePerKwhEur:0.61}
+      ]
+    }],
+    unresolvedPanEvses:['IT*IOY*E999999'],
+    apiOnlyConnectors:[{uuid:'APIONLY'}]
+  };
+  const out=italyIonity.normalizePayload(payload,{id:'italy-ionity-r8',priority:{tariff:135}});
+  assert.equal(out.offerRules.length,2);
+  assert.equal(out.metadata.resolvedPanEvses,2);
+  assert.equal(out.metadata.unresolvedPanEvses,1);
+  assert.equal(out.offerRules[0].provider,'IONITY Direct');
+  assert.ok(out.offerRules[0].evseIds.includes('IT*IOY*E100001'));
+  assert.ok(out.offerRules[0].evseIds.includes('ITIOYE100001'));
+  assert.equal(out.offerRules[0].pricing.rules[0].pricePerKwh,0.85);
+  assert.equal(out.offerRules[1].connectorKinds[0],'AC');
+}
+
 console.log(JSON.stringify({
   ok:true,
   germany:'fail-closed + explicit production-rankable scalar verified',
   uk:'exact tariff-id join + restricted tariff fail-closed verified',
-  switzerlandAvia:'exact EVSE CHF/kWh mapping + time-based fail-closed verified'
+  switzerlandAvia:'exact EVSE CHF/kWh mapping + time-based fail-closed verified',
+  italyIonity:'validated reconciliation resolved EVSEs only verified'
 }));
