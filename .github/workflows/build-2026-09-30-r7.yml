@@ -1,0 +1,67 @@
+name: Build V9 2026-09-30 r7 candidate
+
+on:
+  push:
+    paths:
+      - "config/snapshots/2026-09-30-r7.json"
+      - ".github/workflows/build-2026-09-30-r7.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Read metadata
+        id: meta
+        run: python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r7.json >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
+          path: datalab
+          persist-credentials: false
+      - name: Verify canonical progress and durable Germany baseline
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          dl=pathlib.Path("datalab")
+          idx=json.load(open(dl/"docs/v9-country-progress-2026-09-30.json"))
+          fr=idx["countries"]["FR"]["counters"]
+          it=idx["countries"]["IT"]["counters"]
+          assert fr == {"totalCpos":291,"treated":93,"setAside":23,"active":175}, fr
+          assert it["currentPunPartyIds"]==92 and it["treated"]==26 and it["partialCurrent"]==66, it
+          assert it["treated"]+it["partialCurrent"]==92
+          de=dl/"data/national/germany_non_tesla_catalog_staging_direct_cpo.json.gz"
+          dm=dl/"data/national/germany_non_tesla_catalog_staging_direct_cpo_manifest.json"
+          assert de.exists() and de.stat().st_size>1_000_000, de
+          assert dm.exists(), dm
+          av=json.load(open(dl/"docs/switzerland-avia-guest-reconciliation-2026-09-29.json"))
+          assert av["counts"]["matchedNationalEvseCount"]==583
+          assert av["counts"]["missingNationalEvseCount"]==0
+          print({"FR":fr,"IT":{"treated":26,"partial":66},"DE_durable_bytes":de.stat().st_size,"AVIA_CH":"583/583"})
+          PY
+      - name: Build and validate r7
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30-r7.json
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --config config/snapshots/2026-09-30-r7.json             --out ../dist/v9-2026-09-30-r7
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r7 2026-09-30-r7
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tcc-v9-2026-09-30-r7-candidate
+          path: dist/v9-2026-09-30-r7
+          compression-level: 0
+          retention-days: 14
