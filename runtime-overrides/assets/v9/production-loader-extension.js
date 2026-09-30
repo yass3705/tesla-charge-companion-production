@@ -18,11 +18,12 @@
     const uk=adapters?.ukOpenFeeds||root?.TCCV9Adapters?.ukOpenFeeds;
     const ma=adapters?.moroccoPublic||root?.TCCV9Adapters?.moroccoPublic;
     const chAvia=adapters?.switzerlandAvia||root?.TCCV9Adapters?.switzerlandAvia;
+    const itIonity=adapters?.italyIonityExact||root?.TCCV9Adapters?.italyIonityExact;
     const original=target.createRegistryLoaders.bind(target);
     target.createRegistryLoaders=function(opts={}){
       const registry=opts.registry||{sources:[]};
       const baseRegistry={...registry,sources:(registry.sources||[]).filter(s=>{
-        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1'].includes(s.adapter))return false;
+        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1'].includes(s.adapter))return false;
         if(s.adapter==='morocco-public-v1'&&['evgo-production-local','kilowatt-native-local'].includes(s.profile))return false;
         return true;
       })};
@@ -49,6 +50,12 @@
         }else if(source.adapter==='switzerland-avia-v1'){
           if(!chAvia?.normalizePayload)throw new Error('Switzerland AVIA adapter missing');
           loaders[source.id]=async()=>chAvia.normalizePayload(
+            await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl),
+            source
+          );
+        }else if(source.adapter==='italy-ionity-exact-v1'){
+          if(!itIonity?.normalizePayload)throw new Error('Italy IONITY exact adapter missing');
+          loaders[source.id]=async()=>itIonity.normalizePayload(
             await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl),
             source
           );
