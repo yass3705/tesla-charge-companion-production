@@ -20,6 +20,11 @@ assert.equal(onlyElectra[0].priority,82);
 assert.deepEqual(onlyElectra[0].evseIds,['FR*ABC*E1','FR*ABC*E2']);
 assert.equal(onlyElectra[0].pricing.rules.length,2);
 assert.equal(onlyElectra[0].pricing.rules[1].pricePerKwh,0.61);
+// The migrated Electra overlay must carry national FR identity keys directly.
+// It must not reference an Electroverse offer/station as a prerequisite.
+assert.deepEqual(onlyElectra[0].evseIds,['FR*ABC*E1','FR*ABC*E2']);
+assert.equal(onlyElectra[0].stationIds,undefined);
+assert.ok(!JSON.stringify(onlyElectra[0]).toLowerCase().includes('electroverse'));
 
 const both=adapter.offerRulesFromRows([row],{priority:{tariff:80}});
 assert.equal(both.length,2);
