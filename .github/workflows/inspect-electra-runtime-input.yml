@@ -1,0 +1,53 @@
+name: Inspect Electra exact France input
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/inspect-electra-runtime-input.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: d0996b493bcfee5312b5ca1e38070df87b0d9642
+          persist-credentials: false
+      - name: Inspect exact Electra dataset
+        run: |
+          python - <<'PY'
+          import json
+          p="data/operator_direct/electra_exact_france.json"
+          d=json.load(open(p))
+          print("TOP",sorted(d.keys()))
+          for k,v in d.items():
+              if isinstance(v,list):
+                  print("LIST",k,len(v))
+                  if v:
+                      x=v[0]
+                      print("SAMPLE",k, json.dumps(x,ensure_ascii=False)[:20000])
+              elif isinstance(v,dict):
+                  print("DICT",k,sorted(v.keys())[:100])
+          # Recursively locate likely tariff/pricing arrays/objects and print compact samples.
+          hits=[]
+          def walk(x,path=""):
+              if len(hits)>=80:return
+              if isinstance(x,dict):
+                  for k,v in x.items():
+                      np=f"{path}.{k}" if path else k
+                      if any(t in k.lower() for t in ("tariff","price","rate","charge")):
+                          if isinstance(v,(dict,list,str,int,float,bool)) or v is None:
+                              hits.append((np,v))
+                      walk(v,np)
+              elif isinstance(x,list):
+                  for i,v in enumerate(x[:5]): walk(v,f"{path}[{i}]")
+          walk(d)
+          for pth,v in hits:
+              print("HIT",pth,json.dumps(v,ensure_ascii=False)[:12000])
+          PY
