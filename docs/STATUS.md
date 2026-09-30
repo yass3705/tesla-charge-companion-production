@@ -40,43 +40,29 @@ Older r7/r6/r5/r4/r3/r2 and original 2026-09-30 releases remain immutable rollba
 
 ## Current phase: production runtime integration
 
-Data collection is **not** the blocking workstream for the current phase.
+Collection of partial CPOs is **not** the blocking workstream. The already-released immutable r8 source data and SHA pins are the integration baseline. Current integration candidates intentionally differ from the original r8 release ZIP: they add production-owned runtime, adapters, Germany tiles, and compiled offers without modifying the historical release.
 
-The r8 dataset is frozen as the integration baseline. New CPO research belongs in Data Lab and may feed a future snapshot, but must not block or silently mutate r8 integration.
+### Verified production integration (2026-09-30)
 
-The production repository now owns the integration layer on top of the pinned stable engine:
+Latest fully successful candidate: [GitHub Actions run 36724636761](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36724636761), commit `668b5ac67bf57b034de364fb0056c49a77dd0ae2`.
 
-- Germany snapshot adapter: `runtime-overrides/assets/v9/adapters/germany-national.js`
-- UK validated-open-feed adapter: `runtime-overrides/assets/v9/adapters/uk-open-feeds.js`
-- Production loader extension: `runtime-overrides/assets/v9/production-loader-extension.js`
-- Production bootstrap: `runtime-overrides/assets/v9/production-bootstrap.js`
-- Runtime registry builder: `scripts/build_runtime_registry.py`
+All of the following passed in that run: source guards, adapter unit tests, candidate build/validation, stable parity, actual multi-country runtime area queries, and artifact upload.
 
-The r8 build overlays these production components after copying the pinned stable runtime, then rewrites the runtime source registry.
+- 9 datasets; Germany's 63,405 national non-Tesla stations are spatially tiled into 231 validated tiles.
+- Runtime smoke: DE 67 queried/1 priced including IONITY Direct; GB 9/9 with exact MFG connector tariff join; FR 3,784/782 including Electroverse; IT 1,843/1,179 including exact IONITY and Atlante; CH 40/33 including AVIA; MA 175/175 using exclusively snapshot-local configured source paths.
+- Production-owned DE, GB, FR IONITY, CH AVIA, IT IONITY and IT Atlante adapters; exact or proven joins only, fail-closed otherwise.
+- Morocco EVGO/FastVolt/Kilowatt/TotalEnergies sources resolve from snapshot-local files rather than Data Lab main.
+- Electoverse France runtime compilation uses only high-confidence uniform simple station tariffs; heterogeneous/complex tariffs fail closed.
+- Root index enters the production V9 shell; legacy V7.3 control is a local explicit fallback; Cloudflare remains paused.
 
-### Runtime integration already validated
+The original immutable r8 release and its digest above remain untouched. Passing Actions candidate artifacts are **not** a newly published release or live deployment.
 
-A dedicated r8 candidate build validates:
+### Next production gates
 
-- DE 63,405-site snapshot present and registered as a required runtime source.
-- UK validated open-feed bundle present and registered as a required runtime source.
-- Germany pricing remains fail-closed unless explicitly marked production-rankable.
-- UK tariffs are joined only by exact connector `tariff_ids -> tariff.id` within the same validated source.
-- Restricted/unsupported UK tariff semantics remain fail-closed.
-- FastVolt and TotalEnergies Morocco sources use snapshot-local r8 files instead of Data Lab `main` URLs.
-- Stable critical-file parity remains enforced.
-
-Validated integration candidate run: `36713025128`.
-
-That run passed adapter tests, snapshot validation, built-snapshot validation and stable parity.
-
-## Remaining runtime integration work
-
-1. Wire all validated direct overlays already present in r8 into the runtime registry, beginning with IONITY Germany.
-2. Continue eliminating avoidable live/unpinned runtime dependencies where an exact r8-local artifact exists.
-3. Validate the production bootstrap as the single entry point for production-specific loaders.
-4. Add end-to-end country smoke tests for DE and GB queries.
-5. Keep the existing r8 release immutable; integration candidates are build artifacts until a new release/revision is intentionally created.
+1. Extend actual runtime smoke to Spain, Netherlands and local Tesla inventory, alongside existing six-country tests.
+2. Verify browser-shell asset paths and deployment readiness separately from the Node runtime smoke.
+3. Package validated integration into a **new, separately named release candidate** when all gates pass; do not overwrite the historical r8 tag or ZIP.
+4. Later implement the scheduled refresh/promotion workflow independently of the frozen integration baseline. Future collection improvements belong in a future pinned snapshot.
 
 ## Hosting
 
