@@ -27,6 +27,35 @@ def main():
         assert manifest["snapshotId"]==sys.argv[2], (manifest["snapshotId"],sys.argv[2])
     assert manifest["policy"]=="fail-closed"
     assert set(contract["datasets"])==EXPECTED
+    deployment=contract.get("deployment") or {}
+    assert deployment.get("rootIndex")=="index.html", deployment
+    assert deployment.get("shell")=="v9-production-shell/index.html", deployment
+    assert deployment.get("controlFallback")=="control/index.html", deployment
+    assert deployment.get("runtimeBase")=="runtime", deployment
+    assert set(deployment.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}, deployment
+    for rel in ("index.html","control/index.html","v9-production-shell/index.html","v9-production-shell/shell-config.json","assets/app.js","assets/update.js"):
+        assert (root/rel).exists(), f"missing deployable file {rel}"
+    root_index=(root/"index.html").read_text(encoding="utf-8")
+    assert "v9-production-shell/" in root_index, "root does not enter V9 shell"
+    control_index=(root/"control/index.html").read_text(encoding="utf-8")
+    assert '<base href="../">' in control_index, "control fallback base missing"
+    fallback_update=(root/"assets/update.js").read_text(encoding="utf-8")
+    assert "legacy canary bootstrap intentionally disabled" in fallback_update
+    shell_index=(root/"v9-production-shell/index.html").read_text(encoding="utf-8")
+    for needle in (
+        "assets/v9/adapters/germany-national.js",
+        "assets/v9/adapters/uk-open-feeds.js",
+        "assets/v9/production-loader-extension.js",
+        "assets/v9/production-bootstrap.js",
+        "../control/index.html",
+    ):
+        assert needle in shell_index, f"shell integration missing {needle}"
+    shell_cfg=load(root/"v9-production-shell/shell-config.json")
+    assert shell_cfg.get("runtimeBase")=="runtime", shell_cfg
+    assert shell_cfg.get("controlIndex")=="../control/index.html", shell_cfg
+    assert shell_cfg.get("snapshotId")==manifest["snapshotId"], shell_cfg
+    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}, shell_cfg
+
     runtime_integration=contract.get("runtimeIntegration") or {}
     registry_rel=runtime_integration.get("registry")
     assert registry_rel=="runtime/data/v9/source-registry.json", runtime_integration
