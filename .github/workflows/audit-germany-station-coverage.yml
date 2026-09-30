@@ -1,0 +1,30 @@
+name: Audit German first-pass station coverage
+on:
+  push:
+    paths:
+      - scripts/audit_germany_station_coverage.py
+      - .github/workflows/audit-germany-station-coverage.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: d0996b493bcfee5312b5ca1e38070df87b0d9642
+          path: datalab
+          persist-credentials: false
+      - name: Reconcile exact EVSE and coordinates against pinned r8
+        run: |
+          python production/scripts/audit_germany_station_coverage.py datalab audit/germany-station-coverage-r8.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: germany-station-coverage-r8
+          path: audit/germany-station-coverage-r8.json
+          retention-days: 30
