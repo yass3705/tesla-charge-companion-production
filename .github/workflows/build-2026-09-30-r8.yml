@@ -7,6 +7,7 @@ on:
       - "scripts/build_snapshot.py"
       - "scripts/build_runtime_registry.py"
       - "scripts/build_germany_runtime_tiles.py"
+      - "scripts/build_electroverse_runtime_offers.py"
       - "scripts/validate_built_snapshot.py"
       - "runtime-overrides/**"
       - "tests/runtime-integration.test.mjs"
