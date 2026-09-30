@@ -6,6 +6,7 @@ on:
       - "config/snapshots/2026-09-30.json"
       - "docs/source-ledgers/**"
       - "scripts/build_snapshot.py"
+      - "scripts/validate_built_snapshot.py"
       - ".github/workflows/build-snapshot.yml"
   workflow_dispatch:
 
@@ -44,7 +45,7 @@ jobs:
           unzip -q /tmp/germany.zip -d germany-source
           test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo.json.gz
           test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo_manifest.json
-      - name: Build snapshot
+      - name: Build and validate snapshot
         run: |
           cd production
           python scripts/validate_snapshot.py config/snapshots/2026-09-30.json
@@ -53,6 +54,7 @@ jobs:
             --datalab ../datalab \
             --germany-source ../germany-source \
             --out ../dist/v9-2026-09-30
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
