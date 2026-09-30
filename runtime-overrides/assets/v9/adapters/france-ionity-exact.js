@@ -22,11 +22,7 @@
       subscriptionId:null,
       countries:['FR'],
       currency:'EUR',
-      operatorIds:['ionity'],
       evseIds:evseVariants(evseId),
-      connectorKinds:[kind],
-      minPowerKw:powerKw,
-      maxPowerKw:powerKw,
       pricing:{type:'rules',rules:[{
         scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',
         pricePerKwh:amount,chargePerMinute:0,connectionFee:0,idlePerMinute:0,
@@ -42,7 +38,10 @@
         connectorNumber:num(row?.number),
         sourceLocationUuid:text(station?.locationUuid),
         sourceLocationName:text(station?.name),
-        nativeStatus:text(row?.status)
+        nativeStatus:text(row?.status),
+        connectorKind:kind,
+        powerKw,
+        matchPolicy:'exact_evse_only'
       }
     };
   }
