@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "country": "DE",
+  "snapshotDate": "2026-09-30",
+  "sourceRepository": "yass3705/tesla-charge-companion-data-lab",
+  "sourceArtifactId": 9866595035,
+  "sourceArtifactName": "germany-national-direct-cpo-staging",
+  "sourceArtifactDigest": "sha256:9aada4804c1e95b5ad734560ec7a5c83cb4e5a3cf70b7e7a6817f22d87dacc0e",
+  "nationalSites": 63405,
+  "directCpoSites": 5471,
+  "resolutionLedger": "germany-cpo-second-pass-resolution-180.json",
+  "resolutionState": {"totalNamedCpos":591,"complete":244,"partial":347,"blocked":0},
+  "policy": "Use national station baseline; apply only validated direct/EVSE-level pricing. Unknown or unresolved tariff components remain fail-closed."
+}
