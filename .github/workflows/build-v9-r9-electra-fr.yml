@@ -1,0 +1,79 @@
+name: Build V9 r9 Electra France candidate
+on:
+  push:
+    branches: [main]
+    paths:
+      - "config/snapshots/2026-09-30-r9-electra-fr.json"
+      - ".github/workflows/build-v9-r9-electra-fr.yml"
+      - "scripts/build_snapshot.py"
+      - "scripts/build_runtime_registry.py"
+      - "scripts/validate_electra_platform_overlay.py"
+      - "tests/runtime-e2e-smoke.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: fece067bd58916d493a9479ff9db31bcc94bef6b
+          path: datalab
+          persist-credentials: false
+
+      - name: Validate pinned Electra national-EVSE overlay
+        run: python production/scripts/validate_electra_platform_overlay.py datalab
+
+      - name: Verify config pins exact Data Lab commit
+        run: |
+          python - <<'PY'
+          import json
+          p="production/config/snapshots/2026-09-30-r9-electra-fr.json"
+          o=json.load(open(p))
+          assert o["snapshotId"]=="2026-09-30-r9-electra-fr", o["snapshotId"]
+          assert o["sources"]["dataLab"]["sha"]=="fece067bd58916d493a9479ff9db31bcc94bef6b"
+          assert o["sourceSelection"]["selectedDataLabCommit"]=="fece067bd58916d493a9479ff9db31bcc94bef6b"
+          fr=next(x for x in o["datasets"] if x["id"]=="FR")
+          assert fr["electraPlatform"]=="data/platforms/electra/france"
+          print({"snapshot":o["snapshotId"],"dataLab":o["sources"]["dataLab"]["sha"]})
+          PY
+
+      - name: Build self-contained r9 candidate
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30-r9-electra-fr.json
+          python scripts/build_snapshot.py \
+            --stable ../stable \
+            --datalab ../datalab \
+            --config config/snapshots/2026-09-30-r9-electra-fr.json \
+            --out ../dist/v9-2026-09-30-r9-electra-fr
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r9-electra-fr 2026-09-30-r9-electra-fr
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r9-electra-fr
+          python scripts/validate_browser_asset_graph.py ../dist/v9-2026-09-30-r9-electra-fr
+
+      - name: Require independent Electra and Electroverse overlays on France national hub
+        env:
+          REQUIRE_ELECTRA_PLATFORM: "1"
+        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-2026-09-30-r9-electra-fr
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tcc-v9-2026-09-30-r9-electra-fr-candidate
+          path: dist/v9-2026-09-30-r9-electra-fr
+          compression-level: 0
+          retention-days: 14
