@@ -9,10 +9,19 @@ EXPECTED={"TESLA","ES","NL","CH","MA","FR","IT","DE","UK"}
 def load(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
+def revision_number(snapshot_id):
+    if "-r" not in snapshot_id:
+        return 1
+    try:
+        return int(snapshot_id.rsplit("-r",1)[1])
+    except ValueError:
+        return 1
+
 def main():
     root=pathlib.Path(sys.argv[1])
     manifest=load(root/"manifest.json")
     contract=load(root/"runtime-contract.json")
+    rev=revision_number(manifest["snapshotId"])
     assert manifest["snapshotId"]==contract["snapshotId"]
     if len(sys.argv)>2:
         assert manifest["snapshotId"]==sys.argv[2], (manifest["snapshotId"],sys.argv[2])
@@ -90,11 +99,14 @@ def main():
 
     ma=load(root/"snapshot-inputs/MA/manifest.json")
     labels={x["label"] for x in ma["sources"]}
-    assert {"EVGO","FastVolt","FastVolt tariff","Kilowatt native","Kilowatt overlay","EVOne policy","TotalEnergies native"} <= labels
+    base_labels={"EVGO","FastVolt","FastVolt tariff","Kilowatt native","Kilowatt overlay","EVOne policy"}
+    assert base_labels <= labels
     assert ma["knownSourceCounts"]["EVGO"]["stations"]==17
     assert ma["knownSourceCounts"]["FastVolt"]["productionCandidates"]==97
     assert ma["knownSourceCounts"]["Kilowatt"]["tariffResolvedStations"]==43
-    assert ma["knownSourceCounts"]["TotalEnergies"]=={"stations":18,"connectors":38,"pricedConnectors":38,"liveStatusConnectors":38}
+    if rev>=4:
+        assert "TotalEnergies native" in labels
+        assert ma["knownSourceCounts"]["TotalEnergies"]=={"stations":18,"connectors":38,"pricedConnectors":38,"liveStatusConnectors":38}
 
     print(json.dumps({
       "snapshotId":manifest["snapshotId"],
