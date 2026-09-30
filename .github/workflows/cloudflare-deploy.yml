@@ -98,7 +98,13 @@ jobs:
 
       - name: Promote current pointer
         if: ${{ inputs.promote_current }}
+        env:
+          SNAPSHOT_ID: ${{ inputs.snapshot_id }}
         run: |
-          printf '{"snapshotId":"%s"}
-' "${{ inputs.snapshot_id }}" > /tmp/current.json
+          python - <<'PY'
+          import json, os
+          with open("/tmp/current.json","w",encoding="utf-8") as f:
+              json.dump({"snapshotId": os.environ["SNAPSHOT_ID"]}, f)
+              f.write("\n")
+          PY
           npx wrangler r2 object put tcc-v9-production-data/current.json --file /tmp/current.json --remote
