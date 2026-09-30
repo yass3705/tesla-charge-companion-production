@@ -71,10 +71,16 @@ def build_registry(path):
             src["path"]="../snapshot-inputs/MA/sources/totalenergies-native-overlay.json"
             src.pop("url",None)
             src["refresh"]="immutable-production-snapshot"
+        elif src.get("id")=="atlante-direct-france":
+            src["path"]="../snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz"
+            src["active"]=True
+            src["optional"]=True
+            src["refresh"]="immutable-production-snapshot"
+            src["policy"]="Use the pinned r8 Atlante France exact-EVSE direct snapshot; unmatched EVSEs remain fail-closed."
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts"],
+      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
