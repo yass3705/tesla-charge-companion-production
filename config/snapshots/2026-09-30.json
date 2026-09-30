@@ -93,7 +93,8 @@
       "kind": "national",
       "coverage": "partial",
       "primarySource": "dataLab",
-      "path": "inventory/united_kingdom.json"
+      "path": "data/national/uk_validated_open_feeds.json.gz",
+      "statusLedger": "docs/uk-cpo-progress-2026-09.json"
     }
   ]
 }
