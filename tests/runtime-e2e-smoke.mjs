@@ -131,17 +131,12 @@ const itPriced=itResult.stations.filter(s=>(s.offers||[]).length>0);
 const itIonityPriced=itResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='IONITY Direct'));
 assert.ok(itIonityPriced.length>0,'IT exact IONITY offers did not attach to Rome-area PUN stations');
 
-const atlanteRaw=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/IT/direct/atlante_direct_stations_italy_latest.json.gz'))).toString('utf8'));
-const atlanteCandidates=(atlanteRaw.locations||[]).filter(l=>l.coordinates&&(l.connectors||[]).some(c=>c.evseId&&c.pricePerKwhEur>0));
-let atlanteSmoke=null;
-for(const loc of atlanteCandidates.slice(0,25)){
-  const parts=String(loc.coordinates).split(',').map(Number);
-  if(parts.length!==2||!parts.every(Number.isFinite))continue;
-  const probe=await engine.queryArea({countryCode:'IT',origin:{lat:parts[0],lon:parts[1]},radiusKm:4,routingBudget:20});
-  const hit=probe.stations.find(s=>(s.offers||[]).some(o=>o.provider==='Atlante direct'));
-  if(hit){atlanteSmoke={station:hit,probe};break;}
-}
-assert.ok(atlanteSmoke,'Atlante Italy exact offers did not attach around first 25 pinned Atlante locations');
+const atlanteProbe=await engine.queryArea({countryCode:'IT',origin:{lat:44.958471,lon:9.909126},radiusKm:2,routingBudget:20});
+const atlanteSmoke=atlanteProbe.stations.find(s=>
+  (s.evses||[]).some(e=>e.id==='IT*ATE*E01003*1'||(e.aliases||[]).includes('IT*ATE*E01003*1')) &&
+  (s.offers||[]).some(o=>o.provider==='Atlante direct')
+);
+assert.ok(atlanteSmoke,'Atlante Italy exact offer did not attach to pinned Fiorenzuola EVSE IT*ATE*E01003*1');
 
 const chResult=await engine.queryArea({countryCode:'CH',origin:{lat:47.61764,lon:9.2688},radiusKm:8,routingBudget:20});
 assert.ok(chResult.stations.length>0,'CH returned no stations');
