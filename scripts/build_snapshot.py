@@ -301,6 +301,12 @@ def main():
         de_ionity=national/"ionity_direct_stations_germany.json.gz"
         if de_ionity.exists():
             copy_file(de_ionity,de/"direct/ionity_direct_stations_germany.json.gz")
+            subprocess.run([
+              sys.executable,
+              str(production_root/"scripts/build_germany_ionity_inventory_supplement.py"),
+              str(dl),
+              str(de/"direct/ionity_isolated_unpriced_supplement.json")
+            ],check=True)
         m=load_json(source_manifest)
         ledger=load_json(ledger_src)
         assert m["stats"]["nonTeslaSites"] == 63405
