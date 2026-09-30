@@ -1,0 +1,115 @@
+name: Build V9 2026-09-30 r5 candidate
+
+on:
+  push:
+    paths:
+      - "config/snapshots/2026-09-30-r5.json"
+      - "scripts/build_snapshot.py"
+      - "scripts/validate_built_snapshot.py"
+      - "scripts/validate_stable_parity.py"
+      - ".github/workflows/build-2026-09-30-r5.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          path: production
+
+      - name: Read pinned r5 metadata
+        id: meta
+        run: python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r5.json >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+
+      - name: Checkout safe Data Lab head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
+          path: datalab
+          persist-credentials: false
+
+      - name: Verify V9 guarded source floors
+        run: python datalab/scripts/validate_v9_source_guards.py
+
+      - name: Verify fresh AVIA and IONITY
+        run: |
+          python - <<'PY'
+          import gzip,json
+          av=json.load(open("datalab/data/switzerland/avia-guest-direct-tariffs.json"))
+          rec=json.load(open("datalab/docs/switzerland-avia-guest-reconciliation-2026-09-29.json"))
+          assert av["counts"]["uniquePricedEvses"]>=587, av["counts"]
+          assert rec["counts"]["matchedNationalEvseCount"]==583, rec["counts"]
+          assert rec["counts"]["missingNationalEvseCount"]==0, rec["counts"]
+          for code,path,minloc,minconn in [
+            ("FR","datalab/data/national/ionity_direct_stations_france.json.gz",180,1800),
+            ("IT","datalab/data/national/ionity_direct_stations_italy.json.gz",40,300),
+            ("DE","datalab/data/national/ionity_direct_stations_germany.json.gz",190,1500),
+          ]:
+            with gzip.open(path,"rt",encoding="utf-8") as f:
+              d=json.load(f)
+            c=d["counts"]
+            assert c["countryLocationCount"]>=minloc, (code,c)
+            assert c["countryConnectorCount"]>=minconn, (code,c)
+            assert c["countryUnpricedConnectorCount"]==0, (code,c)
+          print({"AVIA_CH":{"guest":av["counts"]["uniquePricedEvses"],"matchedNational":583,"missing":0}})
+          PY
+
+      - name: Download pinned Germany national baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ART_REPO: ${{ steps.meta.outputs.germany_artifact_repo }}
+          ART_ID: ${{ steps.meta.outputs.germany_artifact_id }}
+        run: |
+          gh api "/repos/$ART_REPO/actions/artifacts/$ART_ID/zip" > /tmp/germany.zip
+          mkdir -p germany-source
+          unzip -q /tmp/germany.zip -d germany-source
+
+      - name: Build and validate r5 candidate
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30-r5.json
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --config config/snapshots/2026-09-30-r5.json             --out ../dist/v9-2026-09-30-r5
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r5 2026-09-30-r5
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r5
+
+      - name: Verify r5 direct overlays
+        run: |
+          python - <<'PY'
+          import gzip,json,pathlib
+          root=pathlib.Path("dist/v9-2026-09-30-r5")
+          av=root/"snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json"
+          ide=root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz"
+          ifr=root/"snapshot-inputs/FR/direct/ionity_direct_stations_france.json.gz"
+          iit=root/"snapshot-inputs/IT/direct/ionity_direct_stations_italy.json.gz"
+          for p in (av,ide,ifr,iit):
+            assert p.exists() and p.stat().st_size>0, p
+          with gzip.open(ide,"rt",encoding="utf-8") as f:
+            de=json.load(f)
+          assert de["counts"]["countryLocationCount"]==199
+          assert de["counts"]["countryConnectorCount"]==1578
+          assert de["counts"]["countryUnpricedConnectorCount"]==0
+          print({"IONITY_DE":{"locations":199,"connectors":1578,"unpriced":0}})
+          PY
+
+      - name: Upload r5 candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcc-v9-2026-09-30-r5-candidate
+          path: dist/v9-2026-09-30-r5
+          compression-level: 0
+          retention-days: 14
