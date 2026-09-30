@@ -33,6 +33,20 @@ def summarize(name,obj):
                     out["sampleDirectCpoSite"]=priced
             break
 
+    if name=="CH_AVIA" and isinstance(obj.get("connectors"),list):
+        rows=obj["connectors"]
+        out["connectorCount"]=len(rows)
+        out["counts"]=obj.get("counts")
+        if rows and isinstance(rows[0],dict):
+            out["sampleConnectorKeys"]=sorted(rows[0].keys())
+            out["sampleConnector"]=rows[0]
+        for row in rows[:20]:
+            if isinstance(row,dict):
+                for k in ("evseId","evse_id","evseUid","uid","connectorId","chargePointId","physicalReference","tariff","price","pricePerKwh","pricePerKwhEur"):
+                    if k in row:
+                        out.setdefault("identityAndTariffSamples",[]).append({k:row.get(k),"connector":row})
+                        break
+
     if name=="UK" and isinstance(obj.get("sources"),list):
         out["sourceCount"]=len(obj["sources"])
         src=next((x for x in obj["sources"] if isinstance(x,dict) and (x.get("locations") or x.get("tariffs"))),None)
