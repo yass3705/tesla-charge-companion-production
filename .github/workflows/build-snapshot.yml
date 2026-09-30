@@ -1,15 +1,6 @@
 name: Build pinned V9 snapshot
 
 on:
-  push:
-    paths:
-      - "config/snapshots/**"
-      - "docs/source-ledgers/**"
-      - "scripts/build_snapshot.py"
-      - "scripts/export_snapshot_meta.py"
-      - "scripts/validate_built_snapshot.py"
-      - "scripts/validate_stable_parity.py"
-      - ".github/workflows/build-snapshot.yml"
   workflow_dispatch:
 
 permissions:
