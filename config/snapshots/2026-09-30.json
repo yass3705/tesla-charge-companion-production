@@ -14,6 +14,12 @@
     "legacyUpdater": {
       "repo": "yass3705/tesla-stations-updater-test",
       "sha": "3e4c26b679617f82aae5b6de52a64a4cdbd20581"
+    },
+    "germanyRecovery": {
+      "repo": "yass3705/tesla-stations-updater-test",
+      "sha": "59573b851fd9ee015f6edac6a9302b07e09cc71e",
+      "branch": "work/germany-v9-cpo-recovery",
+      "pr": 6
     }
   },
   "datasets": [
@@ -70,9 +76,17 @@
       "id": "DE",
       "kind": "national",
       "coverage": "partial",
-      "primarySource": "legacyUpdater",
-      "path": null,
-      "materialization": "pending-current-cpo-canonical-migration"
+      "primarySource": "germanyRecovery",
+      "path": "snapshot-inputs/DE",
+      "statusLedger": "docs/source-ledgers/germany-cpo-second-pass-resolution-180.json",
+      "nationalBaseArtifact": {
+        "repository": "yass3705/tesla-charge-companion-data-lab",
+        "artifactId": 9866595035,
+        "artifactName": "germany-national-direct-cpo-staging",
+        "digest": "sha256:9aada4804c1e95b5ad734560ec7a5c83cb4e5a3cf70b7e7a6817f22d87dacc0e",
+        "sites": 63405,
+        "directCpoSites": 5471
+      }
     },
     {
       "id": "UK",
