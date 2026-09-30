@@ -1,0 +1,77 @@
+name: Cloudflare deploy (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      snapshot_id:
+        description: Snapshot to deploy to R2
+        required: true
+        default: "2026-09-30"
+      promote_current:
+        description: Promote current.json after upload
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require Cloudflare credentials
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || (echo "Missing CLOUDFLARE_API_TOKEN" && exit 1)
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || (echo "Missing CLOUDFLARE_ACCOUNT_ID" && exit 1)
+
+      - name: Download pinned snapshot artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api /repos/yass3705/tesla-charge-companion-production/actions/artifacts/11070310523/zip > /tmp/snapshot.zip
+          mkdir -p dist/snapshot
+          unzip -q /tmp/snapshot.zip -d dist/snapshot
+          test -s dist/snapshot/manifest.json
+
+      - name: Validate requested snapshot
+        run: |
+          python - <<'PY'
+          import json, os
+          m=json.load(open("dist/snapshot/manifest.json"))
+          requested=os.environ["SNAPSHOT_ID"]
+          assert m["snapshotId"] == requested, (m["snapshotId"], requested)
+          print("validated", requested, "files", m["fileCount"], "bytes", m["bytes"])
+          PY
+        env:
+          SNAPSHOT_ID: ${{ inputs.snapshot_id }}
+
+      - name: Install Wrangler
+        run: npm install --no-save wrangler@latest
+
+      - name: Create R2 bucket if needed
+        run: npx wrangler r2 bucket create tcc-v9-production-data || true
+
+      - name: Upload snapshot objects
+        run: |
+          python scripts/upload_r2_snapshot.py \
+            --root dist/snapshot \
+            --snapshot-id "${{ inputs.snapshot_id }}" \
+            --bucket tcc-v9-production-data
+
+      - name: Promote current pointer
+        if: ${{ inputs.promote_current }}
+        run: |
+          printf '{"snapshotId":"%s"}\n' "${{ inputs.snapshot_id }}" > /tmp/current.json
+          npx wrangler r2 object put tcc-v9-production-data/current.json --file /tmp/current.json --remote
+
+      - name: Deploy Worker
+        run: |
+          cd cloudflare
+          npx wrangler deploy
