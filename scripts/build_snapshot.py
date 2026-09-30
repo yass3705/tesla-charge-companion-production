@@ -154,6 +154,13 @@ def main():
     for p in national.glob("*italy*"):
         if p.is_file(): copy_file(p,it_dst/p.name)
 
+    # Germany validated direct overlays complement the pinned national base.
+    de_direct=overlays/"DE/direct"
+    de_direct.mkdir(parents=True,exist_ok=True)
+    for name in ("ionity_direct_stations_germany.json.gz",):
+        p=national/name
+        if p.exists(): copy_file(p,de_direct/name)
+
     # Switzerland validated operator evidence alongside the canonical overlay.
     avia_src=dl/"data/switzerland/avia-guest-direct-tariffs.json"
     avia_rec=dl/"docs/switzerland-avia-guest-reconciliation-2026-09-29.json"
