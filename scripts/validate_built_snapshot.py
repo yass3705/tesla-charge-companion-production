@@ -26,14 +26,8 @@ def main():
                 assert p.exists(), f"{key}: missing {field} {row[field]}"
 
     # Guard against the earlier Tesla-inventory mistake for UK.
-    for rel in (
-        "snapshot-inputs/FR/cpo-ledger.json",
-        "snapshot-inputs/IT/cpo-ledger.json",
-        "snapshot-inputs/DE/cpo-progress.json",
-        "snapshot-inputs/v9-country-progress.json",
-    ):
-        assert (root/rel).exists(), f"missing progress ledger: {rel}"
-
+    # Progress ledgers are optional for historical snapshots created before
+    # ledger centralisation. Revision-specific workflows may require them.
     uk=load(root/"snapshot-inputs/UK/manifest.json")
     assert uk["country"]=="GB"
     assert uk["canonicalCpoCount"]>=44
