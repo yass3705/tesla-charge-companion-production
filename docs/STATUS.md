@@ -87,6 +87,15 @@ Independent browser-asset candidate validation succeeded in [run 36730931772](ht
 
 **Next gate:** optional non-destructive staging preview with interactive browser UI checks, then independent live-data refresh/promotion design. Cloudflare remains paused. Historical r8 release and all prior rollback releases stay untouched.
 
+## Verified interactive UI and safe source monitoring
+
+- Actual Chrome/Playwright [interactive RC1 run 36738705658](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36738705658) **passed**: production shell initialized, tabs toggled, charge inputs/radius/operator mode changed, and subscription checkbox click persisted selection and invoked comparison. Zero critical console/page/HTTP errors. This uses frozen RC1, does not call external geocoding/routing, and is *not* a full live end-to-end journey test.
+- `.github/workflows/v9-source-freshness-audit.yml` is configured to run an inexpensive **daily read-only** comparison of pinned Data Lab source file blob IDs versus Data Lab main. **No data refresh, tariff modification, snapshot release or live deployment is triggered** by this workflow. The input is explicitly limited to the monitored files; it does not independently validate source contents or cover every operator.
+- First audit [run 36738913760](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36738913760) **passed**, including two classification tests. Of 18 monitored files, 15 are unchanged and 3 tracking/ledger files changed. No monitored national/operator/platform dataset has changed. The FR ledger and global progress index move FR from 94 treated / 27 set aside / 170 active to **94 / 32 / 165**; IT current counters remain 26 treated / 66 partial. These newer ledger counters are *not* a replacement r8 snapshot.
+- Safe promotion gate: an actual validated source-data change, new coherent country ledgers, all source guards, full multi-country runtime smoke, independent Chrome UI tests, manifest hash verification and an immutable, separately named release must all precede any staging promotion.
+
+**Current next step:** exercise routing/geocoding-dependent comparisons in a controlled staging preview with deterministic mocked external responses, then separately design the data collector/refresh jobs and their cost/latency budget. Cloudflare remains paused.
+
 ## Hosting
 
 Current GitHub/stable hosting remains the active path.
