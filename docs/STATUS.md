@@ -24,6 +24,16 @@ Germany baseline: 63,405 non-Tesla sites; 591 named CPOs; current recovery ledge
 
 UK: first pass complete; 46 canonical CPO/network entries in the pinned ledger.
 
+## Persistent rollback baseline
+
+Release tag: `v9-snapshot-2026-09-30`
+
+Release asset: `tcc-v9-snapshot-2026-09-30.zip`
+
+Release asset digest: `sha256:0e4d1d76aa4c0efde4630eee082529a3ff92a354513862c8a8ea7812ef5a134a`
+
+This release is the official rollback/reference package for the 2026-09-30 V9 baseline.
+
 ## Hosting
 
 Current GitHub/stable hosting remains the active path.
