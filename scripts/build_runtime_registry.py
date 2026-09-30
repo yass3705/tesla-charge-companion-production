@@ -72,7 +72,7 @@ def build_registry(path):
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"Exact IRVE EVSE/PDC identities only from the validated Electra rich run 32124061027 embedded in the pinned France runtime catalog. Electra-only filter prevents duplicate Electroverse offers. Ambiguous PDCs remain suppressed and unsupported pricing remains fail-closed."
+      "policy":"France national station/EVSE identities are the sole attachment hub. Electra rules are extracted from validated rich run 32124061027 and attach independently by exact IRVE EVSE/PDC identity; no Electra-to-Electroverse dependency is permitted. Ambiguous PDCs remain suppressed and unsupported pricing remains fail-closed."
     })
     upsert(sources,{
       "id":"france-electroverse-r8",
@@ -85,7 +85,7 @@ def build_registry(path):
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"Only high-confidence IRVE station mappings with one uniform simple tariff across all cached connectors are exposed. Complex or heterogeneous tariffs remain fail-closed."
+      "policy":"France national station/EVSE identities are the sole attachment hub. Electroverse offers attach independently through validated IRVE mappings; no Electroverse-to-Electra dependency is permitted. Only high-confidence mappings with one uniform simple tariff across all cached connectors are exposed; complex or heterogeneous tariffs remain fail-closed."
     })
     upsert(sources,{
       "id":"france-ionity-r8",
