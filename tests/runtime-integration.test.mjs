@@ -81,6 +81,54 @@ const uk=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
   assert.equal(pricing.rules[0].chargePerMinute,0.02);
 }
 
+// Germany IONITY: only a unique exact-coordinate/operator match with one uniform site price is attached.
+{
+  const baseline={sites:[
+    {id:'de-ionity-1',operator:'IONITY GmbH',coordinates:{latitude:50.1,longitude:8.6},evseIds:['DE*IOY*E1'],service:{state:'unknown'},pricing:{}},
+    {id:'de-other',operator:'Other CPO',coordinates:{latitude:51.0,longitude:9.0},evseIds:['DE*OTH*E1'],service:{state:'unknown'},pricing:{}}
+  ]};
+  const overlay={locations:[{
+    uuid:'ionity-uuid-1',locationId:'100',country:'DE',cpoIdentifier:'IONITY_CPO',
+    latitude:50.1,longitude:8.6,
+    connectors:[
+      {kind:'DC',pricePerKwhEur:0.76},
+      {kind:'DC',pricePerKwhEur:0.76}
+    ]
+  }]};
+  const joined=de.buildIonityExactOverlay(baseline,overlay);
+  assert.equal(joined.diagnostics.rankable,1);
+  assert.equal(joined.offers.get('de-ionity-1').pricing.rules[0].pricePerKwh,0.76);
+  const rows=de.normalizePayload(baseline,{ionityPayload:overlay});
+  assert.equal(rows.find(x=>x.sourceStationId==='de-ionity-1').offers.length,1);
+}
+
+// Germany IONITY: ambiguous exact coordinates fail closed instead of picking a station.
+{
+  const baseline={sites:[
+    {id:'a',operator:'IONITY GmbH',coordinates:{latitude:50,longitude:8},pricing:{}},
+    {id:'b',operator:'IONITY GmbH',coordinates:{latitude:50,longitude:8},pricing:{}}
+  ]};
+  const overlay={locations:[{
+    uuid:'ambiguous',country:'DE',cpoIdentifier:'IONITY_CPO',latitude:50,longitude:8,
+    connectors:[{kind:'DC',pricePerKwhEur:0.70}]
+  }]};
+  const joined=de.buildIonityExactOverlay(baseline,overlay);
+  assert.equal(joined.diagnostics.rankable,0);
+  assert.equal(joined.diagnostics.reasons.ambiguous_coordinate,1);
+}
+
+// Germany IONITY: mixed connector prices at one site remain fail closed without connector identity.
+{
+  const baseline={sites:[{id:'mixed',operator:'IONITY GmbH',coordinates:{latitude:50,longitude:8},pricing:{}}]};
+  const overlay={locations:[{
+    uuid:'mixed',country:'DE',cpoIdentifier:'IONITY_CPO',latitude:50,longitude:8,
+    connectors:[{kind:'DC',pricePerKwhEur:0.70},{kind:'DC',pricePerKwhEur:0.80}]
+  }]};
+  const joined=de.buildIonityExactOverlay(baseline,overlay);
+  assert.equal(joined.diagnostics.rankable,0);
+  assert.equal(joined.diagnostics.reasons.mixed_site_prices,1);
+}
+
 console.log(JSON.stringify({
   ok:true,
   germany:'fail-closed + explicit production-rankable scalar verified',
