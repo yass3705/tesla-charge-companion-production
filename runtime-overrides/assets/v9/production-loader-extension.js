@@ -16,6 +16,18 @@
     if(!b)return true;
     return Number(tile.maxLat)>=b.minLat&&Number(tile.minLat)<=b.maxLat&&Number(tile.maxLon)>=b.minLon&&Number(tile.minLon)<=b.maxLon;
   }
+  function pointInBounds(lat,lon,b){
+    if(!b)return true;
+    const a=num(lat),o=num(lon);
+    return a!=null&&o!=null&&a>=b.minLat&&a<=b.maxLat&&o>=b.minLon&&o<=b.maxLon;
+  }
+  function filterUkPayload(payload,query){
+    const b=queryBounds(query);if(!b)return payload;
+    return{...payload,sources:(payload?.sources||[]).map(source=>({
+      ...source,
+      locations:(source?.locations||[]).filter(loc=>pointInBounds(loc?.coordinates?.latitude,loc?.coordinates?.longitude,b))
+    }))};
+  }
   async function fetchJsonMaybeGzip(url,fetchImpl){
     const f=fetchImpl||(typeof fetch==='function'?fetch.bind(globalThis):null);if(!f)throw new Error('fetch unavailable');
     const res=await f(url,{cache:'no-cache'});if(!res.ok)throw new Error(`resource unavailable (${res.status}): ${url}`);
@@ -59,7 +71,10 @@
           };
         }else if(source.adapter==='uk-open-feeds-v1'){
           if(!uk?.normalizePayload)throw new Error('UK adapter missing');
-          loaders[source.id]=async()=>uk.normalizePayload(await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl),{sourceId:source.id});
+          loaders[source.id]=async query=>{
+            const payload=await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl);
+            return uk.normalizePayload(filterUkPayload(payload,query),{sourceId:source.id});
+          };
         }else if(source.adapter==='morocco-public-v1'&&source.profile==='evgo-production-local'){
           if(!ma?.normalizeEvgoDataset||!ma?.evgoOverlayFreshness)throw new Error('Morocco EVGO adapter missing');
           loaders[source.id]=async()=>{
