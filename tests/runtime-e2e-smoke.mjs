@@ -87,15 +87,15 @@ const energyOffers=(exactMfg.offers||[]).flatMap(o=>(o.pricing?.rules||[]).map(r
 assert.ok(energyOffers.some(x=>x.currency===expectedRule.currency&&Math.abs(Number(x.price)-Number(expectedRule.pricePerKwh))<1e-9),'Exact MFG tariff-id join did not survive runtime engine');
 
 
-const frResult=await engine.queryArea({countryCode:'FR',routingBudget:20});
+const frResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.8566,lon:2.3522},radiusKm:80,routingBudget:20});
 assert.ok(frResult.stations.length>0,'FR returned no stations');
 const frPriced=frResult.stations.filter(s=>(s.offers||[]).length>0);
 
-const itResult=await engine.queryArea({countryCode:'IT',routingBudget:20});
+const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:80,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
 const itPriced=itResult.stations.filter(s=>(s.offers||[]).length>0);
 
-const chResult=await engine.queryArea({countryCode:'CH',routingBudget:20});
+const chResult=await engine.queryArea({countryCode:'CH',origin:{lat:47.3769,lon:8.5417},radiusKm:80,routingBudget:20});
 assert.ok(chResult.stations.length>0,'CH returned no stations');
 const chPriced=chResult.stations.filter(s=>(s.offers||[]).length>0);
 
