@@ -27,6 +27,22 @@ def main():
         assert manifest["snapshotId"]==sys.argv[2], (manifest["snapshotId"],sys.argv[2])
     assert manifest["policy"]=="fail-closed"
     assert set(contract["datasets"])==EXPECTED
+    runtime_integration=contract.get("runtimeIntegration") or {}
+    registry_rel=runtime_integration.get("registry")
+    assert registry_rel=="runtime/data/v9/source-registry.json", runtime_integration
+    for rel in runtime_integration.get("scripts") or []:
+        assert (root/rel).exists(), f"missing runtime integration script {rel}"
+    registry=load(root/registry_rel)
+    sources={x.get("id"):x for x in registry.get("sources",[]) if isinstance(x,dict)}
+    de_src=sources.get("germany-production-snapshot") or {}
+    uk_src=sources.get("uk-production-open-feeds") or {}
+    assert de_src.get("adapter")=="germany-national-v1" and de_src.get("path")=="../snapshot-inputs/DE/all.json.gz", de_src
+    assert uk_src.get("adapter")=="uk-open-feeds-v1" and uk_src.get("path")=="../snapshot-inputs/UK/all.json.gz", uk_src
+    assert de_src.get("optional") is False and uk_src.get("optional") is False
+    for source_id in ("morocco-fastvolt-public","morocco-totalenergies-hosts"):
+        src=sources.get(source_id) or {}
+        assert str(src.get("path","")).startswith("../snapshot-inputs/MA/sources/"), src
+        assert not src.get("url"), src
 
     for key,row in contract["datasets"].items():
         for field in ("entry","manifest","canonical","all","offers"):
