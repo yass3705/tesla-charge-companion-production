@@ -22,7 +22,8 @@ def main():
         assert src in sources, f"unknown source {src}"
         sha = sources[src].get("sha","")
         assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha), f"unpinned source {src}"
-        assert d.get("path"), f"missing path for {d.get('id')}"
+        if not d.get("path"):
+            assert d.get("materialization"), f"missing path/materialization for {d.get('id')}"
     print(f"OK snapshot={obj['snapshotId']} datasets={len(datasets)} policy={obj['policy']}")
 
 if __name__ == "__main__":
