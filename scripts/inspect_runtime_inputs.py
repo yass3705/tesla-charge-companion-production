@@ -16,7 +16,7 @@ def summarize(name,obj):
             out["sample"]=obj[0] if isinstance(obj[0],dict) else obj[0]
     elif isinstance(obj,dict):
         out["keys"]=sorted(obj.keys())
-        for key in ("stations","rows","data","items","features"):
+        for key in ("stations","sites","rows","data","items","features"):
             if isinstance(obj.get(key),list):
                 out["rowContainer"]=key
                 out["count"]=len(obj[key])
