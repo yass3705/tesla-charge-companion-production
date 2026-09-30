@@ -59,6 +59,78 @@ def main():
                 copy_file(src,out/"runtime"/src.relative_to(overrides))
     registry=out/"runtime/data/v9/source-registry.json"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
+
+    # Build a self-contained deployable shell in the production snapshot.
+    # Root enters V9 directly; the pinned V7.3 control remains available only
+    # as an explicit local fallback under /control/.
+    copy_tree(stable/"assets", out/"assets")
+    copy_tree(stable/"data", out/"data")
+    copy_tree(stable/"v9-production-shell", out/"v9-production-shell")
+    for name in ("manifest.webmanifest","app-version.json","service-worker.js"):
+        src=stable/name
+        if src.exists():
+            copy_file(src,out/name)
+
+    control_dir=out/"control"
+    control_dir.mkdir(parents=True,exist_ok=True)
+    control_html=(stable/"index.html").read_text(encoding="utf-8")
+    if "<base " not in control_html:
+        control_html=control_html.replace("<head>","<head>\n<base href=\"../\">",1)
+    (control_dir/"index.html").write_text(control_html,encoding="utf-8")
+
+    # The fallback control must stay fallback-only inside the production bundle.
+    # Disable its legacy canary bootstrap to avoid redirect loops back to V9.
+    update_path=out/"assets/update.js"
+    update_text=update_path.read_text(encoding="utf-8")
+    update_text=update_text.replace("  loadProductionCanaryBootstrap();","  // Production bundle fallback: legacy canary bootstrap intentionally disabled.")
+    update_path.write_text(update_text,encoding="utf-8")
+
+    shell_path=out/"v9-production-shell/index.html"
+    shell_text=shell_path.read_text(encoding="utf-8")
+    shell_text=shell_text.replace("const CONTROL_FALLBACK='../';","const CONTROL_FALLBACK='../control/index.html';")
+    shell_text=shell_text.replace(
+        "if(cfg.observedCandidateSha!=='8d2c20b7c76004389edd8f4a3b80d6b314900ba0')throw new Error('candidate SHA is not pinned');",
+        "if(cfg.snapshotId!=="+json.dumps(cfg["snapshotId"]) + ")throw new Error('production snapshot id mismatch');"
+    )
+    shell_text=shell_text.replace(
+        "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'",
+        "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
+        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/browser-loaders.js',"
+        "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
+    )
+    shell_path.write_text(shell_text,encoding="utf-8")
+
+    shell_cfg=load_json(stable/"v9-production-shell/shell-config.json")
+    shell_cfg.update({
+      "mode":"candidate",
+      "controlIndex":"../control/index.html",
+      "runtimeBase":"runtime",
+      "snapshotId":cfg["snapshotId"],
+      "observedCandidateSha":cfg["sources"]["stable"]["sha"],
+      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"],
+      "fallback":"control/index.html",
+      "notes":"Production-owned V9 shell. Root enters V9 directly; pinned V7.3 control is local fallback only."
+    })
+    write_json(out/"v9-production-shell/shell-config.json",shell_cfg)
+
+    root_index="""<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Tesla Charge Companion V9</title>
+<script>
+(function(){
+  var target='v9-production-shell/'+(location.search||'')+(location.hash||'');
+  location.replace(target);
+})();
+</script>
+</head>
+<body><a href="v9-production-shell/">Ouvrir Tesla Charge Companion V9</a></body>
+</html>
+"""
+    (out/"index.html").write_text(root_index,encoding="utf-8")
     overlays=out/"snapshot-inputs"
 
     # CH and FR authoritative canonical snapshots newer than legacy runtime.
@@ -229,6 +301,14 @@ def main():
       "schemaVersion":1,
       "snapshotId":cfg["snapshotId"],
       "policy":cfg["policy"],
+      "deployment":{
+        "rootIndex":"index.html",
+        "shell":"v9-production-shell/index.html",
+        "shellConfig":"v9-production-shell/shell-config.json",
+        "controlFallback":"control/index.html",
+        "runtimeBase":"runtime",
+        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"]
+      },
       "runtimeIntegration":{
         "registry":"runtime/data/v9/source-registry.json",
         "scripts":[
