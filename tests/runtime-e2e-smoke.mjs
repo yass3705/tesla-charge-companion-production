@@ -39,7 +39,7 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -77,6 +77,15 @@ assert.ok(Array.isArray(teslaInventory)?teslaInventory.length>0:teslaInventory&&
 assert.ok(registry.sources.some(s=>(s.countries||[]).includes('ES')&&s.active!==false),'ES runtime sources missing');
 assert.ok(registry.sources.some(s=>(s.countries||[]).includes('NL')&&s.active!==false),'NL runtime sources missing');
 
+const supplement=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json'),'utf8'));
+assert.equal(supplement.sites.length,3,'Pinned German IONITY supplementary sites must be 3');
+assert.equal(supplement.metadata.quarantinedNearThirdParty,8,'Ambiguous German IONITY sites must remain quarantined');
+const supplementRows=await loaders['germany-ionity-isolated-r8']({});
+assert.equal(supplementRows.length,3,'German isolated supplement loader did not retain all 3');
+assert.ok(supplementRows.every(s=>s.offers.length===0),'Supplemental IONITY stations must not receive guessed tariffs');
+const knownSupplementIds=new Set(supplementRows.map(s=>s.canonicalId));
+assert.equal(knownSupplementIds.size,3,'Supplemental IONITY canonical identities collide');
+
 const deAll=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/all.json.gz'))).toString('utf8'));
 const deIonity=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz'))).toString('utf8'));
 const deCoordIndex=new Map();
@@ -94,6 +103,11 @@ for(const loc of deIonity.locations||[]){
   }
 }
 assert.ok(safeIonityPoint,'No safe IONITY Germany smoke point found');
+const isolatedPoint={lat:supplement.sites[0].coordinates.latitude,lon:supplement.sites[0].coordinates.longitude};
+const isolatedResult=await engine.queryArea({countryCode:'DE',origin:isolatedPoint,radiusKm:0.2,routingBudget:20});
+assert.ok(isolatedResult.stations.some(s=>knownSupplementIds.has(s.canonicalId)),'No isolated IONITY station surfaced through the production engine');
+assert.ok(isolatedResult.diagnostics.sources['germany-ionity-isolated-r8']?.loaded===true,'Supplemental DE source did not load');
+
 const deResult=await engine.queryArea({countryCode:'DE',origin:safeIonityPoint,radiusKm:5,routingBudget:20});
 assert.ok(deResult.stations.length>0,'DE area query returned no stations');
 assert.ok(deResult.stations.length<5000,'DE tiled query loaded unexpectedly many stations: '+deResult.stations.length);
@@ -179,7 +193,7 @@ console.log(JSON.stringify({
   TESLA:{localInventoryPresent:true,bytes:teslaBytes.byteLength},
   ES:{stations:esResult.stations.length,sourceLoaded:true},
   NL:{stations:nlResult.stations.length,sourceLoaded:true},
-  DE:{areaStations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSmokeStations:ionityPriced.length,tiled:true},
+  DE:{supplementalIsolatedUnpriced:supplementRows.length,areaStations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSmokeStations:ionityPriced.length,tiled:true},
   GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true},
   FR:{stations:frResult.stations.length,pricedStations:frPriced.length,electroverseStations:frElectroverse.length},
   IT:{stations:itResult.stations.length,pricedStations:itPriced.length,ionityExactPricedStations:itIonityPriced.length,atlanteExactSmoke:true},
