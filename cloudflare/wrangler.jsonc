@@ -1,0 +1,12 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "tesla-charge-companion-v9",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-30",
+  "r2_buckets": [
+    {
+      "binding": "TCC_DATA",
+      "bucket_name": "tcc-v9-production-data"
+    }
+  ]
+}
