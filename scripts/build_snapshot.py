@@ -247,6 +247,33 @@ def main():
           "--out",str(overlays/"FR/platforms/electroverse-runtime-offers.json")
         ],check=True)
 
+    # Electra eMSP aggregate overlay is independent from Electroverse and
+    # attaches only through exact national France EVSE/PDC identities.
+    electra_platform=dl/"data/platforms/electra/france"
+    electra_manifest=electra_platform/"manifest.json"
+    if electra_manifest.exists():
+        em=load_json(electra_manifest)
+        assert em.get("policy",{}).get("nationalFranceIsIdentityHub") is True
+        assert em.get("policy",{}).get("exactNationalEvseOnly") is True
+        assert em.get("policy",{}).get("electroverseDependency") is False
+        assert int((em.get("stats") or {}).get("publishedOffers") or 0) > 0
+        copy_tree(electra_platform,overlays/"FR/platforms/electra")
+        reg=load_json(registry)
+        for src in reg.get("sources",[]):
+            if src.get("id")=="france-electra-platform":
+                src["active"]=True
+                src["optional"]=False
+                src.pop("disabledReason",None)
+                src["refresh"]="immutable-production-snapshot"
+                break
+        else:
+            raise AssertionError("france-electra-platform registry source missing")
+        prod=reg.setdefault("productionIntegration",{})
+        local=prod.setdefault("snapshotLocalSources",[])
+        if "france-electra-platform" not in local:
+            local.append("france-electra-platform")
+        write_json(registry,reg)
+
     # Italy validated direct overlays beside the compiled static baseline.
     it_dst=overlays/"IT/direct"
     it_dst.mkdir(parents=True,exist_ok=True)
@@ -357,7 +384,7 @@ def main():
         "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
         "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","direct":"snapshot-inputs/CH/direct","coverage":"complete-with-fail-closed-residuals"},
         "MA":{"kind":"cpo-consolidated","manifest":"snapshot-inputs/MA/manifest.json","coverage":"partial"},
-        "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","coverage":"partial"},
+        "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","identityHub":"national France station/EVSE baseline","coverage":"partial"},
         "IT":{"kind":"static-tiles","manifest":"runtime/data/v9/italy-static/manifest.json","offers":"runtime/data/v9/italy-offers.json","direct":"snapshot-inputs/IT/direct","coverage":"partial"},
         "DE":{"kind":"national-baseline","manifest":"snapshot-inputs/DE/manifest.json","all":"snapshot-inputs/DE/all.json.gz","direct":"snapshot-inputs/DE/direct","coverage":"partial"},
         "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"}
