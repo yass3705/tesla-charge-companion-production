@@ -25,6 +25,7 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--stable",required=True)
     ap.add_argument("--datalab",required=True)
+    ap.add_argument("--germany-source")
     ap.add_argument("--out",required=True)
     ap.add_argument("--config",default="config/snapshots/2026-09-30.json")
     a=ap.parse_args()
@@ -38,7 +39,7 @@ def main():
     # Start from the already validated V9 runtime baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
 
-    # Pin latest canonical inputs that are newer/more authoritative than the legacy runtime.
+    # Snapshot-specific canonical inputs newer/more authoritative than legacy runtime.
     overlays=out/"snapshot-inputs"
     pairs=[
       (dl/"data/national/switzerland_public_charging_v9.json", overlays/"CH/switzerland_public_charging_v9.json"),
@@ -49,24 +50,39 @@ def main():
         if src.exists(): copy_file(src,dst)
 
     # UK validated national feeds.
-    uk_src=dl/"data/national"
+    national=dl/"data/national"
     uk_dst=overlays/"UK/national"
     uk_dst.mkdir(parents=True,exist_ok=True)
-    for p in uk_src.glob("uk_*"):
+    for p in national.glob("uk_*"):
         if p.is_file(): copy_file(p,uk_dst/p.name)
     for name in ("fastned_direct_stations_uk.json.gz","ionity_direct_stations_uk.json.gz"):
-        p=uk_src/name
+        p=national/name
         if p.exists(): copy_file(p,uk_dst/name)
 
-    # Morocco remains CPO-consolidated: preserve the current validated evidence/overlays.
+    # Morocco CPO-consolidated evidence/overlays.
     ma=dl/"reports/morocco"
     if ma.exists(): copy_tree(ma,overlays/"MA/reports")
 
-    # Italy direct validated overlays from Data Lab are retained beside the stable compiled baseline.
+    # Italy direct validated overlays beside the compiled baseline.
     it_dst=overlays/"IT/direct"
     it_dst.mkdir(parents=True,exist_ok=True)
-    for p in uk_src.glob("*italy*"):
+    for p in national.glob("*italy*"):
         if p.is_file(): copy_file(p,it_dst/p.name)
+
+    # Germany national BNetzA/AFIR baseline + current resolution ledger.
+    if a.germany_source:
+        de_src=pathlib.Path(a.germany_source)
+        catalog=de_src/"germany_non_tesla_catalog_staging_direct_cpo.json.gz"
+        manifest=de_src/"germany_non_tesla_catalog_staging_direct_cpo_manifest.json"
+        assert catalog.exists() and manifest.exists(), "Germany source artifact incomplete"
+        de_dst=overlays/"DE"
+        copy_file(catalog,de_dst/"all.json.gz")
+        copy_file(manifest,de_dst/"national-base-manifest.json")
+        prod_ledger=pathlib.Path("docs/source-ledgers/germany-cpo-second-pass-resolution-180.json")
+        copy_file(prod_ledger,de_dst/"resolution-ledger.json")
+        with manifest.open() as f: m=json.load(f)
+        assert m["stats"]["nonTeslaSites"] == 63405
+        assert m["stats"]["directCpoSites"] == 5471
 
     files=[]
     for p in out.rglob("*"):
@@ -79,10 +95,11 @@ def main():
       "sources":cfg["sources"],
       "datasets":cfg["datasets"],
       "fileCount":len(files),
+      "bytes":sum(x["bytes"] for x in files),
       "files":files
     }
     (out/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
-    print(json.dumps({"snapshotId":cfg["snapshotId"],"fileCount":len(files),"bytes":sum(x["bytes"] for x in files)}))
+    print(json.dumps({"snapshotId":cfg["snapshotId"],"fileCount":len(files),"bytes":manifest["bytes"]}))
 
 if __name__=="__main__":
     main()
