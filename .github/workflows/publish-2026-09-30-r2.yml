@@ -1,0 +1,105 @@
+name: Publish V9 2026-09-30 r2 release
+
+on:
+  push:
+    paths:
+      - ".github/workflows/publish-2026-09-30-r2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          path: production
+
+      - name: Read r2 metadata
+        id: meta
+        run: |
+          python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r2.json >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+
+      - name: Checkout pinned Data Lab
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
+          path: datalab
+          persist-credentials: false
+
+      - name: Download pinned Germany national baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ART_REPO: ${{ steps.meta.outputs.germany_artifact_repo }}
+          ART_ID: ${{ steps.meta.outputs.germany_artifact_id }}
+        run: |
+          gh api "/repos/$ART_REPO/actions/artifacts/$ART_ID/zip" > /tmp/germany.zip
+          mkdir -p germany-source
+          unzip -q /tmp/germany.zip -d germany-source
+
+      - name: Build and validate r2
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30-r2.json
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --config config/snapshots/2026-09-30-r2.json             --out ../dist/v9-2026-09-30-r2
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r2 2026-09-30-r2
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r2
+
+      - name: Verify r2 improvements
+        run: |
+          python - <<'PY'
+          import gzip,json,pathlib
+          root=pathlib.Path("dist/v9-2026-09-30-r2")
+          uk=json.load(open(root/"snapshot-inputs/UK/manifest.json"))
+          assert uk["cpoStatusCounts"] == {"complete":18,"partial":0,"setAside":28,"other":0}, uk
+          with gzip.open(root/"snapshot-inputs/UK/sources/uk_lidl_public_ev_stores.json.gz","rt",encoding="utf-8") as f:
+              lidl=json.load(f)
+          assert len(lidl["stores"])==312
+          print({"UK":uk["cpoStatusCounts"],"lidlStores":312})
+          PY
+
+      - name: Package
+        run: |
+          cd dist
+          zip -0 -r tcc-v9-snapshot-2026-09-30-r2.zip v9-2026-09-30-r2 >/dev/null
+          sha256sum tcc-v9-snapshot-2026-09-30-r2.zip | tee tcc-v9-snapshot-2026-09-30-r2.sha256
+
+      - name: Publish persistent r2 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v9-snapshot-2026-09-30-r2"
+          ZIP="dist/tcc-v9-snapshot-2026-09-30-r2.zip"
+          SUM="dist/tcc-v9-snapshot-2026-09-30-r2.sha256"
+          cat > /tmp/notes.md <<'EOF'
+          Validated revision 2 of the Tesla Charge Companion V9 2026-09-30 snapshot.
+
+          Changes since the immutable baseline:
+          - Centralized FR progress ledger in Data Lab.
+          - Centralized DE progress/resolution ledgers in Data Lab.
+          - Added canonical V9 country progress index.
+          - Lidl UK official Store Finder national inventory: 1,021 stores parsed, 312 EV-charging stores, 312 geocoded, zero crawl failures.
+          - Lidl UK moved from actionable partial to bounded technical set-aside; no UK actionable partials remain.
+          - Snapshot embeds FR/IT/DE/UK progress ledgers.
+          - Stable runtime parity guard passed.
+
+          Policy remains fail-closed. The original v9-snapshot-2026-09-30 release is preserved as rollback baseline.
+          EOF
+          if gh release view "$TAG" --repo yass3705/tesla-charge-companion-production >/dev/null 2>&1; then
+            echo "Release already exists; refusing to mutate it."
+            exit 0
+          fi
+          gh release create "$TAG" "$ZIP" "$SUM"             --repo yass3705/tesla-charge-companion-production             --title "TCC V9 snapshot — 2026-09-30 r2"             --notes-file /tmp/notes.md             --target "$GITHUB_SHA"
