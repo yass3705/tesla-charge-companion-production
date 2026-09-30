@@ -105,7 +105,8 @@ for(const loc of deIonity.locations||[]){
 assert.ok(safeIonityPoint,'No safe IONITY Germany smoke point found');
 const isolatedPoint={lat:supplement.sites[0].coordinates.latitude,lon:supplement.sites[0].coordinates.longitude};
 const isolatedResult=await engine.queryArea({countryCode:'DE',origin:isolatedPoint,radiusKm:0.2,routingBudget:20});
-assert.ok(isolatedResult.stations.some(s=>knownSupplementIds.has(s.canonicalId)),'No isolated IONITY station surfaced through the production engine');
+assert.ok(isolatedResult.stations.some(s=>knownSupplementIds.has(s.id)),'No isolated IONITY station surfaced through the production engine');
+assert.ok(isolatedResult.stations.filter(s=>knownSupplementIds.has(s.id)).every(s=>(s.offers||[]).length===0),'Isolated IONITY stations acquired unsupported prices');
 assert.ok(isolatedResult.diagnostics.sources['germany-ionity-isolated-r8']?.loaded===true,'Supplemental DE source did not load');
 
 const deResult=await engine.queryArea({countryCode:'DE',origin:safeIonityPoint,radiusKm:5,routingBudget:20});
