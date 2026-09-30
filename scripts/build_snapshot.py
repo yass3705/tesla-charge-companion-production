@@ -124,6 +124,7 @@ def main():
       ("EVGO","reports/morocco/evgo/latest-production-stations.json","evgo-production.json"),
       ("FastVolt","reports/morocco/fastvolt/latest-public-map-inventory.json","fastvolt-public-map.json"),
       ("FastVolt tariff","reports/morocco/fastvolt/tariff-reconciliation-2026-08-31.json","fastvolt-tariff-policy.json"),
+      ("Kilowatt inventory","reports/morocco/kilowatt/latest-public-station-inventory.json","kilowatt-public-station-inventory.json"),
       ("Kilowatt native","reports/morocco/kilowatt/latest-native-connector-tariffs.json","kilowatt-native-tariffs.json"),
       ("Kilowatt overlay","reports/morocco/kilowatt/latest-v9-tariff-overlay-manifest.json","kilowatt-tariff-overlay.json"),
       ("EVOne policy","reports/morocco/evone/production-status-policy.json","evone-status-policy.json"),
