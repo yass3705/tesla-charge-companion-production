@@ -4,9 +4,14 @@ on:
   push:
     paths:
       - "config/snapshots/2026-09-30.json"
+      - "docs/source-ledgers/**"
       - "scripts/build_snapshot.py"
       - ".github/workflows/build-snapshot.yml"
   workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
   build:
@@ -30,11 +35,24 @@ jobs:
           ref: d65546e28240d882bca34a9b177b4622669577c1
           path: datalab
           persist-credentials: false
+      - name: Download pinned Germany national baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api /repos/yass3705/tesla-charge-companion-data-lab/actions/artifacts/9866595035/zip > /tmp/germany.zip
+          mkdir -p germany-source
+          unzip -q /tmp/germany.zip -d germany-source
+          test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo.json.gz
+          test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo_manifest.json
       - name: Build snapshot
         run: |
           cd production
           python scripts/validate_snapshot.py config/snapshots/2026-09-30.json
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --out ../dist/v9-2026-09-30
+          python scripts/build_snapshot.py \
+            --stable ../stable \
+            --datalab ../datalab \
+            --germany-source ../germany-source \
+            --out ../dist/v9-2026-09-30
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
