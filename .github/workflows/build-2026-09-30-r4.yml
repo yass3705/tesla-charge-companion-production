@@ -1,0 +1,101 @@
+name: Build V9 2026-09-30 r4 candidate
+
+on:
+  push:
+    paths:
+      - "config/snapshots/2026-09-30-r4.json"
+      - "scripts/build_snapshot.py"
+      - "scripts/validate_built_snapshot.py"
+      - "scripts/validate_stable_parity.py"
+      - ".github/workflows/build-2026-09-30-r4.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          path: production
+
+      - name: Read pinned r4 metadata
+        id: meta
+        run: python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r4.json >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+
+      - name: Checkout safe Data Lab head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
+          path: datalab
+          persist-credentials: false
+
+      - name: Guard finalized AVIA Switzerland
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open("datalab/docs/switzerland-avia-finalization-2026-09-29.json"))
+          c=d["coverage"]
+          assert d["status"]=="complete"
+          assert c["resolvedNationalEvseCount"]==583
+          assert c["unresolvedNationalEvseCount"]==0
+          a=json.load(open("datalab/data/switzerland/avia-guest-direct-tariffs.json"))
+          assert a["counts"]["uniquePricedEvses"]>=583, a["counts"]
+          PY
+
+      - name: Download pinned Germany national baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ART_REPO: ${{ steps.meta.outputs.germany_artifact_repo }}
+          ART_ID: ${{ steps.meta.outputs.germany_artifact_id }}
+        run: |
+          gh api "/repos/$ART_REPO/actions/artifacts/$ART_ID/zip" > /tmp/germany.zip
+          mkdir -p germany-source
+          unzip -q /tmp/germany.zip -d germany-source
+
+      - name: Build and validate r4 candidate
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30-r4.json
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --config config/snapshots/2026-09-30-r4.json             --out ../dist/v9-2026-09-30-r4
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r4 2026-09-30-r4
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r4
+
+      - name: Verify Morocco r4 improvement
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          root=pathlib.Path("dist/v9-2026-09-30-r4")
+          ma=json.load(open(root/"snapshot-inputs/MA/manifest.json"))
+          assert (root/"snapshot-inputs/MA/cpo-ledger.json").exists()
+          te=root/"snapshot-inputs/MA/sources/totalenergies-native-overlay.json"
+          assert te.exists()
+          d=json.load(open(te))
+          assert d["station_count"]==18
+          assert d["summary"]["connectors_extracted"]==38
+          assert d["summary"]["priced_connectors"]==38
+          assert d["summary"]["live_status_200"]==38
+          assert len(ma["sources"])>=7
+          print({"MA_sources":len(ma["sources"]),"TotalEnergies":{"stations":18,"connectors":38,"priced":38,"live":38}})
+          PY
+
+      - name: Upload r4 candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcc-v9-2026-09-30-r4-candidate
+          path: dist/v9-2026-09-30-r4
+          compression-level: 0
+          retention-days: 14
