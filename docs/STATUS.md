@@ -57,10 +57,14 @@ All of the following passed in that run: source guards, adapter unit tests, cand
 
 The original immutable r8 release and its digest above remain untouched. Passing Actions candidate artifacts are **not** a newly published release or live deployment.
 
+### Browser deployment gate verified
+
+Independent browser-asset candidate validation succeeded in [run 36730931772](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36730931772). The offline validator `scripts/validate_browser_asset_graph.py` verified **30 real shell dependencies**, **7 required production registry sources**, correct loader/extension/bootstrap order, and a local fallback. It rebuilt using the same pinned r8 sources; no release was mutated.
+
 ### Next production gates
 
 1. Extend actual runtime smoke to Spain, Netherlands and local Tesla inventory, alongside existing six-country tests.
-2. Verify browser-shell asset paths and deployment readiness separately from the Node runtime smoke.
+2. Keep the independently validated browser-asset graph as a required CI gate before packaging a new integration release.
 3. Package validated integration into a **new, separately named release candidate** when all gates pass; do not overwrite the historical r8 tag or ZIP.
 4. Later implement the scheduled refresh/promotion workflow independently of the frozen integration baseline. Future collection improvements belong in a future pinned snapshot.
 
