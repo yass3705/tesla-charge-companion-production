@@ -22,13 +22,14 @@ def build_registry(path):
       "label":"Germany pinned BNetzA/direct-CPO production snapshot",
       "adapter":"germany-national-v1",
       "path":"../snapshot-inputs/DE/all.json.gz",
+      "ionityPath":"../snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz",
       "countries":["DE"],
       "capabilities":["inventory","connectors","access","status","tariff"],
       "priority":{"identity":70,"connectors":70,"access":55,"status":70,"tariff":125},
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"Only explicitly productionRankable tariffs are exposed; all other pricing remains fail-closed."
+      "policy":"Only explicitly productionRankable tariffs are exposed, plus pinned IONITY Direct where a unique exact-coordinate + IONITY-operator match exists and every connector at the matched location has one uniform validated price. All other pricing remains fail-closed."
     })
     upsert(sources,{
       "id":"uk-production-open-feeds",
