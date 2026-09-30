@@ -134,6 +134,17 @@ def main():
       "policy":"Publish validated CPO stations and exact tariffs only; unresolved operators and tariff components remain fail-closed."
     })
 
+    # France validated direct/platform overlays beside the canonical baseline.
+    fr_direct=overlays/"FR/direct"
+    fr_direct.mkdir(parents=True,exist_ok=True)
+    for name in ("atlante_direct_stations_france_latest.json.gz",):
+        p=national/name
+        if p.exists(): copy_file(p,fr_direct/name)
+    ev_inventory=dl/"data/electroverse/inventory/france-current.json"
+    ev_delta=dl/"reports/electroverse/daily-delta.json"
+    if ev_inventory.exists(): copy_file(ev_inventory,overlays/"FR/platforms/electroverse-france-current.json")
+    if ev_delta.exists(): copy_file(ev_delta,overlays/"FR/platforms/electroverse-daily-delta.json")
+
     # Italy validated direct overlays beside the compiled static baseline.
     it_dst=overlays/"IT/direct"
     it_dst.mkdir(parents=True,exist_ok=True)
@@ -181,7 +192,7 @@ def main():
         "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
         "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","coverage":"complete-with-fail-closed-residuals"},
         "MA":{"kind":"cpo-consolidated","manifest":"snapshot-inputs/MA/manifest.json","coverage":"partial"},
-        "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","coverage":"partial"},
+        "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","coverage":"partial"},
         "IT":{"kind":"static-tiles","manifest":"runtime/data/v9/italy-static/manifest.json","offers":"runtime/data/v9/italy-offers.json","direct":"snapshot-inputs/IT/direct","coverage":"partial"},
         "DE":{"kind":"national-baseline","manifest":"snapshot-inputs/DE/manifest.json","all":"snapshot-inputs/DE/all.json.gz","coverage":"partial"},
         "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"}
