@@ -50,6 +50,10 @@ def main():
     assert str((kw_src.get("paths") or {}).get("inventory","")).startswith("../snapshot-inputs/MA/sources/"), kw_src
     assert str((kw_src.get("paths") or {}).get("native","")).startswith("../snapshot-inputs/MA/sources/"), kw_src
     assert not kw_src.get("urls"), kw_src
+    atlante_fr=sources.get("atlante-direct-france") or {}
+    assert atlante_fr.get("path")=="../snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz", atlante_fr
+    assert atlante_fr.get("active") is True, atlante_fr
+    assert (root/"snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz").exists()
     prod=registry.get("productionIntegration") or {}
     assert prod.get("remainingExternalSources")==[], prod
 
