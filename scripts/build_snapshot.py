@@ -233,9 +233,10 @@ def main():
         "scripts":[
           "runtime/assets/v9/adapters/germany-national.js",
           "runtime/assets/v9/adapters/uk-open-feeds.js",
-          "runtime/assets/v9/production-loader-extension.js"
+          "runtime/assets/v9/production-loader-extension.js",
+          "runtime/assets/v9/production-bootstrap.js"
         ],
-        "loaderExtensionInstall":"TCCV9ProductionLoaders.install()"
+        "loaderExtensionInstall":"TCCV9ProductionBootstrap.install()"
       },
       "datasets":{
         "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current"},
