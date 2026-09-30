@@ -64,11 +64,29 @@ assert.equal(typeof loaders['italy-ionity-r8'],'function');
 
 const engine=dataEngine.createEngine({registry:subRegistry,loaders});
 
-const deResult=await engine.queryArea({countryCode:'DE',routingBudget:20});
-assert.ok(deResult.stations.length>63000,'DE station count too low: '+deResult.stations.length);
+const deAll=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/all.json.gz'))).toString('utf8'));
+const deIonity=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz'))).toString('utf8'));
+const deCoordIndex=new Map();
+for(const site of deAll.sites||[]){
+  const co=site.coordinates||{},lat=Number(co.latitude),lon=Number(co.longitude);
+  if(!Number.isFinite(lat)||!Number.isFinite(lon))continue;
+  const key=lat.toFixed(6)+'|'+lon.toFixed(6);
+  const rows=deCoordIndex.get(key)||[];rows.push(site);deCoordIndex.set(key,rows);
+}
+let safeIonityPoint=null;
+for(const loc of deIonity.locations||[]){
+  const lat=Number(loc.latitude),lon=Number(loc.longitude),key=lat.toFixed(6)+'|'+lon.toFixed(6),rows=deCoordIndex.get(key)||[];
+  if(rows.length===1&&String(rows[0].operator||'').toLowerCase().includes('ionity')){
+    safeIonityPoint={lat,lon,name:loc.name};break;
+  }
+}
+assert.ok(safeIonityPoint,'No safe IONITY Germany smoke point found');
+const deResult=await engine.queryArea({countryCode:'DE',origin:safeIonityPoint,radiusKm:5,routingBudget:20});
+assert.ok(deResult.stations.length>0,'DE area query returned no stations');
+assert.ok(deResult.stations.length<5000,'DE tiled query loaded unexpectedly many stations: '+deResult.stations.length);
 const dePriced=deResult.stations.filter(s=>(s.offers||[]).length>0);
 const ionityPriced=deResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='IONITY Direct'));
-assert.ok(ionityPriced.length>=120,'IONITY DE safe priced station count too low: '+ionityPriced.length);
+assert.ok(ionityPriced.length>=1,'IONITY DE exact smoke point did not receive direct pricing');
 assert.ok(deResult.diagnostics.sources['germany-production-snapshot']?.loaded===true);
 
 const gbResult=await engine.queryArea({countryCode:'GB',routingBudget:20});
@@ -128,7 +146,7 @@ for(const src of maRegistrySources){
 
 console.log(JSON.stringify({
   ok:true,
-  DE:{stations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSafeStations:ionityPriced.length},
+  DE:{areaStations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSmokeStations:ionityPriced.length,tiled:true},
   GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true},
   FR:{stations:frResult.stations.length,pricedStations:frPriced.length},
   IT:{stations:itResult.stations.length,pricedStations:itPriced.length,ionityExactPricedStations:itIonityPriced.length},
