@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "snapshotId": "2026-09-30-r6",
+  "policy": "fail-closed",
+  "sources": {
+    "dataLab": {
+      "repo": "yass3705/tesla-charge-companion-data-lab",
+      "sha": "d622e1de3a5d011cc1a7ff19a1a69ef190aa0775"
+    },
+    "stable": {
+      "repo": "yass3705/tesla-charge-companion-stable",
+      "sha": "0a6d2c3415504397310d3dc92fae40be843b2435"
+    },
+    "legacyUpdater": {
+      "repo": "yass3705/tesla-stations-updater-test",
+      "sha": "3e4c26b679617f82aae5b6de52a64a4cdbd20581"
+    },
+    "germanyRecovery": {
+      "repo": "yass3705/tesla-stations-updater-test",
+      "sha": "59573b851fd9ee015f6edac6a9302b07e09cc71e",
+      "branch": "work/germany-v9-cpo-recovery",
+      "pr": 6
+    }
+  },
+  "datasets": [
+    {
+      "id": "TESLA",
+      "kind": "tesla",
+      "coverage": "current",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/tesla_stations.json"
+    },
+    {
+      "id": "ES",
+      "kind": "national",
+      "coverage": "complete",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/v9/spain-static"
+    },
+    {
+      "id": "NL",
+      "kind": "national",
+      "coverage": "complete",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/non_tesla_netherlands"
+    },
+    {
+      "id": "CH",
+      "kind": "national",
+      "coverage": "complete-with-fail-closed-residuals",
+      "primarySource": "dataLab",
+      "path": "data/national/switzerland_public_charging_v9.json",
+      "directEvidence": "data/switzerland/avia-guest-direct-tariffs.json"
+    },
+    {
+      "id": "MA",
+      "kind": "cpo-consolidated",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "reports/morocco",
+      "statusLedger": "docs/morocco-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "FR",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "data/national/france_public_charging_canonical.json",
+      "statusLedger": "docs/france-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "IT",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/v9/italy-static",
+      "statusLedger": "docs/italy-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "DE",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "snapshot-inputs/DE",
+      "statusLedger": "docs/germany-cpo-progress-2026-09.json",
+      "nationalBaseArtifact": {
+        "repository": "yass3705/tesla-charge-companion-data-lab",
+        "artifactId": 9866595035,
+        "artifactName": "germany-national-direct-cpo-staging",
+        "digest": "sha256:9aada4804c1e95b5ad734560ec7a5c83cb4e5a3cf70b7e7a6817f22d87dacc0e",
+        "sites": 63405,
+        "directCpoSites": 5471
+      },
+      "resolutionLedger": "docs/germany-cpo-second-pass-resolution-180.json",
+      "directOverlay": "data/national/ionity_direct_stations_germany.json.gz"
+    },
+    {
+      "id": "UK",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "data/national/uk_validated_open_feeds.json.gz",
+      "statusLedger": "docs/uk-cpo-progress-2026-09.json"
+    }
+  ],
+  "progressIndex": "docs/v9-country-progress-2026-09-30.json",
+  "sourceSelection": {
+    "selectedDataLabCommit": "d622e1de3a5d011cc1a7ff19a1a69ef190aa0775",
+    "reason": "Safe canonical head after Enel X Way and IONITY Italy bounded-residual promotions plus DEJA BLUE France exact 92-PDC closure; retains AVIA/IONITY direct refreshes and durable Germany national baseline.",
+    "safeguards": [
+      "France canonical arithmetic 93 treated + 23 setAside + 175 active = 291.",
+      "Italy current-PUN arithmetic 26 treated + 66 partial = 92; Enel and IONITY residual EVSE remain fail-closed.",
+      "AVIA Switzerland 583/583 national EVSE matched.",
+      "IONITY FR/IT/DE direct datasets retain zero unpriced connectors.",
+      "Germany durable national baseline stored in Data Lab; Actions artifact is fallback only."
+    ]
+  }
+}
