@@ -13,6 +13,8 @@ on:
       - "runtime-overrides/**"
       - "tests/runtime-integration.test.mjs"
       - "tests/runtime-loader-cache.test.mjs"
+      - "tests/france-electra-rich-migration.test.mjs"
+      - "runtime-overrides/assets/v9/adapters/france-emsp-compact.js"
       - "tests/runtime-e2e-smoke.mjs"
       - ".github/workflows/build-2026-09-30-r8.yml"
   workflow_dispatch:
@@ -70,6 +72,7 @@ jobs:
         run: |
           node production/tests/runtime-integration.test.mjs
           node production/tests/runtime-loader-cache.test.mjs
+          node production/tests/france-electra-rich-migration.test.mjs
 
       - name: Build and validate r8
         run: |
