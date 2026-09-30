@@ -52,6 +52,8 @@ def main():
     targets={
       "DE":dl/"data/national/germany_non_tesla_catalog_staging_direct_cpo.json.gz",
       "DE_IONITY":dl/"data/national/ionity_direct_stations_germany.json.gz",
+      "IT_IONITY":dl/"data/national/ionity_direct_stations_italy.json.gz",
+      "CH_AVIA":dl/"data/switzerland/avia-guest-direct-tariffs.json",
       "UK":dl/"data/national/uk_validated_open_feeds.json.gz",
       "FR":dl/"data/national/france_public_charging_canonical.json",
       "CH":dl/"data/national/switzerland_public_charging_v9.json",
