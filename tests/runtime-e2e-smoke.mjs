@@ -89,7 +89,7 @@ const ionityPriced=deResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider
 assert.ok(ionityPriced.length>=1,'IONITY DE exact smoke point did not receive direct pricing');
 assert.ok(deResult.diagnostics.sources['germany-production-snapshot']?.loaded===true);
 
-const gbResult=await engine.queryArea({countryCode:'GB',routingBudget:20});
+const gbResult=await engine.queryArea({countryCode:'GB',origin:{lat:51.751274,lon:-0.313710},radiusKm:10,routingBudget:20});
 assert.ok(gbResult.stations.length>0,'GB returned no stations');
 const gbPriced=gbResult.stations.filter(s=>(s.offers||[]).length>0);
 assert.ok(gbPriced.length>0,'GB returned no priced stations from exact tariff joins');
