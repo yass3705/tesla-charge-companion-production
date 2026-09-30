@@ -72,6 +72,18 @@ def main():
     assert de_src.get("adapter")=="germany-national-v1" and de_src.get("path")=="../snapshot-inputs/DE/all.json.gz", de_src
     assert de_src.get("ionityPath")=="../snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz", de_src
     assert (root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz").exists()
+    ionity_extra=sources.get("germany-ionity-isolated-r8") or {}
+    assert ionity_extra.get("adapter")=="germany-national-v1", ionity_extra
+    assert ionity_extra.get("path")=="../snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json",ionity_extra
+    assert ionity_extra.get("active") is True and ionity_extra.get("optional") is False
+    extra_path=root/"snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json"
+    extra=load(extra_path)
+    assert len(extra.get("sites") or [])==3, extra.get("metadata")
+    assert extra["metadata"]["quarantinedNearThirdParty"]==8
+    assert extra["metadata"]["alreadyNearNationalIonity"]==188
+    assert len({site["id"] for site in extra["sites"]})==3
+    assert all(site.get("pricing")=={} and site.get("evseIds")==[] for site in extra["sites"])
+    assert all(site.get("source",{}).get("unpricedFailClosed") is True for site in extra["sites"])
     assert uk_src.get("adapter")=="uk-open-feeds-v1" and uk_src.get("path")=="../snapshot-inputs/UK/all.json.gz", uk_src
     assert de_src.get("optional") is False and uk_src.get("optional") is False
     for source_id in ("morocco-evgo-native","morocco-fastvolt-public","morocco-totalenergies-hosts"):
