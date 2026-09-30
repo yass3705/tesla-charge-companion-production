@@ -1,0 +1,91 @@
+name: Publish verified V9 runtime RC1
+on:
+  push:
+    paths:
+      - ".github/workflows/publish-v9-runtime-rc1.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: v9-runtime-rc1-immutable-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - name: Verify source CI success and artifact digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO=yass3705/tesla-charge-companion-production
+          RUN=36736001077
+          SHA=1f3954935ec558eb320009ccd6319377c11a215f
+          ARTIFACT=11107471281
+          DIGEST=sha256:2ee6d4366bbbf2347ae0ecb0cbc4701f62690d6b0938b78cdace8757d87f1e2c
+          gh api "repos/$REPO/actions/runs/$RUN" --jq '[.status,.conclusion,.head_sha]|join(" ")' | grep -Fx "completed success $SHA"
+          gh api "repos/$REPO/actions/artifacts/$ARTIFACT" --jq '[.name,.expired,.digest,.workflow_run.head_sha]|join(" ")' | grep -Fx "tcc-v9-2026-09-30-r8-candidate false $DIGEST $SHA"
+          if gh release view v9-runtime-2026-09-30-rc1 --repo "$REPO" >/dev/null 2>&1; then
+            echo 'Immutable RC1 already exists. Refusing to mutate it.'
+            exit 1
+          fi
+      - name: Download exact successful candidate artifact (no rebuild)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/v9-2026-09-30-r8
+          gh run download 36736001077 --repo yass3705/tesla-charge-companion-production --name tcc-v9-2026-09-30-r8-candidate --dir dist/v9-2026-09-30-r8
+      - name: Verify package integrity, runtime contract and baseline parity
+        run: |
+          python production/scripts/verify_candidate_manifest.py dist/v9-2026-09-30-r8
+          python production/scripts/validate_built_snapshot.py dist/v9-2026-09-30-r8 2026-09-30-r8
+          python production/scripts/validate_browser_asset_graph.py dist/v9-2026-09-30-r8
+          python production/scripts/validate_stable_parity.py stable dist/v9-2026-09-30-r8
+      - name: Create separate candidate package and checksum
+        run: |
+          cd dist
+          zip -0 -q -r tcc-v9-runtime-2026-09-30-rc1.zip v9-2026-09-30-r8
+          sha256sum tcc-v9-runtime-2026-09-30-rc1.zip > tcc-v9-runtime-2026-09-30-rc1.sha256
+          cat tcc-v9-runtime-2026-09-30-rc1.sha256
+      - name: Publish immutable prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=v9-runtime-2026-09-30-rc1
+          if gh release view "$TAG" --repo yass3705/tesla-charge-companion-production >/dev/null 2>&1; then
+            echo 'Concurrent release already exists: refusing overwrite.'
+            exit 1
+          fi
+          cat > /tmp/v9-rc1-notes.md <<'EOF'
+          First production-runtime integration **release candidate** over the immutable r8 data baseline, not a live deployment and not a replacement for the historical r8 release.
+
+          Provenance: successful GitHub Actions build 36736001077 (source SHA 1f3954935ec558eb320009ccd6319377c11a215f). Exact source artifact ID 11107471281 with its GitHub SHA-256 archive digest verified before downloading. Package manifest hashes, built snapshot contract, browser asset graph, and pinned stable parity independently revalidated before release.
+
+          Includes Tesla, ES, NL, CH, MA, FR, IT, DE, and UK snapshot/runtime inputs, fail-closed validated tariffs, Germany national 63,405 sites plus three unpriced isolated IONITY inventory sites, and 30 validated browser dependencies.
+
+          This package intentionally retains internal snapshotId 2026-09-30-r8 because its underlying data sources are frozen. The RC1 tag identifies the newer candidate integration/runtime build. Original v9-snapshot-2026-09-30-r8 assets remain untouched.
+
+          Cloudflare deployment and scheduled refresh/promotion remain separate pending workstreams.
+          EOF
+          gh release create "$TAG" dist/tcc-v9-runtime-2026-09-30-rc1.zip dist/tcc-v9-runtime-2026-09-30-rc1.sha256 \
+            --repo yass3705/tesla-charge-companion-production \
+            --target 1f3954935ec558eb320009ccd6319377c11a215f \
+            --title "TCC V9 runtime integration RC1 (frozen r8 data)" \
+            --notes-file /tmp/v9-rc1-notes.md \
+            --prerelease
