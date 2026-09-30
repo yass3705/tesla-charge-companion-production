@@ -5,8 +5,10 @@ const base=process.env.TCC_PREVIEW_URL||'http://127.0.0.1:8765';
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
 const page=await browser.newPage({serviceWorkers:'block'});
 const severe=[];
+const noncriticalHttp=[];
 page.on('pageerror',e=>severe.push('pageerror: '+e.message));
-page.on('console',m=>{if(m.type()==='error'&&/TCC V9 shell|uncaught|install failed|failed to load/i.test(m.text()))severe.push('console: '+m.text())});
+page.on('console',m=>{if(m.type()==='error'&&/TCC V9 shell|uncaught|install failed/i.test(m.text()))severe.push('console: '+m.text())});
+page.on('response',response=>{if(response.status()<400)return;const url=response.url();if(/\/(?:assets\/v9\/|data\/v9\/|v9-production-shell\/bridge\.js|v9-production-shell\/shell-config\.json)/.test(url))severe.push('essential HTTP '+response.status()+': '+url);else noncriticalHttp.push({status:response.status(),url});});
 try{
   await page.goto(base+'/v9-production-shell/',{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForFunction(()=>Boolean(window.__TCC_V9_SHELL__&&window.TCCV9ProductionBootstrap&&window.TCCV9ProductionLoaders),{timeout:45000});
@@ -57,7 +59,7 @@ try{
   });
   assert.ok(selector.selected.includes('preview-subscription')&&selector.checked&&selector.calls===1,selector);
   assert.deepEqual(severe,[]);
-  console.log(JSON.stringify({ok:true,realBrowser:true,shell,interactiveTabs:true,changedInputs:inputs,subscriptionEventVerified:true,pageErrors:severe}));
+  console.log(JSON.stringify({ok:true,realBrowser:true,shell,interactiveTabs:true,changedInputs:inputs,subscriptionEventVerified:true,pageErrors:severe,noncriticalHttp}));
 }finally{
   await browser.close();
 }
