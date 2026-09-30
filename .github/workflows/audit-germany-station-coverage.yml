@@ -4,6 +4,7 @@ on:
     paths:
       - scripts/audit_germany_station_coverage.py
       - .github/workflows/audit-germany-station-coverage.yml
+      - scripts/build_germany_ionity_inventory_supplement.py
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,8 +24,13 @@ jobs:
       - name: Reconcile exact EVSE and coordinates against pinned r8
         run: |
           python production/scripts/audit_germany_station_coverage.py datalab audit/germany-station-coverage-r8.json
+      - name: Generate conservative unpriced IONITY inventory supplement
+        run: |
+          python production/scripts/build_germany_ionity_inventory_supplement.py datalab audit/germany-ionity-isolated-supplement-r8.json
       - uses: actions/upload-artifact@v4
         with:
           name: germany-station-coverage-r8
-          path: audit/germany-station-coverage-r8.json
+          path: |
+            audit/germany-station-coverage-r8.json
+            audit/germany-ionity-isolated-supplement-r8.json
           retention-days: 30
