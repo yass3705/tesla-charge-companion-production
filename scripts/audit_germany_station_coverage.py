@@ -9,6 +9,7 @@ import json
 import math
 import pathlib
 import sys
+import unicodedata
 
 def load(path):
     with gzip.open(path,"rt",encoding="utf-8") as fh:
@@ -44,7 +45,20 @@ def audit(baseline,overlay):
     unique_evse_matches=set()
     exact_coord_matches=set()
     definite_overlay_only=[]
-    national_ionity_count=sum(1 for s in sites if "ionity" in str(s.get("operator") or "").lower())
+    national_ionity=[s for s in sites if "ionity" in str(s.get("operator") or "").lower()]
+    national_ionity_count=len(national_ionity)
+    def meters(a,b):
+        lat1,lon1=map(math.radians,a);lat2,lon2=map(math.radians,b)
+        z=math.sin((lat2-lat1)/2)**2+math.cos(lat1)*math.cos(lat2)*math.sin((lon2-lon1)/2)**2
+        return 12742000*math.asin(min(1,math.sqrt(z)))
+    def normalized_name(v):
+        v=unicodedata.normalize("NFKD",str(v or "").lower())
+        return "".join(c for c in v if c.isalnum() and not unicodedata.combining(c))
+    geographic=collections.Counter()
+    geographic_samples=collections.defaultdict(list)
+    ionity_geo=[(coord(s,True),s) for s in national_ionity]
+    ionity_geo=[x for x in ionity_geo if x[0]]
+
     for loc in locs:
         connector_ids=[norm(x.get("evseId") or x.get("sourceEvseId") or x.get("id")) for x in loc.get("connectors") or []]
         connector_ids=[x for x in connector_ids if x]
@@ -73,15 +87,35 @@ def audit(baseline,overlay):
             key="no_exact_identity_match"
         buckets[key]+=1
         if len(samples[key])<12:samples[key].append(label)
-        if key in ("no_exact_identity_match","no_evse_ids_and_no_exact_coordinate"):
-            definite_overlay_only.append({"name":loc.get("name"),"locationId":loc.get("locationId"),
-               "latitude":loc.get("latitude"),"longitude":loc.get("longitude"),
-               "connectorEvseIds":[x.get("evseId") or x.get("sourceEvseId") or x.get("id") for x in loc.get("connectors") or []]})
+        if key in ("no_exact_identity_match","no_evse_ids_and_no_exact_coordinate","ambiguous_exact_coordinate"):
+            candidates=[]
+            for nc,site in ionity_geo:
+                if pos is None:continue
+                distance=meters(pos,nc)
+                if distance<=2000:
+                    candidates.append((distance,site))
+            candidates.sort(key=lambda x:x[0])
+            within50=sum(d<=50 for d,_ in candidates)
+            within250=sum(d<=250 for d,_ in candidates)
+            if within50:geo_class="ionity_within_50m"
+            elif within250:geo_class="ionity_within_250m"
+            elif candidates:geo_class="ionity_within_2km"
+            else:geo_class="no_ionity_within_2km"
+            geographic[geo_class]+=1
+            row={"name":loc.get("name"),"locationId":loc.get("locationId"),
+                "latitude":loc.get("latitude"),"longitude":loc.get("longitude"),
+                "exactCoordinateNationalSites":len(coord_sites),
+                "nearbyIonityWithin50m":within50,"nearbyIonityWithin250m":within250,
+                "nearbyCandidates":[{"meters":round(d,1),"nationalId":site.get("id"),"nationalName":site.get("name"),
+                   "nationalOperator":site.get("operator"),
+                   "sameNormalizedName":normalized_name(site.get("name"))==normalized_name(loc.get("name"))} for d,site in candidates[:5]]}
+            if len(geographic_samples[geo_class])<8:geographic_samples[geo_class].append(row)
+            definite_overlay_only.append(row)
     return {"schemaVersion":1,"baseline":{
         "nationalNonTeslaStations":len(sites),"nationalIonityOperatorSites":national_ionity_count,
         "indexedNationalEvseIds":len(evse_index),"indexedCoordinates":len(coord_index)},
        "ionity":{"sourceLocations":len(locs),"sourceConnectors":sum(len(l.get("connectors") or []) for l in locs)},
-       "classification":dict(buckets),"sampleByClass":dict(samples),
+       "classification":dict(buckets),"nearbyDiagnostic":dict(geographic),"nearbySamples":dict(geographic_samples),"sampleByClass":dict(samples),
        "potentialAdditionalLocationsNotYetPromotable":definite_overlay_only,
        "policy":"No site automatically appended; unmatched IONITY sites require deterministic national absence and distinct identity audit, not geographic proximity. First-pass CPO classification is not station inventory."}
 
@@ -90,6 +124,6 @@ def main():
     result=audit(load(root/"data/national/germany_non_tesla_catalog_staging_direct_cpo.json.gz"),load(root/"data/national/ionity_direct_stations_germany.json.gz"))
     output=pathlib.Path(sys.argv[2]);output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    print(json.dumps({"baseline":result["baseline"],"ionity":result["ionity"],"classification":result["classification"],"potentialAdditional":len(result["potentialAdditionalLocationsNotYetPromotable"])},ensure_ascii=False))
+    print(json.dumps({"baseline":result["baseline"],"ionity":result["ionity"],"classification":result["classification"],"potentialAdditional":len(result["potentialAdditionalLocationsNotYetPromotable"]),"nearbyDiagnostic":result["nearbyDiagnostic"]},ensure_ascii=False))
 if __name__=="__main__":
     main()
