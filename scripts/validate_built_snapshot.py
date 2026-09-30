@@ -37,6 +37,8 @@ def main():
     de_src=sources.get("germany-production-snapshot") or {}
     uk_src=sources.get("uk-production-open-feeds") or {}
     assert de_src.get("adapter")=="germany-national-v1" and de_src.get("path")=="../snapshot-inputs/DE/all.json.gz", de_src
+    assert de_src.get("ionityPath")=="../snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz", de_src
+    assert (root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz").exists()
     assert uk_src.get("adapter")=="uk-open-feeds-v1" and uk_src.get("path")=="../snapshot-inputs/UK/all.json.gz", uk_src
     assert de_src.get("optional") is False and uk_src.get("optional") is False
     for source_id in ("morocco-fastvolt-public","morocco-totalenergies-hosts"):
