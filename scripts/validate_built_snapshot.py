@@ -83,6 +83,11 @@ def main():
     assert atlante_fr.get("path")=="../snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz", atlante_fr
     assert atlante_fr.get("active") is True, atlante_fr
     assert (root/"snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz").exists()
+    avia_ch=sources.get("switzerland-avia-r8") or {}
+    assert avia_ch.get("adapter")=="switzerland-avia-v1", avia_ch
+    assert avia_ch.get("path")=="../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json", avia_ch
+    assert avia_ch.get("optional") is False and avia_ch.get("active") is True, avia_ch
+    assert (root/"snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json").exists()
     prod=registry.get("productionIntegration") or {}
     assert prod.get("remainingExternalSources")==[], prod
 
