@@ -1,0 +1,36 @@
+name: Probe Germany artifact import
+
+on:
+  push:
+    paths:
+      - ".github/workflows/probe-germany-artifact.yml"
+      - "config/snapshots/2026-09-30.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pinned public Data Lab artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api /repos/yass3705/tesla-charge-companion-data-lab/actions/artifacts/9866595035/zip > /tmp/de.zip
+          unzip -t /tmp/de.zip
+          mkdir -p /tmp/de
+          unzip -q /tmp/de.zip -d /tmp/de
+          test -s /tmp/de/germany_non_tesla_catalog_staging_direct_cpo.json.gz
+          python - <<'PY'
+          import gzip,json,hashlib,pathlib
+          p=pathlib.Path('/tmp/de/germany_non_tesla_catalog_staging_direct_cpo.json.gz')
+          with gzip.open(p,'rt',encoding='utf-8') as f:
+              o=json.load(f)
+          assert o['countryCode']=='DE'
+          assert len(o['sites'])==63405
+          print({'sites':len(o['sites']),'bytes':p.stat().st_size,'directCpoSites':o['stats']['directCpoSites']})
+          PY
