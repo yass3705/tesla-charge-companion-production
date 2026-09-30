@@ -14,6 +14,9 @@ const browserLoaders=require(path.join(runtime,'assets/v9/browser-loaders.js'));
 const de=require(path.join(runtime,'assets/v9/adapters/germany-national.js'));
 const uk=require(path.join(runtime,'assets/v9/adapters/uk-open-feeds.js'));
 const ma=require(path.join(runtime,'assets/v9/adapters/morocco-public.js'));
+const nationalCompact=require(path.join(runtime,'assets/v9/adapters/national-compact.js'));
+const directOffers=require(path.join(runtime,'assets/v9/adapters/direct-offers.js'));
+const legacyDirectStations=require(path.join(runtime,'assets/v9/adapters/legacy-direct-stations.js'));
 const extension=require(path.join(runtime,'assets/v9/production-loader-extension.js'));
 
 function fileFetch(baseRoot){
@@ -32,18 +35,18 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts']);
+const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','italy-pun','italy-verified-offers','switzerland-national','switzerland-verified-offers']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
   registry:subRegistry,
   basePath:pathToFileURL(runtime+path.sep).href,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma},
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations},
   fetchImpl:fileFetch(runtime)
 });
 
@@ -51,6 +54,9 @@ assert.equal(typeof loaders['germany-production-snapshot'],'function');
 assert.equal(typeof loaders['uk-production-open-feeds'],'function');
 assert.equal(typeof loaders['morocco-evgo-native'],'function');
 assert.equal(typeof loaders['morocco-kilowatt-public'],'function');
+assert.equal(typeof loaders['france-national'],'function');
+assert.equal(typeof loaders['italy-pun'],'function');
+assert.equal(typeof loaders['switzerland-national'],'function');
 
 const engine=dataEngine.createEngine({registry:subRegistry,loaders});
 
