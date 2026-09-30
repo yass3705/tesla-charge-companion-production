@@ -1,0 +1,34 @@
+name: Audit France Electra-to-national identity coverage
+on:
+  push:
+    paths:
+      - "scripts/audit_france_electra_national_identity.mjs"
+      - ".github/workflows/audit-france-electra-national-identity.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - name: Measure exact Electra legacy PDC overlap with national France V9
+        run: |
+          mkdir -p audit
+          node scripts/audit_france_electra_national_identity.mjs \
+            stable/data/non_tesla_france/all.json.gz \
+            stable/v9-production-runtime/data/v9/france-static/all.json.gz \
+            audit/france-electra-national-identity.json
+          cat audit/france-electra-national-identity.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: france-electra-national-identity-audit
+          path: audit/france-electra-national-identity.json
+          retention-days: 14
