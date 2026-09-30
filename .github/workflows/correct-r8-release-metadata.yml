@@ -1,0 +1,31 @@
+name: Correct r8 release metadata
+on:
+  push:
+    paths:
+      - ".github/workflows/correct-r8-release-metadata.yml"
+permissions:
+  contents: write
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Correct release notes only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > /tmp/notes.md <<'EOF'
+          Validated revision 8 of Tesla Charge Companion V9 snapshot 2026-09-30.
+
+          Consolidated state:
+          - Germany national baseline is durable in Data Lab; current builds no longer depend on the expiring Actions artifact.
+          - France: 94 treated / 27 set aside / 170 active. IONITY raw24 promoted with 181 locations / 1,853 exact-priced connectors / 0 unpriced. Ubitricity, FDE80, Yusco and EVBOX are explicitly bounded fail-closed rather than extrapolated.
+          - Italy: 26 treated / 66 current partial; Enel X Way and IONITY bounded residuals remain fail-closed where identity evidence is incomplete.
+          - AVIA Switzerland: 583/583 national EVSE matched, zero missing; conflict-safe refresh publication validated.
+          - IONITY direct overlays: FR 181/1,853; IT 42/325; DE 199/1,578; zero unpriced connectors in each overlay.
+          - Morocco retains validated Kilowatt and TotalEnergies native overlays.
+          - V9 country index is synchronized with the France canonical ledger and validation now enforces index-ledger parity.
+          - Stable parity guard passed.
+
+          Previous releases remain preserved as rollback points.
+          EOF
+          gh release edit v9-snapshot-2026-09-30-r8 --repo yass3705/tesla-charge-companion-production --notes-file /tmp/notes.md --title "TCC V9 snapshot — 2026-09-30 r8"
