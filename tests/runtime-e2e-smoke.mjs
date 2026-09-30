@@ -86,6 +86,19 @@ const expectedRule=expectedTariff.rules[0];
 const energyOffers=(exactMfg.offers||[]).flatMap(o=>(o.pricing?.rules||[]).map(r=>({provider:o.provider,price:r.pricePerKwh,currency:r.currency})));
 assert.ok(energyOffers.some(x=>x.currency===expectedRule.currency&&Math.abs(Number(x.price)-Number(expectedRule.pricePerKwh))<1e-9),'Exact MFG tariff-id join did not survive runtime engine');
 
+
+const frResult=await engine.queryArea({countryCode:'FR',routingBudget:20});
+assert.ok(frResult.stations.length>0,'FR returned no stations');
+const frPriced=frResult.stations.filter(s=>(s.offers||[]).length>0);
+
+const itResult=await engine.queryArea({countryCode:'IT',routingBudget:20});
+assert.ok(itResult.stations.length>0,'IT returned no stations');
+const itPriced=itResult.stations.filter(s=>(s.offers||[]).length>0);
+
+const chResult=await engine.queryArea({countryCode:'CH',routingBudget:20});
+assert.ok(chResult.stations.length>0,'CH returned no stations');
+const chPriced=chResult.stations.filter(s=>(s.offers||[]).length>0);
+
 const maResult=await engine.queryArea({countryCode:'MA',routingBudget:20});
 assert.ok(maResult.stations.length>=150,'MA station count too low: '+maResult.stations.length);
 const maPriced=maResult.stations.filter(s=>(s.offers||[]).length>0);
@@ -103,5 +116,8 @@ console.log(JSON.stringify({
   ok:true,
   DE:{stations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSafeStations:ionityPriced.length},
   GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true},
+  FR:{stations:frResult.stations.length,pricedStations:frPriced.length},
+  IT:{stations:itResult.stations.length,pricedStations:itPriced.length},
+  CH:{stations:chResult.stations.length,pricedStations:chPriced.length},
   MA:{stations:maResult.stations.length,pricedStations:maPriced.length,allRuntimeSourcesSnapshotLocal:true}
 }));
