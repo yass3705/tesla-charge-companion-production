@@ -43,11 +43,12 @@
     const chAvia=adapters?.switzerlandAvia||root?.TCCV9Adapters?.switzerlandAvia;
     const itIonity=adapters?.italyIonityExact||root?.TCCV9Adapters?.italyIonityExact;
     const frIonity=adapters?.franceIonityExact||root?.TCCV9Adapters?.franceIonityExact;
+    const itAtlante=adapters?.atlanteItalyExact||root?.TCCV9Adapters?.atlanteItalyExact;
     const original=target.createRegistryLoaders.bind(target);
     target.createRegistryLoaders=function(opts={}){
       const registry=opts.registry||{sources:[]};
       const baseRegistry={...registry,sources:(registry.sources||[]).filter(s=>{
-        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1'].includes(s.adapter))return false;
+        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1','atlante-italy-exact-v1'].includes(s.adapter))return false;
         if(s.adapter==='morocco-public-v1'&&['evgo-production-local','kilowatt-native-local'].includes(s.profile))return false;
         return true;
       })};
@@ -98,6 +99,12 @@
         }else if(source.adapter==='france-ionity-exact-v1'){
           if(!frIonity?.normalizePayload)throw new Error('France IONITY exact adapter missing');
           loaders[source.id]=async()=>frIonity.normalizePayload(
+            await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl),
+            source
+          );
+        }else if(source.adapter==='atlante-italy-exact-v1'){
+          if(!itAtlante?.normalizePayload)throw new Error('Atlante Italy exact adapter missing');
+          loaders[source.id]=async()=>itAtlante.normalizePayload(
             await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl),
             source
           );
