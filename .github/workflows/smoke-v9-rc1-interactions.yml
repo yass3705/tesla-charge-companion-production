@@ -1,0 +1,42 @@
+name: Interactive V9 RC1 browser verification
+on:
+  push:
+    paths:
+      - "tests/runtime-browser-interactions.mjs"
+      - ".github/workflows/smoke-v9-rc1-interactions.yml"
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  interactions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified frozen RC1 build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/v9-2026-09-30-r8
+          gh run download 36736001077 --repo yass3705/tesla-charge-companion-production --name tcc-v9-2026-09-30-r8-candidate --dir dist/v9-2026-09-30-r8
+      - name: Install browser test driver (system Chrome, no browser download)
+        run: npm install --no-save --no-package-lock playwright@1.55.1
+      - name: Start isolated candidate server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/v9-2026-09-30-r8 >/tmp/tcc-preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/v9-production-shell/shell-config.json >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/tcc-preview.log
+          exit 1
+      - name: Exercise real V9 interactive browser behaviors
+        run: node tests/runtime-browser-interactions.mjs
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: v9-rc1-browser-interaction-server-log
+          path: /tmp/tcc-preview.log
+          if-no-files-found: ignore
+          retention-days: 7
