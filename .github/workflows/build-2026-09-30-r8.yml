@@ -9,6 +9,7 @@ on:
       - "scripts/build_germany_runtime_tiles.py"
       - "scripts/build_electroverse_runtime_offers.py"
       - "scripts/validate_built_snapshot.py"
+      - "scripts/validate_electra_platform_overlay.py"
       - "scripts/validate_browser_asset_graph.py"
       - "runtime-overrides/**"
       - "tests/runtime-integration.test.mjs"
