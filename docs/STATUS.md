@@ -36,6 +36,10 @@ This is the current validated working revision. It fixes the AVIA Switzerland re
 
 Previous r4, r3, r2 and original 2026-09-30 releases remain preserved as rollback points.
 
+Germany durability: the validated 63,405-site national baseline (including 5,471 direct-CPO-enriched sites) is now persisted in Data Lab. A dedicated CI test rebuilds r5 without the historical Actions artifact and passes, so artifact expiry no longer threatens reproducibility.
+
+Historical r2/r3/r4 rebuild workflows are manual-only to avoid wasting public Actions capacity when the shared builder changes.
+
 ## Persistent rollback baseline
 
 Release tag: `v9-snapshot-2026-09-30`
