@@ -1,0 +1,93 @@
+name: Publish V9 2026-09-30 r6 release
+
+on:
+  push:
+    paths:
+      - ".github/workflows/publish-2026-09-30-r6.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Read r6 metadata
+        id: meta
+        run: python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r6.json >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
+          path: datalab
+          persist-credentials: false
+      - name: Validate canonical sources
+        run: |
+          cd datalab
+          python scripts/validate_v9_source_guards.py
+          python scripts/validate_v9_country_progress.py
+      - name: Build and validate r6 from durable sources
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30-r6.json
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config config/snapshots/2026-09-30-r6.json --out ../dist/v9-2026-09-30-r6
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r6 2026-09-30-r6
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r6
+      - name: Verify canonical promotions
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          root=pathlib.Path("dist/v9-2026-09-30-r6")
+          fr=json.load(open(root/"snapshot-inputs/FR/cpo-ledger.json"))
+          it=json.load(open(root/"snapshot-inputs/IT/cpo-ledger.json"))
+          assert (fr["treatedCpos"],fr["setAsideCpos"],fr["activeRemainingCpos"])==(93,23,175)
+          assert it["counters"]["treated"]==26
+          assert it["counters"]["partialCurrent"]==66
+          enel=next(x for x in it["operators"] if x["partyId"]=="ENX")
+          ion=next(x for x in it["operators"] if x["partyId"]=="IOY")
+          assert enel["status"]=="treated" and enel["coverage"]["failClosedEvse"]==1154
+          assert ion["status"]=="treated" and ion["coverage"]["failClosedEvse"]==13
+          assert any("DEJA BLUE" in x for x in fr["treatedNominative"])
+          print({"FR":"93/23/175","IT":"26/66","ENX_residual":1154,"IOY_residual":13})
+          PY
+      - name: Package
+        run: |
+          cd dist
+          zip -0 -r tcc-v9-snapshot-2026-09-30-r6.zip v9-2026-09-30-r6 >/dev/null
+          sha256sum tcc-v9-snapshot-2026-09-30-r6.zip | tee tcc-v9-snapshot-2026-09-30-r6.sha256
+      - name: Publish persistent r6 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v9-snapshot-2026-09-30-r6"
+          ZIP="dist/tcc-v9-snapshot-2026-09-30-r6.zip"
+          SUM="dist/tcc-v9-snapshot-2026-09-30-r6.sha256"
+          cat > /tmp/notes.md <<'EOF'
+          Validated revision 6 of Tesla Charge Companion V9 snapshot 2026-09-30.
+
+          Additions since r5:
+          - Germany national baseline is now consumed from durable Data Lab storage; expiring Actions artifact is no longer required for current builds.
+          - France: DEJA BLUE raw129 promoted to treated with exact 92/92 current charge-point tariff coverage at 0.45 EUR/kWh. Canonical counters: 93 treated / 23 set aside / 175 active.
+          - Italy: Enel X Way promoted to treated with 21,866 exact-priced EVSE and 1,154 explicit fail-closed residual EVSE.
+          - Italy: IONITY promoted to treated with 309 exact PUN EVSE mappings and 13 explicit fail-closed residual EVSE.
+          - Italy counters: 26 treated / 66 current partial.
+          - AVIA Switzerland remains 583/583 national EVSE matched.
+          - Stable parity guard passed.
+
+          Previous releases remain preserved as rollback points.
+          EOF
+          if gh release view "$TAG" --repo yass3705/tesla-charge-companion-production >/dev/null 2>&1; then
+            echo "Release already exists; refusing to mutate it."
+            exit 0
+          fi
+          gh release create "$TAG" "$ZIP" "$SUM"             --repo yass3705/tesla-charge-companion-production             --title "TCC V9 snapshot — 2026-09-30 r6"             --notes-file /tmp/notes.md             --target "$GITHUB_SHA"
