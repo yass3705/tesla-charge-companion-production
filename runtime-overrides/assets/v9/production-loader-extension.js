@@ -25,7 +25,11 @@
         if(source.active===false)continue;
         if(source.adapter==='germany-national-v1'){
           if(!de?.normalizePayload)throw new Error('germany adapter missing');
-          loaders[source.id]=async()=>de.normalizePayload(await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl),{sourceId:source.id});
+          loaders[source.id]=async()=>{
+            const payload=await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl);
+            const ionityPayload=source.ionityPath?await fetchJsonMaybeGzip(join(opts.basePath,source.ionityPath),opts.fetchImpl):null;
+            return de.normalizePayload(payload,{sourceId:source.id,ionityPayload});
+          };
         }else if(source.adapter==='uk-open-feeds-v1'){
           if(!uk?.normalizePayload)throw new Error('UK adapter missing');
           loaders[source.id]=async()=>uk.normalizePayload(await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl),{sourceId:source.id});
