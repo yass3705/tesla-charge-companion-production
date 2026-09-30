@@ -16,11 +16,13 @@
     if(!root.TCCV9ProductionLoaders?.install)throw new Error('TCCV9ProductionLoaders missing');
     if(!root.TCCV9Adapters?.germanyNational)throw new Error('Germany production adapter missing');
     if(!root.TCCV9Adapters?.ukOpenFeeds)throw new Error('UK production adapter missing');
+    if(!root.TCCV9Adapters?.moroccoPublic)throw new Error('Morocco production adapter missing');
     const loaders=root.TCCV9ProductionLoaders.install({
       baseLoaders:root.TCCV9BrowserLoaders,
       adapters:{
         germanyNational:root.TCCV9Adapters.germanyNational,
-        ukOpenFeeds:root.TCCV9Adapters.ukOpenFeeds
+        ukOpenFeeds:root.TCCV9Adapters.ukOpenFeeds,
+        moroccoPublic:root.TCCV9Adapters.moroccoPublic
       }
     });
     root.__TCC_V9_PRODUCTION_INTEGRATION_INSTALLED__=true;
