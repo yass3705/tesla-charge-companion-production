@@ -5,6 +5,17 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(root){
   'use strict';
   const join=(base,path)=>`${String(base||'').replace(/\/$/,'')}/${String(path||'').replace(/^\//,'')}`;
+  const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
+  function queryBounds(query={}){
+    const lat=num(query?.origin?.lat??query?.origin?.latitude),lon=num(query?.origin?.lon??query?.origin?.longitude),radius=num(query?.radiusKm??query?.maxDistanceKm);
+    if(lat==null||lon==null||radius==null||radius<=0)return null;
+    const dLat=radius/111.32,dLon=radius/(111.32*Math.max(0.2,Math.cos(lat*Math.PI/180)));
+    return{minLat:lat-dLat,maxLat:lat+dLat,minLon:lon-dLon,maxLon:lon+dLon};
+  }
+  function tileIntersects(tile,b){
+    if(!b)return true;
+    return Number(tile.maxLat)>=b.minLat&&Number(tile.minLat)<=b.maxLat&&Number(tile.maxLon)>=b.minLon&&Number(tile.minLon)<=b.maxLon;
+  }
   async function fetchJsonMaybeGzip(url,fetchImpl){
     const f=fetchImpl||(typeof fetch==='function'?fetch.bind(globalThis):null);if(!f)throw new Error('fetch unavailable');
     const res=await f(url,{cache:'no-cache'});if(!res.ok)throw new Error(`resource unavailable (${res.status}): ${url}`);
@@ -32,8 +43,17 @@
         if(source.active===false)continue;
         if(source.adapter==='germany-national-v1'){
           if(!de?.normalizePayload)throw new Error('germany adapter missing');
-          loaders[source.id]=async()=>{
-            const payload=await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl);
+          loaders[source.id]=async query=>{
+            let payload;
+            const bounds=queryBounds(query);
+            if(bounds&&source.tileManifest&&source.tileRoot){
+              const manifest=await fetchJsonMaybeGzip(join(opts.basePath,source.tileManifest),opts.fetchImpl);
+              const tiles=(manifest.tiles||[]).filter(t=>tileIntersects(t,bounds));
+              const parts=await Promise.all(tiles.map(t=>fetchJsonMaybeGzip(join(opts.basePath,source.tileRoot+t.file),opts.fetchImpl)));
+              payload={sites:parts.flatMap(x=>Array.isArray(x)?x:(x?.sites||[]))};
+            }else{
+              payload=await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl);
+            }
             const ionityPayload=source.ionityPath?await fetchJsonMaybeGzip(join(opts.basePath,source.ionityPath),opts.fetchImpl):null;
             return de.normalizePayload(payload,{sourceId:source.id,ionityPayload});
           };
