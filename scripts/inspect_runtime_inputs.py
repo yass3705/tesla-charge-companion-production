@@ -19,7 +19,7 @@ def summarize(name,obj):
         return out
 
     out["keys"]=sorted(obj.keys())
-    for key in ("stations","sites","rows","data","items","features"):
+    for key in ("stations","sites","locations","rows","data","items","features"):
         if isinstance(obj.get(key),list):
             rows=obj[key]
             out["rowContainer"]=key
