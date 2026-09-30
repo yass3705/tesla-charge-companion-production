@@ -83,9 +83,9 @@ Independent browser-asset candidate validation succeeded in [run 36730931772](ht
 - Exact validated build: [run 36736001077](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36736001077), source commit `1f3954935ec558eb320009ccd6319377c11a215f`.
 - Promotion check: [run 36737605173](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36737605173) **success**. Reused source artifact `11107471281` and verified its GitHub archive digest, then rechecked **all 1,554 manifest-listed file SHA-256 hashes**, runtime contract, browser asset graph and stable parity before packaging.
 - Release assets: `tcc-v9-runtime-2026-09-30-rc1.zip` and separate `.sha256` checksum. This is a pre-release package, not a public-hosting cutover; the legacy stable deployment is unchanged. The package retains internal `snapshotId=2026-09-30-r8` because its source data is pinned, but its code and integration layer are those of RC1.
-- Independent browser launch workflow [run 36737793157](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36737793157) was initiated to detect actual Chrome shell/boot failures; do not claim that browser launch is validated until its job succeeds.
+- Independent browser launch [run 36737793157](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36737793157) **succeeded** using installed headless Google Chrome and a local HTTP server. The actual loaded DOM included the V9 shell marker, loader extension, and production bootstrap (1,172,856 DOM bytes); evidence is retained in the workflow artifact. This validates launch, not all interactive UI behavior.
 
-**Next gate:** browser launch, then staging preview and non-destructive live-data refresh design. Cloudflare remains paused. Historical r8 release and all prior rollback releases stay untouched.
+**Next gate:** optional non-destructive staging preview with interactive browser UI checks, then independent live-data refresh/promotion design. Cloudflare remains paused. Historical r8 release and all prior rollback releases stay untouched.
 
 ## Hosting
 
