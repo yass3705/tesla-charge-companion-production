@@ -46,10 +46,11 @@ def main():
 
     ma=load(root/"snapshot-inputs/MA/manifest.json")
     labels={x["label"] for x in ma["sources"]}
-    assert {"EVGO","FastVolt","FastVolt tariff","Kilowatt native","Kilowatt overlay","EVOne policy"} <= labels
+    assert {"EVGO","FastVolt","FastVolt tariff","Kilowatt native","Kilowatt overlay","EVOne policy","TotalEnergies native"} <= labels
     assert ma["knownSourceCounts"]["EVGO"]["stations"]==17
     assert ma["knownSourceCounts"]["FastVolt"]["productionCandidates"]==97
     assert ma["knownSourceCounts"]["Kilowatt"]["tariffResolvedStations"]==43
+    assert ma["knownSourceCounts"]["TotalEnergies"]=={"stations":18,"connectors":38,"pricedConnectors":38,"liveStatusConnectors":38}
 
     print(json.dumps({
       "snapshotId":manifest["snapshotId"],
