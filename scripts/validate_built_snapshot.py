@@ -56,6 +56,17 @@ def main():
         assert ic["franceConnectorCount"]>=1800, ic
         assert ic["franceUnpricedConnectorCount"]==0, ic
 
+    # IONITY Italy exact direct overlay must remain complete if present.
+    ionity_it_path=root/"snapshot-inputs/IT/direct/ionity_direct_stations_italy.json.gz"
+    if ionity_it_path.exists():
+        with gzip.open(ionity_it_path,"rt",encoding="utf-8") as f:
+            ion_it=json.load(f)
+        assert ion_it["operator"]=="IONITY", ion_it.get("operator")
+        itc=ion_it["counts"]
+        assert itc["countryLocationCount"]>=40, itc
+        assert itc["countryConnectorCount"]>=300, itc
+        assert itc["countryUnpricedConnectorCount"]==0, itc
+
     # Kilowatt production scope must remain tariff-complete even when live
     # connector status/order changes between refreshes.
     kw_path=root/"snapshot-inputs/MA/sources/kilowatt-native-tariffs.json"
