@@ -18,6 +18,7 @@
     if(!root.TCCV9Adapters?.ukOpenFeeds)throw new Error('UK production adapter missing');
     if(!root.TCCV9Adapters?.moroccoPublic)throw new Error('Morocco production adapter missing');
     if(!root.TCCV9Adapters?.switzerlandAvia)throw new Error('Switzerland AVIA production adapter missing');
+    if(!root.TCCV9Adapters?.italyIonityExact)throw new Error('Italy IONITY exact production adapter missing');
     if(!root.TCCV9Adapters?.italyIonityExact)throw new Error('Italy IONITY production adapter missing');
     const loaders=root.TCCV9ProductionLoaders.install({
       baseLoaders:root.TCCV9BrowserLoaders,
@@ -26,6 +27,7 @@
         ukOpenFeeds:root.TCCV9Adapters.ukOpenFeeds,
         moroccoPublic:root.TCCV9Adapters.moroccoPublic,
         switzerlandAvia:root.TCCV9Adapters.switzerlandAvia,
+        italyIonityExact:root.TCCV9Adapters.italyIonityExact,
         italyIonityExact:root.TCCV9Adapters.italyIonityExact
       }
     });
