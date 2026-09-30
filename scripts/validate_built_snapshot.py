@@ -127,6 +127,12 @@ def main():
     assert de["stationCount"]==63405
     assert de["directCpoPricedSites"]==5471
     assert de["cpoStatus"]=={"totalNamedCpos":591,"complete":244,"partial":347,"blocked":0}
+    de_tiles=load(root/"snapshot-inputs/DE/tiles/manifest.json")
+    assert de_tiles["stationCount"]==63405, de_tiles
+    assert de_tiles["tiledStationCount"]+de_tiles["skippedWithoutCoordinates"]==63405, de_tiles
+    assert de_tiles["tileCount"]>100, de_tiles
+    assert de_src.get("tileManifest")=="../snapshot-inputs/DE/tiles/manifest.json", de_src
+    assert de_src.get("tileRoot")=="../snapshot-inputs/DE/tiles/", de_src
 
 
     # Direct France operator overlays: fail closed on incomplete IONITY refresh.
