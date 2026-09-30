@@ -24,6 +24,16 @@ Germany baseline: 63,405 non-Tesla sites; 591 named CPOs; current recovery ledge
 
 UK: first pass complete; 46 canonical CPO/network entries in the pinned ledger.
 
+## Current validated working revision
+
+Release tag: `v9-snapshot-2026-09-30-r2`
+
+Release asset: `tcc-v9-snapshot-2026-09-30-r2.zip`
+
+Release asset digest: `sha256:7c768485b6e5baf786a0e1f9c118474cc8b234c75e9b6d3054d7c5f2c2276837`
+
+This is the current validated working revision. It adds centralized FR/DE ledgers, the V9 country progress index, and Lidl UK official store-level EV inventory (1,021 stores parsed; 312 EV-charging stores; zero crawl failures).
+
 ## Persistent rollback baseline
 
 Release tag: `v9-snapshot-2026-09-30`
