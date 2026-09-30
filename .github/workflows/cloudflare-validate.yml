@@ -1,0 +1,27 @@
+name: Validate Cloudflare Worker
+
+on:
+  push:
+    paths:
+      - "cloudflare/**"
+      - ".github/workflows/cloudflare-validate.yml"
+  pull_request:
+    paths:
+      - "cloudflare/**"
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install --no-save wrangler@latest
+      - name: Wrangler dry run
+        run: |
+          cd cloudflare
+          npx wrangler deploy --dry-run --outdir ../.wrangler-dry-run
