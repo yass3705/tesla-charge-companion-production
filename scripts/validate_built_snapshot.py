@@ -13,7 +13,9 @@ def main():
     root=pathlib.Path(sys.argv[1])
     manifest=load(root/"manifest.json")
     contract=load(root/"runtime-contract.json")
-    assert manifest["snapshotId"]=="2026-09-30"
+    assert manifest["snapshotId"]==contract["snapshotId"]
+    if len(sys.argv)>2:
+        assert manifest["snapshotId"]==sys.argv[2], (manifest["snapshotId"],sys.argv[2])
     assert manifest["policy"]=="fail-closed"
     assert set(contract["datasets"])==EXPECTED
 
@@ -24,6 +26,14 @@ def main():
                 assert p.exists(), f"{key}: missing {field} {row[field]}"
 
     # Guard against the earlier Tesla-inventory mistake for UK.
+    for rel in (
+        "snapshot-inputs/FR/cpo-ledger.json",
+        "snapshot-inputs/IT/cpo-ledger.json",
+        "snapshot-inputs/DE/cpo-progress.json",
+        "snapshot-inputs/v9-country-progress.json",
+    ):
+        assert (root/rel).exists(), f"missing progress ledger: {rel}"
+
     uk=load(root/"snapshot-inputs/UK/manifest.json")
     assert uk["country"]=="GB"
     assert uk["canonicalCpoCount"]>=44
