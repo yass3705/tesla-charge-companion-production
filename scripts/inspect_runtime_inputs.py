@@ -13,17 +13,38 @@ def summarize(name,obj):
         out["count"]=len(obj)
         if obj:
             out["sampleKeys"]=sorted(obj[0].keys()) if isinstance(obj[0],dict) else []
-            out["sample"]=obj[0] if isinstance(obj[0],dict) else obj[0]
-    elif isinstance(obj,dict):
-        out["keys"]=sorted(obj.keys())
-        for key in ("stations","sites","rows","data","items","features"):
-            if isinstance(obj.get(key),list):
-                out["rowContainer"]=key
-                out["count"]=len(obj[key])
-                if obj[key] and isinstance(obj[key][0],dict):
-                    out["sampleKeys"]=sorted(obj[key][0].keys())
-                    out["sample"]=obj[key][0]
-                break
+            out["sample"]=obj[0]
+        return out
+    if not isinstance(obj,dict):
+        return out
+
+    out["keys"]=sorted(obj.keys())
+    for key in ("stations","sites","rows","data","items","features"):
+        if isinstance(obj.get(key),list):
+            rows=obj[key]
+            out["rowContainer"]=key
+            out["count"]=len(rows)
+            if rows and isinstance(rows[0],dict):
+                out["sampleKeys"]=sorted(rows[0].keys())
+                out["sample"]=rows[0]
+            if name=="DE":
+                priced=next((x for x in rows if isinstance(x,dict) and isinstance(x.get("pricing"),dict) and x["pricing"].get("directCpo")),None)
+                if priced:
+                    out["sampleDirectCpoSite"]=priced
+            break
+
+    if name=="UK" and isinstance(obj.get("sources"),list):
+        out["sourceCount"]=len(obj["sources"])
+        src=next((x for x in obj["sources"] if isinstance(x,dict) and (x.get("locations") or x.get("tariffs"))),None)
+        if src:
+            out["firstSourceName"]=src.get("name")
+            out["firstSourceKeys"]=sorted(src.keys())
+            if isinstance(src.get("locations"),list) and src["locations"]:
+                out["sampleLocationKeys"]=sorted(src["locations"][0].keys()) if isinstance(src["locations"][0],dict) else []
+                out["sampleLocation"]=src["locations"][0]
+            if isinstance(src.get("tariffs"),list) and src["tariffs"]:
+                out["sampleTariffKeys"]=sorted(src["tariffs"][0].keys()) if isinstance(src["tariffs"][0],dict) else []
+                out["sampleTariff"]=src["tariffs"][0]
     return out
 
 def main():
