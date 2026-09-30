@@ -1,0 +1,120 @@
+name: Build V9 2026-09-30 r3 candidate
+
+on:
+  push:
+    paths:
+      - "config/snapshots/2026-09-30-r3.json"
+      - "scripts/build_snapshot.py"
+      - "scripts/validate_built_snapshot.py"
+      - "scripts/validate_stable_parity.py"
+      - ".github/workflows/build-2026-09-30-r3.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          path: production
+
+      - name: Read pinned r3 metadata
+        id: meta
+        run: |
+          python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r3.json >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+
+      - name: Checkout selected safe Data Lab commit
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
+          path: datalab
+          persist-credentials: false
+
+      - name: Guard finalized Switzerland against source regression
+        run: |
+          python - <<'PY'
+          import json
+          p="datalab/docs/switzerland-avia-finalization-2026-09-29.json"
+          d=json.load(open(p))
+          c=d["coverage"]
+          assert d["status"]=="complete", d
+          assert c["nationalEvseCount"]==583, c
+          assert c["resolvedNationalEvseCount"]==583, c
+          assert c["unresolvedNationalEvseCount"]==0, c
+          assert c["guestUniquePricedEvses"]==583, c
+          print({"AVIA_CH":"complete","resolved":583,"unresolved":0})
+          PY
+
+      - name: Download pinned Germany national baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ART_REPO: ${{ steps.meta.outputs.germany_artifact_repo }}
+          ART_ID: ${{ steps.meta.outputs.germany_artifact_id }}
+        run: |
+          gh api "/repos/$ART_REPO/actions/artifacts/$ART_ID/zip" > /tmp/germany.zip
+          mkdir -p germany-source
+          unzip -q /tmp/germany.zip -d germany-source
+
+      - name: Build and validate r3 candidate
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30-r3.json
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --config config/snapshots/2026-09-30-r3.json             --out ../dist/v9-2026-09-30-r3
+          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r3 2026-09-30-r3
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r3
+
+      - name: Verify fresh FR and IT overlays
+        run: |
+          python - <<'PY'
+          import gzip,json,pathlib
+          root=pathlib.Path("dist/v9-2026-09-30-r3")
+          required=[
+            root/"snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz",
+            root/"snapshot-inputs/FR/platforms/electroverse-france-current.json",
+            root/"snapshot-inputs/FR/platforms/electroverse-daily-delta.json",
+            root/"snapshot-inputs/IT/direct/atlante_direct_stations_italy_latest.json.gz",
+          ]
+          for p in required:
+              assert p.exists() and p.stat().st_size>0, p
+          delta=json.load(open(root/"snapshot-inputs/FR/platforms/electroverse-daily-delta.json"))
+          assert delta["failedTileCount"]==0, delta
+          assert delta["inventoryCount"]==166429, delta["inventoryCount"]
+          for p,expected_min in [
+            (required[0],150),
+            (required[3],450),
+          ]:
+              with gzip.open(p,"rt",encoding="utf-8") as f:
+                  d=json.load(f)
+              if isinstance(d,list):
+                  n=len(d)
+              elif isinstance(d,dict):
+                  seq=d.get("stations") or d.get("locations") or d.get("data") or []
+                  n=len(seq) if isinstance(seq,list) else 0
+              else:
+                  n=0
+              assert n>=expected_min, (p,n)
+              print(p.name,n)
+          print({"ElectroverseFR":delta["inventoryCount"],"failedTiles":0})
+          PY
+
+      - name: Upload r3 candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcc-v9-2026-09-30-r3-candidate
+          path: dist/v9-2026-09-30-r3
+          compression-level: 0
+          retention-days: 14
