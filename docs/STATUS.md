@@ -76,6 +76,17 @@ Independent browser-asset candidate validation succeeded in [run 36730931772](ht
 3. Package validated integration into a **new, separately named release candidate** when all gates pass; do not overwrite the historical r8 tag or ZIP.
 4. Later implement the scheduled refresh/promotion workflow independently of the frozen integration baseline. Future collection improvements belong in a future pinned snapshot.
 
+## Production runtime release candidate RC1
+
+**Published and immutable:** [v9-runtime-2026-09-30-rc1](https://github.com/yass3705/tesla-charge-companion-production/releases/tag/v9-runtime-2026-09-30-rc1).
+
+- Exact validated build: [run 36736001077](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36736001077), source commit `1f3954935ec558eb320009ccd6319377c11a215f`.
+- Promotion check: [run 36737605173](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36737605173) **success**. Reused source artifact `11107471281` and verified its GitHub archive digest, then rechecked **all 1,554 manifest-listed file SHA-256 hashes**, runtime contract, browser asset graph and stable parity before packaging.
+- Release assets: `tcc-v9-runtime-2026-09-30-rc1.zip` and separate `.sha256` checksum. This is a pre-release package, not a public-hosting cutover; the legacy stable deployment is unchanged. The package retains internal `snapshotId=2026-09-30-r8` because its source data is pinned, but its code and integration layer are those of RC1.
+- Independent browser launch workflow [run 36737793157](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/36737793157) was initiated to detect actual Chrome shell/boot failures; do not claim that browser launch is validated until its job succeeds.
+
+**Next gate:** browser launch, then staging preview and non-destructive live-data refresh design. Cloudflare remains paused. Historical r8 release and all prior rollback releases stay untouched.
+
 ## Hosting
 
 Current GitHub/stable hosting remains the active path.
