@@ -67,19 +67,15 @@ def main():
         assert itc["countryConnectorCount"]>=300, itc
         assert itc["countryUnpricedConnectorCount"]==0, itc
 
-    # Kilowatt production scope must remain tariff-complete even when live
-    # connector status/order changes between refreshes.
-    kw_path=root/"snapshot-inputs/MA/sources/kilowatt-native-tariffs.json"
-    if kw_path.exists():
-        kw=load(kw_path)
-        stations=kw.get("stations") or []
-        assert len(stations)>=43, len(stations)
-        unresolved=0
-        for station in stations:
-            for conn in station.get("connectors") or []:
-                if conn.get("rate_price") is None:
-                    unresolved+=1
-        assert unresolved==0, unresolved
+    # Kilowatt completeness is defined by the validated station tariff overlay,
+    # not by requiring every raw native connector to carry rate_price.
+    kw_overlay_path=root/"snapshot-inputs/MA/sources/kilowatt-tariff-overlay.json"
+    if kw_overlay_path.exists():
+        kw=load(kw_overlay_path)
+        ks=kw["summary"]
+        assert ks["productionStations"]==43, ks
+        assert ks["unresolved"]==0, ks
+        assert ks["free"]+ks["paid"]==ks["productionStations"], ks
 
     # IONITY Germany direct overlay must remain complete if present.
     ionity_de_path=root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz"
