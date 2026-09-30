@@ -47,6 +47,19 @@ def build_registry(path):
       "policy":"Tariffs join only by exact connector tariff_ids to same-source tariff.id; unsupported tariff semantics fail closed."
     })
     upsert(sources,{
+      "id":"france-ionity-r8",
+      "label":"IONITY France pinned exact EVSE reconciliation",
+      "adapter":"france-ionity-exact-v1",
+      "path":"../snapshot-inputs/FR/direct/ionity_exact_france.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":135},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Only exact resolved EVSE IDs from the pinned IONITY France reconciliation are rankable. The three unresolved EVSEs remain fail-closed."
+    })
+    upsert(sources,{
       "id":"italy-ionity-r8",
       "label":"IONITY Italy pinned exact PUN-EVSE reconciliation",
       "adapter":"italy-ionity-exact-v1",
@@ -108,7 +121,7 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","switzerland-avia-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-ionity-r8","switzerland-avia-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
