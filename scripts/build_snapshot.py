@@ -140,7 +140,7 @@ def main():
     # France validated direct/platform overlays beside the canonical baseline.
     fr_direct=overlays/"FR/direct"
     fr_direct.mkdir(parents=True,exist_ok=True)
-    for name in ("atlante_direct_stations_france_latest.json.gz",):
+    for name in ("atlante_direct_stations_france_latest.json.gz","ionity_direct_stations_france.json.gz"):
         p=national/name
         if p.exists(): copy_file(p,fr_direct/name)
     ev_inventory=dl/"data/electroverse/inventory/france-current.json"
