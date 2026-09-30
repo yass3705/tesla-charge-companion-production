@@ -88,6 +88,16 @@ def main():
     assert avia_ch.get("path")=="../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json", avia_ch
     assert avia_ch.get("optional") is False and avia_ch.get("active") is True, avia_ch
     assert (root/"snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json").exists()
+    ionity_it_src=sources.get("italy-ionity-r8") or {}
+    assert ionity_it_src.get("adapter")=="italy-ionity-exact-v1", ionity_it_src
+    assert ionity_it_src.get("path")=="../snapshot-inputs/IT/direct/ionity_italy_exact_reconciliation_20260923.json", ionity_it_src
+    assert ionity_it_src.get("optional") is False and ionity_it_src.get("active") is True, ionity_it_src
+    ionity_it_rec=root/"snapshot-inputs/IT/direct/ionity_italy_exact_reconciliation_20260923.json"
+    assert ionity_it_rec.exists(), ionity_it_rec
+    rec=load(ionity_it_rec)
+    assert rec["counts"]["resolvedPanEvses"]==300, rec["counts"]
+    assert rec["counts"]["unresolvedPanEvses"]==13, rec["counts"]
+    assert rec["counts"]["apiOnlyConnectors"]==25, rec["counts"]
     prod=registry.get("productionIntegration") or {}
     assert prod.get("remainingExternalSources")==[], prod
 
