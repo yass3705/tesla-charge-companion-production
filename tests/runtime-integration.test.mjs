@@ -4,6 +4,7 @@ const require=createRequire(import.meta.url);
 
 const de=require('../runtime-overrides/assets/v9/adapters/germany-national.js');
 const uk=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
+const avia=require('../runtime-overrides/assets/v9/adapters/switzerland-avia.js');
 
 // Germany: inventory remains visible, but non-production-rankable pricing is never exposed.
 {
@@ -129,8 +130,25 @@ const uk=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
   assert.equal(joined.diagnostics.reasons.mixed_site_prices,1);
 }
 
+
+{
+  const payload={connectors:[
+    {evseId:'CH*AVI*E123',connectorInternalId:'c1',connectorType:'CCS',powerKw:150,locationId:'L1',locationUuid:'U1',tariffIds:['T1'],price:{currency:'CHF',pricePerKwhInclVat:0.65,pricePerKwhExclVat:0.60,vatPercentage:8.1,tariffHasTimeBasedPrice:false}},
+    {evseId:'CH*AVI*E999',connectorInternalId:'c2',connectorType:'CCS',powerKw:150,locationId:'L2',locationUuid:'U2',tariffIds:['T2'],price:{currency:'CHF',pricePerKwhInclVat:0.70,tariffHasTimeBasedPrice:true}}
+  ]};
+  const out=avia.normalizePayload(payload,{id:'switzerland-avia-r8',priority:{tariff:135}});
+  assert.equal(out.offerRules.length,1);
+  assert.equal(out.offerRules[0].provider,'AVIA VOLT direct');
+  assert.equal(out.offerRules[0].currency,'CHF');
+  assert.equal(out.offerRules[0].pricing.rules[0].pricePerKwh,0.65);
+  assert.ok(out.offerRules[0].evseIds.includes('CH*AVI*E123'));
+  assert.ok(out.offerRules[0].evseIds.includes('CHAVIE123'));
+  assert.equal(out.metadata.rejected.time_based,1);
+}
+
 console.log(JSON.stringify({
   ok:true,
   germany:'fail-closed + explicit production-rankable scalar verified',
-  uk:'exact tariff-id join + restricted tariff fail-closed verified'
+  uk:'exact tariff-id join + restricted tariff fail-closed verified',
+  switzerlandAvia:'exact EVSE CHF/kWh mapping + time-based fail-closed verified'
 }));
