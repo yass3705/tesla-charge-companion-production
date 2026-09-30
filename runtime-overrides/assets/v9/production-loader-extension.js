@@ -17,11 +17,12 @@
     const de=adapters?.germanyNational||root?.TCCV9Adapters?.germanyNational;
     const uk=adapters?.ukOpenFeeds||root?.TCCV9Adapters?.ukOpenFeeds;
     const ma=adapters?.moroccoPublic||root?.TCCV9Adapters?.moroccoPublic;
+    const chAvia=adapters?.switzerlandAvia||root?.TCCV9Adapters?.switzerlandAvia;
     const original=target.createRegistryLoaders.bind(target);
     target.createRegistryLoaders=function(opts={}){
       const registry=opts.registry||{sources:[]};
       const baseRegistry={...registry,sources:(registry.sources||[]).filter(s=>{
-        if(['germany-national-v1','uk-open-feeds-v1'].includes(s.adapter))return false;
+        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1'].includes(s.adapter))return false;
         if(s.adapter==='morocco-public-v1'&&['evgo-production-local','kilowatt-native-local'].includes(s.profile))return false;
         return true;
       })};
@@ -45,6 +46,12 @@
             const freshness=ma.evgoOverlayFreshness(payload,Number(source.freshnessMaxMinutes||120));
             return ma.normalizeEvgoDataset(payload,{sourceId:source.id,statusFresh:freshness.fresh,statusGeneratedAt:freshness.generatedAt});
           };
+        }else if(source.adapter==='switzerland-avia-v1'){
+          if(!chAvia?.normalizePayload)throw new Error('Switzerland AVIA adapter missing');
+          loaders[source.id]=async()=>chAvia.normalizePayload(
+            await fetchJsonMaybeGzip(join(opts.basePath,source.path),opts.fetchImpl),
+            source
+          );
         }else if(source.adapter==='morocco-public-v1'&&source.profile==='kilowatt-native-local'){
           if(!ma?.normalizeKilowattNativeDataset||!ma?.kilowattNativeFreshness)throw new Error('Morocco Kilowatt adapter missing');
           loaders[source.id]=async()=>{
