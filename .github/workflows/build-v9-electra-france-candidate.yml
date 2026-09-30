@@ -1,0 +1,77 @@
+name: Build V9 Electra France candidate
+on:
+  workflow_dispatch:
+    inputs:
+      data_lab_sha:
+        description: "Pinned Data Lab SHA containing validated Electra France overlay"
+        required: true
+        type: string
+      snapshot_id:
+        description: "New immutable snapshot id"
+        required: true
+        default: "2026-09-30-r9"
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ inputs.data_lab_sha }}
+          path: datalab
+          persist-credentials: false
+      - name: Validate Electra national-EVSE overlay
+        run: python production/scripts/validate_electra_platform_overlay.py datalab
+      - name: Create immutable candidate config from r8 baseline
+        env:
+          SNAPSHOT_ID: ${{ inputs.snapshot_id }}
+          DATA_LAB_SHA: ${{ inputs.data_lab_sha }}
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          src=pathlib.Path("production/config/snapshots/2026-09-30-r8.json")
+          out=pathlib.Path("production/config/snapshots/_electra-candidate.json")
+          obj=json.loads(src.read_text())
+          obj["snapshotId"]=os.environ["SNAPSHOT_ID"]
+          obj["sources"]["dataLab"]["sha"]=os.environ["DATA_LAB_SHA"]
+          obj["sourceSelection"]["selectedDataLabCommit"]=os.environ["DATA_LAB_SHA"]
+          obj["sourceSelection"]["reason"]="Pinned successor candidate adding validated Electra France platform overlay joined independently to national France EVSE identities."
+          fr=next(x for x in obj["datasets"] if x["id"]=="FR")
+          fr["electraPlatform"]="data/platforms/electra/france"
+          out.write_text(json.dumps(obj,indent=2,ensure_ascii=False)+"\n")
+          print({"snapshotId":obj["snapshotId"],"dataLabSha":os.environ["DATA_LAB_SHA"]})
+          PY
+      - name: Build self-contained candidate
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/_electra-candidate.json
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --config config/snapshots/_electra-candidate.json             --out ../dist/v9-electra-candidate
+          python scripts/validate_built_snapshot.py ../dist/v9-electra-candidate "${{ inputs.snapshot_id }}"
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-electra-candidate
+          python scripts/validate_browser_asset_graph.py ../dist/v9-electra-candidate
+      - name: Require Electra and Electroverse on same national France hub
+        env:
+          REQUIRE_ELECTRA_PLATFORM: "1"
+        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-electra-candidate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tcc-v9-electra-france-candidate-${{ inputs.snapshot_id }}
+          path: dist/v9-electra-candidate
+          compression-level: 0
+          retention-days: 14
