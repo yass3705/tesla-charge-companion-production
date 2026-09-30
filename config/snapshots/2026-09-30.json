@@ -71,7 +71,8 @@
       "kind": "national",
       "coverage": "partial",
       "primarySource": "legacyUpdater",
-      "path": "inventory/germany.json"
+      "path": null,
+      "materialization": "pending-current-cpo-canonical-migration"
     },
     {
       "id": "UK",
