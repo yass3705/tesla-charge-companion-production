@@ -156,9 +156,14 @@ assert.ok(frResult.stations.length>0,'FR returned no stations');
 const frPriced=frResult.stations.filter(s=>(s.offers||[]).length>0);
 const frElectroverse=frResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='Electroverse'));
 const frElectra=frResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='Electra'));
+const frDualEmsp=frResult.stations.filter(st=>{
+  const providers=new Set((st.offers||[]).map(o=>o.provider));
+  return providers.has('Electra')&&providers.has('Electroverse');
+});
 assert.ok(frElectroverse.length>0,'FR compact Electroverse offers did not attach in Paris-area runtime query');
 assert.ok(frResult.diagnostics.sources['france-electra-rich-r8']?.loaded===true,'FR Electra rich aggregate source not loaded');
 assert.ok(frElectra.length>0,'FR Electra rich aggregate offers did not attach in Paris-area runtime query');
+assert.ok(frDualEmsp.length>0,'FR national station hub did not independently receive both Electra and Electroverse offers');
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
@@ -199,7 +204,7 @@ console.log(JSON.stringify({
   NL:{stations:nlResult.stations.length,sourceLoaded:true},
   DE:{supplementalIsolatedUnpriced:supplementRows.length,areaStations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSmokeStations:ionityPriced.length,tiled:true},
   GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true},
-  FR:{stations:frResult.stations.length,pricedStations:frPriced.length,electroverseStations:frElectroverse.length,electraStations:frElectra.length},
+  FR:{stations:frResult.stations.length,pricedStations:frPriced.length,electroverseStations:frElectroverse.length,electraStations:frElectra.length,dualEmspStations:frDualEmsp.length},
   IT:{stations:itResult.stations.length,pricedStations:itPriced.length,ionityExactPricedStations:itIonityPriced.length,atlanteExactSmoke:true},
   CH:{stations:chResult.stations.length,pricedStations:chPriced.length,aviaExactPricedStations:chAviaPriced.length},
   MA:{stations:maResult.stations.length,pricedStations:maPriced.length,allRuntimeSourcesSnapshotLocal:true}
