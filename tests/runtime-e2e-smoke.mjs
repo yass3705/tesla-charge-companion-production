@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
@@ -68,8 +69,22 @@ assert.ok(gbResult.diagnostics.sources['uk-production-open-feeds']?.loaded===tru
 
 const exactMfg=gbResult.stations.find(s=>(s.evses||[]).some(e=>e.id==='GB*MFL*E5550'));
 assert.ok(exactMfg,'Expected MFG EVSE GB*MFL*E5550 missing from GB runtime query');
+const ukRaw=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/UK/all.json.gz'))).toString('utf8'));
+const mfgSource=(ukRaw.sources||[]).find(s=>s.name==='MFG EV Power');
+assert.ok(mfgSource,'MFG source missing from pinned UK bundle');
+let expectedTariff=null;
+for(const loc of mfgSource.locations||[]){
+  for(const evse of loc.evses||[]){
+    if(evse.evse_id!=='GB*MFL*E5550')continue;
+    const tid=String(evse.connectors?.[0]?.tariff_ids?.[0]??'');
+    const rawTariff=(mfgSource.tariffs||[]).find(t=>String(t.id)===tid);
+    expectedTariff=uk.tariffPricing(rawTariff);
+  }
+}
+assert.ok(expectedTariff?.rules?.length,'Expected raw MFG tariff is not rankable');
+const expectedRule=expectedTariff.rules[0];
 const energyOffers=(exactMfg.offers||[]).flatMap(o=>(o.pricing?.rules||[]).map(r=>({provider:o.provider,price:r.pricePerKwh,currency:r.currency})));
-assert.ok(energyOffers.some(x=>x.currency==='GBP'&&Math.abs(Number(x.price)-0.6583)<1e-9),'Expected exact MFG GBP 0.6583/kWh tariff missing');
+assert.ok(energyOffers.some(x=>x.currency===expectedRule.currency&&Math.abs(Number(x.price)-Number(expectedRule.pricePerKwh))<1e-9),'Exact MFG tariff-id join did not survive runtime engine');
 
 const maResult=await engine.queryArea({countryCode:'MA',routingBudget:20});
 assert.ok(maResult.stations.length>=150,'MA station count too low: '+maResult.stations.length);
@@ -87,6 +102,6 @@ for(const src of maRegistrySources){
 console.log(JSON.stringify({
   ok:true,
   DE:{stations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSafeStations:ionityPriced.length},
-  GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffVerified:true},
+  GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true},
   MA:{stations:maResult.stations.length,pricedStations:maPriced.length,allRuntimeSourcesSnapshotLocal:true}
 }));
