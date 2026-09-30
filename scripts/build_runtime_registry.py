@@ -44,6 +44,19 @@ def build_registry(path):
       "optional":False,
       "policy":"Tariffs join only by exact connector tariff_ids to same-source tariff.id; unsupported tariff semantics fail closed."
     })
+    upsert(sources,{
+      "id":"switzerland-avia-r8",
+      "label":"AVIA Switzerland pinned exact-EVSE guest tariffs",
+      "adapter":"switzerland-avia-v1",
+      "path":"../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json",
+      "countries":["CH"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":135},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Exact EVSE ID only. CHF/kWh incl. VAT only; time-based or unsupported tariff semantics fail closed."
+    })
 
     # Convert source-registry entries that already have exact snapshot-local
     # equivalents. More complex EVGO/Kilowatt multi-file profiles remain
@@ -80,7 +93,7 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france"],
+      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","switzerland-avia-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
