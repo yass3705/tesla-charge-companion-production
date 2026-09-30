@@ -20,6 +20,7 @@ const legacyDirectStations=require(path.join(runtime,'assets/v9/adapters/legacy-
 const switzerlandAvia=require(path.join(runtime,'assets/v9/adapters/switzerland-avia.js'));
 const italyIonityExact=require(path.join(runtime,'assets/v9/adapters/italy-ionity-exact.js'));
 const franceIonityExact=require(path.join(runtime,'assets/v9/adapters/france-ionity-exact.js'));
+const atlanteItalyExact=require(path.join(runtime,'assets/v9/adapters/atlante-italy-exact.js'));
 const extension=require(path.join(runtime,'assets/v9/production-loader-extension.js'));
 
 function fileFetch(baseRoot){
@@ -38,12 +39,12 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
@@ -63,6 +64,7 @@ assert.equal(typeof loaders['switzerland-national'],'function');
 assert.equal(typeof loaders['switzerland-avia-r8'],'function');
 assert.equal(typeof loaders['italy-ionity-r8'],'function');
 assert.equal(typeof loaders['france-ionity-r8'],'function');
+assert.equal(typeof loaders['italy-atlante-r8'],'function');
 
 const engine=dataEngine.createEngine({registry:subRegistry,loaders});
 
@@ -129,6 +131,18 @@ const itPriced=itResult.stations.filter(s=>(s.offers||[]).length>0);
 const itIonityPriced=itResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='IONITY Direct'));
 assert.ok(itIonityPriced.length>0,'IT exact IONITY offers did not attach to Rome-area PUN stations');
 
+const atlanteRaw=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/IT/direct/atlante_direct_stations_italy_latest.json.gz'))).toString('utf8'));
+const atlanteCandidates=(atlanteRaw.locations||[]).filter(l=>l.coordinates&&(l.connectors||[]).some(c=>c.evseId&&c.pricePerKwhEur>0));
+let atlanteSmoke=null;
+for(const loc of atlanteCandidates.slice(0,25)){
+  const parts=String(loc.coordinates).split(',').map(Number);
+  if(parts.length!==2||!parts.every(Number.isFinite))continue;
+  const probe=await engine.queryArea({countryCode:'IT',origin:{lat:parts[0],lon:parts[1]},radiusKm:4,routingBudget:20});
+  const hit=probe.stations.find(s=>(s.offers||[]).some(o=>o.provider==='Atlante direct'));
+  if(hit){atlanteSmoke={station:hit,probe};break;}
+}
+assert.ok(atlanteSmoke,'Atlante Italy exact offers did not attach around first 25 pinned Atlante locations');
+
 const chResult=await engine.queryArea({countryCode:'CH',origin:{lat:47.61764,lon:9.2688},radiusKm:8,routingBudget:20});
 assert.ok(chResult.stations.length>0,'CH returned no stations');
 const chPriced=chResult.stations.filter(s=>(s.offers||[]).length>0);
@@ -153,7 +167,7 @@ console.log(JSON.stringify({
   DE:{areaStations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSmokeStations:ionityPriced.length,tiled:true},
   GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true},
   FR:{stations:frResult.stations.length,pricedStations:frPriced.length,electroverseStations:frElectroverse.length},
-  IT:{stations:itResult.stations.length,pricedStations:itPriced.length,ionityExactPricedStations:itIonityPriced.length},
+  IT:{stations:itResult.stations.length,pricedStations:itPriced.length,ionityExactPricedStations:itIonityPriced.length,atlanteExactSmoke:true},
   CH:{stations:chResult.stations.length,pricedStations:chPriced.length,aviaExactPricedStations:chAviaPriced.length},
   MA:{stations:maResult.stations.length,pricedStations:maPriced.length,allRuntimeSourcesSnapshotLocal:true}
 }));
