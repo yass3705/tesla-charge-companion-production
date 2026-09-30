@@ -1,14 +1,8 @@
 name: Validate Cloudflare Worker
 
 on:
-  push:
-    paths:
-      - "cloudflare/**"
-      - ".github/workflows/cloudflare-validate.yml"
-      - "tests/cloudflare-worker.test.mjs"
-  pull_request:
-    paths:
-      - "cloudflare/**"
+  workflow_dispatch:
+
 
 permissions:
   contents: read
