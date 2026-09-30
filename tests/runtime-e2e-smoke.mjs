@@ -12,6 +12,7 @@ const dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));
 const browserLoaders=require(path.join(runtime,'assets/v9/browser-loaders.js'));
 const de=require(path.join(runtime,'assets/v9/adapters/germany-national.js'));
 const uk=require(path.join(runtime,'assets/v9/adapters/uk-open-feeds.js'));
+const ma=require(path.join(runtime,'assets/v9/adapters/morocco-public.js'));
 const extension=require(path.join(runtime,'assets/v9/production-loader-extension.js'));
 
 function fileFetch(baseRoot){
@@ -30,23 +31,25 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds']);
+const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
   registry:subRegistry,
   basePath:pathToFileURL(runtime+path.sep).href,
-  adapters:{germanyNational:de,ukOpenFeeds:uk},
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma},
   fetchImpl:fileFetch(runtime)
 });
 
 assert.equal(typeof loaders['germany-production-snapshot'],'function');
 assert.equal(typeof loaders['uk-production-open-feeds'],'function');
+assert.equal(typeof loaders['morocco-evgo-native'],'function');
+assert.equal(typeof loaders['morocco-kilowatt-public'],'function');
 
 const engine=dataEngine.createEngine({registry:subRegistry,loaders});
 
@@ -68,8 +71,22 @@ assert.ok(exactMfg,'Expected MFG EVSE GB*MFL*E5550 missing from GB runtime query
 const energyOffers=(exactMfg.offers||[]).flatMap(o=>(o.pricing?.rules||[]).map(r=>({provider:o.provider,price:r.pricePerKwh,currency:r.currency})));
 assert.ok(energyOffers.some(x=>x.currency==='GBP'&&Math.abs(Number(x.price)-0.6583)<1e-9),'Expected exact MFG GBP 0.6583/kWh tariff missing');
 
+const maResult=await engine.queryArea({countryCode:'MA',routingBudget:20});
+assert.ok(maResult.stations.length>=150,'MA station count too low: '+maResult.stations.length);
+const maPriced=maResult.stations.filter(s=>(s.offers||[]).length>0);
+assert.ok(maPriced.length>=100,'MA priced station count too low: '+maPriced.length);
+for(const id of ['morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts']){
+  assert.ok(maResult.diagnostics.sources[id]?.loaded===true,'MA source not loaded: '+id);
+}
+const maRegistrySources=subRegistry.sources.filter(s=>(s.countries||[]).includes('MA'));
+for(const src of maRegistrySources){
+  const serialized=JSON.stringify(src);
+  assert.ok(!serialized.includes('raw.githubusercontent.com/yass3705/tesla-charge-companion-data-lab/main'),'MA source still depends on Data Lab main: '+src.id);
+}
+
 console.log(JSON.stringify({
   ok:true,
   DE:{stations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSafeStations:ionityPriced.length},
-  GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffVerified:true}
+  GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffVerified:true},
+  MA:{stations:maResult.stations.length,pricedStations:maPriced.length,allRuntimeSourcesSnapshotLocal:true}
 }));
