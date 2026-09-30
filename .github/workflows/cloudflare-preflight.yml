@@ -1,14 +1,8 @@
 name: Cloudflare R2 preflight
 
 on:
-  push:
-    paths:
-      - "scripts/upload_r2_snapshot.py"
-      - "scripts/build_snapshot.py"
-      - "scripts/validate_built_snapshot.py"
-      - "scripts/validate_stable_parity.py"
-      - ".github/workflows/cloudflare-preflight.yml"
   workflow_dispatch:
+
 
 permissions:
   contents: read
