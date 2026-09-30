@@ -1,0 +1,29 @@
+name: Read-only V9 source freshness audit
+on:
+  schedule:
+    - cron: "23 23 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-deltas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check guard classifications
+        run: python -m unittest discover -s tests -p test_v9_source_deltas.py -v
+      - name: Compare Data Lab source blobs with frozen RC1 pin
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/inspect_v9_source_deltas.py \
+            --config config/snapshots/2026-09-30-r8.json \
+            --output audit/v9-source-deltas.json \
+            --summary audit/v9-source-summary.md
+          cat audit/v9-source-summary.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v9-readonly-source-delta-audit
+          path: audit/
+          retention-days: 14
