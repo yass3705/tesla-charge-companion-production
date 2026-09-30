@@ -39,7 +39,7 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -67,6 +67,15 @@ assert.equal(typeof loaders['france-ionity-r8'],'function');
 assert.equal(typeof loaders['italy-atlante-r8'],'function');
 
 const engine=dataEngine.createEngine({registry:subRegistry,loaders});
+
+// TESLA is a required local source: never silently replace it with a remote or empty feed.
+const teslaPath=path.join(runtime,'data/tesla_stations.json');
+const teslaBytes=fs.readFileSync(teslaPath);
+assert.ok(teslaBytes.byteLength>1000,'TESLA inventory is unexpectedly empty');
+const teslaInventory=JSON.parse(teslaBytes.toString('utf8'));
+assert.ok(Array.isArray(teslaInventory)?teslaInventory.length>0:teslaInventory&&typeof teslaInventory==='object'&&Object.keys(teslaInventory).length>0,'TESLA inventory JSON is empty');
+assert.ok(registry.sources.some(s=>(s.countries||[]).includes('ES')&&s.active!==false),'ES runtime sources missing');
+assert.ok(registry.sources.some(s=>(s.countries||[]).includes('NL')&&s.active!==false),'NL runtime sources missing');
 
 const deAll=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/all.json.gz'))).toString('utf8'));
 const deIonity=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz'))).toString('utf8'));
@@ -119,6 +128,14 @@ const energyOffers=(exactMfg.offers||[]).flatMap(o=>(o.pricing?.rules||[]).map(r
 assert.ok(energyOffers.some(x=>x.currency===expectedRule.currency&&Math.abs(Number(x.price)-Number(expectedRule.pricePerKwh))<1e-9),'Exact MFG tariff-id join did not survive runtime engine');
 
 
+const esResult=await engine.queryArea({countryCode:'ES',origin:{lat:40.4168,lon:-3.7038},radiusKm:12,routingBudget:20});
+assert.ok(esResult.stations.length>0,'ES Madrid runtime query returned no stations');
+assert.ok(esResult.diagnostics.sources['spain-reve']?.loaded===true,'ES REVE runtime source not loaded');
+
+const nlResult=await engine.queryArea({countryCode:'NL',origin:{lat:52.3676,lon:4.9041},radiusKm:12,routingBudget:20});
+assert.ok(nlResult.stations.length>0,'NL Amsterdam runtime query returned no stations');
+assert.ok(nlResult.diagnostics.sources['netherlands-dotnl']?.loaded===true,'NL runtime source not loaded');
+
 const frResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.8566,lon:2.3522},radiusKm:25,routingBudget:20});
 assert.ok(frResult.stations.length>0,'FR returned no stations');
 const frPriced=frResult.stations.filter(s=>(s.offers||[]).length>0);
@@ -159,6 +176,9 @@ for(const src of maRegistrySources){
 
 console.log(JSON.stringify({
   ok:true,
+  TESLA:{localInventoryPresent:true,bytes:teslaBytes.byteLength},
+  ES:{stations:esResult.stations.length,sourceLoaded:true},
+  NL:{stations:nlResult.stations.length,sourceLoaded:true},
   DE:{areaStations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSmokeStations:ionityPriced.length,tiled:true},
   GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true},
   FR:{stations:frResult.stations.length,pricedStations:frPriced.length,electroverseStations:frElectroverse.length},
