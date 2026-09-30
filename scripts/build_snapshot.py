@@ -154,6 +154,12 @@ def main():
     for p in national.glob("*italy*"):
         if p.is_file(): copy_file(p,it_dst/p.name)
 
+    # Switzerland validated operator evidence alongside the canonical overlay.
+    avia_src=dl/"data/switzerland/avia-guest-direct-tariffs.json"
+    avia_rec=dl/"docs/switzerland-avia-guest-reconciliation-2026-09-29.json"
+    if avia_src.exists(): copy_file(avia_src,overlays/"CH/direct/avia-guest-direct-tariffs.json")
+    if avia_rec.exists(): copy_file(avia_rec,overlays/"CH/direct/avia-reconciliation.json")
+
     # Germany national BNetzA/AFIR baseline + current resolution ledger.
     if a.germany_source:
         de_src=pathlib.Path(a.germany_source)
@@ -196,11 +202,11 @@ def main():
         "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current"},
         "ES":{"kind":"static-tiles","manifest":"runtime/data/v9/spain-static/manifest.json","offers":"runtime/data/v9/spain-reve-offers/manifest.json","coverage":"complete"},
         "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
-        "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","coverage":"complete-with-fail-closed-residuals"},
+        "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","direct":"snapshot-inputs/CH/direct","coverage":"complete-with-fail-closed-residuals"},
         "MA":{"kind":"cpo-consolidated","manifest":"snapshot-inputs/MA/manifest.json","coverage":"partial"},
         "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","coverage":"partial"},
         "IT":{"kind":"static-tiles","manifest":"runtime/data/v9/italy-static/manifest.json","offers":"runtime/data/v9/italy-offers.json","direct":"snapshot-inputs/IT/direct","coverage":"partial"},
-        "DE":{"kind":"national-baseline","manifest":"snapshot-inputs/DE/manifest.json","all":"snapshot-inputs/DE/all.json.gz","coverage":"partial"},
+        "DE":{"kind":"national-baseline","manifest":"snapshot-inputs/DE/manifest.json","all":"snapshot-inputs/DE/all.json.gz","direct":"snapshot-inputs/DE/direct","coverage":"partial"},
         "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"}
       }
     }
