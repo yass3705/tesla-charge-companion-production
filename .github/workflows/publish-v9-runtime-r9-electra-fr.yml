@@ -55,7 +55,7 @@ jobs:
 
       - name: Revalidate immutable package
         run: |
-          python production/scripts/verify_candidate_manifest.py dist/v9-2026-09-30-r9-electra-fr
+          python production/scripts/verify_candidate_manifest.py dist/v9-2026-09-30-r9-electra-fr 2026-09-30-r9-electra-fr
           python production/scripts/validate_built_snapshot.py dist/v9-2026-09-30-r9-electra-fr 2026-09-30-r9-electra-fr
           python production/scripts/validate_browser_asset_graph.py dist/v9-2026-09-30-r9-electra-fr
           python production/scripts/validate_stable_parity.py stable dist/v9-2026-09-30-r9-electra-fr
