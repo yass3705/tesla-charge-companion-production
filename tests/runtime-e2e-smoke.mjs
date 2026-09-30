@@ -1,1 +1,75 @@
-import assert from 'node:assert/strict';\nimport fs from 'node:fs';\nimport path from 'node:path';\nimport { createRequire } from 'node:module';\nimport { pathToFileURL } from 'node:url';\n\nconst require=createRequire(import.meta.url);\nconst root=path.resolve(process.argv[2]||'dist/v9-2026-09-30-r8');\nconst runtime=path.join(root,'runtime');\n\nconst dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));\nconst browserLoaders=require(path.join(runtime,'assets/v9/browser-loaders.js'));\nconst de=require(path.join(runtime,'assets/v9/adapters/germany-national.js'));\nconst uk=require(path.join(runtime,'assets/v9/adapters/uk-open-feeds.js'));\nconst extension=require(path.join(runtime,'assets/v9/production-loader-extension.js'));\n\nfunction fileFetch(baseRoot){\n  return async function(url){\n    const u=String(url);\n    let file;\n    if(u.startsWith('file://')) file=new URL(u);\n    else file=path.resolve(baseRoot,u);\n    try{\n      const bytes=fs.readFileSync(file);\n      return new Response(bytes,{status:200});\n    }catch(err){\n      return new Response(String(err),{status:404});\n    }\n  };\n}\n\nconst registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));\nconst wanted=new Set(['germany-production-snapshot','uk-production-open-feeds']);\nconst subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};\n\nextension.install({\n  baseLoaders:browserLoaders,\n  adapters:{germanyNational:de,ukOpenFeeds:uk}\n});\n\nconst loaders=browserLoaders.createRegistryLoaders({\n  registry:subRegistry,\n  basePath:pathToFileURL(runtime+path.sep).href,\n  adapters:{germanyNational:de,ukOpenFeeds:uk},\n  fetchImpl:fileFetch(runtime)\n});\n\nassert.equal(typeof loaders['germany-production-snapshot'],'function');\nassert.equal(typeof loaders['uk-production-open-feeds'],'function');\n\nconst engine=dataEngine.createEngine({registry:subRegistry,loaders});\n\nconst deResult=await engine.queryArea({countryCode:'DE',routingBudget:20});\nassert.ok(deResult.stations.length>63000,'DE station count too low: '+deResult.stations.length);\nconst dePriced=deResult.stations.filter(s=>(s.offers||[]).length>0);\nconst ionityPriced=deResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='IONITY Direct'));\nassert.ok(ionityPriced.length>=120,'IONITY DE safe priced station count too low: '+ionityPriced.length);\nassert.ok(deResult.diagnostics.sources['germany-production-snapshot']?.loaded===true);\n\nconst gbResult=await engine.queryArea({countryCode:'GB',routingBudget:20});\nassert.ok(gbResult.stations.length>0,'GB returned no stations');\nconst gbPriced=gbResult.stations.filter(s=>(s.offers||[]).length>0);\nassert.ok(gbPriced.length>0,'GB returned no priced stations from exact tariff joins');\nassert.ok(gbResult.diagnostics.sources['uk-production-open-feeds']?.loaded===true);\n\nconst exactMfg=gbResult.stations.find(s=>(s.evses||[]).some(e=>e.id==='GB*MFL*E5550'));\nassert.ok(exactMfg,'Expected MFG EVSE GB*MFL*E5550 missing from GB runtime query');\nconst energyOffers=(exactMfg.offers||[]).flatMap(o=>(o.pricing?.rules||[]).map(r=>({provider:o.provider,price:r.pricePerKwh,currency:r.currency})));\nassert.ok(energyOffers.some(x=>x.currency==='GBP'&&Math.abs(Number(x.price)-0.6583)<1e-9),'Expected exact MFG GBP 0.6583/kWh tariff missing');\n\nconsole.log(JSON.stringify({\n  ok:true,\n  DE:{stations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSafeStations:ionityPriced.length},\n  GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffVerified:true}\n}));\n
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+
+const require=createRequire(import.meta.url);
+const root=path.resolve(process.argv[2]||'dist/v9-2026-09-30-r8');
+const runtime=path.join(root,'runtime');
+
+const dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));
+const browserLoaders=require(path.join(runtime,'assets/v9/browser-loaders.js'));
+const de=require(path.join(runtime,'assets/v9/adapters/germany-national.js'));
+const uk=require(path.join(runtime,'assets/v9/adapters/uk-open-feeds.js'));
+const extension=require(path.join(runtime,'assets/v9/production-loader-extension.js'));
+
+function fileFetch(baseRoot){
+  return async function(url){
+    const u=String(url);
+    let file;
+    if(u.startsWith('file://')) file=new URL(u);
+    else file=path.resolve(baseRoot,u);
+    try{
+      const bytes=fs.readFileSync(file);
+      return new Response(bytes,{status:200});
+    }catch(err){
+      return new Response(String(err),{status:404});
+    }
+  };
+}
+
+const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
+const wanted=new Set(['germany-production-snapshot','uk-production-open-feeds']);
+const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
+
+extension.install({
+  baseLoaders:browserLoaders,
+  adapters:{germanyNational:de,ukOpenFeeds:uk}
+});
+
+const loaders=browserLoaders.createRegistryLoaders({
+  registry:subRegistry,
+  basePath:pathToFileURL(runtime+path.sep).href,
+  adapters:{germanyNational:de,ukOpenFeeds:uk},
+  fetchImpl:fileFetch(runtime)
+});
+
+assert.equal(typeof loaders['germany-production-snapshot'],'function');
+assert.equal(typeof loaders['uk-production-open-feeds'],'function');
+
+const engine=dataEngine.createEngine({registry:subRegistry,loaders});
+
+const deResult=await engine.queryArea({countryCode:'DE',routingBudget:20});
+assert.ok(deResult.stations.length>63000,'DE station count too low: '+deResult.stations.length);
+const dePriced=deResult.stations.filter(s=>(s.offers||[]).length>0);
+const ionityPriced=deResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='IONITY Direct'));
+assert.ok(ionityPriced.length>=120,'IONITY DE safe priced station count too low: '+ionityPriced.length);
+assert.ok(deResult.diagnostics.sources['germany-production-snapshot']?.loaded===true);
+
+const gbResult=await engine.queryArea({countryCode:'GB',routingBudget:20});
+assert.ok(gbResult.stations.length>0,'GB returned no stations');
+const gbPriced=gbResult.stations.filter(s=>(s.offers||[]).length>0);
+assert.ok(gbPriced.length>0,'GB returned no priced stations from exact tariff joins');
+assert.ok(gbResult.diagnostics.sources['uk-production-open-feeds']?.loaded===true);
+
+const exactMfg=gbResult.stations.find(s=>(s.evses||[]).some(e=>e.id==='GB*MFL*E5550'));
+assert.ok(exactMfg,'Expected MFG EVSE GB*MFL*E5550 missing from GB runtime query');
+const energyOffers=(exactMfg.offers||[]).flatMap(o=>(o.pricing?.rules||[]).map(r=>({provider:o.provider,price:r.pricePerKwh,currency:r.currency})));
+assert.ok(energyOffers.some(x=>x.currency==='GBP'&&Math.abs(Number(x.price)-0.6583)<1e-9),'Expected exact MFG GBP 0.6583/kWh tariff missing');
+
+console.log(JSON.stringify({
+  ok:true,
+  DE:{stations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSafeStations:ionityPriced.length},
+  GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffVerified:true}
+}));
