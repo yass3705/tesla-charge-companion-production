@@ -1,0 +1,110 @@
+name: Publish verified V9 runtime r9 Electra France
+on:
+  push:
+    paths:
+      - ".github/workflows/publish-v9-runtime-r9-electra-fr.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: v9-runtime-r9-electra-fr-immutable-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+
+      - name: Verify source CI success and artifact digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO=yass3705/tesla-charge-companion-production
+          RUN=36771235290
+          SHA=fd94cd639453fec04d005ed5601c0a51e72bd24a
+          ARTIFACT=11123568009
+          DIGEST=sha256:1f5881de7807fe32b6b010c1edf9f71e4228c1292249f4819b571eb15423c494
+          gh api "repos/$REPO/actions/runs/$RUN" --jq '[.status,.conclusion,.head_sha]|join(" ")' | grep -Fx "completed success $SHA"
+          gh api "repos/$REPO/actions/artifacts/$ARTIFACT" --jq '[.name,.expired,.digest,.workflow_run.head_sha]|join(" ")' | grep -Fx "tcc-v9-2026-09-30-r9-electra-fr-candidate false $DIGEST $SHA"
+          if gh release view v9-runtime-2026-09-30-r9-electra-fr --repo "$REPO" >/dev/null 2>&1; then
+            echo 'Immutable r9 prerelease already exists. Refusing to mutate it.'
+            exit 1
+          fi
+
+      - name: Download exact successful candidate artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/v9-2026-09-30-r9-electra-fr
+          gh run download 36771235290             --repo yass3705/tesla-charge-companion-production             --name tcc-v9-2026-09-30-r9-electra-fr-candidate             --dir dist/v9-2026-09-30-r9-electra-fr
+
+      - name: Revalidate immutable package
+        run: |
+          python production/scripts/verify_candidate_manifest.py dist/v9-2026-09-30-r9-electra-fr
+          python production/scripts/validate_built_snapshot.py dist/v9-2026-09-30-r9-electra-fr 2026-09-30-r9-electra-fr
+          python production/scripts/validate_browser_asset_graph.py dist/v9-2026-09-30-r9-electra-fr
+          python production/scripts/validate_stable_parity.py stable dist/v9-2026-09-30-r9-electra-fr
+
+      - name: Package and checksum exact candidate
+        run: |
+          cd dist
+          zip -0 -q -r tcc-v9-runtime-2026-09-30-r9-electra-fr.zip v9-2026-09-30-r9-electra-fr
+          sha256sum tcc-v9-runtime-2026-09-30-r9-electra-fr.zip > tcc-v9-runtime-2026-09-30-r9-electra-fr.sha256
+          cat tcc-v9-runtime-2026-09-30-r9-electra-fr.sha256
+
+      - name: Publish immutable prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=v9-runtime-2026-09-30-r9-electra-fr
+          if gh release view "$TAG" --repo yass3705/tesla-charge-companion-production >/dev/null 2>&1; then
+            echo 'Concurrent release already exists: refusing overwrite.'
+            exit 1
+          fi
+          cat > /tmp/r9-notes.md <<'EOF'
+          TCC V9 prerelease candidate adding the validated France Electra eMSP aggregate overlay on top of the national France station/EVSE baseline.
+
+          Provenance:
+          - production build run 36771235290
+          - production source SHA fd94cd639453fec04d005ed5601c0a51e72bd24a
+          - exact source artifact ID 11123568009
+          - artifact digest sha256:1f5881de7807fe32b6b010c1edf9f71e4228c1292249f4819b571eb15423c494
+          - pinned Data Lab SHA fece067bd58916d493a9479ff9db31bcc94bef6b
+
+          France Electra overlay:
+          - 25,027 published Electra offers
+          - 88,334 exact national EVSE identities
+          - 327 integrity-checked shards
+          - no Electra-to-Electroverse dependency
+          - no proximity inference
+          - fail-closed exclusions retained
+
+          Runtime France representative smoke:
+          - 3,784 national stations
+          - 2,295 priced stations
+          - 2,101 stations with Electra
+          - 190 stations with Electroverse
+          - 59 stations independently carrying both Electra and Electroverse overlays
+
+          Cross-country smoke remained green for ES, NL, DE, GB, IT, CH and MA.
+          r8 non-regression build 36771235487 also passed.
+
+          This is a prerelease only. No live deployment is performed and existing RC1/r8 releases remain untouched.
+          EOF
+          gh release create "$TAG"             dist/tcc-v9-runtime-2026-09-30-r9-electra-fr.zip             dist/tcc-v9-runtime-2026-09-30-r9-electra-fr.sha256             --repo yass3705/tesla-charge-companion-production             --target fd94cd639453fec04d005ed5601c0a51e72bd24a             --title "TCC V9 runtime r9 Electra France candidate"             --notes-file /tmp/r9-notes.md             --prerelease
