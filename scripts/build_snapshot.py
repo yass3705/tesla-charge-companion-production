@@ -95,7 +95,7 @@ def main():
     shell_text=shell_text.replace(
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'",
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
-        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/browser-loaders.js',"
+        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
     )
     shell_path.write_text(shell_text,encoding="utf-8")
@@ -339,6 +339,7 @@ def main():
           "runtime/assets/v9/adapters/switzerland-avia.js",
           "runtime/assets/v9/adapters/italy-ionity-exact.js",
           "runtime/assets/v9/adapters/france-ionity-exact.js",
+          "runtime/assets/v9/adapters/atlante-italy-exact.js",
           "runtime/assets/v9/production-loader-extension.js",
           "runtime/assets/v9/production-bootstrap.js"
         ],
