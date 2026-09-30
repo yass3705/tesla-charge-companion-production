@@ -34,6 +34,19 @@ def build_registry(path):
       "policy":"Only explicitly productionRankable tariffs are exposed, plus pinned IONITY Direct where a unique exact-coordinate + IONITY-operator match exists and every connector at the matched location has one uniform validated price. All other pricing remains fail-closed."
     })
     upsert(sources,{
+      "id":"germany-ionity-isolated-r8",
+      "label":"IONITY Germany pinned isolated first-party inventory supplement (unpriced)",
+      "adapter":"germany-national-v1",
+      "path":"../snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json",
+      "countries":["DE"],
+      "capabilities":["inventory"],
+      "priority":{"identity":120,"connectors":0,"access":0,"status":0,"tariff":0},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Three direct-identified IONITY_CPO stations isolated from all national sites by at least 250m and all national IONITY sites by at least 2km. No EVSE identities or prices are inferred; eight nearby-third-party cases stay quarantined."
+    })
+    upsert(sources,{
       "id":"uk-production-open-feeds",
       "label":"UK pinned validated operator open feeds",
       "adapter":"uk-open-feeds-v1",
@@ -147,7 +160,7 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
