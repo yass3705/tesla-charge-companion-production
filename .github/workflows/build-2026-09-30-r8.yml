@@ -4,6 +4,11 @@ on:
   push:
     paths:
       - "config/snapshots/2026-09-30-r8.json"
+      - "scripts/build_snapshot.py"
+      - "scripts/build_runtime_registry.py"
+      - "scripts/validate_built_snapshot.py"
+      - "runtime-overrides/**"
+      - "tests/runtime-integration.test.mjs"
       - ".github/workflows/build-2026-09-30-r8.yml"
   workflow_dispatch:
 
@@ -52,6 +57,9 @@ jobs:
           assert av["counts"]["missingNationalEvseCount"]==0
           print({"FR":fr,"IT":{"treated":26,"partial":66},"DE_durable_bytes":de.stat().st_size,"AVIA_CH":"583/583"})
           PY
+      - name: Validate production runtime adapters
+        run: node production/tests/runtime-integration.test.mjs
+
       - name: Build and validate r8
         run: |
           cd production
