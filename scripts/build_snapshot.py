@@ -229,6 +229,9 @@ def main():
     for name in ("atlante_direct_stations_france_latest.json.gz","ionity_direct_stations_france.json.gz"):
         p=national/name
         if p.exists(): copy_file(p,fr_direct/name)
+    ionity_fr_exact=dl/"data/operator_direct/ionity_exact_france.json"
+    if ionity_fr_exact.exists():
+        copy_file(ionity_fr_exact,fr_direct/"ionity_exact_france.json")
     ev_inventory=dl/"data/electroverse/inventory/france-current.json"
     ev_delta=dl/"reports/electroverse/daily-delta.json"
     if ev_inventory.exists(): copy_file(ev_inventory,overlays/"FR/platforms/electroverse-france-current.json")
@@ -325,6 +328,7 @@ def main():
           "runtime/assets/v9/adapters/uk-open-feeds.js",
           "runtime/assets/v9/adapters/switzerland-avia.js",
           "runtime/assets/v9/adapters/italy-ionity-exact.js",
+          "runtime/assets/v9/adapters/france-ionity-exact.js",
           "runtime/assets/v9/production-loader-extension.js",
           "runtime/assets/v9/production-bootstrap.js"
         ],
