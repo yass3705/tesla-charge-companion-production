@@ -1,0 +1,44 @@
+name: Build pinned V9 snapshot
+
+on:
+  push:
+    paths:
+      - "config/snapshots/2026-09-30.json"
+      - "scripts/build_snapshot.py"
+      - ".github/workflows/build-snapshot.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production
+        uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Checkout pinned stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - name: Checkout pinned Data Lab
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: d65546e28240d882bca34a9b177b4622669577c1
+          path: datalab
+          persist-credentials: false
+      - name: Build snapshot
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-09-30.json
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --out ../dist/v9-2026-09-30
+      - name: Upload immutable candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcc-v9-2026-09-30-candidate
+          path: dist/v9-2026-09-30
+          compression-level: 0
+          retention-days: 14
