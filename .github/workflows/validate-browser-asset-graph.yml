@@ -1,0 +1,42 @@
+name: Validate V9 candidate browser graph
+on:
+  push:
+    paths:
+      - "scripts/validate_browser_asset_graph.py"
+      - ".github/workflows/validate-browser-asset-graph.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: tcc-v9-browser-asset-graph
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Read pinned r8 metadata
+        id: meta
+        run: python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30-r8.json >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
+          path: datalab
+          persist-credentials: false
+      - name: Build pinned candidate and check browser graph
+        run: |
+          cd production
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config config/snapshots/2026-09-30-r8.json --out ../dist/v9-2026-09-30-r8
+          python scripts/validate_browser_asset_graph.py ../dist/v9-2026-09-30-r8
