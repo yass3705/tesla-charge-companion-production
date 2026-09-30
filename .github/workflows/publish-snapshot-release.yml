@@ -1,9 +1,6 @@
 name: Publish immutable V9 snapshot release
 
 on:
-  push:
-    paths:
-      - ".github/workflows/publish-snapshot-release.yml"
   workflow_dispatch:
 
 permissions:
@@ -19,87 +16,53 @@ jobs:
         with:
           path: production
 
+      - name: Read pinned snapshot metadata
+        id: meta
+        shell: bash
+        run: |
+          python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30.json >> "$GITHUB_OUTPUT"
+
       - name: Checkout pinned stable baseline
         uses: actions/checkout@v4
         with:
-          repository: yass3705/tesla-charge-companion-stable
-          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
           path: stable
           persist-credentials: false
 
       - name: Checkout pinned Data Lab
         uses: actions/checkout@v4
         with:
-          repository: yass3705/tesla-charge-companion-data-lab
-          ref: d65546e28240d882bca34a9b177b4622669577c1
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
           path: datalab
           persist-credentials: false
 
       - name: Download pinned Germany national baseline
         env:
           GH_TOKEN: ${{ github.token }}
+          ART_REPO: ${{ steps.meta.outputs.germany_artifact_repo }}
+          ART_ID: ${{ steps.meta.outputs.germany_artifact_id }}
         run: |
-          gh api /repos/yass3705/tesla-charge-companion-data-lab/actions/artifacts/9866595035/zip > /tmp/germany.zip
+          gh api "/repos/$ART_REPO/actions/artifacts/$ART_ID/zip" > /tmp/germany.zip
           mkdir -p germany-source
           unzip -q /tmp/germany.zip -d germany-source
-          test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo.json.gz
-          test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo_manifest.json
 
       - name: Build and validate immutable snapshot
+        env:
+          SNAPSHOT_ID: ${{ steps.meta.outputs.snapshot_id }}
         run: |
           cd production
-          python scripts/validate_snapshot.py config/snapshots/2026-09-30.json
-          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --out ../dist/v9-2026-09-30
-          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30
+          python scripts/validate_snapshot.py "config/snapshots/$SNAPSHOT_ID.json"
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --config "config/snapshots/$SNAPSHOT_ID.json"             --out "../dist/v9-$SNAPSHOT_ID"
+          python scripts/validate_built_snapshot.py "../dist/v9-$SNAPSHOT_ID"
+          python scripts/validate_stable_parity.py ../stable "../dist/v9-$SNAPSHOT_ID"
 
-      - name: Package release asset
-        run: |
-          cd dist
-          zip -0 -r tcc-v9-snapshot-2026-09-30.zip v9-2026-09-30 >/dev/null
-          sha256sum tcc-v9-snapshot-2026-09-30.zip | tee tcc-v9-snapshot-2026-09-30.sha256
-
-      - name: Create release notes
-        run: |
-          cat > /tmp/release-notes.md <<'EOF'
-          Immutable Tesla Charge Companion V9 baseline for 2026-09-30.
-
-          Scope:
-          - Tesla
-          - Spain (ES)
-          - Netherlands (NL)
-          - Switzerland (CH)
-          - Morocco (MA)
-          - France (FR)
-          - Italy (IT)
-          - Germany (DE)
-          - United Kingdom (UK)
-
-          Policy: fail-closed for unresolved tariffs and identities.
-
-          Pinned inputs:
-          - Data Lab: d65546e28240d882bca34a9b177b4622669577c1
-          - Stable baseline: 0a6d2c3415504397310d3dc92fae40be843b2435
-          - Germany recovery ledger: 59573b851fd9ee015f6edac6a9302b07e09cc71e
-          - Germany national artifact: 9866595035
-
-          Validation:
-          - 9 datasets
-          - UK first pass complete
-          - DE 63,405 non-Tesla sites / 591 named CPOs
-          - stable parity guard passed
-          - multi-country runtime contract passed
-          EOF
-
-      - name: Publish persistent GitHub release
+      - name: Verify existing immutable release
         env:
           GH_TOKEN: ${{ github.token }}
+          SNAPSHOT_ID: ${{ steps.meta.outputs.snapshot_id }}
         run: |
-          TAG="v9-snapshot-2026-09-30"
-          ZIP="dist/tcc-v9-snapshot-2026-09-30.zip"
-          SUM="dist/tcc-v9-snapshot-2026-09-30.sha256"
-          if gh release view "$TAG" --repo yass3705/tesla-charge-companion-production >/dev/null 2>&1; then
-            gh release upload "$TAG" "$ZIP" "$SUM" --clobber --repo yass3705/tesla-charge-companion-production
-          else
-            gh release create "$TAG" "$ZIP" "$SUM"               --repo yass3705/tesla-charge-companion-production               --title "TCC V9 snapshot — 2026-09-30"               --notes-file /tmp/release-notes.md               --target "$GITHUB_SHA"
-          fi
+          TAG="v9-snapshot-$SNAPSHOT_ID"
+          gh release view "$TAG" --repo yass3705/tesla-charge-companion-production >/dev/null
+          echo "Persistent release $TAG already exists; no asset mutation performed."
