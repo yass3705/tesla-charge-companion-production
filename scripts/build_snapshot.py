@@ -275,6 +275,12 @@ def main():
         de=overlays/"DE"
         copy_file(catalog,de/"all.json.gz")
         copy_file(source_manifest,de/"national-source-manifest.json")
+        subprocess.run([
+          sys.executable,
+          str(production_root/"scripts/build_germany_runtime_tiles.py"),
+          str(de/"all.json.gz"),
+          str(de/"tiles")
+        ],check=True)
         dl_ledger=dl/"docs/germany-cpo-second-pass-resolution-180.json"
         prod_ledger=pathlib.Path("docs/source-ledgers/germany-cpo-second-pass-resolution-180.json")
         ledger_src=dl_ledger if dl_ledger.exists() else prod_ledger
