@@ -26,15 +26,15 @@ UK: first pass complete; 46 canonical CPO/network entries in the pinned ledger.
 
 ## Current validated working revision
 
-Release tag: `v9-snapshot-2026-09-30-r4`
+Release tag: `v9-snapshot-2026-09-30-r5`
 
-Release asset: `tcc-v9-snapshot-2026-09-30-r4.zip`
+Release asset: `tcc-v9-snapshot-2026-09-30-r5.zip`
 
-Release asset digest: `sha256:02facb1a457d4c3ddaecbdab035b146639ba9e199044c201bd7011f11b6a9ba8`
+Release asset digest: `sha256:d5ac18aba6a5562d1a20151153f7d7cfb0b71da8305cee32e5f21e840fe598bd`
 
-This is the current validated working revision. It retains the r3 Atlante FR/IT and Electroverse FR refreshes, embeds the Morocco canonical CPO ledger, and adds the validated TotalEnergies Morocco native guest overlay (18 stations, 38 priced connectors, 38 live-status responses).
+This is the current validated working revision. It fixes the AVIA Switzerland refresh path end-to-end, preserves 583/583 national EVSE coverage with 587 guest-priced EVSEs visible, adds fresh IONITY Direct overlays for France (181/1,853), Italy (42/325), and Germany (199/1,578), all with zero unpriced connectors, and keeps revision-scoped validation so historical r2/r3/r4 builds remain reproducible.
 
-Previous r3, r2 and original 2026-09-30 releases remain preserved as rollback points.
+Previous r4, r3, r2 and original 2026-09-30 releases remain preserved as rollback points.
 
 ## Persistent rollback baseline
 
