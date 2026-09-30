@@ -3,9 +3,10 @@ name: Build pinned V9 snapshot
 on:
   push:
     paths:
-      - "config/snapshots/2026-09-30.json"
+      - "config/snapshots/**"
       - "docs/source-ledgers/**"
       - "scripts/build_snapshot.py"
+      - "scripts/export_snapshot_meta.py"
       - "scripts/validate_built_snapshot.py"
       - "scripts/validate_stable_parity.py"
       - ".github/workflows/build-snapshot.yml"
@@ -23,44 +24,55 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: production
+
+      - name: Read pinned snapshot metadata
+        id: meta
+        shell: bash
+        run: |
+          python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30.json >> "$GITHUB_OUTPUT"
+
       - name: Checkout pinned stable baseline
         uses: actions/checkout@v4
         with:
-          repository: yass3705/tesla-charge-companion-stable
-          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          repository: ${{ steps.meta.outputs.stable_repo }}
+          ref: ${{ steps.meta.outputs.stable_sha }}
           path: stable
           persist-credentials: false
+
       - name: Checkout pinned Data Lab
         uses: actions/checkout@v4
         with:
-          repository: yass3705/tesla-charge-companion-data-lab
-          ref: d65546e28240d882bca34a9b177b4622669577c1
+          repository: ${{ steps.meta.outputs.datalab_repo }}
+          ref: ${{ steps.meta.outputs.datalab_sha }}
           path: datalab
           persist-credentials: false
+
       - name: Download pinned Germany national baseline
         env:
           GH_TOKEN: ${{ github.token }}
+          ART_REPO: ${{ steps.meta.outputs.germany_artifact_repo }}
+          ART_ID: ${{ steps.meta.outputs.germany_artifact_id }}
         run: |
-          gh api /repos/yass3705/tesla-charge-companion-data-lab/actions/artifacts/9866595035/zip > /tmp/germany.zip
+          gh api "/repos/$ART_REPO/actions/artifacts/$ART_ID/zip" > /tmp/germany.zip
           mkdir -p germany-source
           unzip -q /tmp/germany.zip -d germany-source
           test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo.json.gz
           test -s germany-source/germany_non_tesla_catalog_staging_direct_cpo_manifest.json
+
       - name: Build and validate snapshot
+        env:
+          SNAPSHOT_ID: ${{ steps.meta.outputs.snapshot_id }}
         run: |
           cd production
-          python scripts/validate_snapshot.py config/snapshots/2026-09-30.json
-          python scripts/build_snapshot.py \
-            --stable ../stable \
-            --datalab ../datalab \
-            --germany-source ../germany-source \
-            --out ../dist/v9-2026-09-30
-          python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30
+          python scripts/validate_snapshot.py "config/snapshots/$SNAPSHOT_ID.json"
+          python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --config "config/snapshots/$SNAPSHOT_ID.json"             --out "../dist/v9-$SNAPSHOT_ID"
+          python scripts/validate_built_snapshot.py "../dist/v9-$SNAPSHOT_ID"
+          python scripts/validate_stable_parity.py ../stable "../dist/v9-$SNAPSHOT_ID"
+
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
-          name: tcc-v9-2026-09-30-candidate
-          path: dist/v9-2026-09-30
+          name: tcc-v9-${{ steps.meta.outputs.snapshot_id }}-candidate
+          path: dist/v9-${{ steps.meta.outputs.snapshot_id }}
           compression-level: 0
           retention-days: 14
