@@ -49,9 +49,23 @@ def build_registry(path):
     # equivalents. More complex EVGO/Kilowatt multi-file profiles remain
     # explicitly external until their immutable bundle is complete.
     for src in sources:
-        if src.get("id")=="morocco-fastvolt-public":
+        if src.get("id")=="morocco-evgo-native":
+            src["profile"]="evgo-production-local"
+            src["path"]="../snapshot-inputs/MA/sources/evgo-production.json"
+            src.pop("url",None)
+            src.pop("statusUrl",None)
+            src["refresh"]="immutable-production-snapshot"
+        elif src.get("id")=="morocco-fastvolt-public":
             src["path"]="../snapshot-inputs/MA/sources/fastvolt-public-map.json"
             src.pop("url",None)
+            src["refresh"]="immutable-production-snapshot"
+        elif src.get("id")=="morocco-kilowatt-public":
+            src["profile"]="kilowatt-native-local"
+            src["paths"]={
+              "inventory":"../snapshot-inputs/MA/sources/kilowatt-public-station-inventory.json",
+              "native":"../snapshot-inputs/MA/sources/kilowatt-native-tariffs.json"
+            }
+            src.pop("urls",None)
             src["refresh"]="immutable-production-snapshot"
         elif src.get("id")=="morocco-totalenergies-hosts":
             src["path"]="../snapshot-inputs/MA/sources/totalenergies-native-overlay.json"
@@ -60,9 +74,9 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-fastvolt-public","morocco-totalenergies-hosts"],
-      "remainingExternalSources":["morocco-evgo-native","morocco-kilowatt-public"],
-      "policy":"Snapshot-local sources are preferred where an exact validated artifact exists. Remaining external runtime dependencies are tracked explicitly and must not be mistaken for immutable inputs."
+      "snapshotLocalSources":["germany-production-snapshot","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts"],
+      "remainingExternalSources":[],
+      "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
     return obj
 
