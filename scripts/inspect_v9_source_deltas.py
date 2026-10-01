@@ -13,6 +13,10 @@ import pathlib
 import urllib.request
 
 MONITORED = {
+  "tesla": [
+    "data/suc-tracker/tesla_stations.json",
+    "data/suc-tracker/metadata.json",
+  ],
   "national": [
     "data/national/france_public_charging_canonical.json",
     "data/national/switzerland_public_charging_v9.json",
