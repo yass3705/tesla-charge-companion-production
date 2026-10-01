@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
 const page=await browser.newPage({serviceWorkers:'block'});
+await page.addInitScript(()=>{localStorage.setItem('tccDefaultOrigin','47.61764, 9.2688');localStorage.setItem('tccMaxDistanceKm','100');});
 const failures=[],mockCalls={reverse:0,route:0};
 page.on('pageerror',e=>failures.push(e.message));
 page.on('response',r=>{
