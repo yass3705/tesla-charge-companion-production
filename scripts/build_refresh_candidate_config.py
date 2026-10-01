@@ -6,15 +6,16 @@ def main():
     ap.add_argument("--base", default="config/snapshots/2026-09-30-r9-electra-fr.json")
     ap.add_argument("--datalab-sha", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--snapshot-id", default=None)
     args=ap.parse_args()
     obj=json.loads(pathlib.Path(args.base).read_text(encoding="utf-8"))
     sha=args.datalab_sha.strip().lower()
     if len(sha)!=40 or any(c not in "0123456789abcdef" for c in sha):
         raise SystemExit("invalid Data Lab SHA")
-    obj["snapshotId"]="refresh-candidate-"+sha[:12]
+    obj["snapshotId"]=args.snapshot_id or ("refresh-candidate-"+sha[:12])
     obj["sources"]["dataLab"]["sha"]=sha
     obj["sourceSelection"]["selectedDataLabCommit"]=sha
-    obj["sourceSelection"]["reason"]="Ephemeral dry-run candidate from current Data Lab main; never auto-published."
+    obj["sourceSelection"]["reason"]="Explicit SHA-pinned snapshot candidate; never auto-published."
     obj["sourceSelection"]["safeguards"]=list(dict.fromkeys(
       obj["sourceSelection"].get("safeguards",[])+[
         "Ephemeral refresh candidate only; no release or deployment.",
