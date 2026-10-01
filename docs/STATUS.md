@@ -109,6 +109,14 @@ Cloudflare work is paused. Its configuration and tests are retained for possible
 - Runtime fallback/reference: `tesla-charge-companion-stable`
 - Legacy recovery material: `tesla-stations-updater-test` only where not yet migrated
 
+## Development snapshot discipline
+
+While FR/IT/DE/UK/MA and other country workstreams are still evolving, **development and runtime validation use an immutable snapshot, never Data Lab main directly**.
+
+Current development snapshot: `2026-09-30-r9-electra-fr` pinned to Data Lab SHA `fece067bd58916d493a9479ff9db31bcc94bef6b`.
+
+Data Lab `main` remains the live workbench for CPO investigations, partial→complete promotions, national refreshes, Electra/Electroverse collection, and freshness/delta monitoring. Those changes stay outside the development baseline until a deliberate coherent snapshot cut is made and validated. Daily monitoring may compare against live Data Lab state, but it must not silently move the development input.
+
 ## Governing policy
 
 - r8 is the frozen integration baseline.
