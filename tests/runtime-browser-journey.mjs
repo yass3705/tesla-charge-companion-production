@@ -25,8 +25,8 @@ try{
   await page.goto('http://127.0.0.1:8765/v9-production-shell/',{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForFunction(()=>!!window.__TCC_V9_SHELL__,null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
-  await page.locator('#simOperatorFilter').selectOption('all');
-  await page.locator('#simMaxDistance').fill('8');
+  await page.locator('#simOperatorFilter').selectOption('tesla');
+  await page.locator('#simMaxDistance').fill('100');
   await page.locator('#simNow').fill('20');
   await page.locator('#simTarget').fill('80');
   await page.locator('#compare button.primary').first().click();
@@ -46,7 +46,7 @@ try{
   assert.equal(result.diagnostics[0]?.countryCode,'CH',result);
   assert.ok(mockCalls.reverse>0);
   assert.deepEqual(failures,[]);
-  console.log(JSON.stringify({ok:true,scenario:'CH Altnau 20-80%, all networks within 8km',...result,mockCalls,pageErrors:failures}));
+  console.log(JSON.stringify({ok:true,scenario:'CH Altnau 20-80%, Tesla within 100km',...result,mockCalls,pageErrors:failures}));
 }catch(err){
   const evidence=await page.evaluate(()=>({
     status:document.getElementById('routeStatus')?.textContent,
