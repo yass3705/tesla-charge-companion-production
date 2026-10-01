@@ -100,6 +100,10 @@ def main():
     update_path=out/"assets/update.js"
     update_text=update_path.read_text(encoding="utf-8")
     update_text=update_text.replace("  loadProductionCanaryBootstrap();","  // Production bundle fallback: legacy canary bootstrap intentionally disabled.")
+    update_text=update_text.replace("  window.addEventListener('pageshow',()=>setTimeout(checkForUpdate,150));","  // Immutable production snapshot: automatic stable-PWA update reload disabled.")
+    update_text=update_text.replace("  document.addEventListener('visibilitychange',()=>{\n    if(document.visibilityState==='visible')setTimeout(checkForUpdate,150);\n  });","  // Immutable production snapshot: visibility-triggered update reload disabled.")
+    update_text=update_text.replace("  window.addEventListener('online',checkForUpdate);","  // Immutable production snapshot: online-triggered update reload disabled.")
+    update_text=update_text.replace("  setInterval(checkForUpdate,5*60*1000);","  // Immutable production snapshot: periodic update reload disabled.")
     update_path.write_text(update_text,encoding="utf-8")
 
     shell_path=out/"v9-production-shell/index.html"
