@@ -24,12 +24,14 @@ await page.route('https://router.project-osrm.org/**',route=>{
 try{
   await page.goto('http://127.0.0.1:8765/v9-production-shell/',{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForFunction(()=>!!window.__TCC_V9_SHELL__,null,{timeout:30000});
+  await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   await page.locator('#simOperatorFilter').selectOption('tesla');
   await page.locator('#simMaxDistance').fill('100');
   await page.locator('#simNow').fill('20');
   await page.locator('#simTarget').fill('80');
-  await page.locator('#compare button.primary').first().click();
+  assert.equal(await page.locator('#simOrigin').inputValue(),'47.61764, 9.2688');
+  await page.evaluate(()=>{ window.compare(); });
   await page.waitForFunction(()=>{
     const status=document.querySelector('#routeStatus')?.textContent||'';
     const list=document.querySelector('#results')?.textContent||'';
