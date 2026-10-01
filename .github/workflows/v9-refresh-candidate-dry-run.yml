@@ -39,6 +39,9 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Validate future snapshot source-selection policy
+        run: python -m unittest discover -s production/tests -p test_snapshot_source_selection.py -v
+
       - name: Verify immutable development snapshot pin
         shell: bash
         run: |
