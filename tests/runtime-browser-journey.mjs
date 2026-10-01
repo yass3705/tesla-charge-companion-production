@@ -25,6 +25,11 @@ await page.route('https://router.project-osrm.org/**',route=>{
 try{
   await page.goto('http://127.0.0.1:8765/v9-production-shell/',{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForFunction(()=>!!window.__TCC_V9_SHELL__,null,{timeout:30000});
+  // Frozen RC1 still contains the stable PWA update checker, which may perform
+  // one versioned self-reload shortly after pageshow. Let that settle, then
+  // require the V9 shell and stable data bootstrap again before interacting.
+  await page.waitForTimeout(1200);
+  await page.waitForFunction(()=>!!window.__TCC_V9_SHELL__,null,{timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   await page.locator('#simOperatorFilter').selectOption('tesla');
