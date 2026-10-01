@@ -66,6 +66,23 @@ def main():
     copy_tree(stable/"assets", out/"assets")
     copy_tree(stable/"data", out/"data")
     copy_tree(stable/"v9-production-shell", out/"v9-production-shell")
+
+    tesla_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="TESLA"),{})
+    if tesla_cfg.get("primarySource")=="dataLab":
+        tesla_path=tesla_cfg.get("path")
+        if not tesla_path:
+            raise SystemExit("Data Lab Tesla source selected without a path")
+        tesla_src=dl/tesla_path
+        if not tesla_src.exists():
+            raise SystemExit(f"Pinned Data Lab Tesla source missing: {tesla_path}")
+        copy_file(tesla_src,out/"runtime/data/tesla_stations.json")
+        copy_file(tesla_src,out/"data/tesla_stations.json")
+        metadata_path=tesla_cfg.get("metadata")
+        if metadata_path:
+            metadata_src=dl/metadata_path
+            if not metadata_src.exists():
+                raise SystemExit(f"Pinned Data Lab Tesla metadata missing: {metadata_path}")
+            copy_file(metadata_src,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
     for name in ("manifest.webmanifest","app-version.json","service-worker.js"):
         src=stable/name
         if src.exists():
@@ -83,6 +100,10 @@ def main():
     update_path=out/"assets/update.js"
     update_text=update_path.read_text(encoding="utf-8")
     update_text=update_text.replace("  loadProductionCanaryBootstrap();","  // Production bundle fallback: legacy canary bootstrap intentionally disabled.")
+    update_text=update_text.replace("  window.addEventListener('pageshow',()=>setTimeout(checkForUpdate,150));","  // Immutable production snapshot: automatic stable-PWA update reload disabled.")
+    update_text=update_text.replace("  document.addEventListener('visibilitychange',()=>{\n    if(document.visibilityState==='visible')setTimeout(checkForUpdate,150);\n  });","  // Immutable production snapshot: visibility-triggered update reload disabled.")
+    update_text=update_text.replace("  window.addEventListener('online',checkForUpdate);","  // Immutable production snapshot: online-triggered update reload disabled.")
+    update_text=update_text.replace("  setInterval(checkForUpdate,5*60*1000);","  // Immutable production snapshot: periodic update reload disabled.")
     update_path.write_text(update_text,encoding="utf-8")
 
     shell_path=out/"v9-production-shell/index.html"
@@ -379,7 +400,7 @@ def main():
         "loaderExtensionInstall":"TCCV9ProductionBootstrap.install()"
       },
       "datasets":{
-        "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current"},
+        "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None},
         "ES":{"kind":"static-tiles","manifest":"runtime/data/v9/spain-static/manifest.json","offers":"runtime/data/v9/spain-reve-offers/manifest.json","coverage":"complete"},
         "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
         "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","direct":"snapshot-inputs/CH/direct","coverage":"complete-with-fail-closed-residuals"},
