@@ -1,14 +1,11 @@
-name: V9 refreshed candidate dry run
+name: V9 pinned snapshot development validation
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "15 23 * * *"
   push:
     branches: [main]
     paths:
       - "config/refresh-policy.json"
-      - "scripts/build_refresh_candidate_config.py"
       - ".github/workflows/v9-refresh-candidate-dry-run.yml"
       - "tests/runtime-browser-journey.mjs"
 
@@ -17,7 +14,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: v9-refresh-candidate-dry-run
+  group: v9-pinned-snapshot-development-validation
   cancel-in-progress: true
 
 jobs:
@@ -37,43 +34,40 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: main
+          ref: fece067bd58916d493a9479ff9db31bcc94bef6b
           path: datalab
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Pin this run to the exact Data Lab HEAD
-        id: pin
+      - name: Verify immutable development snapshot pin
         shell: bash
         run: |
           set -euo pipefail
-          sha="$(git -C datalab rev-parse HEAD)"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          python production/scripts/build_refresh_candidate_config.py --base production/config/snapshots/2026-09-30-r9-electra-fr.json --datalab-sha "$sha" --out production/config/snapshots/refresh-candidate.json
+          test "$(git -C datalab rev-parse HEAD)" = "fece067bd58916d493a9479ff9db31bcc94bef6b"
+          python production/scripts/validate_snapshot.py production/config/snapshots/2026-09-30-r9-electra-fr.json
 
       - name: Validate source-specific guards
         run: |
-          python production/scripts/validate_snapshot.py production/config/snapshots/refresh-candidate.json
           python production/scripts/validate_electra_platform_overlay.py datalab
 
       - name: Build self-contained refreshed candidate
         run: |
           cd production
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config config/snapshots/refresh-candidate.json --out ../dist/v9-refresh-candidate
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-refresh-candidate
-          python scripts/validate_browser_asset_graph.py ../dist/v9-refresh-candidate
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config config/snapshots/2026-09-30-r9-electra-fr.json --out ../dist/v9-dev-snapshot
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot
+          python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
 
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
-        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-refresh-candidate
+        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-dev-snapshot
 
       - name: Install browser test dependency
         run: npm install --no-save --no-package-lock playwright@1.55.1
 
       - name: Serve candidate locally
         run: |
-          python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/v9-refresh-candidate >/tmp/tcc-refresh-candidate-server.log 2>&1 &
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/v9-dev-snapshot >/tmp/tcc-refresh-candidate-server.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8765/v9-production-shell/shell-config.json >/dev/null; then exit 0; fi
             sleep 1
@@ -85,17 +79,17 @@ jobs:
         run: node production/tests/runtime-browser-journey.mjs
 
       - name: Verify candidate manifest hashes
-        run: python production/scripts/verify_candidate_manifest.py dist/v9-refresh-candidate
+        run: python production/scripts/verify_candidate_manifest.py dist/v9-dev-snapshot
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: v9-refresh-candidate-${{ steps.pin.outputs.sha }}
+          name: v9-dev-snapshot-2026-09-30-r9-electra-fr
           path: |
-            dist/v9-refresh-candidate
+            dist/v9-dev-snapshot
             /tmp/tcc-refresh-candidate-server.log
           retention-days: 7
           compression-level: 0
 
       - name: Explicit no-publish guard
-        run: echo "Candidate validated only. No release, deployment, tag or production pin mutation is performed."
+        run: echo "Pinned development snapshot validated only. Data Lab main is not used for this build. No release, deployment, tag or production pin mutation is performed."
