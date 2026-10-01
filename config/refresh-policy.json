@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "policy": "fail-closed",
+  "collection": {
+    "cpoDirect": {"targetCadence": "daily", "ownerRepo": "yass3705/tesla-charge-companion-data-lab"},
+    "tesla": {"targetCadence": "weekly", "ownerRepo": "yass3705/tesla-charge-companion-data-lab"},
+    "electra": {"targetCadence": "daily-or-delta", "ownerRepo": "yass3705/tesla-charge-companion-data-lab"},
+    "electroverse": {"targetCadence": "weekly-full-plus-daily-delta", "ownerRepo": "yass3705/tesla-charge-companion-data-lab"}
+  },
+  "candidate": {
+    "scheduleUtc": "23:15",
+    "productionPublication": false,
+    "liveDeployment": false,
+    "requiredGates": [
+      "snapshot config validation",
+      "source-specific integrity guards",
+      "multi-country runtime smoke",
+      "stable parity",
+      "browser asset graph",
+      "mocked geocoding/routing browser journey",
+      "manifest/hash verification"
+    ]
+  },
+  "promotion": {
+    "automaticRelease": false,
+    "automaticDeployment": false,
+    "rule": "A refreshed source may enter a new immutable snapshot only after all gates pass. Historical releases are never overwritten."
+  }
+}
