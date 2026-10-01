@@ -2,13 +2,25 @@
   "schemaVersion": 1,
   "policy": "fail-closed",
   "collection": {
-    "cpoDirect": {"targetCadence": "daily", "ownerRepo": "yass3705/tesla-charge-companion-data-lab"},
-    "tesla": {"targetCadence": "weekly", "ownerRepo": "yass3705/tesla-charge-companion-data-lab"},
-    "electra": {"targetCadence": "daily-or-delta", "ownerRepo": "yass3705/tesla-charge-companion-data-lab"},
-    "electroverse": {"targetCadence": "weekly-full-plus-daily-delta", "ownerRepo": "yass3705/tesla-charge-companion-data-lab"}
+    "cpoDirect": {
+      "targetCadence": "daily",
+      "ownerRepo": "yass3705/tesla-charge-companion-data-lab"
+    },
+    "tesla": {
+      "targetCadence": "weekly",
+      "ownerRepo": "yass3705/tesla-charge-companion-data-lab"
+    },
+    "electra": {
+      "targetCadence": "daily-or-delta",
+      "ownerRepo": "yass3705/tesla-charge-companion-data-lab"
+    },
+    "electroverse": {
+      "targetCadence": "weekly-full-plus-daily-delta",
+      "ownerRepo": "yass3705/tesla-charge-companion-data-lab"
+    }
   },
   "candidate": {
-    "scheduleUtc": "23:15",
+    "trigger": "manual-or-production-code-change",
     "productionPublication": false,
     "liveDeployment": false,
     "requiredGates": [
@@ -24,6 +36,12 @@
   "promotion": {
     "automaticRelease": false,
     "automaticDeployment": false,
-    "rule": "A refreshed source may enter a new immutable snapshot only after all gates pass. Historical releases are never overwritten."
+    "rule": "Cut a new immutable snapshot deliberately from validated Data Lab state; only then may development move to that new pin. Never build development directly from Data Lab main."
+  },
+  "development": {
+    "sourceMode": "pinned-snapshot-only",
+    "currentSnapshot": "2026-09-30-r9-electra-fr",
+    "dataLabSha": "fece067bd58916d493a9479ff9db31bcc94bef6b",
+    "rule": "Development/runtime validation must use an immutable pinned snapshot. Data Lab main is only for collection, investigations and freshness/delta monitoring while country partials are still evolving."
   }
 }
