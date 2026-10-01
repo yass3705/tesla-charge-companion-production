@@ -1,6 +1,6 @@
 # TCC V9 production status
 
-Updated: 2026-09-30
+Updated: 2026-10-01
 
 ## Current immutable baseline
 
@@ -95,6 +95,17 @@ Independent browser-asset candidate validation succeeded in [run 36730931772](ht
 - Safe promotion gate: an actual validated source-data change, new coherent country ledgers, all source guards, full multi-country runtime smoke, independent Chrome UI tests, manifest hash verification and an immutable, separately named release must all precede any staging promotion.
 
 **Current next step:** exercise routing/geocoding-dependent comparisons in a controlled staging preview with deterministic mocked external responses, then separately design the data collector/refresh jobs and their cost/latency budget. Cloudflare remains paused.
+
+
+## 2026-10-01 — pinned development and refresh separation
+
+- Development remains pinned to immutable snapshot `2026-09-30-r9-electra-fr` at Data Lab SHA `fece067bd58916d493a9479ff9db31bcc94bef6b`. Live Data Lab `main` is not a development input.
+- Future snapshot cuts are manual-only and require an explicit snapshot id plus an exact 40-character Data Lab SHA. No cut workflow publishes, deploys, tags, or changes the current development pin.
+- Tesla SuC Tracker collection has moved to Data Lab. The validated current Data Lab export contains 1,185 stations across BE/CH/DE/ES/FR/GB/IT/LU/MA/NL/PT; 18 retain unknown access hours and all other inherited access metadata is preserved. The legacy updater schedule is disabled and retained only as manual fallback.
+- Future explicit snapshot cuts may select the Tesla catalogue from the same pinned Data Lab SHA. The current r9 snapshot deliberately retains its existing Tesla source; this is guarded by source-selection unit tests.
+- Frozen RC1 mocked routing/geocoding Chrome journey passed in run `36856301305`. Investigation showed the stable PWA update checker could self-reload a frozen bundle shortly after pageshow; future immutable snapshot builds now disable those automatic update-reload hooks inside the bundle.
+- Production freshness monitoring includes Data Lab SuC Tracker metadata/catalogue and remains read-only. Data Lab collection changes do not automatically promote into development.
+- Core Data Lab collection cadences are versioned and CI-guarded. Electra France platform and Load Motion France now have weekly refresh schedules; Electroverse retains daily delta plus weekly full refresh; IONITY and Atlante direct refresh daily; Tesla SuC refreshes weekly.
 
 ## Hosting
 
