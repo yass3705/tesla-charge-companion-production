@@ -37,7 +37,7 @@ def main():
       obj["sourceSelection"].get("safeguards",[])+[
         "Ephemeral refresh candidate only; no release or deployment.",
         "All unsupported/unmatched tariffs remain fail closed.",
-        *(["Tesla catalogue comes from the same pinned Data Lab SHA via SuC Tracker."] if args.use_datalab_tesla else [])
+        *(["Tesla catalogue comes from the same pinned Data Lab SHA via SuC Tracker."] if args.use_datalab_tesla else []),
         *(["NL national runtime comes from the DOT-NL Data Lab snapshot; Tesla is excluded and unresolved tariffs remain fail-closed."] if args.use_datalab_nl else [])
       ]))
     pathlib.Path(args.out).write_text(json.dumps(obj,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
