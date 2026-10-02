@@ -11,6 +11,11 @@ on:
         description: Exact 40-char Data Lab commit SHA to pin
         required: true
         type: string
+      use_datalab_nl:
+        description: Use the DOT-NL national runtime from the pinned Data Lab commit
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -55,7 +60,16 @@ jobs:
           snapshot_id="${{ inputs.snapshot_id }}"
           snapshot_id="$(printf '%s' "$snapshot_id" | tr -d '[:space:]')"
           echo "SNAPSHOT_ID=$snapshot_id" >> "$GITHUB_ENV"
-          python production/scripts/build_refresh_candidate_config.py             --base production/config/snapshots/2026-09-30-r9-electra-fr.json             --datalab-sha "${{ inputs.datalab_sha }}"             --snapshot-id "$snapshot_id"             --out production/config/snapshots/explicit-candidate.json
+          args=(
+            --base production/config/snapshots/2026-09-30-r9-electra-fr.json
+            --datalab-sha "${{ inputs.datalab_sha }}"
+            --snapshot-id "$snapshot_id"
+            --out production/config/snapshots/explicit-candidate.json
+          )
+          if [ "${{ inputs.use_datalab_nl }}" = "true" ]; then
+            args+=(--use-datalab-nl)
+          fi
+          python production/scripts/build_refresh_candidate_config.py "${args[@]}"
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_electra_platform_overlay.py datalab
 
