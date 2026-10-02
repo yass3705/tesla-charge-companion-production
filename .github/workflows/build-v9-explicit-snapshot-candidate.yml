@@ -46,7 +46,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C datalab rev-parse HEAD)" = "${{ inputs.datalab_sha }}"
+          requested="${{ inputs.datalab_sha }}"
+          requested="$(printf '%s' "$requested" | tr -d '[:space:]')"
+          test "$(git -C datalab rev-parse HEAD)" = "$requested"
 
       - name: Generate immutable candidate config
         run: |
