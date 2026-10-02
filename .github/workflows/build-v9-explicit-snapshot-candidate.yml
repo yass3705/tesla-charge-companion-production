@@ -50,7 +50,7 @@ jobs:
 
       - name: Generate immutable candidate config
         run: |
-          python production/scripts/build_refresh_candidate_config.py             --base production/config/snapshots/2026-09-30-r9-electra-fr.json             --datalab-sha "${{ inputs.datalab_sha }}"             --snapshot-id "${{ inputs.snapshot_id }}"             --use-datalab-tesla             --out production/config/snapshots/explicit-candidate.json
+          python production/scripts/build_refresh_candidate_config.py             --base production/config/snapshots/2026-09-30-r9-electra-fr.json             --datalab-sha "${{ inputs.datalab_sha }}"             --snapshot-id "${{ inputs.snapshot_id }}"             --out production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_electra_platform_overlay.py datalab
 
