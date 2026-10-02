@@ -83,6 +83,20 @@ def main():
             if not metadata_src.exists():
                 raise SystemExit(f"Pinned Data Lab Tesla metadata missing: {metadata_path}")
             copy_file(metadata_src,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
+    # Netherlands: optionally replace the legacy Stable baseline with the
+    # immutable national runtime built in Data Lab. The source directory already
+    # contains manifest, all.json.gz and tiles; keep its layout under the stable
+    # runtime path consumed by the V9 loader.
+    nl_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="NL"),{})
+    if nl_cfg.get("primarySource")=="dataLab":
+        nl_path=nl_cfg.get("path")
+        if not nl_path:
+            raise SystemExit("Data Lab NL source selected without a path")
+        nl_src=dl/nl_path
+        if not nl_src.exists():
+            raise SystemExit(f"Pinned Data Lab NL source missing: {nl_path}")
+        copy_tree(nl_src,out/"runtime/data/non_tesla_netherlands")
+
     for name in ("manifest.webmanifest","app-version.json","service-worker.js"):
         src=stable/name
         if src.exists():
