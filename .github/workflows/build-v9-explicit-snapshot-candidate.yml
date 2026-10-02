@@ -52,7 +52,10 @@ jobs:
 
       - name: Generate immutable candidate config
         run: |
-          python production/scripts/build_refresh_candidate_config.py             --base production/config/snapshots/2026-09-30-r9-electra-fr.json             --datalab-sha "${{ inputs.datalab_sha }}"             --snapshot-id "${{ inputs.snapshot_id }}"             --out production/config/snapshots/explicit-candidate.json
+          snapshot_id="${{ inputs.snapshot_id }}"
+          snapshot_id="$(printf '%s' "$snapshot_id" | tr -d '[:space:]')"
+          echo "SNAPSHOT_ID=$snapshot_id" >> "$GITHUB_ENV"
+          python production/scripts/build_refresh_candidate_config.py             --base production/config/snapshots/2026-09-30-r9-electra-fr.json             --datalab-sha "${{ inputs.datalab_sha }}"             --snapshot-id "$snapshot_id"             --out production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_electra_platform_overlay.py datalab
 
@@ -60,7 +63,7 @@ jobs:
         run: |
           cd production
           python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --config config/snapshots/explicit-candidate.json             --out ../dist/v9-explicit-candidate
-          python scripts/validate_built_snapshot.py ../dist/v9-explicit-candidate "${{ inputs.snapshot_id }}"
+          python scripts/validate_built_snapshot.py ../dist/v9-explicit-candidate "$SNAPSHOT_ID"
           python scripts/validate_stable_parity.py ../stable ../dist/v9-explicit-candidate
           python scripts/validate_browser_asset_graph.py ../dist/v9-explicit-candidate
 
@@ -90,7 +93,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: v9-snapshot-candidate-${{ inputs.snapshot_id }}
+          name: v9-snapshot-candidate
           path: |
             dist/v9-explicit-candidate
             production/config/snapshots/explicit-candidate.json
