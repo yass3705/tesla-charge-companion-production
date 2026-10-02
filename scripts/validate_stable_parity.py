@@ -14,6 +14,7 @@ def main():
     stable=pathlib.Path(sys.argv[1])/"v9-production-runtime"
     snap=pathlib.Path(sys.argv[2])/"runtime"
     allow_tesla_override="--allow-tesla-override" in sys.argv[3:]
+    allow_nl_override="--allow-nl-override" in sys.argv[3:]
     critical=[
       "data/tesla_stations.json",
       "data/v9/spain-static/manifest.json",
@@ -33,6 +34,15 @@ def main():
         critical=[rel for rel in critical if rel!="data/tesla_stations.json"]
         tesla=snap/"data/tesla_stations.json"
         assert tesla.exists() and tesla.stat().st_size>0, "Data Lab Tesla override missing/empty"
+    if allow_nl_override:
+        critical=[rel for rel in critical if rel not in {
+          "data/non_tesla_netherlands/manifest.json",
+          "data/non_tesla_netherlands/all.json.gz"
+        }]
+        nl_manifest=snap/"data/non_tesla_netherlands/manifest.json"
+        nl_all=snap/"data/non_tesla_netherlands/all.json.gz"
+        assert nl_manifest.exists() and nl_manifest.stat().st_size>0, "Data Lab NL override manifest missing/empty"
+        assert nl_all.exists() and nl_all.stat().st_size>0, "Data Lab NL override runtime missing/empty"
     checked=0
     for rel in critical:
         a=stable/rel
@@ -59,7 +69,7 @@ def main():
     for rel in required:
         assert (root/rel).exists(), f"overlay missing: {rel}"
 
-    print(f"PARITY PASS critical_files={checked} overlays={len(required)} tesla_override={allow_tesla_override}")
+    print(f"PARITY PASS critical_files={checked} overlays={len(required)} tesla_override={allow_tesla_override} nl_override={allow_nl_override}")
 
 if __name__=="__main__":
     main()
