@@ -4,8 +4,10 @@ import { chromium } from 'playwright';
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
 const page=await browser.newPage({serviceWorkers:'block'});
 await page.addInitScript(()=>{localStorage.setItem('tccDefaultOrigin','47.61764, 9.2688');localStorage.setItem('tccMaxDistanceKm','100');});
-const failures=[],mockCalls={reverse:0,route:0};
+const failures=[],mockCalls={reverse:0,route:0},consoleMessages=[],requestFailures=[];
 page.on('pageerror',e=>failures.push(e.message));
+page.on('console',msg=>consoleMessages.push(msg.type()+': '+msg.text()));
+page.on('requestfailed',req=>requestFailures.push(req.url()+' :: '+(req.failure()?.errorText||'unknown')));
 page.on('response',r=>{
   if(r.status()>=400&&new URL(r.url()).origin==='http://127.0.0.1:8765'&&/\/(?:runtime\/assets\/v9|runtime\/data\/v9|snapshot-inputs\/)/.test(r.url()))
     failures.push('critical local HTTP '+r.status()+': '+r.url());
@@ -59,8 +61,8 @@ try{
   const evidence=await page.evaluate(()=>({
     status:document.getElementById('routeStatus')?.textContent,
     results:document.getElementById('results')?.innerText?.slice(0,500),
-    diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1')
-  })).catch(()=>({}));
+    diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),consoleMessages,requestFailures
+  })).catch(()=>({consoleMessages,requestFailures}));
   console.error(JSON.stringify({scenarioFailure:err.message,evidence,mockCalls,pageErrors:failures}));
   throw err;
 }finally{
