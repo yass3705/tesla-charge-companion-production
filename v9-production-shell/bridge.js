@@ -1,7 +1,22 @@
 (function(root,factory){
   const api=factory();
   if(typeof module==='object'&&module.exports)module.exports=api;
-  if(root){root.TCCV9ProductionShell=api;if(root.document)api.install(root).catch(err=>console.error('[TCC V9 shell] install failed',err));}
+  if(root){
+    root.TCCV9ProductionShell=api;
+    if(root.document){
+      const start=()=>{
+        if(root.__TCC_V9_SHELL__?.pending||root.__TCC_V9_SHELL__?.ready)return;
+        api.install(root).catch(err=>{
+          const marker=root.__TCC_V9_SHELL__||{};
+          marker.pending=false;marker.ready=false;marker.error=String(err?.message||err);
+          root.__TCC_V9_SHELL__=marker;
+          console.error('[TCC V9 shell] install failed',err);
+        });
+      };
+      if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',start,{once:true});
+      else root.setTimeout(start,0);
+    }
+  }
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
   const text=v=>String(v==null?'':v).trim();
@@ -201,7 +216,7 @@
     grid.dataset.v9Progressive='true';
   }
 
-  async function waitForStableShell(w,timeoutMs=12000){
+  async function waitForStableShell(w,timeoutMs=30000){
     const deadline=Date.now()+timeoutMs;
     while(Date.now()<deadline){
       if(w.__TCC_V9_SHELL_CONFIG__&&typeof w.compare==='function')return;
@@ -211,6 +226,8 @@
     if(typeof w.compare!=='function')throw new Error('stable compare unavailable');
   }
   async function install(w){
+    if(w.__TCC_V9_SHELL__?.ready)return w.__TCC_V9_SHELL__;
+    if(w.__TCC_V9_SHELL__?.pending)return w.__TCC_V9_SHELL__;
     const cfg=w.__TCC_V9_SHELL_CONFIG__;
     if(!cfg||!['shadow','candidate'].includes(cfg.mode))throw new Error('shell config unavailable');
     const marker={mode:cfg.mode,candidateSha:cfg.observedCandidateSha,engineScopeCountries:(cfg.engineScopeCountries||[]).slice(),fallback:cfg.fallback||'legacy-compare',pending:true};
