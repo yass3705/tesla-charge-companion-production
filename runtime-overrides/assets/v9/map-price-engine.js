@@ -53,5 +53,33 @@
     return [...zones.values()].map(z=>({...z,lat:z.lat/z.stationCount,lon:z.lon/z.stationCount})).sort((a,b)=>(a.bestPricePerKm??Infinity)-(b.bestPricePerKm??Infinity)||b.stationCount-a.stationCount);
   }
   function formatPricePerKm(value,currency='€'){const n=num(value);return n==null?'—':n.toFixed(3)+' '+currency+'/km';}
-  return{zoneKey,normalizeRows,summarizeZones,formatPricePerKm};
+  function normalizeEvseRows(rows=[],opts={}){
+    const allowed=new Set((opts.allowedChannels||['DIRECT','AD_HOC_PAYMENT','ELECTRA','ELECTROVERSE']).map(cleanChannel));
+    const out=[];
+    for(const row of rows||[]){
+      const station=row.station||row, evses=station.evses||[];
+      for(const evse of evses){
+        const connectors=evse.connectors||[];
+        for(const connector of connectors){
+          const power=num(connector.powerKw??connector.power??evse.powerKw);
+          const offers=(connector.offers||evse.offers||station.offers||row.offers||[]).filter(x=>validOffer(x,allowed));
+          const priced=offers.map(offer=>({offer,pricePerKm:pricePerKm(row,offer,opts)})).filter(x=>x.pricePerKm!=null).sort((a,b)=>a.pricePerKm-b.pricePerKm);
+          const best=priced[0]||null;
+          out.push({stationId:text(station.id||row.id),stationName:text(station.name||row.name)||'Borne',evseId:text(evse.id||evse.uid),connectorId:text(connector.id||connector.connectorId||connector.uid),powerKw:power,lat:num(station.latitude??station.lat??station.coordinates?.latitude),lon:num(station.longitude??station.lon??station.coordinates?.longitude),bestPricePerKm:best?.pricePerKm??null,bestChannel:best?.offer?.channel||best?.offer?.source||null,offers:priced.map(x=>({channel:x.offer.channel||x.offer.source||null,source:x.offer.source||x.offer.provider||null,pricePerKm:x.pricePerKm}))});
+        }
+      }
+    }
+    return out.filter(x=>x.lat!=null&&x.lon!=null&&x.powerKw!=null);
+  }
+  function summarizePowerBuckets(rows=[],opts={}){
+    const buckets=new Map();
+    for(const row of normalizeEvseRows(rows,opts)){
+      const key=(row.lat.toFixed(1)+':'+row.lon.toFixed(1)+':'+row.powerKw);
+      if(!buckets.has(key))buckets.set(key,{zone:row.lat.toFixed(1)+':'+row.lon.toFixed(1),powerKw:row.powerKw,lat:row.lat,lon:row.lon,evseCount:0,bestPricePerKm:null,bestChannel:null});
+      const bucket=buckets.get(key);bucket.evseCount++;
+      if(row.bestPricePerKm!=null&&(bucket.bestPricePerKm==null||row.bestPricePerKm<bucket.bestPricePerKm)){bucket.bestPricePerKm=row.bestPricePerKm;bucket.bestChannel=row.bestChannel;}
+    }
+    return [...buckets.values()].sort((a,b)=>(a.bestPricePerKm??Infinity)-(b.bestPricePerKm??Infinity)||a.powerKw-b.powerKw);
+  }
+  return{zoneKey,normalizeRows,normalizeEvseRows,summarizeZones,summarizePowerBuckets,formatPricePerKm};
 });
