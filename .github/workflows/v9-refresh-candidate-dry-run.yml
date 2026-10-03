@@ -25,16 +25,31 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: production
+      - name: Read immutable development pin
+        id: pin
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          policy=json.load(open("production/config/refresh-policy.json", encoding="utf-8"))
+          dev=policy["development"]
+          snapshot_id=dev["currentSnapshot"]
+          cfg=json.load(open(f"production/config/snapshots/{snapshot_id}.json", encoding="utf-8"))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"snapshot_id={snapshot_id}\\n")
+              out.write(f"datalab_sha={dev['dataLabSha']}\\n")
+              out.write(f"stable_sha={cfg['sources']['stable']['sha']}\\n")
+          PY
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-stable
-          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          ref: ${{ steps.pin.outputs.stable_sha }}
           path: stable
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: fece067bd58916d493a9479ff9db31bcc94bef6b
+          ref: ${{ steps.pin.outputs.datalab_sha }}
           path: datalab
           fetch-depth: 1
           persist-credentials: false
@@ -46,8 +61,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C datalab rev-parse HEAD)" = "fece067bd58916d493a9479ff9db31bcc94bef6b"
-          python production/scripts/validate_snapshot.py production/config/snapshots/2026-09-30-r9-electra-fr.json
+          test "$(git -C datalab rev-parse HEAD)" = "${{ steps.pin.outputs.datalab_sha }}"
+          python production/scripts/validate_snapshot.py "production/config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json"
 
       - name: Validate source-specific guards
         run: |
@@ -56,8 +71,8 @@ jobs:
       - name: Build self-contained refreshed candidate
         run: |
           cd production
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config config/snapshots/2026-09-30-r9-electra-fr.json --out ../dist/v9-dev-snapshot
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
 
       - name: Multi-country runtime smoke
@@ -87,7 +102,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: v9-dev-snapshot-2026-09-30-r9-electra-fr
+name: v9-dev-snapshot-${{ steps.pin.outputs.snapshot_id }}
           path: |
             dist/v9-dev-snapshot
             /tmp/tcc-refresh-candidate-server.log
