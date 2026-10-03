@@ -129,14 +129,9 @@ def main():
     shell_text=shell_path.read_text(encoding="utf-8")
     shell_text=shell_text.replace("const CONTROL_FALLBACK='../';","const CONTROL_FALLBACK='../control/index.html';")
     shell_text=shell_text.replace(
-        "if(cfg.observedCandidateSha!=='8d2c20b7c76004389edd8f4a3b80d6b314900ba0')throw new Error('candidate SHA is not pinned');",
-        "if(cfg.snapshotId!=="+json.dumps(cfg["snapshotId"]) + ")throw new Error('production snapshot id mismatch');"
-    )
-    shell_text=shell_text.replace(
+        "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'",
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/map-price-engine.js',"
-        "'assets/v9/browser-loaders.js',"
-        "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/adapters/germany-national.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
     )
