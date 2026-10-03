@@ -151,6 +151,7 @@
   function refreshOperatorOptions(w,area){
     const select=w.document.getElementById('simOperatorFilter');if(!select?.multiple)return;
     const current=new Set([...select.selectedOptions].map(option=>option.value));
+    const currentLabels=new Map([...select.options].map(option=>[option.value,option.textContent]));
     const operators=new Map([['tesla','Tesla']]);
     for(const station of area?.stations||[]){
       const op=station.physicalOperator||station.operator||{};
@@ -158,6 +159,7 @@
       const label=text(op.name||station.operatorName||'');
       if(id&&label&&id!=='tesla')operators.set(id,label);
     }
+    for(const [id,label] of currentLabels){if(id&&id!=='all'&&!operators.has(id))operators.set(id,label);}
     const selected=current.size?current:new Set(['tesla']);
     select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('')+
       '<option value="all">Tous les réseaux</option>';
