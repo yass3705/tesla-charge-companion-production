@@ -36,9 +36,9 @@ jobs:
           snapshot_id=dev["currentSnapshot"]
           cfg=json.load(open(f"production/config/snapshots/{snapshot_id}.json", encoding="utf-8"))
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write(f"snapshot_id={snapshot_id}\\n")
-              out.write(f"datalab_sha={dev['dataLabSha']}\\n")
-              out.write(f"stable_sha={cfg['sources']['stable']['sha']}\\n")
+              out.write(f"snapshot_id={snapshot_id}\n")
+              out.write(f"datalab_sha={dev['dataLabSha']}\n")
+              out.write(f"stable_sha={cfg['sources']['stable']['sha']}\n")
           PY
       - uses: actions/checkout@v4
         with:
