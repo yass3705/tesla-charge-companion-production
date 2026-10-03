@@ -128,10 +128,35 @@
     });
   }
 
+  function installProgressiveSearchForm(w){
+    const grid=w.document.querySelector('#compare .card .grid');
+    if(!grid||grid.dataset.v9Progressive==='true')return;
+    const field=id=>w.document.getElementById(id)?.parentElement||null;
+    const origin=field('simOrigin');if(!origin)return;
+    const groups=[
+      {title:'Date et horaires',ids:['simDate','simTime','simUnplugTime']},
+      {title:'Batterie et objectif',ids:['simNow','simTarget']},
+      {title:'Profil de calcul',ids:['simCondition','simProfile','simRanking']},
+      {title:'Réseaux et distance',ids:['simOperatorFilter','simMaxDistance']}
+    ];
+    const original=groups.map(group=>group.ids.map(field)).flat().filter(Boolean);
+    grid.innerHTML='';origin.classList.add('full');grid.appendChild(origin);
+    for(const group of groups){
+      const details=w.document.createElement('details');details.className='full box v9-filter-group';
+      const summary=w.document.createElement('summary');summary.textContent=group.title;
+      details.appendChild(summary);
+      const body=w.document.createElement('div');body.className='grid';body.style.marginTop='10px';
+      for(const node of group.ids.map(field).filter(Boolean)){body.appendChild(node);}
+      details.appendChild(body);grid.appendChild(details);
+    }
+    grid.dataset.v9Progressive='true';
+  }
+
   async function install(w){
     const cfg=w.__TCC_V9_SHELL_CONFIG__;if(!cfg||!['shadow','candidate'].includes(cfg.mode))throw new Error('shell config unavailable');const legacyCompare=w.compare;if(typeof legacyCompare!=='function')throw new Error('stable compare unavailable');
     const enginePromise=createEngine(w,cfg);
     installCurrentPositionButton(w);
+    installProgressiveSearchForm(w);
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
@@ -140,5 +165,5 @@
     w.__TCC_V9_SHELL__={mode:cfg.mode,candidateSha:cfg.observedCandidateSha,engineScopeCountries:(cfg.engineScopeCountries||[]).slice(),fallback:cfg.fallback||'legacy-compare'};
     return w.__TCC_V9_SHELL__;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,renderSubscriptionSelector,renderMapSummary,installCurrentPositionButton,executeV9,install};
+  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,renderSubscriptionSelector,renderMapSummary,installCurrentPositionButton,installProgressiveSearchForm,executeV9,install};
 });
