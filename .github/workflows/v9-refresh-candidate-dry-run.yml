@@ -8,6 +8,7 @@ on:
       - "config/refresh-policy.json"
       - ".github/workflows/v9-refresh-candidate-dry-run.yml"
       - "tests/runtime-browser-journey.mjs"
+      - "runtime-overrides/assets/v9/**"
 
 permissions:
   contents: read
