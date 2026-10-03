@@ -65,8 +65,9 @@ try{
   const evidence=await page.evaluate(()=>({
     status:document.getElementById('routeStatus')?.textContent,
     results:document.getElementById('results')?.innerText?.slice(0,500),
-    diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),shellState,consoleMessages,requestFailures
+    diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),consoleMessages,requestFailures
   })).catch(()=>({consoleMessages,requestFailures}));
+  evidence.shellState=shellState;
   console.error(JSON.stringify({scenarioFailure:err.message,evidence,mockCalls,pageErrors:failures}));
   throw err;
 }finally{
