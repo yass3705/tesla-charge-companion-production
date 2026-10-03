@@ -40,8 +40,10 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-09-30-r9-electra-fr",
-    "dataLabSha": "fece067bd58916d493a9479ff9db31bcc94bef6b",
-    "rule": "Development/runtime validation must use an immutable pinned snapshot. Data Lab main is only for collection, investigations and freshness/delta monitoring while country partials are still evolving."
+    "currentSnapshot": "2026-10-03-nl-datalab-candidate",
+    "dataLabSha": "40806cdd10c428579ed7c6b0bbecca0a01b70d12",
+    "rule": "Development/runtime validation uses this immutable NL-enabled candidate only. R9 remains the validated rollback baseline. Data Lab main and live feeds are never direct development inputs.",
+    "artifactRun": 37079334960,
+    "artifactId": 11257699266
   }
 }
