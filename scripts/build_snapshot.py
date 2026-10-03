@@ -127,6 +127,10 @@ def main():
 
     shell_path=out/"v9-production-shell/index.html"
     shell_text=shell_path.read_text(encoding="utf-8")
+    # The stable shell embeds a candidate-SHA guard. Keep it aligned with the
+    # exact stable commit selected by the immutable snapshot config.
+    stable_sha=cfg["sources"]["stable"]["sha"]
+    shell_text=shell_text.replace("8d2c20b7c76004389edd8f4a3b80d6b314900ba0",stable_sha)
     shell_text=shell_text.replace("const CONTROL_FALLBACK='../';","const CONTROL_FALLBACK='../control/index.html';")
     shell_text=shell_text.replace(
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'",
