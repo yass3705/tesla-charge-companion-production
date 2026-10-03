@@ -219,7 +219,7 @@
   async function waitForStableShell(w,timeoutMs=30000){
     const deadline=Date.now()+timeoutMs;
     while(Date.now()<deadline){
-      if(w.__TCC_V9_SHELL_CONFIG__&&typeof w.compare==='function')return;
+      if(w.__TCC_V9_SHELL_CONFIG__&&typeof w.compare==='function'&&w.document.readyState!=='loading'&&w.document.getElementById('results')&&w.document.getElementById('simOperatorFilter'))return;
       await new Promise(resolve=>setTimeout(resolve,50));
     }
     if(!w.__TCC_V9_SHELL_CONFIG__)throw new Error('shell config unavailable');
