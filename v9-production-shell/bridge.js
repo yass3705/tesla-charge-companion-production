@@ -293,6 +293,9 @@
     select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('')+
       '<option value="all">Tous les réseaux</option>';
     [...select.options].forEach(option=>{option.selected=selected.has(option.value);});
+    // Le menu visible est un miroir personnalisé du select natif : après le
+    // rafraîchissement des opérateurs, il doit être redessiné immédiatement.
+    if(typeof select._v9Redraw==='function')select._v9Redraw();
   }
 
   function installPowerTypeFilter(w){
