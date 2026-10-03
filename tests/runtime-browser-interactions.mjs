@@ -40,7 +40,7 @@ try{
   assert.equal(inputs.radiusKm,10);
   assert.equal(inputs.operatorMode,'all');
   assert.deepEqual(inputs.connectorKinds,['AC']);
-  assert.ok(document.querySelector('#v9UseCurrentPosition'));
+  assert.equal(await page.locator('#v9UseCurrentPosition').count(),1);
   const uiContracts=await page.evaluate(()=>{
     const shell=window.TCCV9ProductionShell;
     const original=window.compare;
