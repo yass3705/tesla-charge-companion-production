@@ -135,9 +135,11 @@
     const origin=field('simOrigin');if(!origin)return;
     const groups=[
       {title:'Date et horaires',ids:['simDate','simTime','simUnplugTime']},
-      {title:'Batterie et objectif',ids:['simNow','simTarget']},
-      {title:'Profil de calcul',ids:['simCondition','simProfile','simRanking']},
-      {title:'Réseaux et distance',ids:['simOperatorFilter','simMaxDistance']}
+      {title:'Batterie et objectif',ids:['simNow','simTarget','simCondition']},
+      {title:'Profil de calcul',ids:['simProfile']},
+      {title:'Réseaux affichés',ids:['simOperatorFilter']},
+      {title:'Distance maximale',ids:['simMaxDistance']},
+      {title:'Priorité de classement',ids:['simRanking']}
     ];
     const original=groups.map(group=>group.ids.map(field)).flat().filter(Boolean);
     grid.innerHTML='';origin.classList.add('full');grid.appendChild(origin);
