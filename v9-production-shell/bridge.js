@@ -42,6 +42,7 @@
         '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button><button type="button" class="secondary v9-sub-all" style="width:auto">Tous compatibles</button></div>':
         '<div class="small" style="margin-top:8px">Aucun abonnement tarifaire vérifié pour cette zone.</div>');
     const select=box.querySelector('#v9SubscriptionChoices');
+    mountCheckboxDropdown(w,select,'v9SubscriptionDropdown',{title:'Abonnements recharge'});
     const persist=()=>{if(!select)return;saveSelectedSubscriptions(w,[...select.selectedOptions].map(option=>text(option.value)));w.compare();};
     select?.addEventListener('change',persist);
     box.querySelector('.v9-sub-none')?.addEventListener('click',()=>{[...select.options].forEach(option=>{option.selected=false;});persist();});
@@ -170,6 +171,15 @@
     legacyTabs.forEach(btn=>{btn.hidden=true;btn.style.display='none';});
   }
 
+  function installV9MobileLayout(w){
+    const d=w.document;
+    if(d.getElementById('v9MobileLayoutStyle'))return;
+    const style=d.createElement('style');
+    style.id='v9MobileLayoutStyle';
+    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}.v9-checkbox-dropdown{width:100%;box-sizing:border-box}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-option{display:flex;gap:8px;align-items:center;padding:8px 4px}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}';
+    d.head.appendChild(style);
+  }
+
   function installCurrentPositionButton(w){
     const input=w.document.getElementById('simOrigin');
     if(!input||w.document.getElementById('v9UseCurrentPosition'))return;
@@ -200,16 +210,64 @@
     });
   }
 
+  function mountCheckboxDropdown(w,select,detailsId,{title,allValue=null}={}){
+    if(!select)return null;
+    select.multiple=true;
+    select.style.display='none';
+    select.setAttribute('aria-hidden','true');
+    let details=w.document.getElementById(detailsId);
+    if(!details){
+      details=w.document.createElement('details');
+      details.id=detailsId;
+      details.className='v9-checkbox-dropdown';
+      select.parentNode?.insertBefore(details,select);
+    }
+    const redraw=()=>{
+      const options=[...select.options];
+      const selected=new Set([...select.selectedOptions].map(o=>text(o.value)));
+      const selectedLabels=options.filter(o=>selected.has(text(o.value))).map(o=>text(o.textContent));
+      const summaryLabel=allValue&&selected.has(allValue)?'Tous les réseaux':(selectedLabels.length?selectedLabels.join(', '):'Aucun');
+      details.innerHTML='<summary><b>'+esc(title||'Sélection')+'</b><span class="v9-dropdown-value">'+esc(summaryLabel)+'</span></summary><div class="v9-dropdown-panel">'+
+        options.map(option=>'<label class="v9-dropdown-option"><input type="checkbox" value="'+esc(option.value)+'"'+(option.selected?' checked':'')+'><span>'+esc(option.textContent)+'</span></label>').join('')+
+        '</div>';
+      details.querySelectorAll('input[type="checkbox"]').forEach(input=>{
+        input.addEventListener('change',()=>{
+          const option=[...select.options].find(o=>text(o.value)===text(input.value));
+          if(!option)return;
+          if(allValue&&text(input.value)===allValue&&input.checked){
+            [...select.options].forEach(o=>{o.selected=text(o.value)===allValue;});
+          }else{
+            if(allValue){
+              const allOption=[...select.options].find(o=>text(o.value)===allValue);
+              if(allOption)allOption.selected=false;
+            }
+            option.selected=input.checked;
+          }
+          select.dispatchEvent(new w.Event('change',{bubbles:true}));
+        });
+      });
+    };
+    if(!select.dataset.v9DropdownBound){
+      select.dataset.v9DropdownBound='true';
+      select.addEventListener('change',redraw);
+    }
+    select._v9Redraw=redraw;
+    redraw();
+    return details;
+  }
+
   function installOperatorMultiSelect(w){
     const select=w.document.getElementById('simOperatorFilter');
     if(!select||select.dataset.v9Multi==='true')return;
-    select.multiple=true;select.size=4;select.dataset.v9Multi='true';
+    select.multiple=true;select.dataset.v9Multi='true';
     select.setAttribute('aria-label','Réseaux affichés, sélection multiple');
     const options=[['tesla','Tesla'],['all','Tous les réseaux']];
     select.innerHTML=options.map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join('');
     select.options[0].selected=true;
-    const quick=w.document.createElement('button');quick.type='button';quick.id='v9TeslaOnly';
-    quick.className='secondary';quick.textContent='Tesla uniquement';quick.title='Afficher uniquement le réseau Tesla';
+    mountCheckboxDropdown(w,select,'v9OperatorDropdown',{title:'Réseaux affichés',allValue:'all'});
+    const quick=w.document.createElement('button');
+    quick.type='button';quick.id='v9TeslaOnly';quick.className='secondary';
+    quick.textContent='Tesla uniquement';quick.title='Afficher uniquement le réseau Tesla';
     quick.style.cssText='width:auto;margin-top:6px;padding:8px 12px';
     quick.addEventListener('click',()=>{
       [...select.options].forEach(option=>{option.selected=option.value==='tesla';});
@@ -288,6 +346,7 @@
     w.__TCC_V9_SHELL__=marker;
     await waitForStableShell(w);
     normalizeLegacyChrome(w);
+    installV9MobileLayout(w);
     const legacyCompare=w.compare;
     const enginePromise=createEngine(w,cfg);
     installCurrentPositionButton(w);
