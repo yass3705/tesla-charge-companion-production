@@ -31,7 +31,11 @@ try{
   // one versioned self-reload shortly after pageshow. Let that settle, then
   // require the V9 shell and stable data bootstrap again before interacting.
   await page.waitForTimeout(1200);
-  await page.waitForFunction(()=>window.__TCC_V9_SHELL__?.ready===true&&document.querySelector('#simOperatorFilter'),null,{timeout:120000});
+  await page.waitForFunction(()=>window.__TCC_V9_SHELL__?.ready===true||window.__TCC_V9_SHELL__?.error,null,{timeout:120000});
+  const shellState=await page.evaluate(()=>({marker:window.__TCC_V9_SHELL__,config:window.__TCC_V9_SHELL_CONFIG__,compareType:typeof window.compare,operatorFilter:!!document.querySelector('#simOperatorFilter')}));
+  assert.equal(shellState.marker?.error,undefined,shellState);
+  assert.equal(shellState.marker?.ready,true,shellState);
+  assert.equal(shellState.operatorFilter,true,shellState);
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   await page.locator('#simOperatorFilter').selectOption('tesla');
@@ -61,7 +65,7 @@ try{
   const evidence=await page.evaluate(()=>({
     status:document.getElementById('routeStatus')?.textContent,
     results:document.getElementById('results')?.innerText?.slice(0,500),
-    diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),consoleMessages,requestFailures
+    diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),shellState,consoleMessages,requestFailures
   })).catch(()=>({consoleMessages,requestFailures}));
   console.error(JSON.stringify({scenarioFailure:err.message,evidence,mockCalls,pageErrors:failures}));
   throw err;
