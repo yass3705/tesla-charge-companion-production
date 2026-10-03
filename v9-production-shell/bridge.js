@@ -98,9 +98,40 @@
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,sortBy:'finalCost'});
     const rows=rankRows(rowsFromArea(area),input.rankingMode,20);return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
+  function installCurrentPositionButton(w){
+    const input=w.document.getElementById('simOrigin');
+    if(!input||w.document.getElementById('v9UseCurrentPosition'))return;
+    const button=w.document.createElement('button');
+    button.id='v9UseCurrentPosition';button.type='button';
+    button.className='secondary';button.textContent='⌖ Position actuelle';
+    button.setAttribute('aria-label','Utiliser ma position actuelle');
+    button.title='Utiliser la position GPS actuelle';
+    button.style.cssText='width:auto;margin-top:6px;padding:8px 12px';
+    const host=input.parentElement||input;
+    host.appendChild(button);
+    button.addEventListener('click',()=>{
+      if(!w.navigator?.geolocation){button.textContent='GPS indisponible';return;}
+      button.disabled=true;button.textContent='Localisation…';
+      w.navigator.geolocation.getCurrentPosition(
+        position=>{
+          const lat=Number(position.coords.latitude).toFixed(6),lon=Number(position.coords.longitude).toFixed(6);
+          input.value=lat+', '+lon;input.dataset.v9Coordinates='true';
+          input.dispatchEvent(new w.Event('input',{bubbles:true}));
+          button.disabled=false;button.textContent='⌖ Position actuelle';
+        },
+        error=>{
+          button.disabled=false;button.textContent='⌖ Position actuelle';
+          diagnosticStore(w,{mode:'candidate',outcome:'geolocation-error',reason:error?.message||'permission-or-unavailable'});
+        },
+        {enableHighAccuracy:true,maximumAge:120000,timeout:10000}
+      );
+    });
+  }
+
   async function install(w){
     const cfg=w.__TCC_V9_SHELL_CONFIG__;if(!cfg||!['shadow','candidate'].includes(cfg.mode))throw new Error('shell config unavailable');const legacyCompare=w.compare;if(typeof legacyCompare!=='function')throw new Error('stable compare unavailable');
     const enginePromise=createEngine(w,cfg);
+    installCurrentPositionButton(w);
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
@@ -109,5 +140,5 @@
     w.__TCC_V9_SHELL__={mode:cfg.mode,candidateSha:cfg.observedCandidateSha,engineScopeCountries:(cfg.engineScopeCountries||[]).slice(),fallback:cfg.fallback||'legacy-compare'};
     return w.__TCC_V9_SHELL__;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,renderSubscriptionSelector,renderMapSummary,executeV9,install};
+  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,renderSubscriptionSelector,renderMapSummary,installCurrentPositionButton,executeV9,install};
 });
