@@ -66,6 +66,11 @@ def main():
     copy_tree(stable/"assets", out/"assets")
     copy_tree(stable/"data", out/"data")
     copy_tree(stable/"v9-production-shell", out/"v9-production-shell")
+    # Production-owned shell override: keep stable as fallback baseline while
+    # allowing V9 UI behavior to evolve without mutating the stable repository.
+    shell_override=production_root/"v9-production-shell"
+    if (shell_override/"bridge.js").exists():
+        copy_file(shell_override/"bridge.js",out/"v9-production-shell/bridge.js")
 
     tesla_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="TESLA"),{})
     if tesla_cfg.get("primarySource")=="dataLab":
@@ -128,7 +133,9 @@ def main():
         "if(cfg.snapshotId!=="+json.dumps(cfg["snapshotId"]) + ")throw new Error('production snapshot id mismatch');"
     )
     shell_text=shell_text.replace(
-        "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'",
+        "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
+        "'assets/v9/map-price-engine.js',"
+        "'assets/v9/browser-loaders.js',"
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/adapters/germany-national.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
@@ -409,6 +416,7 @@ def main():
           "runtime/assets/v9/adapters/france-ionity-exact.js",
           "runtime/assets/v9/adapters/atlante-italy-exact.js",
           "runtime/assets/v9/production-loader-extension.js",
+          "runtime/assets/v9/map-price-engine.js",
           "runtime/assets/v9/production-bootstrap.js"
         ],
         "loaderExtensionInstall":"TCCV9ProductionBootstrap.install()"
