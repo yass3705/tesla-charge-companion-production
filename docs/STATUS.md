@@ -168,3 +168,13 @@ Data Lab `main` remains the live workbench for CPO investigations, partial→com
 - Stable parity passed: 13 critical files / 8 overlays.
 - r8 non-regression build `36771235487` — SUCCESS.
 - No live deployment or mutation of RC1/r8 has occurred.
+
+
+### Interface V9 — zone map price summary (2026-10-03)
+
+The production snapshot build now overlays a production-owned shell bridge and the immutable runtime map-price engine. The shell keeps the stable UI as the fallback, while the V9 candidate renders a compact zone summary: one best verified price/km per geographic bucket, with station counts and the winning channel. Direct/ad-hoc CPO, Electra and Electroverse channels are eligible; REGULAR and eMSP-only offers are excluded, and missing price or route distance stays fail-closed.
+
+- Runtime asset: `runtime-overrides/assets/v9/map-price-engine.js`
+- Shell override: `v9-production-shell/bridge.js`
+- Snapshot integration: `scripts/build_snapshot.py`
+- No snapshot data, Data Lab pin or stable baseline was changed.
