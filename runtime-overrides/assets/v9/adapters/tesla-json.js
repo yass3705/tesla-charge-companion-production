@@ -45,7 +45,7 @@
       });
       if(cfg?.pricing||raw?.pricing)offers.push({
         id:`tesla-direct:${evseId}`,
-        provider:'Tesla',kind:'direct',subscriptionId:null,countries:[text(raw?.countryCode).toUpperCase()||'*'],currency:'EUR',
+        provider:'Tesla',kind:'direct',subscriptionId:null,countries:[text(raw?.countryCode).toUpperCase()||'*'],currency:text((cfg?.pricing||raw?.pricing)?.currency||'EUR').toUpperCase(),
         evseIds:[evseId],pricing:normalizedPricing(cfg?.pricing||raw?.pricing,cfg?.powerKw||raw?.powerKw),priority:100
       });
     }
