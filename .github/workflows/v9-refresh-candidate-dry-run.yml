@@ -102,7 +102,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-name: v9-dev-snapshot-${{ steps.pin.outputs.snapshot_id }}
+          name: v9-dev-snapshot-${{ steps.pin.outputs.snapshot_id }}
           path: |
             dist/v9-dev-snapshot
             /tmp/tcc-refresh-candidate-server.log
