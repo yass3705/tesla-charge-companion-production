@@ -129,11 +129,17 @@
   }
 
 
+  function renderTariffs(evaluation){
+    const tariffs=[evaluation?.best,...(evaluation?.alternatives||[])].filter(item=>item&&Number.isFinite(Number(item.total)));
+    if(!tariffs.length)return'<span class="warn">Tarif non comparable</span>';
+    return'<div class="v9-tariffs">'+tariffs.map((item,index)=>'<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><b>'+Number(item.total).toFixed(2)+' '+esc(item.targetCurrency||'EUR')+'</b> · '+esc(item.provider||'tarif')+(index===0?' · meilleur':'')+'</span><span class="small">'+(item.kind==='emsp'?'eMSP':'CPO/direct')+'</span></div>').join('')+'</div>';
+  }
+
   function renderCandidate(w,area,rows,originLabel){
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · liste par défaut · puissances réellement proposées par EVSE.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+(best?'<b>'+Number(best.total).toFixed(2)+' '+esc(best.targetCurrency||'EUR')+'</b> · '+esc(best.provider||'tarif'):'<span class="warn">Tarif non comparable</span>')+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+    results.innerHTML='<div class="small box"><b>Moteur V9</b> · liste par défaut · puissances réellement proposées par EVSE.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
     renderMapSummary(w,area,rows);
   }
 
