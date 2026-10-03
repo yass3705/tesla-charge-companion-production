@@ -24,6 +24,7 @@ await page.route('https://router.project-osrm.org/**',route=>{
   mockCalls.route++;
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({code:'Ok',routes:[{distance:2500,duration:300}]})});
 });
+let shellState=null;
 try{
   await page.goto('http://127.0.0.1:8765/v9-production-shell/',{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForFunction(()=>!!window.__TCC_V9_SHELL__,null,{timeout:30000});
@@ -32,7 +33,7 @@ try{
   // require the V9 shell and stable data bootstrap again before interacting.
   await page.waitForTimeout(1200);
   await page.waitForFunction(()=>window.__TCC_V9_SHELL__?.ready===true||window.__TCC_V9_SHELL__?.error,null,{timeout:120000});
-  const shellState=await page.evaluate(()=>({marker:window.__TCC_V9_SHELL__,config:window.__TCC_V9_SHELL_CONFIG__,compareType:typeof window.compare,operatorFilter:!!document.querySelector('#simOperatorFilter')}));
+  shellState=await page.evaluate(()=>({marker:window.__TCC_V9_SHELL__,config:window.__TCC_V9_SHELL_CONFIG__,compareType:typeof window.compare,operatorFilter:!!document.querySelector('#simOperatorFilter')}));
   assert.equal(shellState.marker?.error,undefined,shellState);
   assert.equal(shellState.marker?.ready,true,shellState);
   assert.equal(shellState.operatorFilter,true,shellState);
