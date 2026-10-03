@@ -130,15 +130,29 @@ def main():
     # The stable shell embeds a candidate-SHA guard. Keep it aligned with the
     # exact stable commit selected by the immutable snapshot config.
     stable_sha=cfg["sources"]["stable"]["sha"]
-    shell_text=shell_text.replace("8d2c20b7c76004389edd8f4a3b80d6b314900ba0",stable_sha)
-    shell_text=shell_text.replace("const CONTROL_FALLBACK='../';","const CONTROL_FALLBACK='../control/index.html';")
+    old_guard="8d2c20b7c76004389edd8f4a3b80d6b314900ba0"
+    if shell_text.count(old_guard)!=1:
+        raise AssertionError(f"stable shell candidate guard count={shell_text.count(old_guard)}; expected exactly one")
+    shell_text=shell_text.replace(old_guard,stable_sha,1)
+    if old_guard in shell_text or stable_sha not in shell_text:
+        raise AssertionError("stable shell candidate guard rewrite was not applied")
+    fallback_old="const CONTROL_FALLBACK='../';"
+    if fallback_old not in shell_text:
+        raise AssertionError("stable shell fallback marker missing")
+    shell_text=shell_text.replace(fallback_old,"const CONTROL_FALLBACK='../control/index.html';",1)
+    dependency_anchor="'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'"
+    if dependency_anchor not in shell_text:
+        raise AssertionError("stable shell runtime dependency anchor missing")
     shell_text=shell_text.replace(
-        "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'",
+        dependency_anchor,
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/map-price-engine.js',"
         "'assets/v9/adapters/germany-national.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
     )
+    for required in ("v9-production-shell/bridge.js","assets/v9/production-bootstrap.js","assets/v9/production-loader-extension.js"):
+        if required not in shell_text and required!="v9-production-shell/bridge.js":
+            raise AssertionError(f"stable shell runtime dependency rewrite missing: {required}")
     shell_path.write_text(shell_text,encoding="utf-8")
 
     shell_cfg=load_json(stable/"v9-production-shell/shell-config.json")
