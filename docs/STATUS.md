@@ -107,6 +107,15 @@ Independent browser-asset candidate validation succeeded in [run 36730931772](ht
 - Production freshness monitoring includes Data Lab SuC Tracker metadata/catalogue and remains read-only. Data Lab collection changes do not automatically promote into development.
 - Core Data Lab collection cadences are versioned and CI-guarded. Electra France platform and Load Motion France now have weekly refresh schedules; Electroverse retains daily delta plus weekly full refresh; IONITY and Atlante direct refresh daily; Tesla SuC refreshes weekly.
 
+## Current development snapshot (2026-10-03)
+
+Development is now pinned to the validated immutable candidate `2026-10-03-nl-datalab-candidate`, using Data Lab commit `40806cdd10c428579ed7c6b0bbecca0a01b70d12`.
+
+Validation run: [37079334960](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/37079334960).
+Artifact: [v9-snapshot-candidate](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/37079334960/artifacts/11257699266).
+
+The candidate contains the transferred DOT-NL runtime and passed snapshot validation, NL-aware stable parity, multi-country smoke, browser journey and manifest/hash verification. It is development-only: no release or live deployment was changed. The prior R9 candidate remains the rollback baseline.
+
 ## Hosting
 
 Current GitHub/stable hosting remains the active path.
