@@ -219,43 +219,39 @@
   function mountCheckboxDropdown(w,select,detailsId,{title,allValue=null}={}){
     if(!select)return null;
     select.multiple=true;
-    select.style.display='none';
-    select.setAttribute('aria-hidden','true');
+    select.style.display='block';
+    select.setAttribute('aria-label',title||'Sélection multiple');
+    select.style.width='100%';
+    select.style.minHeight='96px';
     let details=w.document.getElementById(detailsId);
     if(!details){
       details=w.document.createElement('details');
       details.id=detailsId;
-      details.className='v9-checkbox-dropdown';
+      details.className='v9-select-dropdown';
       select.parentNode?.insertBefore(details,select);
     }
+    details.innerHTML='<summary><b>'+esc(title||'Sélection')+'</b><span class="v9-dropdown-value"></span></summary>';
+    details.appendChild(select);
+    const summary=details.querySelector('.v9-dropdown-value');
     const redraw=()=>{
-      const options=[...select.options];
-      const selected=new Set([...select.selectedOptions].map(o=>text(o.value)));
-      const selectedLabels=options.filter(o=>selected.has(text(o.value))).map(o=>text(o.textContent));
-      const summaryLabel=allValue&&selected.has(allValue)?'Tous les réseaux':(selectedLabels.length?selectedLabels.join(', '):'Aucun');
-      details.innerHTML='<summary><b>'+esc(title||'Sélection')+'</b><span class="v9-dropdown-value">'+esc(summaryLabel)+'</span></summary><div class="v9-dropdown-panel">'+
-        options.map(option=>'<label class="v9-dropdown-option"><input type="checkbox" value="'+esc(option.value)+'"'+(option.selected?' checked':'')+'><span>'+esc(option.textContent)+'</span></label>').join('')+
-        '</div>';
-      details.querySelectorAll('input[type="checkbox"]').forEach(input=>{
-        input.addEventListener('change',()=>{
-          const option=[...select.options].find(o=>text(o.value)===text(input.value));
-          if(!option)return;
-          if(allValue&&text(input.value)===allValue&&input.checked){
-            [...select.options].forEach(o=>{o.selected=text(o.value)===allValue;});
-          }else{
-            if(allValue){
-              const allOption=[...select.options].find(o=>text(o.value)===allValue);
-              if(allOption)allOption.selected=false;
-            }
-            option.selected=input.checked;
-          }
-          select.dispatchEvent(new w.Event('change',{bubbles:true}));
-        });
-      });
+      const options=[...select.options],selected=[...select.selectedOptions];
+      const labels=selected.map(o=>text(o.textContent));
+      if(summary)summary.textContent=allValue&&selected.some(o=>text(o.value)===allValue)?'Tous les réseaux':(labels.length?labels.join(', '):'Aucun');
     };
     if(!select.dataset.v9DropdownBound){
       select.dataset.v9DropdownBound='true';
-      select.addEventListener('change',redraw);
+      select.addEventListener('change',()=>{
+        if(allValue){
+          const all=[...select.options].find(o=>text(o.value)===allValue);
+          const picked=[...select.selectedOptions];
+          if(all&&picked.some(o=>o===all)&&picked.length>1){
+            [...select.options].forEach(o=>{o.selected=o===all;});
+          }else if(all&&picked.some(o=>o!==all)){
+            all.selected=false;
+          }
+        }
+        redraw();
+      });
     }
     select._v9Redraw=redraw;
     redraw();
@@ -365,7 +361,7 @@
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
-      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);renderSubscriptionSelector(w,run.area?.subscriptions||[],run.countryCode);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){diagnosticStore(w,{mode:'candidate',outcome:'legacy-fallback',reason:err.message});return legacyCompare.apply(this,arguments);}
+      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,run.area?.subscriptions||[],run.countryCode);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){diagnosticStore(w,{mode:'candidate',outcome:'legacy-fallback',reason:err.message});return legacyCompare.apply(this,arguments);}
     };
     marker.pending=false;marker.ready=true;
     return marker;
