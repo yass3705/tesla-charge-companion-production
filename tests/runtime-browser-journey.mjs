@@ -39,6 +39,8 @@ try{
   assert.equal(shellState.operatorFilter,true,shellState);
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
+  const operatorGroup=page.locator('details.v9-filter-group').filter({has:page.locator('#simOperatorFilter')});
+  await operatorGroup.locator('summary').click();
   await page.locator('#simOperatorFilter').selectOption('tesla');
   await page.locator('#simMaxDistance').fill('100');
   await page.locator('#simNow').fill('20');
