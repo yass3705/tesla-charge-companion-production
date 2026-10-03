@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - "tests/runtime-browser-interactions.mjs"
+      - "v9-production-shell/bridge.js"
+      - "runtime-overrides/assets/v9/data-engine.js"
       - ".github/workflows/smoke-v9-rc1-interactions.yml"
   workflow_dispatch:
 permissions:
