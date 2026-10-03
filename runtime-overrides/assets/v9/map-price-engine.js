@@ -11,8 +11,10 @@
   function validOffer(offer,allowed){
     if(!offer||offer.active===false||offer.verified===false)return false;
     const channel=cleanChannel(offer.channel||offer.priceChannel||offer.tariffChannel||offer.kind);
-    if(blocked.has(channel))return false;
     const source=cleanChannel(offer.source||offer.provider||offer.network);
+    // Electra/Electroverse remain explicit overlay channels; generic eMSP and
+    // REGULAR offers stay excluded even when they happen to have a price.
+    if(blocked.has(channel)&&!allowed.has(source))return false;
     if(!allowed.has(channel)&&!allowed.has(source)&&channel!=='DIRECT'&&channel!=='AD_HOC_PAYMENT')return false;
     return true;
   }
