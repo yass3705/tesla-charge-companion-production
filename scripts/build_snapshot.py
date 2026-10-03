@@ -140,6 +140,7 @@ def main():
     if fallback_old not in shell_text:
         raise AssertionError("stable shell fallback marker missing")
     shell_text=shell_text.replace(fallback_old,"const CONTROL_FALLBACK='../control/index.html';",1)
+    shell_text=shell_text.replace("bridge.src='v9-production-shell/bridge.js';","bridge.src='v9-production-shell/bridge.js?v=v9-ui-018056c4';",1)
     dependency_anchor="'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'"
     if dependency_anchor not in shell_text:
         raise AssertionError("stable shell runtime dependency anchor missing")
