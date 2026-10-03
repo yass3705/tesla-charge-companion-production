@@ -20,7 +20,7 @@ jobs:
         id: meta
         shell: bash
         run: |
-          python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-09-30.json >> "$GITHUB_OUTPUT"
+          python production/scripts/export_snapshot_meta.py production/config/snapshots/2026-10-03-nl-datalab-candidate.json >> "$GITHUB_OUTPUT"
 
       - name: Checkout pinned stable baseline
         uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
           python scripts/validate_snapshot.py "config/snapshots/$SNAPSHOT_ID.json"
           python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --germany-source ../germany-source             --config "config/snapshots/$SNAPSHOT_ID.json"             --out "../dist/v9-$SNAPSHOT_ID"
           python scripts/validate_built_snapshot.py "../dist/v9-$SNAPSHOT_ID"
-          python scripts/validate_stable_parity.py ../stable "../dist/v9-$SNAPSHOT_ID"
+          python scripts/validate_stable_parity.py ../stable "../dist/v9-$SNAPSHOT_ID" --allow-nl-override
 
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
