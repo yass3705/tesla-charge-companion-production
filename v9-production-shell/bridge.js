@@ -100,7 +100,7 @@
       w.fetch(`${base}/data/v9/source-registry.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`registry ${r.status}`);return r.json();}),
       w.fetch(`${base}/data/v9/vehicle-profiles.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`vehicle profiles ${r.status}`);return r.json();})
     ]);
-    const exchangeUrl=base.replace(/\/runtime$/,'')+'/data/exchange_rates.json';
+    const exchangeUrl=new URL('../data/exchange_rates.json',w.location.href).toString();
     const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`exchange rates ${r.status}`);return r.json();});
     const loaders=w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),routeProvider=w.TCCV9BrowserRouting.osrmProvider();
     const engine=w.TCCV9RuntimeEngine.createEngine({registry,loaders,routeProvider,vehicleProfiles});
