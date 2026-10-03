@@ -10,6 +10,7 @@ on:
       - "tests/runtime-browser-journey.mjs"
       - "runtime-overrides/assets/v9/**"
       - "v9-production-shell/**"
+      - "scripts/build_snapshot.py"
 
 permissions:
   contents: read
