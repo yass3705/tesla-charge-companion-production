@@ -201,8 +201,18 @@
     grid.dataset.v9Progressive='true';
   }
 
+  async function waitForStableShell(w,timeoutMs=12000){
+    const deadline=Date.now()+timeoutMs;
+    while(Date.now()<deadline){
+      if(w.__TCC_V9_SHELL_CONFIG__&&typeof w.compare==='function')return;
+      await new Promise(resolve=>setTimeout(resolve,50));
+    }
+    if(!w.__TCC_V9_SHELL_CONFIG__)throw new Error('shell config unavailable');
+    if(typeof w.compare!=='function')throw new Error('stable compare unavailable');
+  }
   async function install(w){
-    const cfg=w.__TCC_V9_SHELL_CONFIG__;if(!cfg||!['shadow','candidate'].includes(cfg.mode))throw new Error('shell config unavailable');const legacyCompare=w.compare;if(typeof legacyCompare!=='function')throw new Error('stable compare unavailable');
+    await waitForStableShell(w);
+    const cfg=w.__TCC_V9_SHELL_CONFIG__,legacyCompare=w.compare;
     const enginePromise=createEngine(w,cfg);
     installCurrentPositionButton(w);
     installOperatorMultiSelect(w);
