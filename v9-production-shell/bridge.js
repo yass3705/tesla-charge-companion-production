@@ -18,10 +18,19 @@
   function renderSubscriptionSelector(w,options,countryCode){
     const compare=w.document.getElementById('compare'),card=compare?.querySelector('.card');if(!card)return;
     let box=w.document.getElementById('v9SubscriptionSelector');
-    if(!box){box=w.document.createElement('details');box.id='v9SubscriptionSelector';box.className='box';box.style.marginTop='10px';const primary=card.querySelector('button.primary');if(primary)card.insertBefore(box,primary);else card.appendChild(box);}
+    if(!box){box=w.document.createElement('details');box.id='v9SubscriptionSelector';box.className='box v9-filter-group';box.style.marginTop='10px';const primary=card.querySelector('button.primary');if(primary)card.insertBefore(box,primary);else card.appendChild(box);}
     const selected=new Set(selectedSubscriptions(w)),rows=(options||[]).slice();
-    box.innerHTML=`<summary><b>Abonnements recharge</b> <span class="small">(${rows.length} compatible(s) en ${esc(countryCode)})</span></summary><div class="small" style="margin-top:8px">Les abonnements sélectionnés s'appliquent automatiquement dans tous les pays où leur compatibilité est vérifiée.</div><div id="v9SubscriptionChoices" style="margin-top:8px">${rows.length?rows.map(row=>{const id=text(row.id),checked=selected.has(id)?' checked':'';const countries=(row.countries||[]).join(', ');return `<label style="display:block;margin:7px 0"><input type="checkbox" data-v9-subscription-id="${esc(id)}" style="width:auto"${checked}> ${esc(subscriptionLabel(row))}${countries?` <span class="small">· ${esc(countries)}</span>`:''}</label>`;}).join(''):'<span class="small">Aucun abonnement tarifaire vérifié pour cette zone.</span>'}</div>`;
-    box.querySelectorAll('input[data-v9-subscription-id]').forEach(input=>input.addEventListener('change',()=>{const current=new Set(selectedSubscriptions(w)),id=text(input.dataset.v9SubscriptionId);if(input.checked)current.add(id);else current.delete(id);saveSelectedSubscriptions(w,[...current]);w.compare();}));
+    const optionsHtml=rows.map(row=>{const id=text(row.id),countries=(row.countries||[]).join(', ');return '<option value="'+esc(id)+'"'+(selected.has(id)?' selected':'')+'>'+esc(subscriptionLabel(row))+(countries?' · '+esc(countries):'')+'</option>';}).join('');
+    box.innerHTML='<summary><b>Abonnements recharge</b> <span class="small">('+rows.length+' compatible(s) en '+esc(countryCode)+')</span></summary>'+
+      '<div class="small" style="margin-top:8px">Sélection multiple. Les abonnements sélectionnés peuvent être retenus dans le classement quand leur compatibilité est vérifiée.</div>'+
+      (rows.length?'<select id="v9SubscriptionChoices" multiple size="5" aria-label="Abonnements recharge, sélection multiple" style="margin-top:8px;width:100%;min-height:96px">'+optionsHtml+'</select>'+
+        '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button><button type="button" class="secondary v9-sub-all" style="width:auto">Tous compatibles</button></div>':
+        '<div class="small" style="margin-top:8px">Aucun abonnement tarifaire vérifié pour cette zone.</div>');
+    const select=box.querySelector('#v9SubscriptionChoices');
+    const persist=()=>{if(!select)return;saveSelectedSubscriptions(w,[...select.selectedOptions].map(option=>text(option.value)));w.compare();};
+    select?.addEventListener('change',persist);
+    box.querySelector('.v9-sub-none')?.addEventListener('click',()=>{[...select.options].forEach(option=>{option.selected=false;});persist();});
+    box.querySelector('.v9-sub-all')?.addEventListener('click',()=>{[...select.options].forEach(option=>{option.selected=true;});persist();});
   }
 
   function rankingWeights(mode){if(mode==='price')return{price:.7,distance:.3};if(mode==='distance')return{price:.3,distance:.7};return{price:.5,distance:.5};}
