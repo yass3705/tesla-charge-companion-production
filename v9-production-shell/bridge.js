@@ -203,14 +203,14 @@
       {title:'Distance maximale',ids:['simMaxDistance']},
       {title:'Priorité de classement',ids:['simRanking']}
     ];
-    const original=groups.map(group=>group.ids.map(field)).flat().filter(Boolean);
+    const captured=groups.map(group=>({group,nodes:group.ids.map(field).filter(Boolean)}));
     grid.innerHTML='';origin.classList.add('full');grid.appendChild(origin);
-    for(const group of groups){
+    for(const {group,nodes} of captured){
       const details=w.document.createElement('details');details.className='full box v9-filter-group';
       const summary=w.document.createElement('summary');summary.textContent=group.title;
       details.appendChild(summary);
       const body=w.document.createElement('div');body.className='grid';body.style.marginTop='10px';
-      for(const node of group.ids.map(field).filter(Boolean)){body.appendChild(node);}
+      for(const node of nodes){body.appendChild(node);}
       details.appendChild(body);grid.appendChild(details);
     }
     grid.dataset.v9Progressive='true';
