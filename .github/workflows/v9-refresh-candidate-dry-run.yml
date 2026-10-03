@@ -9,6 +9,7 @@ on:
       - ".github/workflows/v9-refresh-candidate-dry-run.yml"
       - "tests/runtime-browser-journey.mjs"
       - "runtime-overrides/assets/v9/**"
+      - "v9-production-shell/**"
 
 permissions:
   contents: read
