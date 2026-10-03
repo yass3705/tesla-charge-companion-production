@@ -18,7 +18,10 @@
           return Number.isFinite(min)&&Number.isFinite(max)&&powerKw>=min&&(powerKw<max||powerKw===max&&max===Math.max(...bands.map(x=>Number(x?.maxKw)||0)));
         });
         const rate=band?.ratePerMinute??next.chargePerMinute;
-        if(Number.isFinite(Number(rate)))next.pricePerMinute=Number(rate);
+        if(Number.isFinite(Number(rate))){
+          next.pricePerMinute=Number(rate);
+          if(next.billing==='powerMinute'){delete next.pricePerKwh;delete next.chargePerMinute;}
+        }
       }
       return next;
     });
