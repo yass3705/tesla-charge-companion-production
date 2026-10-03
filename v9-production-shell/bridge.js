@@ -132,7 +132,7 @@
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · liste par défaut · puissances réellement proposées par EVSE.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+' · '+esc(st.status?.state||'unknown')+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+(best?'<b>'+Number(best.total).toFixed(2)+' '+esc(best.targetCurrency||'EUR')+'</b> · '+esc(best.provider||'tarif'):'<span class="warn">Tarif non comparable</span>')+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+    results.innerHTML='<div class="small box"><b>Moteur V9</b> · liste par défaut · puissances réellement proposées par EVSE.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+(best?'<b>'+Number(best.total).toFixed(2)+' '+esc(best.targetCurrency||'EUR')+'</b> · '+esc(best.provider||'tarif'):'<span class="warn">Tarif non comparable</span>')+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
     renderMapSummary(w,area,rows);
   }
 
@@ -147,6 +147,29 @@
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,sortBy:'finalCost'});
     const rows=rankRows(rowsFromArea(area),input.rankingMode,20);return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
+  function normalizeLegacyChrome(w){
+    const d=w.document;
+    d.documentElement.dataset.tccVersion='v9';
+    d.title='Tesla Charge Companion V9';
+    const heading=d.querySelector('header h1,h1');
+    if(heading)heading.textContent='⚡ Tesla Charge Companion V9';
+    const versionNodes=[...d.querySelectorAll('header *,body *')].filter(el=>el.children.length===0);
+    const version=versionNodes.find(el=>/Version 7\\.3 Stable/i.test(text(el.textContent)));
+    if(version)version.textContent='Version V9 · snapshot figé · comparaison de prix';
+    const nl=d.getElementById('netherlandsRefreshButton');
+    if(nl){
+      nl.hidden=true;
+      nl.style.display='none';
+      const explanation=nl.parentElement?.querySelector(':scope > p, :scope > .small');
+      if(explanation && /snapshot DOT-NL|Pays-Bas/i.test(text(explanation.textContent))){
+        explanation.hidden=true;
+        explanation.style.display='none';
+      }
+    }
+    const legacyTabs=[...d.querySelectorAll('button')].filter(btn=>/^(Bornes|Ajouter \\/ modifier|Devises|Synchronisation)$/i.test(text(btn.textContent)));
+    legacyTabs.forEach(btn=>{btn.hidden=true;btn.style.display='none';});
+  }
+
   function installCurrentPositionButton(w){
     const input=w.document.getElementById('simOrigin');
     if(!input||w.document.getElementById('v9UseCurrentPosition'))return;
@@ -264,6 +287,7 @@
     const marker={mode:cfg.mode,candidateSha:cfg.observedCandidateSha,engineScopeCountries:(cfg.engineScopeCountries||[]).slice(),fallback:cfg.fallback||'legacy-compare',pending:true};
     w.__TCC_V9_SHELL__=marker;
     await waitForStableShell(w);
+    normalizeLegacyChrome(w);
     const legacyCompare=w.compare;
     const enginePromise=createEngine(w,cfg);
     installCurrentPositionButton(w);
