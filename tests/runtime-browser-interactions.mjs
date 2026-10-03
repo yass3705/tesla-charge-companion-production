@@ -29,6 +29,14 @@ try{
   await page.waitForFunction(()=>document.getElementById('stations')?.classList.contains('active'));
   await page.locator('nav button[data-tab="compare"]').click();
   await page.waitForFunction(()=>document.getElementById('compare')?.classList.contains('active'));
+  const openFilterGroupFor=async id=>{
+    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
+    if(await group.locator('summary').count())await group.locator('summary').click();
+  };
+  await openFilterGroupFor('simNow');
+  await openFilterGroupFor('simOperatorFilter');
+  await openFilterGroupFor('simPowerType');
+  await openFilterGroupFor('simMaxDistance');
   await page.locator('#simNow').fill('25');
   await page.locator('#simTarget').fill('80');
   await page.locator('#simMaxDistance').fill('10');
