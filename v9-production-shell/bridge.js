@@ -100,8 +100,9 @@
       w.fetch(`${base}/data/v9/source-registry.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`registry ${r.status}`);return r.json();}),
       w.fetch(`${base}/data/v9/vehicle-profiles.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`vehicle profiles ${r.status}`);return r.json();})
     ]);
+    const exchangeFallback={rates:{EUR:1,CHF:.945922,GBP:.85799,NOK:10.836693,SEK:11.322245,DKK:7.475513,PLN:4.372226,CZK:24.39362,HUF:367.109795,RON:5.275231,BGN:1.95583,MAD:10.96131,DZD:152.302423,TND:3.359272}};
     const exchangeUrl=new URL('../data/exchange_rates.json',w.location.href).toString();
-    const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`exchange rates ${r.status}`);return r.json();});
+    const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>r.ok?r.json():exchangeFallback).catch(()=>exchangeFallback);
     const loaders=w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),routeProvider=w.TCCV9BrowserRouting.osrmProvider();
     const engine=w.TCCV9RuntimeEngine.createEngine({registry,loaders,routeProvider,vehicleProfiles});
     engine.__tccFxRates=exchange?.rates||{};
