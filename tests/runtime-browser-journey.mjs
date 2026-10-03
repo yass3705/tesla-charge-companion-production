@@ -39,10 +39,15 @@ try{
   assert.equal(shellState.operatorFilter,true,shellState);
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
-  const operatorGroup=page.locator('details.v9-filter-group').filter({has:page.locator('#simOperatorFilter')});
-  await operatorGroup.locator('summary').click();
+  const openFilterGroupFor=async id=>{
+    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
+    await group.locator('summary').click();
+  };
+  await openFilterGroupFor('simOperatorFilter');
   await page.locator('#simOperatorFilter').selectOption('tesla');
+  await openFilterGroupFor('simMaxDistance');
   await page.locator('#simMaxDistance').fill('100');
+  await openFilterGroupFor('simNow');
   await page.locator('#simNow').fill('20');
   await page.locator('#simTarget').fill('80');
   assert.equal(await page.locator('#simOrigin').inputValue(),'47.61764, 9.2688');
