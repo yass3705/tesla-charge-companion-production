@@ -154,7 +154,7 @@
     const heading=d.querySelector('header h1,h1');
     if(heading)heading.textContent='⚡ Tesla Charge Companion V9';
     const versionNodes=[...d.querySelectorAll('header *,body *')].filter(el=>el.children.length===0);
-    const version=versionNodes.find(el=>/Version 7\\.3 Stable/i.test(text(el.textContent)));
+    const version=versionNodes.find(el=>/Version 7\.3 Stable/i.test(text(el.textContent)));
     if(version)version.textContent='Version V9 · snapshot figé · comparaison de prix';
     const nl=d.getElementById('netherlandsRefreshButton');
     if(nl){
@@ -166,7 +166,7 @@
         explanation.style.display='none';
       }
     }
-    const legacyTabs=[...d.querySelectorAll('button')].filter(btn=>/^(Bornes|Ajouter \\/ modifier|Devises|Synchronisation)$/i.test(text(btn.textContent)));
+    const legacyTabs=[...d.querySelectorAll('button')].filter(btn=>/^(Bornes|Ajouter \/ modifier|Devises|Synchronisation)$/i.test(text(btn.textContent)));
     legacyTabs.forEach(btn=>{btn.hidden=true;btn.style.display='none';});
   }
 
