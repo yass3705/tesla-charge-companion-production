@@ -135,7 +135,7 @@
     if(!select||select.dataset.v9Multi==='true')return;
     select.multiple=true;select.size=4;select.dataset.v9Multi='true';
     select.setAttribute('aria-label','Réseaux affichés, sélection multiple');
-    const options=[['tesla','Tesla'],['all','Tous les autres réseaux']];
+    const options=[['tesla','Tesla'],['all','Tous les réseaux']];
     select.innerHTML=options.map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join('');
     select.options[0].selected=true;
     const quick=w.document.createElement('button');quick.type='button';quick.id='v9TeslaOnly';
@@ -160,7 +160,7 @@
     }
     const selected=current.size?current:new Set(['tesla']);
     select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('')+
-      '<option value="all">Tous les autres réseaux</option>';
+      '<option value="all">Tous les réseaux</option>';
     [...select.options].forEach(option=>{option.selected=selected.has(option.value);});
   }
 
