@@ -47,13 +47,13 @@ jobs:
 
       - name: Build immutable preview candidate
         env:
-          SNAPSHOT_ID: 2026-10-04-r11-global-no-nl
+          SNAPSHOT_ID: 2026-10-04-r12-full-national
           DATALAB_SHA: 7f5a4f69da8fb75e8fcf3d20dc413ff54e36c595
         run: |
           set -euo pipefail
           test "$(git -C datalab rev-parse HEAD)" = "$DATALAB_SHA"
           python production/scripts/build_refresh_candidate_config.py \
-            --base production/config/snapshots/2026-10-04-r11-global-no-nl.json \
+            --base production/config/snapshots/2026-10-04-r12-full-national.json \
             --datalab-sha "$DATALAB_SHA" \
             --snapshot-id "$SNAPSHOT_ID" \
             --out production/config/snapshots/explicit-candidate.json
