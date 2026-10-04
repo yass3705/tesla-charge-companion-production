@@ -400,7 +400,7 @@
       details.className='v9-select-dropdown';
       select.parentNode?.insertBefore(details,select);
     }
-    details.innerHTML='<summary><b>'+esc(title||'Sélection')+'</b><span class="v9-dropdown-value"></span></summary>';
+    details.innerHTML='<summary><b>'+esc(title||'Sélection')+'</b><span class="v9-dropdown-value"></span></summary>';details.style.flex='1 1 auto';
     details.appendChild(select);
     const summary=details.querySelector('.v9-dropdown-value');
     const redraw=()=>{
@@ -432,20 +432,37 @@
     const select=w.document.getElementById('simOperatorFilter');
     if(!select||select.dataset.v9Multi==='true')return;
     select.multiple=true;select.dataset.v9Multi='true';
-    select.setAttribute('aria-label','Réseaux affichés, sélection multiple');
-    const options=[['tesla','Tesla'],['all','Tous les réseaux']];
-    select.innerHTML=options.map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join('');
+    select.setAttribute('aria-label','Opérateurs, sélection multiple');
+    select.innerHTML='<option value="tesla">Tesla</option><option value="all">Tous les réseaux</option>';
     select.options[1].selected=true;
-    mountCheckboxDropdown(w,select,'v9OperatorDropdown',{title:'Réseaux affichés',allValue:'all'});
-    const quick=w.document.createElement('button');
-    quick.type='button';quick.id='v9TeslaOnly';quick.className='secondary';
-    quick.textContent='Tesla uniquement';quick.title='Afficher uniquement le réseau Tesla';
-    quick.style.cssText='width:auto;margin-top:6px;padding:8px 12px';
-    quick.addEventListener('click',()=>{
-      [...select.options].forEach(option=>{option.selected=option.value==='tesla';});
+    const dropdown=mountCheckboxDropdown(w,select,'v9OperatorDropdown',{title:'Opérateurs',allValue:'all'});
+    const field=select.parentElement;
+    const controls=w.document.createElement('div');controls.id='v9OperatorControls';
+    controls.style.cssText='display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;width:100%;box-sizing:border-box';
+    const makeButton=(id,label,title)=>{
+      const button=w.document.createElement('button');button.type='button';button.id=id;
+      button.className='secondary';button.textContent=label;button.title=title;
+      button.style.cssText='width:auto;margin:0;padding:10px 12px;white-space:nowrap';
+      return button;
+    };
+    const choose=(value)=>{
+      [...select.options].forEach(option=>{option.selected=option.value===value;});
       select.dispatchEvent(new w.Event('change',{bubbles:true}));
-    });
-    (select.parentElement||select).appendChild(quick);
+    };
+    const tesla=makeButton('v9TeslaOnly','Tesla uniquement','Afficher uniquement le réseau Tesla');
+    const all=makeButton('v9AllNetworks','Tous les réseaux','Afficher tous les réseaux');
+    tesla.addEventListener('click',()=>choose('tesla'));
+    all.addEventListener('click',()=>choose('all'));
+    const host=dropdown?.parentElement||field;
+    if(host&&field){
+      controls.append(tesla,all);
+      if(dropdown)controls.appendChild(dropdown);
+      field.insertBefore(controls,field.firstChild);
+    }
+    select.style.display='none';
+    if(dropdown){
+      dropdown.style.flex='1 1 220px';dropdown.style.minWidth='180px';dropdown.style.margin='0';
+    }
   }
 
   function refreshOperatorOptions(w,area){
@@ -463,7 +480,7 @@
     for(const [id,label] of currentLabels){if(id&&id!=='all'&&!operators.has(id))operators.set(id,label);}
     const selected=current.size?current:new Set(['all']);
     select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('')+
-      '<option value="all">Tous les réseaux</option>';
+      '<option value="all" hidden>Tous les réseaux</option>';
     [...select.options].forEach(option=>{option.selected=selected.has(option.value);});
     // Le menu visible est un miroir personnalisé du select natif : après le
     // rafraîchissement des opérateurs, il doit être redessiné immédiatement.
