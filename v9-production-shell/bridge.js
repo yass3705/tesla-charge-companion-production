@@ -641,10 +641,10 @@
     installCurrentPositionButton(w);
     installUsageHelpTab(w);
     installBaseUpdatesFooter(w,cfg);
-    installOperatorMultiSelect(w);
     installPowerTypeFilter(w);
     installRankingOption(w);
     installProgressiveSearchForm(w);
+    installOperatorMultiSelect(w);
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
