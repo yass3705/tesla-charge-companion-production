@@ -30,17 +30,33 @@
   }
   function saveSelectedSubscriptions(w,ids){const clean=[...new Set((ids||[]).map(text).filter(Boolean))];try{w.localStorage.setItem(SUBSCRIPTION_KEY,JSON.stringify(clean));}catch(_){}return clean;}
   function subscriptionLabel(row){const provider=text(row?.provider),label=text(row?.label),id=text(row?.id);if(label&&label!==id)return label;if(provider&&provider!==id)return provider;return id;}
-  function renderSubscriptionSelector(w,options,countryCode){
+  function subscriptionOptionsForArea(area,countryCode){
+    const options=new Map(),country=text(countryCode).toUpperCase();
+    for(const station of area?.stations||[])for(const offer of station?.offers||[]){
+      const id=text(offer?.subscriptionId);if(!id)continue;
+      const countries=(offer?.countries||[]).map(value=>text(value).toUpperCase());
+      if(countries.length&&!countries.includes('*')&&!countries.includes(country))continue;
+      const metadata=offer?.metadata||{},label=text(metadata.subscriptionName||metadata.subscriptionLabel||offer?.subscriptionName||offer?.provider||id);
+      if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country]});
+    }
+    return [...options.values()].sort((a,b)=>subscriptionLabel(a).localeCompare(subscriptionLabel(b),'fr'));
+  }
+  function renderSubscriptionSelector(w,options,countryCode,stations=[]){
     const compare=w.document.getElementById('compare'),card=compare?.querySelector('.card');if(!card)return;
     let box=w.document.getElementById('v9SubscriptionSelector');
     if(!box){box=w.document.createElement('details');box.id='v9SubscriptionSelector';box.className='box v9-filter-group';box.style.marginTop='10px';const primary=card.querySelector('button.primary');if(primary)card.insertBefore(box,primary);else card.appendChild(box);}
     const selected=new Set(selectedSubscriptions(w)),rows=(options||[]).slice();
+    const emspProviders=[...new Set((stations||[]).flatMap(st=>st?.offers||[])
+      .filter(offer=>/^(emsp|roaming)$/i.test(text(offer?.kind))||/electra|electroverse/i.test(text(offer?.provider)))
+      .map(offer=>text(offer?.provider)).filter(name=>/electra|electroverse/i.test(name)))];
+    const noPlanMessage='Aucun tarif d’abonnement vérifié pour les bornes de cette zone.';
+    const emspMessage=emspProviders.length?' Les tarifs '+emspProviders.join(', ')+' affichés dans les résultats sont des prix eMSP, distincts d’un abonnement.':'';
     const optionsHtml=rows.map(row=>{const id=text(row.id),countries=(row.countries||[]).join(', ');return '<option value="'+esc(id)+'"'+(selected.has(id)?' selected':'')+'>'+esc(subscriptionLabel(row))+(countries?' · '+esc(countries):'')+'</option>';}).join('');
     box.innerHTML='<summary><b>Abonnements recharge</b> <span class="small">('+rows.length+' compatible(s) en '+esc(countryCode)+')</span></summary>'+
       '<div class="small" style="margin-top:8px">Sélection multiple. Les abonnements sélectionnés peuvent être retenus dans le classement quand leur compatibilité est vérifiée.</div>'+
       (rows.length?'<select id="v9SubscriptionChoices" multiple size="5" aria-label="Abonnements recharge, sélection multiple" style="margin-top:8px;width:100%;min-height:96px">'+optionsHtml+'</select>'+
         '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button><button type="button" class="secondary v9-sub-all" style="width:auto">Tous compatibles</button></div>':
-        '<div class="small" style="margin-top:8px">Aucun abonnement tarifaire vérifié pour cette zone.</div>');
+        '<div class="small" style="margin-top:8px">'+esc(noPlanMessage+emspMessage)+'</div>');
     const select=box.querySelector('#v9SubscriptionChoices');
     mountCheckboxDropdown(w,select,'v9SubscriptionDropdown',{title:'Abonnements recharge'});
     const persist=()=>{if(!select)return;saveSelectedSubscriptions(w,[...select.selectedOptions].map(option=>text(option.value)));w.compare();};
@@ -178,9 +194,32 @@
     }
     return out.slice(0,6);
   }
+  function evaluatedBaseTariffs(row){
+    const station=row?.station||{},items=[row?.evaluation?.best,...(row?.evaluation?.alternatives||[])].filter(Boolean),labels=[];
+    for(const item of items){
+      if(!['cpo_direct','direct','subscription'].includes(text(item.kind).toLowerCase()))continue;
+      const offer=(station.offers||[]).find(candidate=>text(candidate?.id||candidate?.offerId)===text(item.offerId));
+      let rates=offer?tariffRateLabels(offer):[];
+      if(!rates.length&&item.result?.matchedRule)rates=tariffRateLabels({currency:item.currency,pricing:{rules:[item.result.matchedRule]}});
+      if(!rates.length){
+        const componentRules=(item.result?.components?.componentGroups||[]).map(group=>group?.rule).filter(Boolean);
+        if(componentRules.length)rates=tariffRateLabels({currency:item.currency,pricing:{rules:componentRules}});
+      }
+      for(const rate of rates){const label=rate+' · '+text(item.provider||'tarif');if(!labels.includes(label))labels.push(label);}
+    }
+    return labels;
+  }
   function renderPowerLines(row){
     const lines=powerLines(row);if(!lines.length)return'<div class="small">Puissance non renseignée</div>';
-    return'<div class="v9-power-lines" style="margin-top:8px">'+lines.map(line=>{const tariffs=baseTariffsForPower(row,line);return '<div class="small" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><span>'+esc(line.kind)+' · <b>'+line.powerKw+' kW</b>'+(tariffs.length?'<div class="small" style="color:#c7d0d9">Base: '+tariffs.map(esc).join(' · ')+'</div>':'<div class="small" style="color:#c7d0d9">Tarif de base non disponible</div>')+'</span><span>'+line.count+' point(s)</span></div>';}).join('')+'</div>';
+    return'<div class="v9-power-lines" style="margin-top:8px">'+lines.map(line=>{
+      const tariffs=[...new Set([...baseTariffsForPower(row,line),...evaluatedBaseTariffs(row)])];
+      const baseLine=tariffs.length
+        ?'<div class="small" style="color:#c7d0d9">Base: '+tariffs.map(esc).join(' · ')+'</div>'
+        :row?.evaluation?.best
+          ?'<div class="small" style="color:#c7d0d9">Tarif unitaire non détaillé · prix final calculé ci-dessous</div>'
+          :'<div class="small" style="color:#c7d0d9">Tarif de base non disponible</div>';
+      return '<div class="small" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><span>'+esc(line.kind)+' · <b>'+line.powerKw+' kW</b>'+baseLine+'</span><span>'+line.count+' point(s)</span></div>';
+    }).join('')+'</div>';
   }
   function renderMapSummary(w,area,rows){
     const engine=w.TCCV9MapPriceEngine;if(!engine)return;
@@ -268,12 +307,15 @@
   }
 
 
+  function areaFiltersFromInputs(input){
+    return{...(input?.operatorIds?.length?{operatorIds:input.operatorIds.slice()}:{}),...(input?.connectorKinds?.length?{connectorKinds:input.connectorKinds.slice()}:{})};
+  }
   async function executeV9(w,engine,cfg,input){
     if(!(input.targetSoc>input.startSoc))throw new Error('invalid SOC target');if(!input.originText)throw new Error('origin required');
     if(cfg.mode==='candidate'&&!(input.radiusKm>0))throw new Error('unbounded radius not production-equivalent');
     if(typeof w.resolveOrigin!=='function')throw new Error('stable origin resolver unavailable');const origin=await w.resolveOrigin(input.originText),countryCode=await countryCodeForOrigin(w,origin),scope=cfg.engineScopeCountries||[];
     if(scope.length&&!scope.includes(countryCode))throw new Error(`country outside V9 shell scope: ${countryCode}`);
-    const queryRadius=input.radiusKm>0?input.radiusKm:20,filters={...(input.operatorIds?.length?{operatorIds:input.operatorIds}:{}),...(input.connectorKinds?.length?{connectorKinds:input.connectorKinds}:{})},session=buildSession(input);session.fxRates=engine.__tccFxRates||{};
+    const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input);session.fxRates=engine.__tccFxRates||{};
     const selected=selectedSubscriptions(w);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,sortBy:'finalCost'});
     const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area),baseSession,selected),rows=rankRows(expanded,input.rankingMode,20);return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
@@ -491,10 +533,19 @@
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
-      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,run.area?.subscriptions||[],run.countryCode);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){diagnosticStore(w,{mode:'candidate',outcome:'legacy-fallback',reason:err.message});return legacyCompare.apply(this,arguments);}
+      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
+        diagnosticStore(w,{mode:'candidate',outcome:'v9-error',reason:err.message,operatorIds:input.operatorIds||[]});
+        if(input.operatorIds?.length){
+          const status=w.document.getElementById('routeStatus'),results=w.document.getElementById('results');
+          if(status)status.innerHTML='<span class="warn">Le calcul V9 a échoué pour le filtre opérateur sélectionné.</span>';
+          if(results)results.innerHTML='<div class="warn">Les résultats filtrés n’ont pas pu être recalculés : '+esc(err.message||'erreur inconnue')+'. Relance la simulation après vérification de la source.</div>';
+          return null;
+        }
+        return legacyCompare.apply(this,arguments);
+      }
     };
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,variantsByPower,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,renderSubscriptionSelector,renderMapSummary,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,variantsByPower,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
