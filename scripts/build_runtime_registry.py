@@ -173,6 +173,17 @@ def build_registry(path):
             src["refresh"]="immutable-production-snapshot"
             src["policy"]="Use the pinned r8 Atlante France exact-EVSE direct snapshot; unmatched EVSEs remain fail-closed."
 
+    # Tesla is a dedicated catalogue in TCC V9. National physical baselines
+    # must not reintroduce Tesla rows even when the upstream national snapshot
+    # contains them. Keep this explicit per source so the rule is auditable.
+    national_baseline_ids={
+      "france-national","netherlands-dotnl","spain-reve","italy-pun",
+      "switzerland-national","germany-production-snapshot","uk-production-open-feeds"
+    }
+    for src in sources:
+        if src.get("id") in national_baseline_ids:
+            src["excludeOperatorIds"]=["tesla"]
+
     obj["productionIntegration"]={
       "schemaVersion":1,
       "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
