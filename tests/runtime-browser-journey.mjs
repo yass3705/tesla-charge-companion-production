@@ -37,6 +37,24 @@ try{
   assert.equal(shellState.marker?.error,undefined,shellState);
   assert.equal(shellState.marker?.ready,true,shellState);
   assert.equal(shellState.operatorFilter,true,shellState);
+  const networkUi=await page.evaluate(()=>({
+    quickButtons:['#v9TeslaOnly','#v9AllNetworks'].every(selector=>!!document.querySelector(selector)),
+    dropdown:!!document.querySelector('#v9OperatorDropdown'),
+    adjacent:[...document.querySelector('#v9OperatorControls')?.children||[]].map(el=>el.id),
+    outerHeadings:document.querySelectorAll('#compare summary').length,
+    networkHeadings:[...document.querySelectorAll('#compare summary')].filter(el=>el.textContent.includes('Réseaux affichés')).length,
+    obsoleteNlButtons:[...document.querySelectorAll('button')].filter(el=>/pays-bas|dot-nl/i.test(el.textContent)).length
+  }));
+  assert.equal(networkUi.quickButtons,true,JSON.stringify(networkUi));
+  assert.equal(networkUi.dropdown,true,JSON.stringify(networkUi));
+  assert.deepEqual(networkUi.adjacent,['v9TeslaOnly','v9AllNetworks','v9OperatorDropdown']);
+  assert.equal(networkUi.networkHeadings,1,JSON.stringify(networkUi));
+  assert.equal(networkUi.obsoleteNlButtons,0,JSON.stringify(networkUi));
+  await page.waitForFunction(()=>document.querySelectorAll('#v9BaseUpdates table tbody tr').length>=10,null,{timeout:15000});
+  await page.locator('#v9UsageHelpTab').click();
+  assert.equal(await page.locator('#v9UsageHelp').evaluate(el=>el.classList.contains('active')),true);
+  assert.ok((await page.locator('#v9UsageHelp').innerText()).includes('Prix non disponible'));
+  await page.locator('nav button[data-tab="compare"]').click();
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   const openFilterGroupFor=async id=>{
