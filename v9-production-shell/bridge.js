@@ -98,7 +98,13 @@
     const rawRadius=text(get('simMaxDistance')?.value),radius=rawRadius===''?0:Math.max(0,num(rawRadius)||0);
     const operatorSelect=get('simOperatorFilter'),selectedOperators=operatorSelect?.multiple?[...operatorSelect.selectedOptions].map(option=>text(option.value)).filter(Boolean):[text(operatorSelect?.value||'tesla')],operatorIds=selectedOperators.filter(id=>id!=='all');
     const powerSelect=get('simPowerType'),connectorKinds=powerSelect?.multiple?[...powerSelect.selectedOptions].map(option=>text(option.value)).filter(v=>v==='AC'||v==='DC'):(text(powerSelect?.value)&&text(powerSelect?.value)!=='all'?[text(powerSelect.value)]:[]);
-    return{startSoc:num(get('simNow')?.value),targetSoc:num(get('simTarget')?.value),date,time,startAt,disconnectAt,condition:get('simCondition')?.value||'normal',profile:get('simProfile')?.value||'realistic',operatorMode:selectedOperators.includes('all')||!selectedOperators.length?'all':operatorIds.length===1&&operatorIds[0]==='tesla'?'tesla':'selected',operatorIds,connectorKinds,rankingMode:get('simRanking')?.value||'balanced',radiusKm:radius,originText:text(get('simOrigin')?.value)};
+    const preset={
+      '1-7':{min:1,max:7},'7-22':{min:7,max:22},'22-50':{min:22,max:50},'50-100':{min:50,max:100},
+      '100-150':{min:100,max:150},'150-250':{min:150,max:250},'250-plus':{min:250,max:null},'1-250-plus':{min:1,max:null}
+    }[text(get('simPowerRange')?.value)]||null;
+    const minPowerInput=num(get('simMinPowerKw')?.value),maxPowerInput=num(get('simMaxPowerKw')?.value);
+    const minPowerKw=minPowerInput??preset?.min??null,maxPowerKw=maxPowerInput??preset?.max??null;
+    return{startSoc:num(get('simNow')?.value),targetSoc:num(get('simTarget')?.value),date,time,startAt,disconnectAt,condition:get('simCondition')?.value||'normal',profile:get('simProfile')?.value||'realistic',operatorMode:selectedOperators.includes('all')||!selectedOperators.length?'all':operatorIds.length===1&&operatorIds[0]==='tesla'?'tesla':'selected',operatorIds,connectorKinds,minPowerKw,maxPowerKw,rankingMode:get('simRanking')?.value||'balanced',radiusKm:radius,originText:text(get('simOrigin')?.value)};
   }
   function buildSession(input){return{startSoc:input.startSoc,targetSoc:input.targetSoc,startAt:input.startAt,disconnectAt:input.disconnectAt,targetCurrency:'EUR',batteryCapacityKwh:75,consumptionKwhPer100Km:15,vehicleMaxAcKw:11,vehicleMaxDcKw:250,chargeEfficiency:.92,chargeCurve:dcCurve(input.condition,input.profile)};}
   function diagnosticStore(w,event){try{const key='tccV9ProductionShellDiagnosticsV1',rows=JSON.parse(w.localStorage.getItem(key)||'[]');rows.unshift({...event,at:new Date().toISOString()});w.localStorage.setItem(key,JSON.stringify(rows.slice(0,20)));}catch(_){}}
@@ -308,7 +314,12 @@
 
 
   function areaFiltersFromInputs(input){
-    return{...(input?.operatorIds?.length?{operatorIds:input.operatorIds.slice()}:{}),...(input?.connectorKinds?.length?{connectorKinds:input.connectorKinds.slice()}:{})};
+    return{
+      ...(input?.operatorIds?.length?{operatorIds:input.operatorIds.slice()}:{}),
+      ...(input?.connectorKinds?.length?{connectorKinds:input.connectorKinds.slice()}:{}),
+      ...(input?.minPowerKw!=null?{minPowerKw:Number(input.minPowerKw)}:{}),
+      ...(input?.maxPowerKw!=null?{maxPowerKw:Number(input.maxPowerKw)}:{})
+    };
   }
   async function executeV9(w,engine,cfg,input){
     if(!(input.targetSoc>input.startSoc))throw new Error('invalid SOC target');if(!input.originText)throw new Error('origin required');
@@ -468,8 +479,10 @@
 
   function installPowerTypeFilter(w){
     const operator=w.document.getElementById('simOperatorFilter');if(!operator||w.document.getElementById('simPowerType'))return;
-    const host=w.document.createElement('div');host.className='full';host.innerHTML='<label for="simPowerType"><b>Type de recharge</b><select id="simPowerType" multiple size="2" aria-label="Type de recharge, sélection multiple" style="margin-top:6px;width:100%"><option value="AC">AC</option><option value="DC">DC</option></select><span class="small" style="display:block;margin-top:4px">Laisser vide pour AC et DC.</span></label>';
+    const host=w.document.createElement('div');host.className='full';host.innerHTML='<label for="simPowerType"><b>Type de recharge</b><select id="simPowerType" multiple size="2" aria-label="Type de recharge, sélection multiple" style="margin-top:6px;width:100%"><option value="AC">AC</option><option value="DC">DC</option></select><span class="small" style="display:block;margin-top:4px">Laisser vide pour AC et DC.</span><div style="margin-top:8px"><b>Plage de puissance</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><input id="simMinPowerKw" type="number" min="1" max="999" step="1" inputmode="numeric" placeholder="Min (kW)" aria-label="Puissance minimale en kW"><input id="simMaxPowerKw" type="number" min="1" max="999" step="1" inputmode="numeric" placeholder="Max (kW)" aria-label="Puissance maximale en kW"></div><select id="simPowerRange" aria-label="Plage de puissance prédéfinie" style="margin-top:6px;width:100%"><option value="1-250-plus">Toutes les puissances (1–250+ kW)</option><option value="1-7">1–7 kW</option><option value="7-22">7–22 kW</option><option value="22-50">22–50 kW</option><option value="50-100">50–100 kW</option><option value="100-150">100–150 kW</option><option value="150-250">150–250 kW</option><option value="250-plus">250+ kW</option></select><span class="small" style="display:block;margin-top:4px">Les valeurs saisies remplacent la plage prédéfinie.</span></div></label>';
     const parent=operator.closest('label')||operator.parentElement;parent?.parentElement?.insertBefore(host,parent.nextSibling);
+    const preset=w.document.getElementById('simPowerRange'),min=w.document.getElementById('simMinPowerKw'),max=w.document.getElementById('simMaxPowerKw');
+    preset?.addEventListener('change',()=>{const value=preset.value;if(value==='1-250-plus'){min.value='';max.value='';}else if(value==='250-plus'){min.value='250';max.value='';}else{const parts=value.split('-');min.value=parts[0]||'';max.value=parts[1]||'';}});
   }
 
   function installRankingOption(w){
