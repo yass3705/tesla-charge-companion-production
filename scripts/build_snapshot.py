@@ -331,6 +331,20 @@ def main():
             local.append("france-electra-platform")
         write_json(registry,reg)
 
+    # Electra exact direct tariffs: the national snapshot remains the
+    # identity hub, while only station-level tariffs with fully supported
+    # ENERGY components are published. Unsupported congestion components stay
+    # fail-closed rather than being approximated.
+    electra_exact=dl/"data/operator_direct/electra_exact_france.json"
+    if electra_exact.exists():
+        copy_file(electra_exact,fr_direct/"electra_exact_france.json")
+        subprocess.run([
+          sys.executable,
+          str(production_root/"scripts/build_electra_direct_offers.py"),
+          str(electra_exact),
+          str(fr_direct/"electra_exact_direct_offers.json")
+        ],check=True)
+
     # Italy validated direct overlays beside the compiled static baseline.
     it_dst=overlays/"IT/direct"
     it_dst.mkdir(parents=True,exist_ok=True)
