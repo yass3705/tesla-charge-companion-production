@@ -55,7 +55,11 @@ def main():
       "snapshot-inputs/DE/all.json.gz",
       "snapshot-inputs/UK/manifest.json",
       "snapshot-inputs/UK/all.json.gz",
-      "snapshot-inputs/MA/manifest.json"
+      "snapshot-inputs/MA/manifest.json",
+      "snapshot-inputs/NL/manifest.json",
+      "snapshot-inputs/NL/runtime/manifest.json",
+      "snapshot-inputs/BE/manifest.json",
+      "snapshot-inputs/BE/runtime-manifest.json"
     ]
     if allow_tesla_override:
         required.append("snapshot-inputs/TESLA/suc-tracker-metadata.json")
