@@ -452,6 +452,60 @@ def main():
           "policy":"National station baseline is publishable; only validated direct/EVSE pricing is applied. Residual tariffs remain fail-closed."
         })
 
+    # Record source freshness dates beside the immutable runtime. Prefer a
+    # timestamp provided by the source metadata; otherwise expose the pinned
+    # repository revision date and label it as such in the UI.
+    def metadata_date(paths):
+        fields=("sourceGeneratedAt","generatedAt","updatedAt","asOf","effectiveTariffDate","checkedAt","snapshotDate","date")
+        for raw_path in paths:
+            candidate=pathlib.Path(raw_path)
+            if not candidate.exists():
+                continue
+            try:
+                obj=load_json(candidate)
+            except Exception:
+                continue
+            if not isinstance(obj,dict):
+                continue
+            for field in fields:
+                value=obj.get(field)
+                if isinstance(value,str) and len(value)>=10:
+                    return value[:10],"source",str(candidate)
+        return None,None,None
+
+    def pinned_commit_date(repo_path,sha):
+        try:
+            result=subprocess.run(["git","-C",str(repo_path),"show","-s","--format=%cs",str(sha)],check=True,capture_output=True,text=True)
+            return result.stdout.strip()[:10]
+        except Exception:
+            return cfg.get("snapshotId","")[:10]
+
+    datalab_pin=pinned_commit_date(dl,cfg.get("sources",{}).get("dataLab",{}).get("sha","HEAD"))
+    stable_pin=pinned_commit_date(stable,cfg.get("sources",{}).get("stable",{}).get("sha","HEAD"))
+    base_specs=[
+      ("TESLA","Tesla · SuC Tracker",[out/"snapshot-inputs/TESLA/suc-tracker-metadata.json"],datalab_pin),
+      ("ES","Espagne · REVE",[out/"runtime/data/v9/spain-static/manifest.json"],stable_pin),
+      ("NL","Pays-Bas · base nationale DOT-NL",[out/"snapshot-inputs/NL/runtime/manifest.json",out/"snapshot-inputs/NL/manifest.json"],datalab_pin),
+      ("CH","Suisse · base nationale et tarifs directs",[out/"runtime/data/v9/switzerland-static/manifest.json",out/"snapshot-inputs/CH/direct/avia-reconciliation.json"],datalab_pin),
+      ("MA","Maroc · bases CPO publiques",[out/"snapshot-inputs/MA/cpo-ledger.json",out/"snapshot-inputs/MA/manifest.json"],datalab_pin),
+      ("FR","France · IRVE et tarifs CPO",[out/"snapshot-inputs/FR/cpo-ledger.json",out/"runtime/data/v9/france-static/manifest.json"],datalab_pin),
+      ("IT","Italie · base nationale et tarifs CPO",[out/"snapshot-inputs/IT/cpo-ledger.json",out/"runtime/data/v9/italy-static/manifest.json"],stable_pin),
+      ("DE","Allemagne · base nationale et tarifs CPO",[out/"snapshot-inputs/DE/national-source-manifest.json",out/"snapshot-inputs/DE/cpo-progress.json"],datalab_pin),
+      ("UK","Royaume-Uni · flux opérateurs validés",[out/"snapshot-inputs/UK/cpo-ledger.json",out/"snapshot-inputs/UK/manifest.json"],datalab_pin),
+      ("BE","Belgique · NAP et tarifs CPO",[out/"snapshot-inputs/BE/cpo-ledger.json",out/"snapshot-inputs/BE/manifest.json"],datalab_pin),
+      ("ELECTRA","France · tarifs Electra",[out/"snapshot-inputs/FR/platforms/electra/manifest.json"],datalab_pin),
+      ("ELECTROVERSE","France · tarifs Electroverse",[out/"snapshot-inputs/FR/platforms/electroverse-runtime-offers.json",dl/"data/electroverse/tariff_cache/manifest.json"],datalab_pin),
+    ]
+    base_dates=[]
+    for base_id,label,paths,pinned_date in base_specs:
+        date,date_type,date_source=metadata_date(paths)
+        if not date:
+            date,date_type,date_source=pinned_date,"revision",cfg.get("sources",{}).get("dataLab",{}).get("sha")
+        base_dates.append({"id":base_id,"label":label,"date":date,"dateType":date_type,"dateSource":date_source})
+    write_json(out/"runtime/data/v9/base-dates.json",{
+      "schemaVersion":1,"snapshotId":cfg["snapshotId"],"bases":base_dates
+    })
+
     # One common route table for the Worker/R2 runtime. This preserves existing
     # validated country formats while giving the frontend one stable discovery contract.
     contract={
