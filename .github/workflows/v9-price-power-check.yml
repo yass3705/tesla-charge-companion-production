@@ -8,6 +8,9 @@ on:
       - v9-production-shell/bridge.js
       - runtime-overrides/assets/v9/pricing-engine.js
       - tests/v9-price-per-power.test.mjs
+      - tests/runtime-integration.test.mjs
+      - tests/runtime-e2e-smoke.mjs
+      - scripts/build_snapshot.py
   workflow_dispatch:
 
 permissions:

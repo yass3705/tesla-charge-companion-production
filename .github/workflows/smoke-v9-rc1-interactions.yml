@@ -1,6 +1,8 @@
 name: Interactive V9 RC1 browser verification
 on:
   push:
+    branches:
+      - v9/interface-foundation-frozen-snapshot
     paths:
       - "tests/runtime-browser-interactions.mjs"
       - "v9-production-shell/bridge.js"

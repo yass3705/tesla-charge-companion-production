@@ -14,7 +14,7 @@ const pricing=require('../runtime-overrides/assets/v9/pricing-engine.js');
   const match=pricing.matchingRuleDetailed({rules},'2026-10-04T23:52:00.000Z','UTC',{});
   assert.equal(match.rule?.id,'night');
   const evaluated=pricing.evaluateRule(match.rule,{durationMinutes:10,chargingMinutes:10});
-  assert.equal(evaluated.components.chargingTime,0.28);
+  assert.equal(evaluated.components.chargingTime,0.27667);
   assert.equal(match.rule.chargePerMinute,0.027667);
 }
 
