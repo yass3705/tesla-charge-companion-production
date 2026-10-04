@@ -37,6 +37,7 @@ try{
   assert.equal(shellState.marker?.error,undefined,shellState);
   assert.equal(shellState.marker?.ready,true,shellState);
   assert.equal(shellState.operatorFilter,true,shellState);
+  await page.evaluate(()=>document.querySelectorAll('details.v9-filter-group').forEach(group=>{group.open=true;}));
   const networkUi=await page.evaluate(()=>({
     quickButtons:['#v9TeslaOnly','#v9AllNetworks'].every(selector=>!!document.querySelector(selector)),
     operatorSelect:!!document.querySelector('#v9OperatorControls > #simOperatorFilter')&&!document.querySelector('#v9OperatorDropdown'),
@@ -56,6 +57,12 @@ try{
   assert.equal(networkUi.compactDateFields,true,JSON.stringify(networkUi));
   assert.equal(networkUi.acdcButtons,true,JSON.stringify(networkUi));
   assert.equal(networkUi.obsoleteNlButtons,0,JSON.stringify(networkUi));
+  await page.locator('.v9-power-toggle[data-power="AC"]').click();
+  assert.equal(await page.locator('.v9-power-toggle[data-power="AC"]').getAttribute('aria-pressed'),'true');
+  await page.locator('.v9-power-toggle[data-power="DC"]').click();
+  assert.equal(await page.locator('.v9-power-toggle[data-power="DC"]').getAttribute('aria-pressed'),'true');
+  await page.locator('.v9-power-toggle[data-power="AC"]').click();
+  await page.locator('.v9-power-toggle[data-power="DC"]').click();
   await page.locator('#v9TeslaOnly').click();
   assert.match(await page.locator('#compare summary').filter({hasText:'Réseaux affichés'}).innerText(),/Tesla/);
   await page.locator('#v9AllNetworks').click();
