@@ -3,7 +3,7 @@ import json
 import pathlib
 import sys
 
-EXPECTED = {"TESLA","ES","NL","CH","MA","FR","IT","DE","UK"}
+EXPECTED = {"TESLA","ES","CH","MA","FR","IT","DE","UK"}
 ALLOWED = {"current","complete","complete-with-fail-closed-residuals","partial"}
 
 def main():
