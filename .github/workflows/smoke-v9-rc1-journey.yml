@@ -20,6 +20,27 @@ jobs:
         run: |
           mkdir -p dist/v9-2026-09-30-r8
           gh run download 36736001077 --repo yass3705/tesla-charge-companion-production --name tcc-v9-2026-09-30-r8-candidate --dir dist/v9-2026-09-30-r8
+      - name: Overlay current V9 bridge and cache key
+        run: |
+          set -euo pipefail
+          shell_config="$(find dist/v9-2026-09-30-r8 -type f -path '*/v9-production-shell/shell-config.json' -print -quit)"
+          test -n "$shell_config"
+          candidate_root="$(dirname "$(dirname "$shell_config")")"
+          cp v9-production-shell/bridge.js "$candidate_root/v9-production-shell/bridge.js"
+          python - "$candidate_root" <<'PY'
+          import hashlib, pathlib, re, sys
+          root=pathlib.Path(sys.argv[1])
+          bridge=root/"v9-production-shell/bridge.js"
+          index=root/"v9-production-shell/index.html"
+          text=index.read_text(encoding="utf-8")
+          key=hashlib.sha256(bridge.read_bytes()).hexdigest()[:16]
+          updated,count=re.subn(
+              r"bridge\\.src='v9-production-shell/bridge\\.js(?:\\?v=[^']*)?';",
+              f"bridge.src='v9-production-shell/bridge.js?v=v9-ui-{key}';",
+              text,count=1)
+          assert count==1, f"bridge script tag count={count}, expected 1"
+          index.write_text(updated,encoding="utf-8")
+          PY
       - run: npm install --no-save --no-package-lock playwright@1.55.1
       - name: Serve frozen preview without deployment
         run: |
