@@ -88,20 +88,6 @@ def main():
             if not metadata_src.exists():
                 raise SystemExit(f"Pinned Data Lab Tesla metadata missing: {metadata_path}")
             copy_file(metadata_src,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
-    # Netherlands: optionally replace the legacy Stable baseline with the
-    # immutable national runtime built in Data Lab. The source directory already
-    # contains manifest, all.json.gz and tiles; keep its layout under the stable
-    # runtime path consumed by the V9 loader.
-    nl_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="NL"),{})
-    if nl_cfg.get("primarySource")=="dataLab":
-        nl_path=nl_cfg.get("path")
-        if not nl_path:
-            raise SystemExit("Data Lab NL source selected without a path")
-        nl_src=dl/nl_path
-        if not nl_src.exists():
-            raise SystemExit(f"Pinned Data Lab NL source missing: {nl_path}")
-        copy_tree(nl_src,out/"runtime/data/non_tesla_netherlands")
-
     for name in ("manifest.webmanifest","app-version.json","service-worker.js"):
         src=stable/name
         if src.exists():
@@ -164,7 +150,7 @@ def main():
       "runtimeBase":"runtime",
       "snapshotId":cfg["snapshotId"],
       "observedCandidateSha":cfg["sources"]["stable"]["sha"],
-      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"],
+      "engineScopeCountries":["FR","IT","ES","CH","DE","GB","MA"],
       "fallback":"control/index.html",
       "notes":"Production-owned V9 shell. Root enters V9 directly; pinned V7.3 control is local fallback only."
     })
@@ -453,7 +439,6 @@ def main():
       "datasets":{
         "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None},
         "ES":{"kind":"static-tiles","manifest":"runtime/data/v9/spain-static/manifest.json","offers":"runtime/data/v9/spain-reve-offers/manifest.json","coverage":"complete"},
-        "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
         "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","direct":"snapshot-inputs/CH/direct","coverage":"complete-with-fail-closed-residuals"},
         "MA":{"kind":"cpo-consolidated","manifest":"snapshot-inputs/MA/manifest.json","coverage":"partial"},
         "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","identityHub":"national France station/EVSE baseline","coverage":"partial"},
