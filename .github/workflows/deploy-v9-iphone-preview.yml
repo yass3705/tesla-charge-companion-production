@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - v9/interface-foundation-frozen-snapshot
-    paths:
-      - .github/workflows/deploy-v9-iphone-preview.yml
   workflow_dispatch:
 
 permissions:
