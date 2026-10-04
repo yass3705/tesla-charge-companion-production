@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: fece067bd58916d493a9479ff9db31bcc94bef6b
+          ref: 40806cdd10c428579ed7c6b0bbecca0a01b70d12
           path: datalab
           fetch-depth: 1
           persist-credentials: false
@@ -67,7 +67,7 @@ jobs:
             --base production/config/snapshots/2026-09-30-r9-electra-fr.json \
             --datalab-sha "$DATALAB_SHA" \
             --snapshot-id "$SNAPSHOT_ID" \
-            --out production/config/snapshots/explicit-candidate.json \
+            --out production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
           node --check production/runtime-overrides/assets/v9/adapters/france-emsp-compact.js
           python production/scripts/validate_electra_platform_overlay.py datalab
