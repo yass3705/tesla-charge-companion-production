@@ -416,10 +416,10 @@
       if(tab===button)return;
       button.classList.remove('active');panel.classList.remove('active');
       const targetId=tab.getAttribute('data-tab');
-      const target=targetId?d.getElementById(targetId):null;
-      if(target&&target.classList.contains('panel')){
-        d.querySelectorAll('.panel').forEach(item=>item.classList.toggle('active',item===target));
-      }
+      const targetNode=targetId?d.getElementById(targetId):null;
+      const target=targetNode?.classList.contains('panel')?targetNode:
+        targetNode?.closest('.panel')||targetNode?.querySelector('.panel');
+      if(target)d.querySelectorAll('.panel').forEach(item=>item.classList.toggle('active',item===target));
     }));
     nav.appendChild(button);
   }
