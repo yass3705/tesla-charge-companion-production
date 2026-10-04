@@ -13,8 +13,8 @@ const html=ui.renderTariffs({
   incomplete:[]
 });
 const direct=html.indexOf('<strong style="font-size:14px;line-height:1.3">Direct</strong>');
-const electra=html.indexOf('<strong style="font-size:14px;line-height:1.3">Electra · MEILLEUR TARIF</strong>');
-const electroverse=html.indexOf('<strong style="font-size:14px;line-height:1.3">Electroverse</strong>');
+const electra=html.indexOf('<strong style="font-size:14px;line-height:1.3">Electra</strong>');
+const electroverse=html.indexOf('<strong style="font-size:14px;line-height:1.3">Electroverse · MEILLEUR TARIF</strong>');
 assert.ok(direct>=0&&direct<electra&&electra<electroverse,'fixed order must be Direct, Electra, Electroverse');
 assert.equal((html.match(/MEILLEUR TARIF/g)||[]).length,1,'only the lowest available category is highlighted');
 assert.ok(html.includes('background:#f4a64a'),'Direct uses orange');
