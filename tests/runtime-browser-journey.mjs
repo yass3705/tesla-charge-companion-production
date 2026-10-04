@@ -41,6 +41,8 @@ try{
   const networkUi=await page.evaluate(()=>({
     quickButtons:['#v9TeslaOnly','#v9AllNetworks'].every(selector=>!!document.querySelector(selector)),
     operatorSelect:!!document.querySelector('#v9OperatorControls > #simOperatorFilter')&&!document.querySelector('#v9OperatorDropdown'),
+    operatorIsSingleSelect:document.querySelector('#simOperatorFilter')?.multiple===false,
+    operatorChoices:[...document.querySelector('#simOperatorFilter')?.options||[]].map(option=>option.textContent.trim()),
     adjacent:[...document.querySelector('#v9OperatorControls')?.children||[]].map(el=>el.id),
     outerHeadings:document.querySelectorAll('#compare summary').length,
     networkHeadings:[...document.querySelectorAll('#compare summary')].filter(el=>el.textContent.includes('Réseaux affichés')).length,
@@ -51,6 +53,8 @@ try{
   }));
   assert.equal(networkUi.quickButtons,true,JSON.stringify(networkUi));
   assert.equal(networkUi.operatorSelect,true,JSON.stringify(networkUi));
+  assert.equal(networkUi.operatorIsSingleSelect,true,JSON.stringify(networkUi));
+  assert.equal(networkUi.operatorChoices.includes('Tous les réseaux'),false,JSON.stringify(networkUi));
   assert.deepEqual(networkUi.adjacent,['v9TeslaOnly','v9AllNetworks','simOperatorFilter']);
   assert.equal(networkUi.networkHeadings,1,JSON.stringify(networkUi));
   assert.equal(networkUi.batteryContainsProfile,true,JSON.stringify(networkUi));
