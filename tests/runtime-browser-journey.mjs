@@ -44,7 +44,7 @@ try{
     await group.locator('summary').first().click();
   };
   await openFilterGroupFor('simOperatorFilter');
-  await page.locator('#simOperatorFilter').selectOption('tesla');
+  await page.locator('#simOperatorFilter').evaluate(el=>{ el.value='tesla'; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); });
   await openFilterGroupFor('simMaxDistance');
   await page.locator('#simMaxDistance').fill('100');
   await openFilterGroupFor('simNow');
