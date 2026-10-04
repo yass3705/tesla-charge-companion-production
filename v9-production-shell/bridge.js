@@ -372,20 +372,27 @@
     const versionNodes=[...d.querySelectorAll('header *,body *')].filter(el=>el.children.length===0);
     const version=versionNodes.find(el=>/Version 7\.3 Stable/i.test(text(el.textContent)));
     if(version)version.textContent='Version V9 · snapshot figé · comparaison de prix';
-    const refreshButtons=[...d.querySelectorAll('button')].filter(btn=>/recharger les données|recharger.*pays[-\s]?bas/i.test(text(btn.textContent)));
-    refreshButtons.forEach(btn=>{
-      const obsoleteCard=btn.closest('.card')||btn.parentElement;
-      if(obsoleteCard){obsoleteCard.hidden=true;obsoleteCard.style.display='none';}
-      else{btn.hidden=true;btn.style.display='none';}
-    });
-    [...d.querySelectorAll('.small,p,small')].filter(el=>/snapshot DOT[-\s]?NL|données Pays[-\s]?Bas|données des Pays[-\s]?Bas/i.test(text(el.textContent))).forEach(el=>{
-      const obsoleteCard=el.closest('.card')||el;
-      obsoleteCard.hidden=true;obsoleteCard.style.display='none';
-    });
+    const hideLegacyNlBlocks=()=>{
+      const refreshButtons=[...d.querySelectorAll('button')].filter(btn=>/recharger les données|recharger.*pays[-\s]?bas/i.test(text(btn.textContent)));
+      refreshButtons.forEach(btn=>{
+        const obsoleteCard=btn.closest('.card');
+        if(obsoleteCard&&obsoleteCard!==d.querySelector('#compare > .card'))obsoleteCard.remove();
+        else btn.remove();
+      });
+      [...d.querySelectorAll('.small,p,small')].filter(el=>/snapshot DOT[-\s]?NL|données Pays[-\s]?Bas|données des Pays[-\s]?Bas/i.test(text(el.textContent))).forEach(el=>{
+        const obsoleteCard=el.closest('.card');
+        if(obsoleteCard&&obsoleteCard!==d.querySelector('#compare > .card'))obsoleteCard.remove();
+        else el.remove();
+      });
+    };
+    hideLegacyNlBlocks();
+    if(typeof w.MutationObserver==='function'){
+      const observer=new w.MutationObserver(hideLegacyNlBlocks);
+      observer.observe(d.body,{childList:true,subtree:true});
+    }
     const legacyTabs=[...d.querySelectorAll('button')].filter(btn=>/^(Bornes|Ajouter \/ modifier|Devises|Synchronisation)$/i.test(text(btn.textContent)));
     legacyTabs.forEach(btn=>{btn.hidden=true;btn.style.display='none';});
   }
-
   function installUsageHelpTab(w){
     const d=w.document,nav=d.querySelector('header nav'),main=d.querySelector('main');
     if(!nav||!main||d.getElementById('v9UsageHelpTab'))return;
