@@ -46,6 +46,7 @@ try{
     adjacent:[...document.querySelector('#v9OperatorControls')?.children||[]].map(el=>el.id),
     outerHeadings:document.querySelectorAll('#compare summary').length,
     networkHeadings:[...document.querySelectorAll('#compare summary')].filter(el=>el.textContent.includes('Réseaux affichés')).length,
+    networkStatusBesideLabel:document.getElementById('v9ActiveNetworkFilter')?.parentElement?.tagName==='LABEL'&&document.getElementById('v9ActiveNetworkFilter')?.parentElement?.textContent.includes('Réseaux affichés'),
     batteryContainsProfile:[...document.querySelectorAll('details.v9-filter-group')].some(el=>el.querySelector('summary')?.textContent==='Batterie et objectif'&&el.contains(document.querySelector('#simProfile'))),
     compactDateFields:['simDate','simTime'].every(id=>document.getElementById(id)?.getBoundingClientRect().width<=261),
     acdcButtons:['AC','DC'].every(kind=>!!document.querySelector('.v9-power-toggle[data-power="'+kind+'"]')),
@@ -57,6 +58,7 @@ try{
   assert.equal(networkUi.operatorChoices.includes('Tous les réseaux'),false,JSON.stringify(networkUi));
   assert.deepEqual(networkUi.adjacent,['v9TeslaOnly','v9AllNetworks','simOperatorFilter']);
   assert.equal(networkUi.networkHeadings,1,JSON.stringify(networkUi));
+  assert.equal(networkUi.networkStatusBesideLabel,true,JSON.stringify(networkUi));
   assert.equal(networkUi.batteryContainsProfile,true,JSON.stringify(networkUi));
   assert.equal(networkUi.compactDateFields,true,JSON.stringify(networkUi));
   assert.equal(networkUi.acdcButtons,true,JSON.stringify(networkUi));
@@ -68,9 +70,11 @@ try{
   await page.locator('.v9-power-toggle[data-power="AC"]').click();
   await page.locator('.v9-power-toggle[data-power="DC"]').click();
   await page.locator('#v9TeslaOnly').click();
-  assert.match(await page.locator('#compare summary').filter({hasText:'Réseaux affichés'}).innerText(),/Tesla/);
+  assert.match(await page.locator('#v9ActiveNetworkFilter').innerText(),/Tesla/);
+  assert.match(await page.locator('#v9ActiveNetworkFilter').evaluate(el=>el.parentElement.innerText),/Réseaux affichés.*Tesla/);
   await page.locator('#v9AllNetworks').click();
-  assert.match(await page.locator('#compare summary').filter({hasText:'Réseaux affichés'}).innerText(),/Tous les réseaux/);
+  assert.match(await page.locator('#v9ActiveNetworkFilter').innerText(),/Tous les réseaux/);
+  assert.match(await page.locator('#v9ActiveNetworkFilter').evaluate(el=>el.parentElement.innerText),/Réseaux affichés.*Tous les réseaux/);
   await page.waitForFunction(()=>document.querySelectorAll('#v9BaseUpdates table tbody tr').length>=10,null,{timeout:15000});
   await page.locator('#v9UsageHelpTab').click();
   assert.equal(await page.locator('#v9UsageHelp').evaluate(el=>el.classList.contains('active')),true);
