@@ -195,26 +195,26 @@
     return out.slice(0,6);
   }
   function evaluatedBaseTariffs(row){
-    const station=row?.station||{},items=[row?.evaluation?.best,...(row?.evaluation?.alternatives||[])].filter(Boolean),labels=[];
-    for(const item of items){
-      if(!['cpo_direct','direct','subscription'].includes(text(item.kind).toLowerCase()))continue;
-      const offer=(station.offers||[]).find(candidate=>text(candidate?.id||candidate?.offerId)===text(item.offerId));
-      let rates=offer?tariffRateLabels(offer):[];
-      if(!rates.length&&item.result?.matchedRule)rates=tariffRateLabels({currency:item.currency,pricing:{rules:[item.result.matchedRule]}});
-      if(!rates.length){
-        const componentRules=(item.result?.components?.componentGroups||[]).map(group=>group?.rule).filter(Boolean);
-        if(componentRules.length)rates=tariffRateLabels({currency:item.currency,pricing:{rules:componentRules}});
-      }
-      for(const rate of rates){const label=rate+' · '+text(item.provider||'tarif');if(!labels.includes(label))labels.push(label);}
-    }
+    const station=row?.station||{},item=row?.evaluation?.best,labels=[];
+    if(!item||!['cpo_direct','direct','subscription'].includes(text(item.kind).toLowerCase()))return labels;
+    const offer=(station.offers||[]).find(candidate=>text(candidate?.id||candidate?.offerId)===text(item.offerId));
+    const result=item.result||{},segments=[
+      ...(result?.components?.segmentedPricing?.segments||[]),
+      ...(result?.components?.energyTimeline?.segments||[])
+    ];
+    const rules=segments.map(segment=>segment?.rule).filter(Boolean);
+    if(!rules.length&&result.matchedRule)rules.push(result.matchedRule);
+    const effectiveOffer=offer||{currency:item.currency,pricing:{rules}};
+    const rates=rules.length?tariffRateLabels({currency:item.currency||effectiveOffer.currency,pricing:{rules}}):tariffRateLabels(effectiveOffer);
+    for(const rate of rates){const label=rate+' · '+text(item.provider||'tarif');if(!labels.includes(label))labels.push(label);}
     return labels;
   }
   function renderPowerLines(row){
     const lines=powerLines(row);if(!lines.length)return'<div class="small">Puissance non renseignée</div>';
     return'<div class="v9-power-lines" style="margin-top:8px">'+lines.map(line=>{
-      const tariffs=[...new Set([...baseTariffsForPower(row,line),...evaluatedBaseTariffs(row)])];
+      const evaluated=evaluatedBaseTariffs(row),fallback=baseTariffsForPower(row,line),tariffs=[...new Set(evaluated.length?evaluated:fallback)];
       const baseLine=tariffs.length
-        ?'<div class="small" style="color:#c7d0d9">Base: '+tariffs.map(esc).join(' · ')+'</div>'
+        ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+'</div>'
         :row?.evaluation?.best
           ?'<div class="small" style="color:#c7d0d9">Tarif unitaire non détaillé · prix final calculé ci-dessous</div>'
           :'<div class="small" style="color:#c7d0d9">Tarif de base non disponible</div>';
