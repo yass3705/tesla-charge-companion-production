@@ -69,10 +69,8 @@ jobs:
           python production/scripts/validate_browser_asset_graph.py dist/v9-explicit-candidate
           python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
 
-      - name: Multi-country runtime smoke
-        env:
-          REQUIRE_ELECTRA_PLATFORM: "1"
-        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-explicit-candidate
+      - name: Belgium and Netherlands runtime smoke
+        run: node production/tests/national-snapshot-smoke.mjs dist/v9-explicit-candidate
 
       - name: Install browser test dependency
         run: npm install --no-save --no-package-lock playwright@1.55.1
