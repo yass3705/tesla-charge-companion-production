@@ -197,10 +197,28 @@
   }
 
 
+  function formatCurrencyAmount(value,currency){
+    const amount=num(value);if(amount==null)return null;
+    const code=text(currency||'EUR').toUpperCase();
+    const formatted=amount.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    return code==='EUR'?formatted+' €':formatted+' '+code;
+  }
   function renderTariffs(evaluation){
-    const tariffs=[evaluation?.best,...(evaluation?.alternatives||[])].filter(item=>item&&Number.isFinite(Number(item.total)));
+    const tariffs=[evaluation?.best,...(evaluation?.alternatives||[])].filter(item=>item&&num(item.total)!=null);
     if(!tariffs.length)return'<span class="warn">Tarif non comparable</span>';
-    return'<div class="v9-tariffs">'+tariffs.map((item,index)=>'<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><b>'+Number(item.total).toFixed(2)+' '+esc(item.targetCurrency||'EUR')+'</b> · '+esc(item.provider||'tarif')+(index===0?' · meilleur':'')+'</span><span class="small">'+(item.kind==='emsp'?'eMSP':'CPO/direct')+'</span></div>').join('')+'</div>';
+    return'<div class="v9-tariffs" style="display:grid;gap:6px;margin-top:6px">'+tariffs.map((item,index)=>{
+      const targetCurrency=text(item.targetCurrency||'EUR').toUpperCase();
+      const nativeCurrency=text(item.currency||targetCurrency).toUpperCase();
+      const nativeTotal=num(item.result?.totalEur);
+      const showNative=nativeCurrency!==targetCurrency&&nativeTotal!=null;
+      const primary=showNative?formatCurrencyAmount(nativeTotal,nativeCurrency):formatCurrencyAmount(item.total,targetCurrency);
+      const converted=showNative?formatCurrencyAmount(item.total,targetCurrency):null;
+      return'<div class="v9-tariff-row" role="listitem" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:3px 10px;padding:7px 9px;border:1px solid #343a42;border-radius:8px;background:#15171b;min-width:0">'+
+        '<div style="min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:7px;row-gap:2px"><strong style="font-size:15px;line-height:1.3;white-space:nowrap">'+esc(primary||'—')+'</strong>'+(converted?'<span class="small" style="font-size:12px;color:#b7bec7;white-space:nowrap">≈ '+esc(converted)+'</span>':'')+'</div>'+
+        '<span class="small" style="white-space:nowrap;justify-self:end">'+(item.kind==='emsp'?'eMSP':'CPO/direct')+'</span>'+
+        '<span style="grid-column:1/-1;min-width:0;font-size:13px;line-height:1.35;color:#c7d0d9;overflow-wrap:anywhere">'+esc(item.provider||'tarif')+(index===0?' · meilleur':'')+'</span>'+
+      '</div>';
+    }).join('')+'</div>';
   }
   function renderCostPerKm(row){
     const evaluation=row?.evaluation,best=evaluation?.best,cost=num(best?.costPerRecoveredKm),km=num(evaluation?.recoveredKm??row?.recoveredKm);
@@ -478,5 +496,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,variantsByPower,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,renderSubscriptionSelector,renderMapSummary,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,variantsByPower,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,renderSubscriptionSelector,renderMapSummary,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
