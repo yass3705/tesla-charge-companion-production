@@ -217,7 +217,7 @@
       for(const [evseIndex,evse] of (station.evses||[]).entries())for(const [connectorIndex,raw] of (evse.connectors||[]).entries()){
         const power=num(raw.powerKw??raw.power??evse.powerKw);if(power==null||power<=0)continue;
         const connector={...raw,powerKw:power},kind=connectorKind(connector),connectorId=text(connector.id||connector.connectorId)||null,plug=text(connector.plugName||connector.type)||null;
-        const matching=(station.offers||[]).filter(offer=>sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId)).map(offer=>text(offer.id||offer.offerId)).sort();
+        const matching=(station.offers||[]).filter(offer=>sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId)).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
         const key=[kind,power,matching.join(',')].join('|');
         const group=groups.get(key)||{kind,powerKw:power,offerIds:matching,evseConnectors:new Map(),evseKeys:new Set()};
         const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex;
