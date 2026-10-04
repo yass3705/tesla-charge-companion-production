@@ -4,7 +4,7 @@ import json
 import pathlib
 import sys
 
-EXPECTED={"TESLA","ES","CH","MA","FR","IT","DE","UK"}
+EXPECTED={"TESLA","ES","CH","MA","FR","IT","DE","UK","NL","BE"}
 
 def load(path):
     return json.loads(path.read_text(encoding="utf-8"))
@@ -32,7 +32,7 @@ def main():
     assert deployment.get("shell")=="v9-production-shell/index.html", deployment
     assert deployment.get("controlFallback")=="control/index.html", deployment
     assert deployment.get("runtimeBase")=="runtime", deployment
-    assert set(deployment.get("engineScopeCountries") or [])=={"FR","IT","ES","CH","DE","GB","MA"}, deployment
+    assert set(deployment.get("engineScopeCountries") or [])=={"FR","IT","ES","CH","DE","GB","MA","NL","BE"}, deployment
     for rel in ("index.html","control/index.html","v9-production-shell/index.html","v9-production-shell/shell-config.json","assets/app.js","assets/update.js"):
         assert (root/rel).exists(), f"missing deployable file {rel}"
     root_index=(root/"index.html").read_text(encoding="utf-8")
@@ -68,6 +68,18 @@ def main():
     registry=load(root/registry_rel)
     sources={x.get("id"):x for x in registry.get("sources",[]) if isinstance(x,dict)}
     de_src=sources.get("germany-production-snapshot") or {}
+    nl_src=sources.get("netherlands-dotnl-national") or {}
+    be_src=sources.get("belgium-nap-national") or {}
+    assert nl_src.get("adapter")=="netherlands-dotnl-v1" and nl_src.get("manifest")=="../snapshot-inputs/NL/runtime/manifest.json", nl_src
+    assert be_src.get("adapter")=="belgium-nap-v1" and be_src.get("manifest")=="../snapshot-inputs/BE/manifest.json", be_src
+    assert (root/"snapshot-inputs/NL/runtime/manifest.json").exists()
+    assert (root/"snapshot-inputs/NL/runtime/all.json.gz").exists()
+    assert (root/"snapshot-inputs/BE/manifest.json").exists()
+    assert len(list((root/"snapshot-inputs/BE/pages").glob("nap-belgium-*.json.gz")))==17
+    nl=load(root/"snapshot-inputs/NL/manifest.json")
+    assert nl["country"]=="NL" and nl["stationCount"]>=70000 and nl["pricedConfigurationCount"]>=38000, nl
+    be=load(root/"snapshot-inputs/BE/runtime-manifest.json")
+    assert be["country"]=="BE" and be["locations"]>=16000 and be["evses"]>=70000, be
     uk_src=sources.get("uk-production-open-feeds") or {}
     assert de_src.get("adapter")=="germany-national-v1" and de_src.get("path")=="../snapshot-inputs/DE/all.json.gz", de_src
     assert de_src.get("ionityPath")=="../snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz", de_src
