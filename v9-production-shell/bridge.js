@@ -413,7 +413,13 @@
       button.classList.add('active');panel.classList.add('active');
     });
     nav.querySelectorAll('button').forEach(tab=>tab.addEventListener('click',()=>{
-      if(tab!==button){button.classList.remove('active');panel.classList.remove('active');}
+      if(tab===button)return;
+      button.classList.remove('active');panel.classList.remove('active');
+      const targetId=tab.getAttribute('data-tab');
+      const target=targetId?d.getElementById(targetId):null;
+      if(target&&target.classList.contains('panel')){
+        d.querySelectorAll('.panel').forEach(item=>item.classList.toggle('active',item===target));
+      }
     }));
     nav.appendChild(button);
   }
