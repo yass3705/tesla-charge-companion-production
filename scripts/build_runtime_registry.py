@@ -153,6 +153,37 @@ def build_registry(path):
       "policy":"Exact EVSE ID only. CHF/kWh incl. VAT only; time-based or unsupported tariff semantics fail closed."
     })
 
+    upsert(sources,{
+      "id":"netherlands-dotnl-national",
+      "label":"Netherlands DOT-NL national non-Tesla runtime",
+      "adapter":"netherlands-dotnl-v1",
+      "root":"../snapshot-inputs/NL/runtime/",
+      "manifest":"../snapshot-inputs/NL/runtime/manifest.json",
+      "countries":["NL"],
+      "capabilities":["inventory","connectors","access","status","tariff"],
+      "priority":{"identity":60,"connectors":65,"access":60,"status":55,"tariff":75},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "excludeOperatorIds":["tesla"],
+      "policy":"DOT-NL compiled national runtime; unsupported or non-direct tariff configurations remain fail-closed."
+    })
+    upsert(sources,{
+      "id":"belgium-nap-national",
+      "label":"Belgium Eco-Movement NAP selected-CPO national baseline",
+      "adapter":"belgium-nap-v1",
+      "pageRoot":"../snapshot-inputs/BE/pages/",
+      "manifest":"../snapshot-inputs/BE/manifest.json",
+      "countries":["BE"],
+      "capabilities":["inventory","connectors","access","status","tariff"],
+      "priority":{"identity":60,"connectors":65,"access":60,"status":55,"tariff":80},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "excludeOperatorIds":["tesla"],
+      "policy":"Belgium NAP selected-CPO baseline with exact NAP tariff records; source-limited operators and unresolved prices remain fail-closed."
+    })
+
     # Convert source-registry entries that already have exact snapshot-local
     # equivalents. More complex EVGO/Kilowatt multi-file profiles remain
     # explicitly external until their immutable bundle is complete.
@@ -191,7 +222,7 @@ def build_registry(path):
     # contains them. Keep this explicit per source so the rule is auditable.
     national_baseline_ids={
       "france-national","spain-reve","italy-pun",
-      "switzerland-national","germany-production-snapshot","uk-production-open-feeds"
+      "switzerland-national","germany-production-snapshot","uk-production-open-feeds","netherlands-dotnl-national","belgium-nap-national"
     }
     for src in sources:
         if src.get("id") in national_baseline_ids:
@@ -199,7 +230,7 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-electra-direct-exact","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["netherlands-dotnl-national","belgium-nap-national","germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-electra-direct-exact","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
