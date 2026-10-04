@@ -41,7 +41,7 @@ try{
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   const openFilterGroupFor=async id=>{
     const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
-    await group.locator('summary').click();
+    await group.locator('summary').first().click();
   };
   await openFilterGroupFor('simOperatorFilter');
   await page.locator('#simOperatorFilter').selectOption('tesla');
