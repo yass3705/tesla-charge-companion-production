@@ -53,7 +53,7 @@ jobs:
           set -euo pipefail
           test "$(git -C datalab rev-parse HEAD)" = "$DATALAB_SHA"
           python production/scripts/build_refresh_candidate_config.py \
-            --base production/config/snapshots/2026-10-04-r10-global-electroverse.json \
+            --base production/config/snapshots/2026-10-04-r11-global-no-nl.json \
             --datalab-sha "$DATALAB_SHA" \
             --snapshot-id "$SNAPSHOT_ID" \
             --out production/config/snapshots/explicit-candidate.json
