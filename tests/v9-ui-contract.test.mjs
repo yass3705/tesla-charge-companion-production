@@ -27,5 +27,8 @@ assert.equal((missing.match(/Prix non disponible/g)||[]).length,3,'all three cat
 assert.equal(ui.stationBaseSource({countryCode:'FR'}),'IRVE');
 assert.equal(ui.stationBaseSource({countryCode:'BE'}),'NAP Belgique');
 assert.equal(ui.stationBaseSource({countryCode:'FR',physicalOperator:{name:'Tesla Supercharger'}}),'TESLA · SuC Tracker');
+const teslaHtml=ui.renderTariffs({best:{total:8,targetCurrency:'EUR'}},{physicalOperator:{name:'Tesla Supercharger'}});
+assert.ok(teslaHtml.includes('Tesla'));
+assert.ok(!teslaHtml.includes('Electra')&&!teslaHtml.includes('Electroverse'),'third-party categories are not shown for Tesla stations');
 
 console.log(JSON.stringify({ok:true,priceCategories:['Direct','Electra','Electroverse'],sourceLabels:true}));
