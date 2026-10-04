@@ -336,16 +336,13 @@
     const versionNodes=[...d.querySelectorAll('header *,body *')].filter(el=>el.children.length===0);
     const version=versionNodes.find(el=>/Version 7\.3 Stable/i.test(text(el.textContent)));
     if(version)version.textContent='Version V9 · snapshot figé · comparaison de prix';
-    const nl=d.getElementById('netherlandsRefreshButton');
-    if(nl){
-      nl.hidden=true;
-      nl.style.display='none';
-      const explanation=nl.parentElement?.querySelector(':scope > p, :scope > .small');
-      if(explanation && /snapshot DOT-NL|Pays-Bas/i.test(text(explanation.textContent))){
-        explanation.hidden=true;
-        explanation.style.display='none';
-      }
-    }
+    // Retire tout bouton de rechargement spécifique hérité d'une ancienne version.
+    const legacyCountryRefresh=[...d.querySelectorAll('button')].filter(btn=>/recharger les données/i.test(text(btn.textContent)));
+    legacyCountryRefresh.forEach(btn=>{
+      const container=btn.parentElement;
+      if(container){container.hidden=true;container.style.display='none';}
+      else{btn.hidden=true;btn.style.display='none';}
+    });
     const legacyTabs=[...d.querySelectorAll('button')].filter(btn=>/^(Bornes|Ajouter \/ modifier|Devises|Synchronisation)$/i.test(text(btn.textContent)));
     legacyTabs.forEach(btn=>{btn.hidden=true;btn.style.display='none';});
   }
