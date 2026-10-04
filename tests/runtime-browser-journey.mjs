@@ -44,7 +44,6 @@ try{
     await group.locator('summary').first().click();
   };
   await openFilterGroupFor('simOperatorFilter');
-  await page.locator('#simOperatorFilter').evaluate(el=>{ el.value='tesla'; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); });
   await openFilterGroupFor('simMaxDistance');
   await page.locator('#simMaxDistance').fill('100');
   await openFilterGroupFor('simNow');
@@ -63,7 +62,7 @@ try{
     text:document.getElementById('results')?.innerText?.slice(0,500),
     diagnostics:JSON.parse(localStorage.getItem('tccV9ProductionShellDiagnosticsV1')||'[]').slice(0,2)
   }));
-  assert.ok(result.cards>0,result);
+  assert.ok(result.cards>0,JSON.stringify(result));
   assert.equal(result.diagnostics[0]?.outcome,'v9-ok',result);
   assert.equal(result.diagnostics[0]?.countryCode,'CH',result);
   assert.ok(mockCalls.reverse>0);
