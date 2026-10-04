@@ -58,7 +58,7 @@ def main():
     assert shell_cfg.get("runtimeBase")=="runtime", shell_cfg
     assert shell_cfg.get("controlIndex")=="../control/index.html", shell_cfg
     assert shell_cfg.get("snapshotId")==manifest["snapshotId"], shell_cfg
-    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}, shell_cfg
+    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","IT","ES","CH","DE","GB","MA"}, shell_cfg
 
     runtime_integration=contract.get("runtimeIntegration") or {}
     registry_rel=runtime_integration.get("registry")
