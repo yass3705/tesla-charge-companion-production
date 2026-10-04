@@ -85,4 +85,22 @@ const pricing=require('../runtime-overrides/assets/v9/pricing-engine.js');
   assert.equal(labels.some(label=>label.includes('0,00 EUR/kWh')),false);
 }
 
+// Mobile tariff cards keep every price distinct and show the native amount
+// beside its EUR equivalent only when the source tariff is in another currency.
+{
+  const html=shell.renderTariffs({
+    best:{total:1.47,targetCurrency:'EUR',currency:'MAD',result:{totalEur:16.36},provider:'Electra',kind:'emsp'},
+    alternatives:[{total:0.72,targetCurrency:'EUR',currency:'EUR',result:{totalEur:0.72},provider:'Tesla',kind:'cpo_direct'}]
+  });
+  assert.equal((html.match(/class="v9-tariff-row"/g)||[]).length,2);
+  assert.match(html,/16,36 MAD/);
+  assert.match(html,/≈ 1,47 €/);
+  assert.match(html,/0,72 €/);
+  assert.doesNotMatch(html,/≈ 0,72 €/);
+  assert.match(html,/Electra · meilleur/);
+  assert.match(html,/Tesla/);
+}
+assert.equal(shell.formatCurrencyAmount(1234.5,'MAD'),'1 234,50 MAD');
+assert.equal(shell.formatCurrencyAmount(12.3,'EUR'),'12,30 €');
+
 console.log('V9 power-line prices and ranking: PASS');
