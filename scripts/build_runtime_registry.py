@@ -190,7 +190,7 @@ def build_registry(path):
     # must not reintroduce Tesla rows even when the upstream national snapshot
     # contains them. Keep this explicit per source so the rule is auditable.
     national_baseline_ids={
-      "france-national","netherlands-dotnl","spain-reve","italy-pun",
+      "france-national","spain-reve","italy-pun",
       "switzerland-national","germany-production-snapshot","uk-production-open-feeds"
     }
     for src in sources:
