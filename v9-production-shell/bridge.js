@@ -253,8 +253,7 @@
     return'direct';
   }
   function renderTariffs(evaluation,station){
-    const stationOperator=text(station?.physicalOperator?.name||station?.operator?.name||station?.operatorName).toLowerCase();
-    if(stationOperator.includes('tesla')){
+    if(isTeslaStation(station)){
       const item=[evaluation?.best,...(evaluation?.alternatives||[])].filter(row=>row&&num(row.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0];
       return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(formatCurrencyAmount(item.total,item.targetCurrency||'EUR'))+'</div>':'<div class="v9-tesla-price">Prix Tesla non disponible</div>';
     }
@@ -283,10 +282,15 @@
       '</div>';
     }).join('')+'</div>';
   }
+  function isTeslaStation(station){
+    const operator=text(station?.physicalOperator?.name||station?.operator?.name||station?.operatorName).toLowerCase();
+    const provenance=(station?.provenance||station?.sources||[]).map(item=>text(item?.sourceId||item?.id||item)).filter(Boolean);
+    return operator.includes('tesla')||provenance.some(id=>/tesla|suc-tracker/i.test(id));
+  }
   function stationBaseSource(station){
     const operator=text(station?.physicalOperator?.name||station?.operator?.name||station?.operatorName).toLowerCase();
     const provenance=(station?.provenance||station?.sources||[]).map(item=>text(item?.sourceId||item?.id||item)).filter(Boolean);
-    if(operator.includes('tesla')||provenance.some(id=>/tesla|suc-tracker/i.test(id)))return'TESLA · SuC Tracker';
+    if(isTeslaStation(station))return'TESLA · SuC Tracker';
     const labels={'france-national':'IRVE','spain-reve':'REVE','italy-pun':'PUN','switzerland-national':'Base nationale CH','germany-production-snapshot':'Base nationale DE','uk-production-open-feeds':'Open data UK','netherlands-dotnl-national':'DOT-NL','belgium-nap-national':'NAP Belgique','morocco-evgo-native':'EVgo MA','morocco-fastvolt-public':'FastVolt MA','morocco-kilowatt-public':'Kilowatt MA','morocco-totalenergies-hosts':'TotalEnergies MA'};
     const found=provenance.map(id=>labels[id]).filter(Boolean);
     if(found.length)return[...new Set(found)].join(' · ');
