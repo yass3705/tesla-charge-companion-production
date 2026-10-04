@@ -360,25 +360,66 @@
     const heading=d.querySelector('header h1,h1');
     if(heading)heading.textContent='⚡ Tesla Charge Companion V9';
     const versionNodes=[...d.querySelectorAll('header *,body *')].filter(el=>el.children.length===0);
-    const version=versionNodes.find(el=>/Version 7\.3 Stable/i.test(text(el.textContent)));
+    const version=versionNodes.find(el=>/Version 7\\.3 Stable/i.test(text(el.textContent)));
     if(version)version.textContent='Version V9 · snapshot figé · comparaison de prix';
-    // Retire tout bouton de rechargement spécifique hérité d'une ancienne version.
-    const legacyCountryRefresh=[...d.querySelectorAll('button')].filter(btn=>/recharger les données/i.test(text(btn.textContent)));
-    legacyCountryRefresh.forEach(btn=>{
-      const container=btn.parentElement;
-      if(container){container.hidden=true;container.style.display='none';}
+    const refreshButtons=[...d.querySelectorAll('button')].filter(btn=>/recharger les données|recharger.*pays[-\\s]?bas/i.test(text(btn.textContent)));
+    refreshButtons.forEach(btn=>{
+      const obsoleteCard=btn.closest('.card')||btn.parentElement;
+      if(obsoleteCard){obsoleteCard.hidden=true;obsoleteCard.style.display='none';}
       else{btn.hidden=true;btn.style.display='none';}
+    });
+    [...d.querySelectorAll('.small,p,small')].filter(el=>/snapshot DOT[-\\s]?NL|données Pays[-\\s]?Bas|données des Pays[-\\s]?Bas/i.test(text(el.textContent))).forEach(el=>{
+      const obsoleteCard=el.closest('.card')||el;
+      obsoleteCard.hidden=true;obsoleteCard.style.display='none';
     });
     const legacyTabs=[...d.querySelectorAll('button')].filter(btn=>/^(Bornes|Ajouter \/ modifier|Devises|Synchronisation)$/i.test(text(btn.textContent)));
     legacyTabs.forEach(btn=>{btn.hidden=true;btn.style.display='none';});
   }
 
+  function installUsageHelpTab(w){
+    const d=w.document,nav=d.querySelector('header nav'),main=d.querySelector('main');
+    if(!nav||!main||d.getElementById('v9UsageHelpTab'))return;
+    const button=d.createElement('button');button.id='v9UsageHelpTab';button.type='button';button.textContent='Mode d’emploi';
+    button.setAttribute('aria-controls','v9UsageHelp');button.setAttribute('aria-label','Ouvrir le mode d’emploi');
+    const panel=d.createElement('section');panel.id='v9UsageHelp';panel.className='panel';
+    panel.innerHTML='<div class="card"><h2>Mode d’emploi</h2>'+
+      '<h3>1. Préparer la recherche</h3><p>Saisis une adresse de départ ou utilise « Position actuelle », puis règle le niveau de batterie, l’objectif et le profil de calcul.</p>'+
+      '<h3>2. Choisir les réseaux</h3><p>« Tesla uniquement » limite la recherche au réseau Tesla. « Tous les réseaux » retire le filtre. Après une recherche, la liste déroulante Opérateurs se met à jour et permet de choisir un ou plusieurs réseaux.</p>'+
+      '<h3>3. Régler les filtres et lancer le calcul</h3><p>Choisis le type AC/DC, la puissance minimale et maximale, la distance et la priorité de classement. Appuie sur « Simuler » pour afficher les résultats.</p>'+
+      '<h3>4. Lire les prix</h3><p>Chaque puissance présente toujours Direct (ou l’abonnement sélectionné), Electra et Electroverse, dans cet ordre. « Prix non disponible » signifie qu’aucun prix comparable et validé n’est disponible dans cette catégorie. Le tarif le plus bas est mis en évidence.</p>'+
+      '<h3>5. Comprendre une fiche</h3><p>Chaque fiche précise la base source de la station et le tarif de base retenu pour le calcul. Les stations sont séparées par type et puissance. Le coût par kilomètre récupéré aide au classement; le routage détaillé se lance à la demande.</p>'+
+      '<h3>6. Fraîcheur des données</h3><p>En bas de page, consulte la dernière date fournie par les métadonnées de chaque base. Si la source ne donne pas de date, la page indique la date de révision du snapshot épinglé.</p>'+
+      '<p class="small">Les états de disponibilité en temps réel ne sont pas utilisés. Les tarifs non validés ou non comparables restent signalés comme indisponibles.</p></div>';
+    main.appendChild(panel);
+    button.addEventListener('click',()=>{
+      d.querySelectorAll('nav button,.panel').forEach(el=>el.classList.remove('active'));
+      button.classList.add('active');panel.classList.add('active');
+    });
+    nav.appendChild(button);
+  }
+
+  function installBaseUpdatesFooter(w,cfg){
+    const d=w.document;if(d.getElementById('v9BaseUpdates'))return;
+    const footer=d.createElement('footer');footer.id='v9BaseUpdates';footer.className='card small';
+    footer.style.cssText='max-width:720px;margin:18px auto 24px;padding:12px 16px;box-sizing:border-box';
+    footer.innerHTML='<details><summary><b>Dates de mise à jour des bases TCC</b></summary><p>Chargement des dates des sources…</p></details>';
+    (d.querySelector('main')||d.body).appendChild(footer);
+    const base=String(cfg?.runtimeBase||'runtime').replace(/\\/$/,'');
+    w.fetch(base+'/data/v9/base-dates.json',{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('dates '+response.status);return response.json();}).then(data=>{
+      const rows=(data?.bases||[]).map(item=>{
+        const date=item.date?new Date(item.date+'T00:00:00').toLocaleDateString('fr-FR',{timeZone:'Europe/Paris'}):'Date non fournie';
+        const note=item.dateType==='source'?'Source':'Révision épinglée';
+        return'<tr><th style="text-align:left;padding:4px 10px 4px 0">'+esc(item.label||item.id)+'</th><td style="padding:4px 8px">'+esc(date)+'</td><td style="padding:4px 0;color:#9299a2">'+note+'</td></tr>';
+      }).join('');
+      footer.querySelector('details').innerHTML='<summary><b>Dates de mise à jour des bases TCC</b></summary><p>Dates source si disponibles; sinon date de révision épinglée du snapshot.</p><div style="overflow:auto"><table><tbody>'+rows+'</tbody></table></div><p class="small">Snapshot '+esc(data.snapshotId||'V9')+' · données figées pour les tests.</p>';
+    }).catch(()=>{footer.querySelector('details').innerHTML='<summary><b>Dates de mise à jour des bases TCC</b></summary><p>Le relevé des dates est indisponible dans cette version du snapshot.</p>';});
+  }
   function installV9MobileLayout(w){
     const d=w.document;
     if(d.getElementById('v9MobileLayoutStyle'))return;
     const style=d.createElement('style');
     style.id='v9MobileLayoutStyle';
-    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}.v9-checkbox-dropdown{width:100%;box-sizing:border-box}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-option{display:flex;gap:8px;align-items:center;padding:8px 4px}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}';
+    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9OperatorDropdown{min-width:200px}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}.v9-select-dropdown{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown select{max-height:230px;overflow:auto}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}';
     d.head.appendChild(style);
   }
 
@@ -572,6 +613,8 @@
     const legacyCompare=w.compare;
     const enginePromise=createEngine(w,cfg);
     installCurrentPositionButton(w);
+    installUsageHelpTab(w);
+    installBaseUpdatesFooter(w,cfg);
     installOperatorMultiSelect(w);
     installPowerTypeFilter(w);
     installRankingOption(w);
