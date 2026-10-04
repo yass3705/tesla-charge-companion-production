@@ -71,6 +71,7 @@ jobs:
           python production/scripts/validate_browser_asset_graph.py dist/v9-explicit-candidate
           python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
 
+      # Prepare the Pages destination before uploading the frozen preview.
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
