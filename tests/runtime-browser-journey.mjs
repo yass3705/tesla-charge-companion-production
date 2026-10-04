@@ -39,17 +39,27 @@ try{
   assert.equal(shellState.operatorFilter,true,shellState);
   const networkUi=await page.evaluate(()=>({
     quickButtons:['#v9TeslaOnly','#v9AllNetworks'].every(selector=>!!document.querySelector(selector)),
-    dropdown:!!document.querySelector('#v9OperatorDropdown'),
+    operatorSelect:!!document.querySelector('#v9OperatorControls > #simOperatorFilter')&&!document.querySelector('#v9OperatorDropdown'),
     adjacent:[...document.querySelector('#v9OperatorControls')?.children||[]].map(el=>el.id),
     outerHeadings:document.querySelectorAll('#compare summary').length,
     networkHeadings:[...document.querySelectorAll('#compare summary')].filter(el=>el.textContent.includes('Réseaux affichés')).length,
+    batteryContainsProfile:[...document.querySelectorAll('details.v9-filter-group')].some(el=>el.querySelector('summary')?.textContent==='Batterie et objectif'&&el.contains(document.querySelector('#simProfile'))),
+    compactDateFields:['simDate','simTime'].every(id=>document.getElementById(id)?.getBoundingClientRect().width<=261),
+    acdcButtons:['AC','DC'].every(kind=>!!document.querySelector('.v9-power-toggle[data-power="'+kind+'"]')),
     obsoleteNlButtons:[...document.querySelectorAll('button')].filter(el=>/pays-bas|dot-nl/i.test(el.textContent)&&el.getClientRects().length>0).length
   }));
   assert.equal(networkUi.quickButtons,true,JSON.stringify(networkUi));
-  assert.equal(networkUi.dropdown,true,JSON.stringify(networkUi));
-  assert.deepEqual(networkUi.adjacent,['v9TeslaOnly','v9AllNetworks','v9OperatorDropdown']);
+  assert.equal(networkUi.operatorSelect,true,JSON.stringify(networkUi));
+  assert.deepEqual(networkUi.adjacent,['v9TeslaOnly','v9AllNetworks','simOperatorFilter']);
   assert.equal(networkUi.networkHeadings,1,JSON.stringify(networkUi));
+  assert.equal(networkUi.batteryContainsProfile,true,JSON.stringify(networkUi));
+  assert.equal(networkUi.compactDateFields,true,JSON.stringify(networkUi));
+  assert.equal(networkUi.acdcButtons,true,JSON.stringify(networkUi));
   assert.equal(networkUi.obsoleteNlButtons,0,JSON.stringify(networkUi));
+  await page.locator('#v9TeslaOnly').click();
+  assert.match(await page.locator('#compare summary').filter({hasText:'Réseaux affichés'}).innerText(),/Tesla/);
+  await page.locator('#v9AllNetworks').click();
+  assert.match(await page.locator('#compare summary').filter({hasText:'Réseaux affichés'}).innerText(),/Tous les réseaux/);
   await page.waitForFunction(()=>document.querySelectorAll('#v9BaseUpdates table tbody tr').length>=10,null,{timeout:15000});
   await page.locator('#v9UsageHelpTab').click();
   assert.equal(await page.locator('#v9UsageHelp').evaluate(el=>el.classList.contains('active')),true);
