@@ -35,7 +35,7 @@ jobs:
           text=index.read_text(encoding="utf-8")
           key=hashlib.sha256(bridge.read_bytes()).hexdigest()[:16]
           updated,count=re.subn(
-              r"bridge\\.src='v9-production-shell/bridge\\.js(?:\\?v=[^']*)?';",
+              r"bridge\.src='v9-production-shell/bridge\.js(?:\?v=[^']*)?';",
               f"bridge.src='v9-production-shell/bridge.js?v=v9-ui-{key}';",
               text,count=1)
           assert count==1, f"bridge script tag count={count}, expected 1"
