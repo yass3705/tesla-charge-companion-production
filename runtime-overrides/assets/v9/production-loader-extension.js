@@ -136,8 +136,8 @@
             const manifest=await memoizedJson(join(basePath,source.manifest),opts.fetchImpl,dataCache);
             const b=queryBounds(query),pages=manifest.pages||[];
             const parts=await Promise.all(pages.map(p=>fetchJsonMaybeGzip(join(basePath,source.pageRoot+p.canonicalPath.split('/').pop()),opts.fetchImpl)));
-            const rows=parts.flatMap(x=>x?.locations||[]);
-            return rows.map(row=>be.normalizeLocation(row,{sourceId:source.id})).filter(Boolean).filter(st=>!b||pointInBounds(st.latitude,st.longitude,b));
+            const rows=parts.flatMap(x=>x?.locations||[]).filter(row=>!b||pointInBounds(row?.latitude,row?.longitude,b));
+            return rows.map(row=>be.normalizeLocation(row,{sourceId:source.id})).filter(Boolean);
           };
         }else if(source.adapter==='morocco-public-v1'&&source.profile==='kilowatt-native-local'){
           if(!ma?.normalizeKilowattNativeDataset||!ma?.kilowattNativeFreshness)throw new Error('Morocco Kilowatt adapter missing');
