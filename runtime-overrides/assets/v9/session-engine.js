@@ -184,11 +184,13 @@
         :(locked||timeline||PricingEngine.evaluateOffer(offer,effectiveSession));
       const currency=text(result.currency||offer.currency||'EUR').toUpperCase();
       const rate=result.complete?fxRate(currency,targetCurrency,fxRates):null;
-      const comparable=result.complete&&rate!=null;
+      const pricingWarning=text(offer?.metadata?.incompletePricingReason);
+      const comparable=result.complete&&!pricingWarning&&rate!=null;
       const normalizedTotal=comparable?money(result.totalEur*rate):null;
       evaluations.push({
         offerId:text(offer.id||offer.offerId),provider:text(offer.provider),kind:text(offer.kind),subscriptionId:text(offer.subscriptionId),selectionId:text(offer.selectionId)||null,
         priority:num(offer.priority)??0,currency,result,comparable,targetCurrency,
+        incompletePricingReason:pricingWarning||null,
         total:normalizedTotal,costPerRecoveredKm:normalizedTotal!=null&&km?money(normalizedTotal/km):null
       });
     }
