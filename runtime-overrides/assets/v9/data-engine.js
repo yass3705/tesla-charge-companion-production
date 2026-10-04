@@ -169,7 +169,17 @@
           const failure={sourceId:source.id,message:text(entry.reason?.message||entry.reason)};
           diagnostics.errors.push(failure);diagnostics.sources[source.id]={loaded:false,stationCount:0,offerRuleCount:0};if(source.optional!==true)requiredFailures.push(failure);return;
         }
-        const{fragments,offerRules,skipped}=entry.value;diagnostics.sources[source.id]={loaded:!skipped,stationCount:fragments.length,offerRuleCount:offerRules.length,skipped:skipped||null};for(const fragment of fragments)items.push({source,fragment});for(const rule of offerRules)ruleItems.push({source,rule});
+        const{fragments,offerRules,skipped}=entry.value;
+        // National inventories are physical baselines only. Tesla is loaded from
+        // the dedicated tesla-global catalogue and must never be reintroduced by
+        // a national source, even when the national snapshot contains Tesla rows.
+        const excludedOperators=new Set((source.excludeOperatorIds||[]).map(operatorId));
+        const keptFragments=excludedOperators.size?fragments.filter(fragment=>{
+          const operator=operatorId(fragment?.physicalOperator),network=operatorId(fragment?.networkBrand);
+          return !excludedOperators.has(operator)&&!excludedOperators.has(network);
+        }):fragments;
+        diagnostics.sources[source.id]={loaded:!skipped,stationCount:keptFragments.length,sourceRows:fragments.length,excludedRows:fragments.length-keptFragments.length,offerRuleCount:offerRules.length,skipped:skipped||null};
+        for(const fragment of keptFragments)items.push({source,fragment});for(const rule of offerRules)ruleItems.push({source,rule});
       });
       if(requiredFailures.length){
         const error=new Error(`required data source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
