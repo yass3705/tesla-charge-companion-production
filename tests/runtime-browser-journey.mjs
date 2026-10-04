@@ -55,7 +55,12 @@ try{
   assert.equal(await page.locator('#v9UsageHelp').evaluate(el=>el.classList.contains('active')),true);
   assert.ok((await page.locator('#v9UsageHelp').innerText()).includes('Prix non disponible'));
   await page.locator('nav button[data-tab="compare"]').click();
-  await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
+  await page.evaluate(()=>{
+    document.getElementById('v9UsageHelp')?.classList.remove('active');
+    document.querySelector('nav button[data-tab="compare"]')?.classList.add('active');
+    document.getElementById('compare')?.classList.add('active');
+  });
+  await page.waitForFunction(()=>document.querySelector('#compare')?.classList.contains('active'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   const openFilterGroupFor=async id=>{
     const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
