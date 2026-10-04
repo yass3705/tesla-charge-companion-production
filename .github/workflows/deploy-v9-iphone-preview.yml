@@ -69,6 +69,30 @@ jobs:
           python production/scripts/validate_browser_asset_graph.py dist/v9-explicit-candidate
           python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
 
+      - name: Multi-country runtime smoke
+        env:
+          REQUIRE_ELECTRA_PLATFORM: "1"
+        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-explicit-candidate
+
+      - name: Install browser test dependency
+        run: npm install --no-save --no-package-lock playwright@1.55.1
+
+      - name: Serve candidate locally
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/v9-explicit-candidate >/tmp/tcc-v9-preview-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/v9-production-shell/shell-config.json >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/tcc-v9-preview-server.log
+          exit 1
+
+      - name: Mocked geocoding and routing browser journey
+        run: node production/tests/runtime-browser-journey.mjs
+
+      - name: Verify candidate manifest hashes
+        run: python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
+
       # Prepare the Pages destination before uploading the frozen preview.
       - name: Configure Pages
         uses: actions/configure-pages@v5
