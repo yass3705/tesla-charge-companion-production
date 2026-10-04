@@ -4,7 +4,7 @@ import json
 import pathlib
 import sys
 
-EXPECTED={"TESLA","ES","NL","CH","MA","FR","IT","DE","UK"}
+EXPECTED={"TESLA","ES","CH","MA","FR","IT","DE","UK"}
 
 def load(path):
     return json.loads(path.read_text(encoding="utf-8"))
@@ -32,7 +32,7 @@ def main():
     assert deployment.get("shell")=="v9-production-shell/index.html", deployment
     assert deployment.get("controlFallback")=="control/index.html", deployment
     assert deployment.get("runtimeBase")=="runtime", deployment
-    assert set(deployment.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}, deployment
+    assert set(deployment.get("engineScopeCountries") or [])=={"FR","IT","ES","CH","DE","GB","MA"}, deployment
     for rel in ("index.html","control/index.html","v9-production-shell/index.html","v9-production-shell/shell-config.json","assets/app.js","assets/update.js"):
         assert (root/rel).exists(), f"missing deployable file {rel}"
     root_index=(root/"index.html").read_text(encoding="utf-8")
