@@ -244,22 +244,48 @@
     const formatted=amount.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
     return code==='EUR'?formatted+' €':formatted+' '+code;
   }
+  function offerPriceCategory(item){
+    const provider=text(item?.provider).toLowerCase(),offerId=text(item?.offerId).toLowerCase(),kind=text(item?.kind).toLowerCase();
+    if(provider.includes('electroverse')||offerId.includes('electroverse'))return'electroverse';
+    if(provider.includes('electra')||offerId.includes('electra'))return'electra';
+    if(kind==='emsp'||kind==='roaming')return text(item?.subscriptionId)?'direct':null;
+    return'direct';
+  }
   function renderTariffs(evaluation){
-    const tariffs=[evaluation?.best,...(evaluation?.alternatives||[])].filter(item=>item&&num(item.total)!=null);
-    if(!tariffs.length)return'<span class="warn">Tarif non comparable</span>';
-    return'<div class="v9-tariffs" style="display:grid;gap:6px;margin-top:6px">'+tariffs.map((item,index)=>{
-      const targetCurrency=text(item.targetCurrency||'EUR').toUpperCase();
-      const nativeCurrency=text(item.currency||targetCurrency).toUpperCase();
-      const nativeTotal=num(item.result?.totalEur);
-      const showNative=nativeCurrency!==targetCurrency&&nativeTotal!=null;
-      const primary=showNative?formatCurrencyAmount(nativeTotal,nativeCurrency):formatCurrencyAmount(item.total,targetCurrency);
-      const converted=showNative?formatCurrencyAmount(item.total,targetCurrency):null;
-      return'<div class="v9-tariff-row" role="listitem" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:3px 10px;padding:7px 9px;border:1px solid #343a42;border-radius:8px;background:#15171b;min-width:0">'+
-        '<div style="min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:7px;row-gap:2px"><strong style="font-size:15px;line-height:1.3;white-space:nowrap">'+esc(primary||'—')+'</strong>'+(converted?'<span class="small" style="font-size:12px;color:#b7bec7;white-space:nowrap">≈ '+esc(converted)+'</span>':'')+'</div>'+
-        '<span class="small" style="white-space:nowrap;justify-self:end">'+(item.kind==='emsp'?'eMSP':'CPO/direct')+'</span>'+
-        '<span style="grid-column:1/-1;min-width:0;font-size:13px;line-height:1.35;color:#c7d0d9;overflow-wrap:anywhere">'+esc(item.provider||'tarif')+(index===0?' · meilleur':'')+'</span>'+
+    const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
+    const categories=[
+      {id:'direct',label:offers.some(item=>offerPriceCategory(item)==='direct'&&text(item.subscriptionId))?'Direct / abonnement sélectionné':'Direct',color:'#f4a64a'},
+      {id:'electra',label:'Electra',color:'#a8e8d4'},
+      {id:'electroverse',label:'Electroverse',color:'#c9b3f4'}
+    ];
+    const picked=Object.fromEntries(categories.map(category=>[category.id,offers.filter(item=>offerPriceCategory(item)===category.id&&num(item.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0]||null]));
+    const bestId=categories.map(category=>({id:category.id,total:num(picked[category.id]?.total)})).filter(item=>item.total!=null).sort((a,b)=>a.total-b.total)[0]?.id||null;
+    return'<div class="v9-tariffs" aria-label="Comparaison des trois catégories de prix" style="display:grid;gap:6px;margin-top:8px">'+categories.map(category=>{
+      const item=picked[category.id],best=category.id===bestId;
+      let amount='Prix non disponible',provider='';
+      if(item){
+        const targetCurrency=text(item.targetCurrency||'EUR').toUpperCase(),nativeCurrency=text(item.currency||targetCurrency).toUpperCase(),nativeTotal=num(item.result?.totalEur);
+        const showNative=nativeCurrency!==targetCurrency&&nativeTotal!=null;
+        amount=showNative?formatCurrencyAmount(nativeTotal,nativeCurrency):formatCurrencyAmount(item.total,targetCurrency);
+        if(showNative)amount+=' (≈ '+formatCurrencyAmount(item.total,targetCurrency)+')';
+        provider=text(item.provider)||(text(item.subscriptionId)?'Abonnement sélectionné':'');
+      }
+      return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
+        '<strong style="font-size:14px;line-height:1.3">'+esc(category.label)+(best?' · MEILLEUR TARIF':'')+'</strong>'+
+        '<span style="font-size:15px;line-height:1.3;text-align:right">'+esc(amount)+'</span>'+
+        (provider?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(provider)+(text(item.subscriptionId)?' · abonnement':'')+'</span>':'')+
       '</div>';
     }).join('')+'</div>';
+  }
+  function stationBaseSource(station){
+    const operator=text(station?.physicalOperator?.name||station?.operator?.name||station?.operatorName).toLowerCase();
+    const provenance=(station?.provenance||station?.sources||[]).map(item=>text(item?.sourceId||item?.id||item)).filter(Boolean);
+    if(operator.includes('tesla')||provenance.some(id=>/tesla|suc-tracker/i.test(id)))return'TESLA · SuC Tracker';
+    const labels={'france-national':'IRVE','spain-reve':'REVE','italy-pun':'PUN','switzerland-national':'Base nationale CH','germany-production-snapshot':'Base nationale DE','uk-production-open-feeds':'Open data UK','netherlands-dotnl-national':'DOT-NL','belgium-nap-national':'NAP Belgique','morocco-evgo-native':'EVgo MA','morocco-fastvolt-public':'FastVolt MA','morocco-kilowatt-public':'Kilowatt MA','morocco-totalenergies-hosts':'TotalEnergies MA'};
+    const found=provenance.map(id=>labels[id]).filter(Boolean);
+    if(found.length)return[...new Set(found)].join(' · ');
+    const byCountry={FR:'IRVE',ES:'REVE',IT:'PUN',CH:'Base nationale CH',DE:'Base nationale DE',GB:'Open data UK',MA:'Base CPO Maroc',NL:'DOT-NL',BE:'NAP Belgique'};
+    return byCountry[text(station?.countryCode).toUpperCase()]||'Source nationale';
   }
   function renderCostPerKm(row){
     const evaluation=row?.evaluation,best=evaluation?.best,cost=num(best?.costPerRecoveredKm),km=num(evaluation?.recoveredKm??row?.recoveredKm);
@@ -304,7 +330,7 @@
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
     renderMapSummary(w,area,rows);
   }
 
