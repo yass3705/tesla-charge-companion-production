@@ -60,7 +60,7 @@ def main():
                     "subscriptionId":None,
                     "countries":["FR"],
                     "currency":str(tariff.get("currency") or "EUR").upper(),
-                    "stationIds":[f"national:FR:{pan_id}",f"irve-station:{pan_id}"],
+                    "stationIds":[pan_id,f"national:FR:{pan_id}",f"irve-station:{pan_id}"],
                     "pricing":{"type":"rules","rules":rules},
                     "priority":135,
                     "metadata":{
