@@ -135,7 +135,7 @@ def main():
         dependency_anchor,
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/map-price-engine.js',"
-        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
+        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/netherlands-dotnl.js','assets/v9/adapters/belgium-nap.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
     )
     for required in ("v9-production-shell/bridge.js","assets/v9/production-bootstrap.js","assets/v9/production-loader-extension.js"):
