@@ -464,7 +464,7 @@ def main():
         "shellConfig":"v9-production-shell/shell-config.json",
         "controlFallback":"control/index.html",
         "runtimeBase":"runtime",
-        "engineScopeCountries":["FR","IT","ES","CH","DE","GB","MA"]
+        "engineScopeCountries":["FR","IT","ES","CH","DE","GB","MA","NL","BE"]
       },
       "runtimeIntegration":{
         "registry":"runtime/data/v9/source-registry.json",
