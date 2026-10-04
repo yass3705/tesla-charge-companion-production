@@ -500,7 +500,8 @@ def main():
     for base_id,label,paths,pinned_date in base_specs:
         date,date_type,date_source=metadata_date(paths)
         if not date:
-            date,date_type,date_source=pinned_date,"revision",cfg.get("sources",{}).get("dataLab",{}).get("sha")
+            pin_sha=cfg.get("sources",{}).get("stable",{}).get("sha") if pinned_date==stable_pin else cfg.get("sources",{}).get("dataLab",{}).get("sha")
+            date,date_type,date_source=pinned_date,"revision",pin_sha
         base_dates.append({"id":base_id,"label":label,"date":date,"dateType":date_type,"dateSource":date_source})
     write_json(out/"runtime/data/v9/base-dates.json",{
       "schemaVersion":1,"snapshotId":cfg["snapshotId"],"bases":base_dates
