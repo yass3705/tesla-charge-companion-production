@@ -3,8 +3,8 @@ import json
 import pathlib
 import sys
 
-EXPECTED = {"TESLA","ES","CH","MA","FR","IT","DE","UK"}
-ALLOWED = {"current","complete","complete-with-fail-closed-residuals","partial"}
+EXPECTED = {"TESLA","ES","CH","MA","FR","IT","DE","UK","NL","BE"}
+ALLOWED = {"current","complete","complete-with-fail-closed-residuals","partial","partial-fail-closed","partial-selected-cpo"}
 
 def main():
     path = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "config/snapshots/2026-09-30.json")
