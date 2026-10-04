@@ -554,10 +554,13 @@
       }
       return button;
     };
-    const active=w.document.getElementById('v9ActiveNetworkFilter');
+    const group=select.closest('details.v9-filter-group'),displayLabel=[...(group?.querySelectorAll('label')||[])].find(label=>text(label.textContent)==='Réseaux affichés');
+    let active=w.document.getElementById('v9ActiveNetworkFilter');
+    if(!active){active=w.document.createElement('span');active.id='v9ActiveNetworkFilter';}
+    if(displayLabel){displayLabel.textContent='Réseaux affichés — ';displayLabel.appendChild(active);}
     const updateSummary=()=>{
       const mode=select.dataset.v9Mode||'all',option=select.options[select.selectedIndex];
-      if(active)active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(option?.textContent||'Tous les réseaux');
+      active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(option?.textContent||'Tous les réseaux');
     };
     const choose=mode=>{
       select.dataset.v9Mode=mode;
@@ -631,11 +634,7 @@
     grid.innerHTML='';origin.classList.add('full');grid.appendChild(origin);
     for(const {group,nodes} of captured){
       const details=w.document.createElement('details');details.className='full box v9-filter-group';
-      const summary=w.document.createElement('summary');
-      if(group.title==='Réseaux affichés'){
-        summary.append(w.document.createTextNode('Réseaux affichés — '));
-        const current=w.document.createElement('span');current.id='v9ActiveNetworkFilter';current.textContent='Tous les réseaux';summary.appendChild(current);
-      }else summary.textContent=group.title;
+      const summary=w.document.createElement('summary');summary.textContent=group.title;
       details.appendChild(summary);
       const body=w.document.createElement('div');body.className='grid';body.style.marginTop='10px';
       for(const node of nodes){
