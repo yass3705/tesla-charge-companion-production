@@ -360,15 +360,15 @@
     const heading=d.querySelector('header h1,h1');
     if(heading)heading.textContent='⚡ Tesla Charge Companion V9';
     const versionNodes=[...d.querySelectorAll('header *,body *')].filter(el=>el.children.length===0);
-    const version=versionNodes.find(el=>/Version 7\\.3 Stable/i.test(text(el.textContent)));
+    const version=versionNodes.find(el=>/Version 7\.3 Stable/i.test(text(el.textContent)));
     if(version)version.textContent='Version V9 · snapshot figé · comparaison de prix';
-    const refreshButtons=[...d.querySelectorAll('button')].filter(btn=>/recharger les données|recharger.*pays[-\\s]?bas/i.test(text(btn.textContent)));
+    const refreshButtons=[...d.querySelectorAll('button')].filter(btn=>/recharger les données|recharger.*pays[-\s]?bas/i.test(text(btn.textContent)));
     refreshButtons.forEach(btn=>{
       const obsoleteCard=btn.closest('.card')||btn.parentElement;
       if(obsoleteCard){obsoleteCard.hidden=true;obsoleteCard.style.display='none';}
       else{btn.hidden=true;btn.style.display='none';}
     });
-    [...d.querySelectorAll('.small,p,small')].filter(el=>/snapshot DOT[-\\s]?NL|données Pays[-\\s]?Bas|données des Pays[-\\s]?Bas/i.test(text(el.textContent))).forEach(el=>{
+    [...d.querySelectorAll('.small,p,small')].filter(el=>/snapshot DOT[-\s]?NL|données Pays[-\s]?Bas|données des Pays[-\s]?Bas/i.test(text(el.textContent))).forEach(el=>{
       const obsoleteCard=el.closest('.card')||el;
       obsoleteCard.hidden=true;obsoleteCard.style.display='none';
     });
@@ -404,7 +404,7 @@
     footer.style.cssText='max-width:720px;margin:18px auto 24px;padding:12px 16px;box-sizing:border-box';
     footer.innerHTML='<details><summary><b>Dates de mise à jour des bases TCC</b></summary><p>Chargement des dates des sources…</p></details>';
     (d.querySelector('main')||d.body).appendChild(footer);
-    const base=String(cfg?.runtimeBase||'runtime').replace(/\\/$/,'');
+    const base=String(cfg?.runtimeBase||'runtime');
     w.fetch(base+'/data/v9/base-dates.json',{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('dates '+response.status);return response.json();}).then(data=>{
       const rows=(data?.bases||[]).map(item=>{
         const date=item.date?new Date(item.date+'T00:00:00').toLocaleDateString('fr-FR',{timeZone:'Europe/Paris'}):'Date non fournie';
