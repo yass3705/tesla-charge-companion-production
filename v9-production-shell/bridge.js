@@ -514,39 +514,47 @@
 
   function installOperatorMultiSelect(w){
     const select=w.document.getElementById('simOperatorFilter');
-    if(!select||select.dataset.v9Multi==='true')return;
+    if(!select)return;
+    const field=select.closest('.full')||select.parentElement;
+    field?.querySelector(':scope > label')?.remove();
     select.multiple=true;select.dataset.v9Multi='true';
-    const field=select.parentElement;
-    field?.querySelector('label')?.remove();
     select.setAttribute('aria-label','Opérateurs, sélection multiple');
-    select.innerHTML='<option value="tesla">Tesla</option><option value="all">Tous les réseaux</option>';
-    select.options[1].selected=true;
-    const dropdown=mountCheckboxDropdown(w,select,'v9OperatorDropdown',{title:'Opérateurs',allValue:'all'});
-    const controls=w.document.createElement('div');controls.id='v9OperatorControls';
-    controls.style.cssText='display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;width:100%;box-sizing:border-box';
+    if(!select.options.length){
+      select.innerHTML='<option value="tesla">Tesla</option><option value="all">Tous les réseaux</option>';
+      select.options[1].selected=true;
+    }
+    const dropdown=w.document.getElementById('v9OperatorDropdown')||
+      mountCheckboxDropdown(w,select,'v9OperatorDropdown',{title:'Opérateurs',allValue:'all'});
+    let controls=w.document.getElementById('v9OperatorControls');
+    if(!controls){
+      controls=w.document.createElement('div');controls.id='v9OperatorControls';
+      controls.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;box-sizing:border-box';
+    }
     const makeButton=(id,label,title)=>{
-      const button=w.document.createElement('button');button.type='button';button.id=id;
-      button.className='secondary';button.textContent=label;button.title=title;
-      button.style.cssText='width:auto;margin:0;padding:10px 12px;white-space:nowrap';
+      let button=w.document.getElementById(id);
+      if(!button){
+        button=w.document.createElement('button');button.type='button';button.id=id;
+        button.className='secondary';button.textContent=label;button.title=title;
+        button.style.cssText='width:auto;margin:0;padding:10px 12px;white-space:nowrap';
+      }
       return button;
     };
-    const choose=(value)=>{
+    const choose=value=>{
       [...select.options].forEach(option=>{option.selected=option.value===value;});
+      if(![...select.options].some(option=>option.selected)){
+        const option=[...select.options].find(item=>item.value===value);
+        if(option)option.selected=true;
+      }
       select.dispatchEvent(new w.Event('change',{bubbles:true}));
     };
     const tesla=makeButton('v9TeslaOnly','Tesla uniquement','Afficher uniquement le réseau Tesla');
     const all=makeButton('v9AllNetworks','Tous les réseaux','Afficher tous les réseaux');
-    tesla.addEventListener('click',()=>choose('tesla'));
-    all.addEventListener('click',()=>choose('all'));
-    const host=dropdown?.parentElement||field;
-    if(host&&field){
-      controls.append(tesla,all);
-      if(dropdown)controls.appendChild(dropdown);
-      field.insertBefore(controls,field.firstChild);
-    }
-    if(dropdown){
-      dropdown.style.flex='1 1 220px';dropdown.style.minWidth='180px';dropdown.style.margin='0';
-    }
+    if(!tesla.dataset.v9Bound){tesla.addEventListener('click',()=>choose('tesla'));tesla.dataset.v9Bound='true';}
+    if(!all.dataset.v9Bound){all.addEventListener('click',()=>choose('all'));all.dataset.v9Bound='true';}
+    controls.append(tesla,all);
+    if(dropdown)controls.appendChild(dropdown);
+    if(controls.parentElement!==field)field?.insertBefore(controls,field.firstChild);
+    if(dropdown){dropdown.style.flex='1 1 220px';dropdown.style.minWidth='180px';dropdown.style.margin='0';}
   }
 
   function refreshOperatorOptions(w,area){
