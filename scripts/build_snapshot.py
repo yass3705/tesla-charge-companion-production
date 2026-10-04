@@ -150,7 +150,7 @@ def main():
       "runtimeBase":"runtime",
       "snapshotId":cfg["snapshotId"],
       "observedCandidateSha":cfg["sources"]["stable"]["sha"],
-      "engineScopeCountries":["FR","IT","ES","CH","DE","GB","MA"],
+      "engineScopeCountries":["FR","IT","ES","CH","DE","GB","MA","NL","BE"],
       "fallback":"control/index.html",
       "notes":"Production-owned V9 shell. Root enters V9 directly; pinned V7.3 control is local fallback only."
     })
@@ -197,6 +197,51 @@ def main():
         if src.exists(): copy_file(src,dst)
 
     national=dl/"data/national"
+
+    # Netherlands DOT-NL compiled national runtime. Keep it as a normal
+    # country dataset; Tesla rows are excluded by the registry rule.
+    nl_src=dl/"data/national/netherlands_dotnl/runtime"
+    if nl_src.exists():
+        copy_tree(nl_src,overlays/"NL/runtime")
+        nl_manifest=load_json(overlays/"NL/runtime/manifest.json")
+        write_json(overlays/"NL/manifest.json",{
+          "schemaVersion":1,
+          "country":"NL",
+          "coverage":"partial-fail-closed",
+          "primaryFile":"runtime/all.json.gz",
+          "stationCount":nl_manifest.get("stationCount"),
+          "configurationCount":nl_manifest.get("configurationCount"),
+          "pricedConfigurationCount":nl_manifest.get("pricedConfigurationCount"),
+          "tileCount":nl_manifest.get("tileCount"),
+          "policy":"DOT-NL compiled runtime; unsupported and non-direct tariff configurations remain fail-closed.",
+          "sourceManifest":"runtime/manifest.json"
+        })
+
+    # Belgium Eco-Movement NAP selected-CPO pages. The source manifest keeps
+    # the complete first-pass inventory and the runtime adapter normalizes each
+    # page on demand; unresolved operator tariffs stay fail-closed.
+    be_manifest_src=dl/"data/belgium/nap-belgium-manifest.json"
+    be=overlays/"BE"
+    if be_manifest_src.exists():
+        copy_file(be_manifest_src,be/"manifest.json")
+        for page in sorted((dl/"data/belgium/pages").glob("nap-belgium-*.json.gz")):
+            copy_file(page,be/"pages"/page.name)
+        be_progress=dl/"docs/belgium-cpo-progress-2026-09.json"
+        be_gap=dl/"reports/belgium/belgium-final-gap-reconciliation-2026-09-28.json"
+        if be_progress.exists(): copy_file(be_progress,be/"cpo-ledger.json")
+        if be_gap.exists(): copy_file(be_gap,be/"gap-reconciliation.json")
+        be_meta=load_json(be_progress) if be_progress.exists() else {}
+        write_json(be/"runtime-manifest.json",{
+          "schemaVersion":1,
+          "country":"BE",
+          "coverage":"partial-selected-cpo",
+          "primaryFile":"manifest.json",
+          "locations":(be_meta.get("firstPass") or {}).get("locations"),
+          "evses":(be_meta.get("firstPass") or {}).get("evses"),
+          "operatorsSeen":(be_meta.get("firstPass") or {}).get("operatorsSeen"),
+          "cpoStatusCounts":be_meta.get("counts"),
+          "policy":"Eco-Movement selected-CPO NAP baseline with exact tariff records; missing operators and unresolved prices remain fail-closed."
+        })
 
     # UK: do NOT use inventory/united_kingdom.json (Tesla inventory).
     # The non-Tesla baseline is the validated open-feed aggregate plus exact
@@ -425,6 +470,8 @@ def main():
         "registry":"runtime/data/v9/source-registry.json",
         "scripts":[
           "runtime/assets/v9/adapters/germany-national.js",
+          "runtime/assets/v9/adapters/netherlands-dotnl.js",
+          "runtime/assets/v9/adapters/belgium-nap.js",
           "runtime/assets/v9/adapters/uk-open-feeds.js",
           "runtime/assets/v9/adapters/switzerland-avia.js",
           "runtime/assets/v9/adapters/italy-ionity-exact.js",
@@ -444,7 +491,9 @@ def main():
         "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","identityHub":"national France station/EVSE baseline","coverage":"partial"},
         "IT":{"kind":"static-tiles","manifest":"runtime/data/v9/italy-static/manifest.json","offers":"runtime/data/v9/italy-offers.json","direct":"snapshot-inputs/IT/direct","coverage":"partial"},
         "DE":{"kind":"national-baseline","manifest":"snapshot-inputs/DE/manifest.json","all":"snapshot-inputs/DE/all.json.gz","direct":"snapshot-inputs/DE/direct","coverage":"partial"},
-        "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"}
+        "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"},
+        "NL":{"kind":"national-compact","manifest":"snapshot-inputs/NL/runtime/manifest.json","all":"snapshot-inputs/NL/runtime/all.json.gz","coverage":"partial-fail-closed"},
+        "BE":{"kind":"national-nap","manifest":"snapshot-inputs/BE/manifest.json","pages":"snapshot-inputs/BE/pages","coverage":"partial-selected-cpo"}
       }
     }
     write_json(out/"runtime-contract.json",contract)
