@@ -96,11 +96,11 @@
   function readInputs(w){
     const get=id=>w.document.getElementById(id),date=get('simDate')?.value||'',time=get('simTime')?.value||'',unplug=get('simUnplugTime')?.value||'',startAt=combineDateTime(date,time),disconnectAt=unplug?combineDateTime(date,unplug,startAt):null;
     const rawRadius=text(get('simMaxDistance')?.value),radius=rawRadius===''?0:Math.max(0,num(rawRadius)||0);
-    const operatorSelect=get('simOperatorFilter'),selectedOperators=operatorSelect?.multiple?[...operatorSelect.selectedOptions].map(option=>text(option.value)).filter(Boolean):[text(operatorSelect?.value||'tesla')],operatorIds=selectedOperators.filter(id=>id!=='all');
+    const operatorSelect=get('simOperatorFilter'),selectedOperator=text(operatorSelect?.value),operatorMode=operatorSelect?.dataset?.v9Mode||(selectedOperator==='all'||!selectedOperator?'all':selectedOperator==='tesla'?'tesla':'selected'),operatorIds=selectedOperator&&selectedOperator!=='all'?[selectedOperator]:[];
     const powerSelect=get('simPowerType'),connectorKinds=powerSelect?.multiple?[...powerSelect.selectedOptions].map(option=>text(option.value)).filter(v=>v==='AC'||v==='DC'):(text(powerSelect?.value)&&text(powerSelect?.value)!=='all'?[text(powerSelect.value)]:[]);
     const minPowerInput=num(get('simMinPowerKw')?.value),maxPowerInput=num(get('simMaxPowerKw')?.value);
     const minPowerKw=minPowerInput!=null?Math.max(1,minPowerInput):null,maxPowerKw=maxPowerInput!=null?Math.max(1,maxPowerInput):null;
-    return{startSoc:num(get('simNow')?.value),targetSoc:num(get('simTarget')?.value),date,time,startAt,disconnectAt,condition:get('simCondition')?.value||'normal',profile:get('simProfile')?.value||'realistic',operatorMode:selectedOperators.includes('all')||!selectedOperators.length?'all':operatorIds.length===1&&operatorIds[0]==='tesla'?'tesla':'selected',operatorIds,connectorKinds,minPowerKw,maxPowerKw,rankingMode:get('simRanking')?.value||'balanced',radiusKm:radius,originText:text(get('simOrigin')?.value)};
+    return{startSoc:num(get('simNow')?.value),targetSoc:num(get('simTarget')?.value),date,time,startAt,disconnectAt,condition:get('simCondition')?.value||'normal',profile:get('simProfile')?.value||'realistic',operatorMode,operatorIds,connectorKinds,minPowerKw,maxPowerKw,rankingMode:get('simRanking')?.value||'balanced',radiusKm:radius,originText:text(get('simOrigin')?.value)};
   }
   function buildSession(input){return{startSoc:input.startSoc,targetSoc:input.targetSoc,startAt:input.startAt,disconnectAt:input.disconnectAt,targetCurrency:'EUR',batteryCapacityKwh:75,consumptionKwhPer100Km:15,vehicleMaxAcKw:11,vehicleMaxDcKw:250,chargeEfficiency:.92,chargeCurve:dcCurve(input.condition,input.profile)};}
   function diagnosticStore(w,event){try{const key='tccV9ProductionShellDiagnosticsV1',rows=JSON.parse(w.localStorage.getItem(key)||'[]');rows.unshift({...event,at:new Date().toISOString()});w.localStorage.setItem(key,JSON.stringify(rows.slice(0,20)));}catch(_){}}
@@ -526,15 +526,20 @@
     if(!select)return;
     const field=select.closest('.full')||select.parentElement;
     field?.querySelector(':scope > label')?.remove();
+    const previous=select.value;
+    const options=new Map();
+    for(const option of [...select.options]){
+      const value=text(option.value),label=text(option.textContent);
+      if(!value||value==='all')continue;
+      options.set(value,value==='tesla'?'Tesla':label);
+    }
+    if(!options.has('tesla'))options.set('tesla','Tesla');
     select.multiple=false;select.dataset.v9Multi='false';
     select.setAttribute('aria-label','Opérateur à afficher');
-    if(![...select.options].some(option=>option.value==='tesla')){
-      const option=w.document.createElement('option');option.value='tesla';option.textContent='Tesla';select.prepend(option);
-    }
-    if(![...select.options].some(option=>option.value==='all')){
-      const option=w.document.createElement('option');option.value='all';option.textContent='Tous les réseaux';select.append(option);
-    }
-    if(!select.value)select.value='all';
+    select.innerHTML='<option value="">Choisir un opérateur</option>'+[...options.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
+    const initialMode=previous==='all'||!previous?'all':previous==='tesla'?'tesla':'selected';
+    select.dataset.v9Mode=initialMode;
+    select.value=initialMode==='all'?'':previous;
     let controls=w.document.getElementById('v9OperatorControls');
     if(!controls){
       controls=w.document.createElement('div');controls.id='v9OperatorControls';
@@ -551,15 +556,23 @@
     };
     const active=w.document.getElementById('v9ActiveNetworkFilter');
     const updateSummary=()=>{
-      const option=select.options[select.selectedIndex];
-      if(active)active.textContent=select.value==='all'?'Tous les réseaux':(option?.textContent||'Tous les réseaux');
+      const mode=select.dataset.v9Mode||'all',option=select.options[select.selectedIndex];
+      if(active)active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(option?.textContent||'Tous les réseaux');
     };
-    const choose=value=>{select.value=value;select.dispatchEvent(new w.Event('change',{bubbles:true}));};
+    const choose=mode=>{
+      select.dataset.v9Mode=mode;
+      if(mode==='all')select.value='';
+      else if(mode==='tesla')select.value='tesla';
+      select.dispatchEvent(new w.Event('change',{bubbles:true}));
+    };
     const tesla=makeButton('v9TeslaOnly','Tesla uniquement','Afficher uniquement le réseau Tesla');
     const all=makeButton('v9AllNetworks','Tous les réseaux','Afficher tous les réseaux');
     if(!tesla.dataset.v9Bound){tesla.addEventListener('click',()=>choose('tesla'));tesla.dataset.v9Bound='true';}
     if(!all.dataset.v9Bound){all.addEventListener('click',()=>choose('all'));all.dataset.v9Bound='true';}
-    if(!select.dataset.v9SummaryBound){select.addEventListener('change',updateSummary);select.dataset.v9SummaryBound='true';}
+    if(!select.dataset.v9SummaryBound){
+      select.addEventListener('change',()=>{select.dataset.v9Mode=select.value===''?'all':select.value==='tesla'?'tesla':'selected';updateSummary();});
+      select.dataset.v9SummaryBound='true';
+    }
     controls.append(tesla,all,select);
     if(controls.parentElement!==field)field?.insertBefore(controls,field.firstChild);
     select.style.cssText='flex:1 1 220px;min-width:180px;max-width:100%;margin:0';
@@ -568,7 +581,7 @@
 
   function refreshOperatorOptions(w,area){
     const select=w.document.getElementById('simOperatorFilter');if(!select)return;
-    const current=select.value||'all';
+    const current=select.value,mode=select.dataset.v9Mode||'all';
     const operators=new Map([['tesla','Tesla']]);
     for(const operator of area?.operators||[]){const id=text(operator?.id||'').toLowerCase(),label=text(operator?.name||'');if(id&&label&&id!=='tesla')operators.set(id,label);}
     for(const station of area?.stations||[]){
@@ -577,9 +590,11 @@
       const label=text(op.name||station.operatorName||'');
       if(id&&label&&id!=='tesla')operators.set(id,label);
     }
-    select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('')+
-      '<option value="all">Tous les réseaux</option>';
-    select.value=[...select.options].some(option=>option.value===current)?current:'all';
+    select.innerHTML='<option value="">Choisir un opérateur</option>'+
+      [...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
+    const keep=mode==='all'?'':mode==='tesla'?'tesla':current;
+    select.value=[...select.options].some(option=>option.value===keep)?keep:'';
+    select.dataset.v9Mode=select.value===''?'all':select.value==='tesla'?'tesla':'selected';
     select.dispatchEvent(new w.Event('change',{bubbles:true}));
   }
 
