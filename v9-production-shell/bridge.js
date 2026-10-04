@@ -552,7 +552,7 @@
     const active=w.document.getElementById('v9ActiveNetworkFilter');
     const updateSummary=()=>{
       const option=select.options[select.selectedIndex];
-      if(active)active.textContent=option?.textContent||'Tous les réseaux';
+      if(active)active.textContent=select.value==='all'?'Tous les réseaux':(option?.textContent||'Tous les réseaux');
     };
     const choose=value=>{select.value=value;select.dispatchEvent(new w.Event('change',{bubbles:true}));};
     const tesla=makeButton('v9TeslaOnly','Tesla uniquement','Afficher uniquement le réseau Tesla');
