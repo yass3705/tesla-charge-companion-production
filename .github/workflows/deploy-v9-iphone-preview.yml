@@ -28,6 +28,7 @@ jobs:
       - name: Checkout production
         uses: actions/checkout@v4
         with:
+          ref: v9/interface-foundation-frozen-snapshot
           path: production
 
       - name: Checkout stable baseline
