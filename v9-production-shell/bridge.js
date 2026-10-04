@@ -432,11 +432,11 @@
     const select=w.document.getElementById('simOperatorFilter');
     if(!select||select.dataset.v9Multi==='true')return;
     select.multiple=true;select.dataset.v9Multi='true';
+    const field=select.parentElement;
     select.setAttribute('aria-label','Opérateurs, sélection multiple');
     select.innerHTML='<option value="tesla">Tesla</option><option value="all">Tous les réseaux</option>';
     select.options[1].selected=true;
     const dropdown=mountCheckboxDropdown(w,select,'v9OperatorDropdown',{title:'Opérateurs',allValue:'all'});
-    const field=select.parentElement;
     const controls=w.document.createElement('div');controls.id='v9OperatorControls';
     controls.style.cssText='display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;width:100%;box-sizing:border-box';
     const makeButton=(id,label,title)=>{
@@ -459,7 +459,6 @@
       if(dropdown)controls.appendChild(dropdown);
       field.insertBefore(controls,field.firstChild);
     }
-    select.style.display='none';
     if(dropdown){
       dropdown.style.flex='1 1 220px';dropdown.style.minWidth='180px';dropdown.style.margin='0';
     }
