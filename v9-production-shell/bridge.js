@@ -500,6 +500,7 @@
     if(!select||select.dataset.v9Multi==='true')return;
     select.multiple=true;select.dataset.v9Multi='true';
     const field=select.parentElement;
+    field?.querySelector('label')?.remove();
     select.setAttribute('aria-label','Opérateurs, sélection multiple');
     select.innerHTML='<option value="tesla">Tesla</option><option value="all">Tous les réseaux</option>';
     select.options[1].selected=true;
