@@ -412,6 +412,9 @@
       d.querySelectorAll('nav button,.panel').forEach(el=>el.classList.remove('active'));
       button.classList.add('active');panel.classList.add('active');
     });
+    nav.querySelectorAll('button').forEach(tab=>tab.addEventListener('click',()=>{
+      if(tab!==button){button.classList.remove('active');panel.classList.remove('active');}
+    }));
     nav.appendChild(button);
   }
 
