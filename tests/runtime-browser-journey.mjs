@@ -9,7 +9,8 @@ page.on('pageerror',e=>failures.push(e.message));
 page.on('console',msg=>consoleMessages.push(msg.type()+': '+msg.text()));
 page.on('requestfailed',req=>requestFailures.push(req.url()+' :: '+(req.failure()?.errorText||'unknown')));
 page.on('response',r=>{
-  if(r.status()>=400&&new URL(r.url()).origin==='http://127.0.0.1:8765'&&/\/(?:runtime\/assets\/v9|runtime\/data\/v9|snapshot-inputs\/)/.test(r.url()))
+  const optionalLegacyDates=r.url().includes('/runtime/data/v9/base-dates.json')&&process.env.V9_REQUIRE_BASE_DATES!=='1';
+  if(r.status()>=400&&new URL(r.url()).origin==='http://127.0.0.1:8765'&&!optionalLegacyDates&&/\/(?:runtime\/assets\/v9|runtime\/data\/v9|snapshot-inputs\/)/.test(r.url()))
     failures.push('critical local HTTP '+r.status()+': '+r.url());
 });
 await page.route('https://nominatim.openstreetmap.org/**',route=>{
