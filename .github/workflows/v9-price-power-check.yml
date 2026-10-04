@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - fix/v9-price-per-power-2026-10-04
+      - fix/v9-tariff-visibility-currency-2026-10-04
     paths:
       - .github/workflows/v9-price-power-check.yml
       - v9-production-shell/bridge.js
