@@ -15,6 +15,7 @@ def main():
     snap=pathlib.Path(sys.argv[2])/"runtime"
     allow_tesla_override="--allow-tesla-override" in sys.argv[3:]
     allow_nl_override="--allow-nl-override" in sys.argv[3:]
+    allow_pricing_engine_override="--allow-pricing-engine-override" in sys.argv[3:]
     critical=[
       "data/tesla_stations.json",
       "data/v9/spain-static/manifest.json",
@@ -30,6 +31,10 @@ def main():
       "assets/v9/browser-loaders.js",
       "assets/v9/browser-routing.js"
     ]
+    if allow_pricing_engine_override:
+        critical=[rel for rel in critical if rel!="assets/v9/pricing-engine.js"]
+        pricing=snap/"assets/v9/pricing-engine.js"
+        assert pricing.exists() and pricing.stat().st_size>0, "production pricing engine override missing/empty"
     if allow_tesla_override:
         critical=[rel for rel in critical if rel!="data/tesla_stations.json"]
         tesla=snap/"data/tesla_stations.json"
@@ -69,7 +74,7 @@ def main():
     for rel in required:
         assert (root/rel).exists(), f"overlay missing: {rel}"
 
-    print(f"PARITY PASS critical_files={checked} overlays={len(required)} tesla_override={allow_tesla_override} nl_override={allow_nl_override}")
+    print(f"PARITY PASS critical_files={checked} overlays={len(required)} tesla_override={allow_tesla_override} nl_override={allow_nl_override} pricing_engine_override={allow_pricing_engine_override}")
 
 if __name__=="__main__":
     main()

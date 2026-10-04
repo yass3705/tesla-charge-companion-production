@@ -53,6 +53,20 @@
     }
     return rules;
   }
+  function offerRulesFromPlatformOffers(offers,source={}){
+    const allowedProviders=new Set((source.providers||source.providerKinds||[]).map(normProvider).filter(Boolean));
+    return(offers||[]).filter(offer=>{
+      const provider=providerKind(offer?.provider),evseIds=uniq(offer?.evseIds||[]);
+      return provider&&(!allowedProviders.size||allowedProviders.has(provider)||allowedProviders.has(normProvider(offer?.provider)))
+        &&offer?.metadata?.verified===true&&offer?.metadata?.identityMode==='exact_national_irve_evse'
+        &&evseIds.length>0&&offer?.pricing&&typeof offer.pricing==='object';
+    }).map(offer=>({
+      id:text(offer.id),provider:providerKind(offer.provider)==='electra'?'Electra':'Electroverse',offerKind:'roaming',
+      subscriptionId:null,countries:uniq(offer.countries||['FR']),currency:text(offer.currency||'EUR').toUpperCase(),
+      evseIds:uniq(offer.evseIds),connectorKinds:[],pricing:clone(offer.pricing),priority:Number(offer.priority)||Number(source?.priority?.tariff)||80,
+      metadata:{...(clone(offer.metadata)||{}),platformOfferId:text(offer.id),source:'electra-platform-snapshot'}
+    }));
+  }
   async function fetchJson(url,fetchImpl){
     const response=await fetchImpl(url,{cache:'no-cache'});if(!response.ok)throw new Error(`France eMSP resource unavailable (${response.status})`);
     if(!/\.gz(?:$|\?)/i.test(url))return response.json();
@@ -74,9 +88,10 @@
     return async function(query={}){
       manifestPromise=manifestPromise||load(manifest);const m=await manifestPromise;
       const tiles=(m.tiles||[]).filter(tile=>intersects(tile,query));if(!tiles.length)return{offerRules:[],metadata:{adapter:'france-emsp-compact',tiles:0}};
-      const payloads=await Promise.all(tiles.map(tile=>load(`${root}${tile.file}`))),rows=payloads.flatMap(x=>Array.isArray(x)?x:(x?.rows||x?.stations||[]));
-      return{offerRules:offerRulesFromRows(rows,source||{}),metadata:{adapter:'france-emsp-compact',dataset:m.dataset||'france-non-tesla-runtime',generatedAt:m.generatedAt||null,tiles:tiles.length,rows:rows.length,providers:(source?.providers||source?.providerKinds||[]),mode:'exact-irve-pdc-only'}};
+      const payloads=await Promise.all(tiles.map(tile=>load(`${root}${tile.file}`))),rows=payloads.flatMap(x=>Array.isArray(x)?x:(x?.rows||x?.stations||[])),platformOffers=payloads.flatMap(x=>Array.isArray(x?.emspOffers)?x.emspOffers:[]);
+      const offerRules=[...offerRulesFromRows(rows,source||{}),...offerRulesFromPlatformOffers(platformOffers,source||{})];
+      return{offerRules,metadata:{adapter:'france-emsp-compact',dataset:m.dataset||'france-non-tesla-runtime',generatedAt:m.generatedAt||null,tiles:tiles.length,rows:rows.length,platformOffers:platformOffers.length,offerRules:offerRules.length,providers:(source?.providers||source?.providerKinds||[]),mode:'exact-irve-evse-only'}};
     };
   }
-  return{providerFromLabel,providerKind,pricingFromRows,pricingSignature,rowCandidates,offerRulesFromRows,intersects,createLoader};
+  return{providerFromLabel,providerKind,pricingFromRows,pricingSignature,rowCandidates,offerRulesFromRows,offerRulesFromPlatformOffers,intersects,createLoader};
 });

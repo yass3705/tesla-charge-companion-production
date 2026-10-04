@@ -75,6 +75,19 @@ def build_registry(path):
       "policy":"France national station/EVSE identities are the sole attachment hub. Electra offers attach independently by exact national IRVE EVSE ID; no Electroverse dependency and no proximity inference."
     })
     upsert(sources,{
+      "id":"france-electra-direct-exact",
+      "label":"France Electra exact direct station tariffs",
+      "adapter":"direct-offer-json",
+      "path":"../snapshot-inputs/FR/direct/electra_exact_direct_offers.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":135},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Exact national IRVE station identity only. Only fully supported ENERGY tariff components are published; congestion-time tariffs remain fail-closed."
+    })
+    upsert(sources,{
       "id":"france-electroverse-r8",
       "label":"France pinned Electroverse exact station tariffs",
       "adapter":"direct-offer-json",
@@ -173,9 +186,20 @@ def build_registry(path):
             src["refresh"]="immutable-production-snapshot"
             src["policy"]="Use the pinned r8 Atlante France exact-EVSE direct snapshot; unmatched EVSEs remain fail-closed."
 
+    # Tesla is a dedicated catalogue in TCC V9. National physical baselines
+    # must not reintroduce Tesla rows even when the upstream national snapshot
+    # contains them. Keep this explicit per source so the rule is auditable.
+    national_baseline_ids={
+      "france-national","netherlands-dotnl","spain-reve","italy-pun",
+      "switzerland-national","germany-production-snapshot","uk-production-open-feeds"
+    }
+    for src in sources:
+        if src.get("id") in national_baseline_ids:
+            src["excludeOperatorIds"]=["tesla"]
+
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-electra-direct-exact","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }

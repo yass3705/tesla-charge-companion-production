@@ -1,0 +1,83 @@
+name: V9 power-specific price regression
+on:
+  push:
+    branches:
+      - fix/v9-price-per-power-2026-10-04
+      - fix/v9-tariff-visibility-currency-2026-10-04
+      - fix/v9-pricing-subscriptions-filter-2026-10-04
+    paths:
+      - .github/workflows/v9-price-power-check.yml
+      - v9-production-shell/bridge.js
+      - runtime-overrides/assets/v9/adapters/france-emsp-compact.js
+      - runtime-overrides/assets/v9/pricing-engine.js
+      - tests/v9-price-per-power.test.mjs
+      - tests/runtime-integration.test.mjs
+      - tests/runtime-e2e-smoke.mjs
+      - scripts/build_snapshot.py
+      - scripts/validate_stable_parity.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot-and-pricing-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout production source
+        uses: actions/checkout@v4
+        with:
+          path: production
+          persist-credentials: false
+
+      - name: Checkout pinned stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+
+      - name: Checkout pinned Data Lab snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: fece067bd58916d493a9479ff9db31bcc94bef6b
+          path: datalab
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Check syntax and price-by-power regression
+        run: |
+          set -euo pipefail
+          node --check production/v9-production-shell/bridge.js
+          node --check production/runtime-overrides/assets/v9/pricing-engine.js
+          node production/tests/v9-price-per-power.test.mjs
+          node production/tests/runtime-integration.test.mjs
+
+      - name: Build pinned V9 snapshot with production overrides
+        env:
+          SNAPSHOT_ID: 2026-09-30-r9-electra-fr
+          DATALAB_SHA: fece067bd58916d493a9479ff9db31bcc94bef6b
+        run: |
+          set -euo pipefail
+          test "$(git -C datalab rev-parse HEAD)" = "$DATALAB_SHA"
+          python production/scripts/build_refresh_candidate_config.py \
+            --base production/config/snapshots/2026-09-30-r9-electra-fr.json \
+            --datalab-sha "$DATALAB_SHA" \
+            --snapshot-id "$SNAPSHOT_ID" \
+            --out production/config/snapshots/explicit-candidate.json
+          python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
+          node --check production/runtime-overrides/assets/v9/adapters/france-emsp-compact.js
+          python production/scripts/validate_electra_platform_overlay.py datalab
+          python production/scripts/build_snapshot.py \
+            --stable stable \
+            --datalab datalab \
+            --config production/config/snapshots/explicit-candidate.json \
+            --out dist/v9-explicit-candidate
+          python production/scripts/validate_built_snapshot.py dist/v9-explicit-candidate "$SNAPSHOT_ID"
+          python production/scripts/validate_stable_parity.py stable dist/v9-explicit-candidate --allow-pricing-engine-override
+          python production/scripts/validate_browser_asset_graph.py dist/v9-explicit-candidate
+          python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate "$SNAPSHOT_ID"
+          node production/tests/runtime-e2e-smoke.mjs dist/v9-explicit-candidate

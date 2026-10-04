@@ -29,35 +29,51 @@ try{
   await page.waitForFunction(()=>document.getElementById('stations')?.classList.contains('active'));
   await page.locator('nav button[data-tab="compare"]').click();
   await page.waitForFunction(()=>document.getElementById('compare')?.classList.contains('active'));
+  const openFilterGroupFor=async id=>{
+    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
+    if(await group.locator('summary').count())await group.locator('summary').click();
+  };
+  await openFilterGroupFor('simNow');
+  await openFilterGroupFor('simOperatorFilter');
+  await openFilterGroupFor('simPowerType');
+  await openFilterGroupFor('simMaxDistance');
   await page.locator('#simNow').fill('25');
   await page.locator('#simTarget').fill('80');
   await page.locator('#simMaxDistance').fill('10');
-  await page.locator('#simOperatorFilter').selectOption('all');
+  await page.locator('#simOperatorFilter').selectOption(['all']);
+  await page.locator('#simPowerType').selectOption(['AC']);
   const inputs=await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window));
   assert.equal(inputs.startSoc,25);
   assert.equal(inputs.targetSoc,80);
   assert.equal(inputs.radiusKm,10);
   assert.equal(inputs.operatorMode,'all');
-  // Simulate the actual selector and change event without contacting external
-  // geocoding/routing services: compare is temporarily stubbed only for UI test.
-  const selector=await page.evaluate(()=>{
+  assert.deepEqual(inputs.connectorKinds,['AC']);
+  assert.equal(await page.locator('#v9UseCurrentPosition').count(),1);
+  const uiContracts=await page.evaluate(()=>{
+    const shell=window.TCCV9ProductionShell;
     const original=window.compare;
     let calls=0;
     window.compare=()=>{calls++;};
     try{
-      window.TCCV9ProductionShell.renderSubscriptionSelector(window,[
+      shell.renderSubscriptionSelector(window,[
         {id:'preview-subscription',provider:'Test verified subscription',countries:['FR']}
       ],'FR');
-      const input=document.querySelector('#v9SubscriptionChoices input[data-v9-subscription-id="preview-subscription"]');
-      if(!input)throw new Error('Subscription UI missing');
-      input.click();
-      const selected=window.TCCV9ProductionShell.selectedSubscriptions(window);
-      const result={selected,checked:input.checked,calls};
-      input.click(); // return to clean default state
-      return result;
+      const select=document.querySelector('#v9SubscriptionChoices');
+      if(!select)throw new Error('Subscription UI missing');
+      select.options[0].selected=true;
+      select.dispatchEvent(new Event('change',{bubbles:true}));
+      const selected=shell.selectedSubscriptions(window);
+      const powerRows=shell.powerLines({station:{evses:[{id:'a',connectors:[{powerKw:11,kind:'AC'},{powerKw:150,kind:'DC'},{powerKw:150,kind:'DC'}]}]}});
+      const summary=document.createElement('section');summary.id='results';document.body.appendChild(summary);
+      window.TCCV9MapPriceEngine={summarizeZones:()=>[],formatPricePerKm:()=>'-'};
+      shell.renderMapSummary(window,{},{});
+      return{selected,calls,powerRows,hasViewButtons:!!document.querySelector('.v9-view-map')};
     }finally{window.compare=original;}
   });
-  assert.ok(selector.selected.includes('preview-subscription')&&selector.checked&&selector.calls===1,selector);
+  assert.ok(uiContracts.selected.includes('preview-subscription')&&uiContracts.calls===1,uiContracts);
+  assert.deepEqual(uiContracts.powerRows.map(row=>[row.kind,row.powerKw,row.count]),[['AC',11,1],['DC',150,2]]);
+  assert.ok(uiContracts.hasViewButtons);
+  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.combineDateTime('2026-10-03','24:00')), '2026-10-04T00:00:00.000Z');
   assert.deepEqual(severe,[]);
   console.log(JSON.stringify({ok:true,realBrowser:true,shell,interactiveTabs:true,changedInputs:inputs,subscriptionEventVerified:true,pageErrors:severe,noncriticalHttp}));
 }finally{

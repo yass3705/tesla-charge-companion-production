@@ -140,6 +140,8 @@ def main():
     if fallback_old not in shell_text:
         raise AssertionError("stable shell fallback marker missing")
     shell_text=shell_text.replace(fallback_old,"const CONTROL_FALLBACK='../control/index.html';",1)
+    shell_text=shell_text.replace("bridge.src='v9-production-shell/bridge.js';","bridge.src='v9-production-shell/bridge.js?v=v9-ui-20261004-price-per-power';",1)
+    shell_text=shell_text.replace("'assets/v9/adapters/tesla-json.js'","'assets/v9/adapters/tesla-json.js?v=v9-tesla-pricing-20261003d'",1)
     dependency_anchor="'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'"
     if dependency_anchor not in shell_text:
         raise AssertionError("stable shell runtime dependency anchor missing")
@@ -328,6 +330,20 @@ def main():
         if "france-electra-platform" not in local:
             local.append("france-electra-platform")
         write_json(registry,reg)
+
+    # Electra exact direct tariffs: the national snapshot remains the
+    # identity hub, while only station-level tariffs with fully supported
+    # ENERGY components are published. Unsupported congestion components stay
+    # fail-closed rather than being approximated.
+    electra_exact=dl/"data/operator_direct/electra_exact_france.json"
+    if electra_exact.exists():
+        copy_file(electra_exact,fr_direct/"electra_exact_france.json")
+        subprocess.run([
+          sys.executable,
+          str(production_root/"scripts/build_electra_direct_offers.py"),
+          str(electra_exact),
+          str(fr_direct/"electra_exact_direct_offers.json")
+        ],check=True)
 
     # Italy validated direct overlays beside the compiled static baseline.
     it_dst=overlays/"IT/direct"
