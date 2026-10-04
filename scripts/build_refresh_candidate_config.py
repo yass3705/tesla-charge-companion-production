@@ -3,7 +3,7 @@ import argparse, json, pathlib
 
 def main():
     ap=argparse.ArgumentParser()
-    ap.add_argument("--base", default="config/snapshots/2026-09-30-r9-electra-fr.json")
+    ap.add_argument("--base", default="config/snapshots/2026-10-04-r11-global-no-nl.json")
     ap.add_argument("--datalab-sha", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--snapshot-id", default=None)
