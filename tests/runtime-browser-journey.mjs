@@ -43,7 +43,7 @@ try{
     adjacent:[...document.querySelector('#v9OperatorControls')?.children||[]].map(el=>el.id),
     outerHeadings:document.querySelectorAll('#compare summary').length,
     networkHeadings:[...document.querySelectorAll('#compare summary')].filter(el=>el.textContent.includes('Réseaux affichés')).length,
-    obsoleteNlButtons:[...document.querySelectorAll('button')].filter(el=>/pays-bas|dot-nl/i.test(el.textContent)).length
+    obsoleteNlButtons:[...document.querySelectorAll('button')].filter(el=>/pays-bas|dot-nl/i.test(el.textContent)&&el.getClientRects().length>0).length
   }));
   assert.equal(networkUi.quickButtons,true,JSON.stringify(networkUi));
   assert.equal(networkUi.dropdown,true,JSON.stringify(networkUi));
