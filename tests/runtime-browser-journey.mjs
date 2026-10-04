@@ -62,14 +62,10 @@ try{
   });
   await page.waitForFunction(()=>document.querySelector('#compare')?.classList.contains('active'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
-  const openFilterGroupFor=async id=>{
-    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
-    await group.locator('summary').first().click();
-  };
-  await openFilterGroupFor('simOperatorFilter');
-  await openFilterGroupFor('simMaxDistance');
+  await page.evaluate(()=>{
+    document.querySelectorAll('details.v9-filter-group').forEach(group=>{group.open=true;});
+  });
   await page.locator('#simMaxDistance').fill('100');
-  await openFilterGroupFor('simNow');
   await page.locator('#simNow').fill('20');
   await page.locator('#simTarget').fill('80');
   assert.equal(await page.locator('#simOrigin').inputValue(),'47.61764, 9.2688');
