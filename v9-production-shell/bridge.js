@@ -445,7 +445,7 @@
     if(d.getElementById('v9MobileLayoutStyle'))return;
     const style=d.createElement('style');
     style.id='v9MobileLayoutStyle';
-    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9OperatorDropdown{min-width:200px}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}.v9-select-dropdown{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown select{max-height:230px;overflow:auto}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}';
+    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9OperatorDropdown{min-width:200px}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}#v9OperatorControls select{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown select{max-height:230px;overflow:auto}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}';
     d.head.appendChild(style);
   }
 
@@ -526,14 +526,15 @@
     if(!select)return;
     const field=select.closest('.full')||select.parentElement;
     field?.querySelector(':scope > label')?.remove();
-    select.multiple=true;select.dataset.v9Multi='true';
-    select.setAttribute('aria-label','Opérateurs, sélection multiple');
-    if(!select.options.length){
-      select.innerHTML='<option value="tesla">Tesla</option><option value="all">Tous les réseaux</option>';
-      select.options[1].selected=true;
+    select.multiple=false;select.dataset.v9Multi='false';
+    select.setAttribute('aria-label','Opérateur à afficher');
+    if(![...select.options].some(option=>option.value==='tesla')){
+      const option=w.document.createElement('option');option.value='tesla';option.textContent='Tesla';select.prepend(option);
     }
-    const dropdown=w.document.getElementById('v9OperatorDropdown')||
-      mountCheckboxDropdown(w,select,'v9OperatorDropdown',{title:'Opérateurs',allValue:'all'});
+    if(![...select.options].some(option=>option.value==='all')){
+      const option=w.document.createElement('option');option.value='all';option.textContent='Tous les réseaux';select.append(option);
+    }
+    if(!select.value)select.value='all';
     let controls=w.document.getElementById('v9OperatorControls');
     if(!controls){
       controls=w.document.createElement('div');controls.id='v9OperatorControls';
@@ -548,28 +549,26 @@
       }
       return button;
     };
-    const choose=value=>{
-      [...select.options].forEach(option=>{option.selected=option.value===value;});
-      if(![...select.options].some(option=>option.selected)){
-        const option=[...select.options].find(item=>item.value===value);
-        if(option)option.selected=true;
-      }
-      select.dispatchEvent(new w.Event('change',{bubbles:true}));
+    const active=w.document.getElementById('v9ActiveNetworkFilter');
+    const updateSummary=()=>{
+      const option=select.options[select.selectedIndex];
+      if(active)active.textContent=option?.textContent||'Tous les réseaux';
     };
+    const choose=value=>{select.value=value;select.dispatchEvent(new w.Event('change',{bubbles:true}));};
     const tesla=makeButton('v9TeslaOnly','Tesla uniquement','Afficher uniquement le réseau Tesla');
     const all=makeButton('v9AllNetworks','Tous les réseaux','Afficher tous les réseaux');
     if(!tesla.dataset.v9Bound){tesla.addEventListener('click',()=>choose('tesla'));tesla.dataset.v9Bound='true';}
     if(!all.dataset.v9Bound){all.addEventListener('click',()=>choose('all'));all.dataset.v9Bound='true';}
-    controls.append(tesla,all);
-    if(dropdown)controls.appendChild(dropdown);
+    if(!select.dataset.v9SummaryBound){select.addEventListener('change',updateSummary);select.dataset.v9SummaryBound='true';}
+    controls.append(tesla,all,select);
     if(controls.parentElement!==field)field?.insertBefore(controls,field.firstChild);
-    if(dropdown){dropdown.style.flex='1 1 220px';dropdown.style.minWidth='180px';dropdown.style.margin='0';}
+    select.style.cssText='flex:1 1 220px;min-width:180px;max-width:100%;margin:0';
+    updateSummary();
   }
 
   function refreshOperatorOptions(w,area){
-    const select=w.document.getElementById('simOperatorFilter');if(!select?.multiple)return;
-    const current=new Set([...select.selectedOptions].map(option=>option.value));
-    const currentLabels=new Map([...select.options].map(option=>[option.value,option.textContent]));
+    const select=w.document.getElementById('simOperatorFilter');if(!select)return;
+    const current=select.value||'all';
     const operators=new Map([['tesla','Tesla']]);
     for(const operator of area?.operators||[]){const id=text(operator?.id||'').toLowerCase(),label=text(operator?.name||'');if(id&&label&&id!=='tesla')operators.set(id,label);}
     for(const station of area?.stations||[]){
@@ -578,20 +577,21 @@
       const label=text(op.name||station.operatorName||'');
       if(id&&label&&id!=='tesla')operators.set(id,label);
     }
-    for(const [id,label] of currentLabels){if(id&&id!=='all'&&!operators.has(id))operators.set(id,label);}
-    const selected=current.size?current:new Set(['all']);
     select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('')+
-      '<option value="all" hidden>Tous les réseaux</option>';
-    [...select.options].forEach(option=>{option.selected=selected.has(option.value);});
-    // Le menu visible est un miroir personnalisé du select natif : après le
-    // rafraîchissement des opérateurs, il doit être redessiné immédiatement.
-    if(typeof select._v9Redraw==='function')select._v9Redraw();
+      '<option value="all">Tous les réseaux</option>';
+    select.value=[...select.options].some(option=>option.value===current)?current:'all';
+    select.dispatchEvent(new w.Event('change',{bubbles:true}));
   }
 
   function installPowerTypeFilter(w){
     const operator=w.document.getElementById('simOperatorFilter');if(!operator||w.document.getElementById('simPowerType'))return;
-    const host=w.document.createElement('div');host.className='full';host.innerHTML='<label for="simPowerType"><b>Type de recharge</b><select id="simPowerType" multiple size="2" aria-label="Type de recharge, sélection multiple" style="margin-top:6px;width:100%"><option value="AC">AC</option><option value="DC">DC</option></select><span class="small" style="display:block;margin-top:4px">Laisser vide pour AC et DC.</span><div style="margin-top:8px"><b>Plage de puissance (kW)</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><label class="small">Minimum<input id="simMinPowerKw" type="number" min="1" max="250" step="1" inputmode="numeric" placeholder="1" aria-label="Puissance minimale en kW" style="width:100%;margin-top:3px"></label><label class="small">Maximum<input id="simMaxPowerKw" type="number" min="1" max="250" step="1" inputmode="numeric" placeholder="250+" aria-label="Puissance maximale en kW" style="width:100%;margin-top:3px"></label></div><span class="small" style="display:block;margin-top:4px">Laisser les deux champs vides pour 1–250+ kW. Laisser le maximum vide pour inclure 250 kW et plus.</span></div></label>';
+    const host=w.document.createElement('div');host.className='full';
+    host.innerHTML='<div><b>Type de recharge</b><div class="row" role="group" aria-label="Type de recharge" style="display:flex;gap:8px;margin-top:6px"><button type="button" class="secondary v9-power-toggle" data-power="AC" aria-pressed="false">AC</button><button type="button" class="secondary v9-power-toggle" data-power="DC" aria-pressed="false">DC</button></div><select id="simPowerType" multiple aria-label="Type de recharge, sélection multiple" hidden><option value="AC">AC</option><option value="DC">DC</option></select><span class="small" style="display:block;margin-top:4px">Laisser les deux boutons désactivés pour inclure AC et DC.</span><div style="margin-top:8px"><b>Plage de puissance (kW)</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><label>Minimum<input id="simMinPowerKw" type="number" min="1" max="250" step="1" inputmode="numeric" placeholder="1" aria-label="Puissance minimale en kW" style="width:100%;margin-top:3px"></label><label>Maximum<input id="simMaxPowerKw" type="number" min="1" max="250" step="1" inputmode="numeric" placeholder="250+" aria-label="Puissance maximale en kW" style="width:100%;margin-top:3px"></label></div><span class="small" style="display:block;margin-top:4px">Laisser les deux champs vides pour 1–250+ kW. Laisser le maximum vide pour inclure 250 kW et plus.</span></div></div>';
     const parent=operator.closest('label')||operator.parentElement;parent?.parentElement?.insertBefore(host,parent.nextSibling);
+    const select=host.querySelector('#simPowerType'),buttons=[...host.querySelectorAll('.v9-power-toggle')];
+    const redraw=()=>buttons.forEach(button=>{const option=[...select.options].find(item=>item.value===button.dataset.power);const active=!!option?.selected;button.setAttribute('aria-pressed',String(active));button.classList.toggle('primary',active);});
+    buttons.forEach(button=>button.addEventListener('click',()=>{const option=[...select.options].find(item=>item.value===button.dataset.power);if(option)option.selected=!option.selected;select.dispatchEvent(new w.Event('change',{bubbles:true}));}));
+    select.addEventListener('change',redraw);redraw();
   }
 
   function installRankingOption(w){
@@ -606,8 +606,7 @@
     const origin=field('simOrigin');if(!origin)return;
     const groups=[
       {title:'Date et horaires',ids:['simDate','simTime','simUnplugTime']},
-      {title:'Batterie et objectif',ids:['simNow','simTarget','simCondition']},
-      {title:'Profil de calcul',ids:['simProfile']},
+      {title:'Batterie et objectif',ids:['simNow','simTarget','simCondition','simProfile']},
       {title:'Réseaux affichés',ids:['simOperatorFilter']},
       {title:'Type de recharge',ids:['simPowerType']},
       {title:'Distance maximale',ids:['simMaxDistance']},
@@ -617,10 +616,25 @@
     grid.innerHTML='';origin.classList.add('full');grid.appendChild(origin);
     for(const {group,nodes} of captured){
       const details=w.document.createElement('details');details.className='full box v9-filter-group';
-      const summary=w.document.createElement('summary');summary.textContent=group.title;
+      const summary=w.document.createElement('summary');
+      if(group.title==='Réseaux affichés'){
+        summary.append(w.document.createTextNode('Réseaux affichés — '));
+        const current=w.document.createElement('span');current.id='v9ActiveNetworkFilter';current.textContent='Tous les réseaux';summary.appendChild(current);
+      }else summary.textContent=group.title;
       details.appendChild(summary);
       const body=w.document.createElement('div');body.className='grid';body.style.marginTop='10px';
-      for(const node of nodes){body.appendChild(node);}
+      for(const node of nodes){
+        body.appendChild(node);
+        if(group.title==='Date et horaires'){
+          const input=node.querySelector('input');
+          if(input&&['simDate','simTime','simUnplugTime'].includes(input.id)){
+            node.style.width='100%';node.style.maxWidth='260px';node.style.boxSizing='border-box';
+            input.style.setProperty('width','100%','important');
+            input.style.setProperty('max-width','260px','important');
+            input.style.setProperty('box-sizing','border-box','important');
+          }
+        }
+      }
       details.appendChild(body);grid.appendChild(details);
     }
     grid.dataset.v9Progressive='true';
