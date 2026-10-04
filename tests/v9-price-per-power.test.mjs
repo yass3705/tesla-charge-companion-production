@@ -104,3 +104,25 @@ assert.equal(shell.formatCurrencyAmount(1234.5,'MAD'),'1 234,50 MAD');
 assert.equal(shell.formatCurrencyAmount(12.3,'EUR'),'12,30 €');
 
 console.log('V9 power-line prices and ranking: PASS');
+
+\n// A calculated total must not be contradicted by a missing base-rate label.\n{
+  const row={station:{name:'Lidl',evses:[{id:'ac',connectors:[{id:'c1',kind:'AC',powerKw:22}]}],offers:[]},
+    evaluation:{best:{total:13.07,offerId:'lidl-direct',provider:'Lidl Plus',kind:'cpo_direct'}}};
+  const html=shell.renderPowerLines(row);
+  assert.doesNotMatch(html,/Tarif de base non disponible/);
+  assert.match(html,/prix final calculé ci-dessous/);
+}\n
+// Subscription choices come from priced offers attached to stations in the queried area.\n{
+  const options=shell.subscriptionOptionsForArea({stations:[
+    {offers:[{id:'fastned-gold-fr',provider:'Fastned Gold',subscriptionId:'fastned-gold',countries:['FR']},
+      {id:'electra',provider:'Electra',kind:'emsp',subscriptionId:null}]},
+    {offers:[{id:'fastned-gold-fr-2',provider:'Fastned Gold',subscriptionId:'fastned-gold',countries:['FR']}]}
+  ]},'FR');
+  assert.equal(options.length,1);
+  assert.equal(options[0].id,'fastned-gold');
+  assert.equal(options[0].label,'Fastned Gold');
+}\n
+// Operator and connector selections are passed to the area query intact.\n{
+  assert.deepEqual(shell.areaFiltersFromInputs({operatorIds:['lidl'],connectorKinds:['DC']}),{operatorIds:['lidl'],connectorKinds:['DC']});
+  assert.deepEqual(shell.areaFiltersFromInputs({operatorIds:[],connectorKinds:[]}),{});
+}\n
