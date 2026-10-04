@@ -89,6 +89,8 @@ jobs:
           exit 1
 
       - name: Mocked geocoding and routing browser journey
+        env:
+          V9_REQUIRE_BASE_DATES: "1"
         run: node production/tests/runtime-browser-journey.mjs
 
       - name: Verify candidate manifest hashes
