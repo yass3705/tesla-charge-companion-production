@@ -140,3 +140,37 @@ console.log('V9 power-line prices and ranking: PASS');
       result:{matchedRule:{scope:'allDay',pricePerKwh:0.29}}}}};
   assert.match(shell.renderPowerLines(row),/0,29 EUR\/kWh · Lidl Plus/);
 }
+
+
+// The frozen France platform tile uses emspOffers, not legacy rows/stations.
+// Exact verified EVSE offers must survive loading as roaming prices, without
+// being misrepresented as subscription plans.
+{
+  const adapter=require('../runtime-overrides/assets/v9/adapters/france-emsp-compact.js');
+  const dataEngine=require('../runtime-overrides/assets/v9/data-engine.js');
+  const tile={schemaVersion:1,country:'FR',emspOffers:[{
+    id:'electra-platform:bois-darcy',provider:'Electra',countries:['FR'],currency:'EUR',priority:82,
+    evseIds:['FR*FR1*ELECTRA*1'],
+    pricing:{type:'rules',rules:[{scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',pricePerKwh:0.42}]},
+    metadata:{verified:true,identityMode:'exact_national_irve_evse',cpo:'Electra'}
+  }]};
+  const manifest={dataset:'electra-france-platform-snapshot',tiles:[{file:'t.json',minLat:48,maxLat:49,minLon:1,maxLon:3}]};
+  const loader=adapter.createLoader({
+    base:'https://snapshot.test/electra',
+    source:{providers:['Electra'],priority:{tariff:82}},
+    fetchImpl:async url=>({ok:true,json:async()=>url.endsWith('manifest.json')?manifest:tile})
+  });
+  const loaded=await loader({countryCode:'FR',origin:{lat:48.8,lon:2},radiusKm:10});
+  assert.equal(loaded.offerRules.length,1);
+  assert.equal(loaded.offerRules[0].offerKind,'roaming');
+  assert.equal(loaded.offerRules[0].subscriptionId,null);
+  const station={id:'national-bois-darcy',countryCode:'FR',physicalOperator:{id:'electra',name:'Electra'},evses:[
+    {id:'FR*FR1*ELECTRA*1',connectors:[{id:'c1',kind:'DC',powerKw:100}]}
+  ],offers:[]};
+  const attached=dataEngine.applyOfferRules([station],loaded.offerRules.map(rule=>({rule,source:{id:'electra-platform',priority:{tariff:82}}})));
+  assert.equal(attached[0].offers.length,1);
+  assert.equal(attached[0].offers[0].pricing.rules[0].pricePerKwh,0.42);
+  assert.equal(attached[0].offers[0].subscriptionId,null);
+  const other={...station,id:'different',evses:[{id:'FR*FR1*OTHER*1',connectors:[{id:'c1',kind:'DC',powerKw:100}]}]};
+  assert.equal(dataEngine.applyOfferRules([other],loaded.offerRules.map(rule=>({rule,source:{id:'electra-platform'}})))[0].offers.length,0);
+}
