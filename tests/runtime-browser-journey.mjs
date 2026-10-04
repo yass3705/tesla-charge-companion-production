@@ -40,6 +40,7 @@ try{
   await page.evaluate(()=>document.querySelectorAll('details.v9-filter-group').forEach(group=>{group.open=true;}));
   const networkUi=await page.evaluate(()=>({
     quickButtons:['#v9TeslaOnly','#v9AllNetworks'].every(selector=>!!document.querySelector(selector)),
+    bridgeCacheKey:[...document.scripts].map(script=>script.src).find(src=>/v9-production-shell\/bridge\.js/.test(src))?.match(/v9-ui-([a-f0-9]{16})/)?.[1]||null,
     operatorSelect:!!document.querySelector('#v9OperatorControls > #simOperatorFilter')&&!document.querySelector('#v9OperatorDropdown'),
     operatorIsSingleSelect:document.querySelector('#simOperatorFilter')?.multiple===false,
     operatorChoices:[...document.querySelector('#simOperatorFilter')?.options||[]].map(option=>option.textContent.trim()),
@@ -53,6 +54,7 @@ try{
     obsoleteNlButtons:[...document.querySelectorAll('button')].filter(el=>/pays-bas|dot-nl/i.test(el.textContent)&&el.getClientRects().length>0).length
   }));
   assert.equal(networkUi.quickButtons,true,JSON.stringify(networkUi));
+  assert.ok(networkUi.bridgeCacheKey,JSON.stringify(networkUi));
   assert.equal(networkUi.operatorSelect,true,JSON.stringify(networkUi));
   assert.equal(networkUi.operatorIsSingleSelect,true,JSON.stringify(networkUi));
   assert.equal(networkUi.operatorChoices.includes('Tous les réseaux'),false,JSON.stringify(networkUi));
