@@ -132,3 +132,11 @@ console.log('V9 power-line prices and ranking: PASS');
   assert.deepEqual(shell.areaFiltersFromInputs({operatorIds:['lidl'],connectorKinds:['DC']}),{operatorIds:['lidl'],connectorKinds:['DC']});
   assert.deepEqual(shell.areaFiltersFromInputs({operatorIds:[],connectorKinds:[]}),{});
 }
+
+// A calculated direct offer exposes the unit rate beside its matching power.
+{
+  const row={station:{name:'Lidl',evses:[{id:'ac',connectors:[{id:'c1',kind:'AC',powerKw:22}]}],offers:[]},
+    evaluation:{best:{total:13.07,offerId:'lidl-direct',provider:'Lidl Plus',kind:'cpo_direct',currency:'EUR',
+      result:{matchedRule:{scope:'allDay',pricePerKwh:0.29}}}}};
+  assert.match(shell.renderPowerLines(row),/0,29 EUR\/kWh · Lidl Plus/);
+}
