@@ -45,10 +45,11 @@ def main():
         if not pan_ids or entry.get("status")!=200:
             continue
         for tariff in (entry.get("location") or {}).get("chargeTariffs") or []:
-            rules=[rule_from_element(e) for e in tariff.get("elements") or []]
-            rules=[r for r in rules if r]
             elements=tariff.get("elements") or []
-            if not rules or len(rules)!=len(elements):
+            rules=[rule_from_element(e) for e in elements]
+            energy_rules=[r for r in rules if r]
+            unsupported_types=sorted({str(component.get("type") or "").upper() for element in elements for component in (element.get("priceComponents") or []) if str(component.get("type") or "").upper()!="ENERGY"})
+            if not energy_rules:
                 skipped+=1
                 continue
             for pan_id in pan_ids:
@@ -61,7 +62,7 @@ def main():
                     "countries":["FR"],
                     "currency":str(tariff.get("currency") or "EUR").upper(),
                     "stationIds":[pan_id,f"national:FR:{pan_id}",f"irve-station:{pan_id}"],
-                    "pricing":{"type":"rules","rules":rules},
+                    "pricing":{"type":"rules","rules":energy_rules},
                     "priority":135,
                     "metadata":{
                         "verified":True,
@@ -69,7 +70,9 @@ def main():
                         "source":"Electra exact France snapshot",
                         "publicLocationId":public_id,
                         "panStationId":pan_id,
-                        "stationName":station.get("name")
+                        "stationName":station.get("name"),
+                        "incompletePricingReason":("unsupported_components:" + ",".join(unsupported_types)) if unsupported_types else None,
+                        "excludedComponents":unsupported_types
                     }
                 })
     output.parent.mkdir(parents=True,exist_ok=True)
@@ -79,7 +82,7 @@ def main():
         "generatedAt":payload.get("generatedAt"),
         "country":"FR",
         "offers":offers,
-        "stats":{"offers":len(offers),"skippedUnsupportedTariffs":skipped}
+        "stats":{"offers":len(offers),"skippedUnsupportedTariffs":skipped,"offersWithUnsupportedComponents":sum(1 for offer in offers if offer.get("metadata",{}).get("incompletePricingReason"))}
     },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({"offers":len(offers),"skippedUnsupportedTariffs":skipped}))
 
