@@ -21,6 +21,8 @@ const switzerlandAvia=require(path.join(runtime,'assets/v9/adapters/switzerland-
 const italyIonityExact=require(path.join(runtime,'assets/v9/adapters/italy-ionity-exact.js'));
 const franceIonityExact=require(path.join(runtime,'assets/v9/adapters/france-ionity-exact.js'));
 const atlanteItalyExact=require(path.join(runtime,'assets/v9/adapters/atlante-italy-exact.js'));
+const netherlandsDotnl=require(path.join(runtime,'assets/v9/adapters/netherlands-dotnl.js'));
+const belgiumNap=require(path.join(runtime,'assets/v9/adapters/belgium-nap.js'));
 const extension=require(path.join(runtime,'assets/v9/production-loader-extension.js'));
 
 function fileFetch(baseRoot){
@@ -39,18 +41,18 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','netherlands-dotnl-national','belgium-nap-national','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact,netherlandsDotnl,belgiumNap}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
   registry:subRegistry,
   basePath:pathToFileURL(runtime+path.sep).href,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations},
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,netherlandsDotnl,belgiumNap},
   fetchImpl:fileFetch(runtime)
 });
 
@@ -59,6 +61,8 @@ assert.equal(typeof loaders['uk-production-open-feeds'],'function');
 assert.equal(typeof loaders['morocco-evgo-native'],'function');
 assert.equal(typeof loaders['morocco-kilowatt-public'],'function');
 assert.equal(typeof loaders['france-national'],'function');
+assert.equal(typeof loaders['netherlands-dotnl-national'],'function');
+assert.equal(typeof loaders['belgium-nap-national'],'function');
 if(process.env.REQUIRE_ELECTRA_PLATFORM==='1') assert.equal(typeof loaders['france-electra-platform'],'function');
 assert.equal(typeof loaders['italy-pun'],'function');
 assert.equal(typeof loaders['switzerland-national'],'function');
@@ -68,6 +72,17 @@ assert.equal(typeof loaders['france-ionity-r8'],'function');
 assert.equal(typeof loaders['italy-atlante-r8'],'function');
 
 const engine=dataEngine.createEngine({registry:subRegistry,loaders});
+
+// Exercise both national runtime adapters against the exact snapshot files.
+const nlRows=await loaders['netherlands-dotnl-national']({origin:{lat:52.3676,lon:4.9041},radiusKm:20});
+assert.ok(nlRows.length>0,'NL DOT-NL source returned no stations near Amsterdam');
+assert.ok(nlRows.every(s=>s.countryCode==='NL'&&!/tesla/i.test(s.physicalOperator?.name||'')),'NL source included an invalid country/operator row');
+assert.ok(nlRows.some(s=>(s.offers||[]).length>0),'NL snapshot returned no direct priced station in smoke area');
+const beRows=await loaders['belgium-nap-national']({origin:{lat:51.2194,lon:4.4025},radiusKm:20});
+assert.ok(beRows.length>0,'BE NAP source returned no stations near Antwerp');
+assert.ok(beRows.every(s=>s.countryCode==='BE'),'BE source included an invalid country row');
+assert.ok(beRows.some(s=>(s.evses||[]).length>0),'BE NAP source returned no EVSEs in smoke area');
+assert.ok(beRows.some(s=>(s.offers||[]).length>0),'BE snapshot returned no directly priced station in smoke area');
 
 // TESLA is a required local source: never silently replace it with a remote or empty feed.
 const teslaPath=path.join(runtime,'data/tesla_stations.json');
