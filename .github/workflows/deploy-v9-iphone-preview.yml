@@ -40,20 +40,20 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: 7f5a4f69da8fb75e8fcf3d20dc413ff54e36c595
+          ref: 3534f7312cdcfd5ec2d9fadbf8b1ce1be1d1c66a
           path: datalab
           fetch-depth: 1
           persist-credentials: false
 
       - name: Build immutable preview candidate
         env:
-          SNAPSHOT_ID: 2026-10-04-r12-full-national
-          DATALAB_SHA: 7f5a4f69da8fb75e8fcf3d20dc413ff54e36c595
+          SNAPSHOT_ID: 2026-10-05-r13-full-national
+          DATALAB_SHA: 3534f7312cdcfd5ec2d9fadbf8b1ce1be1d1c66a
         run: |
           set -euo pipefail
           test "$(git -C datalab rev-parse HEAD)" = "$DATALAB_SHA"
           python production/scripts/build_refresh_candidate_config.py \
-            --base production/config/snapshots/2026-10-04-r12-full-national.json \
+            --base production/config/snapshots/2026-10-05-r13-full-national.json \
             --datalab-sha "$DATALAB_SHA" \
             --snapshot-id "$SNAPSHOT_ID" \
             --out production/config/snapshots/explicit-candidate.json
