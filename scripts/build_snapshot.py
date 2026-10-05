@@ -345,6 +345,19 @@ def main():
     if int(evse_stats.get("publishedOffers") or 0)<5000:
         raise SystemExit("Pinned Electroverse EVSE overlay has incomplete tariff coverage")
     copy_tree(evse_overlay,overlays/"FR/platforms/electroverse")
+    # Preserve the complete Electroverse source cache and mapping inputs. The
+    # compiled EVSE tariff tiles are an enrichment; they must never become the
+    # only representation of the overlay.
+    ev_source=dl/"data/electroverse/tariff_cache"
+    ev_mapping=dl/"data/electroverse/irve_location_mapping.json"
+    if ev_source.exists(): copy_tree(ev_source,overlays/"FR/platforms/electroverse-source/tariff_cache")
+    if ev_mapping.exists(): copy_file(ev_mapping,overlays/"FR/platforms/electroverse-source/irve_location_mapping.json")
+    write_json(overlays/"FR/platforms/electroverse-source/README.json",{
+      "dataset":"Electroverse France complete source overlay",
+      "policy":"Source rows are conserved; compiled tariff tiles are a LEFT JOIN enrichment only.",
+      "cacheManifest":"tariff_cache/manifest.json",
+      "mapping":"irve_location_mapping.json"
+    })
     reg=load_json(registry)
     for src in reg.get("sources",[]):
         if src.get("id")=="france-electroverse-r8":
@@ -379,6 +392,13 @@ def main():
         assert em.get("policy",{}).get("electroverseDependency") is False
         assert int((em.get("stats") or {}).get("publishedOffers") or 0) > 0
         copy_tree(electra_platform,overlays/"FR/platforms/electra")
+        if (electra_platform/"source-locations.json.gz").exists():
+            copy_file(electra_platform/"source-locations.json.gz",overlays/"FR/platforms/electra/source-locations.json.gz")
+        write_json(overlays/"FR/platforms/electra/source-policy.json",{
+          "dataset":"Electra France complete source overlay",
+          "policy":"All compatible source locations and EVSEs are retained; compiled tiles are LEFT JOIN tariff enrichments.",
+          "sourceArchive":"source-locations.json.gz"
+        })
         reg=load_json(registry)
         for src in reg.get("sources",[]):
             if src.get("id")=="france-electra-platform":
