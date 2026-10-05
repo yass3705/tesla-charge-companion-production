@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "2026-10-05-r13-full-national",
+  "snapshotId": "2026-10-06-r14-complete-left-join",
   "policy": "fail-closed",
   "sources": {
     "dataLab": {
       "repo": "yass3705/tesla-charge-companion-data-lab",
-      "sha": "3534f7312cdcfd5ec2d9fadbf8b1ce1be1d1c66a"
+      "sha": "75d27342aed17f783c6a28a5c8b1b58a8a4bcc3d"
     },
     "stable": {
       "repo": "yass3705/tesla-charge-companion-stable",
