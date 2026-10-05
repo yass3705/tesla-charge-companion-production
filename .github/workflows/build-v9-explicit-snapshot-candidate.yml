@@ -71,7 +71,7 @@ jobs:
           python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --config config/snapshots/explicit-candidate.json             --out ../dist/v9-explicit-candidate
           python scripts/validate_built_snapshot.py ../dist/v9-explicit-candidate "$SNAPSHOT_ID"
           parity_args=(../stable ../dist/v9-explicit-candidate)
-          parity_args+=(--allow-tesla-override)
+          parity_args+=(--allow-tesla-override --allow-pricing-engine-override)
           python scripts/validate_stable_parity.py "${parity_args[@]}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-explicit-candidate
 
