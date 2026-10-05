@@ -77,7 +77,9 @@ try{
   const operatorProbe=await page.evaluate(()=>window.__operatorSelectionProbe);
   assert.equal(operatorProbe.operatorMode,'selected',JSON.stringify(operatorProbe));
   assert.deepEqual(operatorProbe.operatorIds,['tesla','coverage-fixture'],JSON.stringify(operatorProbe));
+  assert.match(await page.locator('#v9OperatorDropdown summary').innerText(),/Tesla, Réseau de test|Réseau de test, Tesla/);
   await page.locator('#v9AllNetworks').click();
+  assert.match(await page.locator('#v9OperatorDropdown summary').innerText(),/Tous les réseaux/);
   await page.locator('.v9-power-toggle[data-power="AC"]').click();
   assert.equal(await page.locator('.v9-power-toggle[data-power="AC"]').getAttribute('aria-pressed'),'true');
   await page.locator('.v9-power-toggle[data-power="DC"]').click();
