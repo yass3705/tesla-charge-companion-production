@@ -100,7 +100,7 @@
       if(minute!=null&&!ruleContains(rule,minute))continue;
       candidates.push({rule,status:ruleThresholdStatus(rule,session,timeZone)});
     }
-    const specificity=rule=>Number(rule?.scope!=='allDay')+Number((rule?.daysOfWeek??rule?.days||[]).length>0)+Number(rule?.holidayOnly===true||rule?.excludeHolidays===true)+Number(rule?.validFromDate!=null||rule?.validThroughDate!=null)+Number(rule?.minDurationMinutes!=null||rule?.maxDurationMinutes!=null)+Number(rule?.minPowerKw!=null||rule?.maxPowerKw!=null);
+    const specificity=rule=>Number(rule?.scope!=='allDay')+Number((rule?.daysOfWeek??rule?.days??[]).length>0)+Number(rule?.holidayOnly===true||rule?.excludeHolidays===true)+Number(rule?.validFromDate!=null||rule?.validThroughDate!=null)+Number(rule?.minDurationMinutes!=null||rule?.maxDurationMinutes!=null)+Number(rule?.minPowerKw!=null||rule?.maxPowerKw!=null);
     candidates.sort((a,b)=>specificity(b.rule)-specificity(a.rule));
     const specificPriced=candidates.some(candidate=>candidate.rule?.scope!=='allDay'&&candidate.status!=='no_match'&&tariffRuleHasPositivePrice(candidate.rule));
     for(const candidate of candidates){
