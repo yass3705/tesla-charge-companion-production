@@ -534,7 +534,7 @@
       options.set(value,value==='tesla'?'Tesla':label);
     }
     if(!options.has('tesla'))options.set('tesla','Tesla');
-    select.multiple=false;select.dataset.v9Multi='false';
+    select.multiple=true;select.dataset.v9Multi='true';
     select.setAttribute('aria-label','Opérateur à afficher');
     select.innerHTML='<option value="">Choisir un opérateur</option>'+[...options.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
     const initialMode=previous==='all'||!previous?'all':previous==='tesla'?'tesla':'selected';
