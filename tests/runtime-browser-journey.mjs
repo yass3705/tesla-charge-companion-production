@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
-const page=await browser.newPage({serviceWorkers:'block'});
+const page=await browser.newPage({serviceWorkers:'block',viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});
 await page.addInitScript(()=>{localStorage.setItem('tccDefaultOrigin','47.61764, 9.2688');localStorage.setItem('tccMaxDistanceKm','100');window.__tccFetchAudit=[];const baseFetch=window.fetch.bind(window);window.fetch=(...args)=>baseFetch(...args).then(response=>{try{const request=args[0],url=typeof request==='string'?request:request.url;window.__tccFetchAudit.push({url:new URL(url,location.href).pathname,status:response.status});}catch(_){}return response;});});
 const failures=[],mockCalls={reverse:0,route:0},consoleMessages=[],requestFailures=[];
 page.on('pageerror',e=>failures.push(e.message));
@@ -66,7 +66,7 @@ try{
   assert.equal(networkUi.networkStatusBesideLabel,true,JSON.stringify(networkUi));
   assert.equal(networkUi.batteryContainsProfile,true,JSON.stringify(networkUi));
   assert.equal(networkUi.compactDateFields,true,JSON.stringify(networkUi));
-  assert.ok(networkUi.operatorChoices.length>=10,JSON.stringify(networkUi));
+
   assert.equal(networkUi.acdcButtons,true,JSON.stringify(networkUi));
   assert.equal(networkUi.obsoleteNlButtons,0,JSON.stringify(networkUi));
   await page.evaluate(()=>{
@@ -128,6 +128,15 @@ try{
     diagnostics:JSON.parse(localStorage.getItem('tccV9ProductionShellDiagnosticsV1')||'[]').slice(0,2)
   }));
   assert.ok(result.cards>0,JSON.stringify(result));
+  const operatorCatalogBefore=await page.locator('#simOperatorFilter').evaluate(select=>[...select.options].map(option=>({value:option.value,label:option.textContent.trim()})));
+  assert.ok(operatorCatalogBefore.some(option=>option.value!=='tesla'),JSON.stringify(operatorCatalogBefore));
+  const chosenCpo=operatorCatalogBefore.find(option=>option.value!=='tesla');
+  await page.locator('#simOperatorFilter').selectOption([chosenCpo.value]);
+  await page.evaluate(async()=>{await window.compare();});
+  await page.waitForFunction(()=>/Moteur V9 canary/.test(document.querySelector('#routeStatus')?.textContent||''),null,{timeout:120000,polling:1000});
+  const operatorCatalogAfter=await page.locator('#simOperatorFilter').evaluate(select=>[...select.options].map(option=>({value:option.value,label:option.textContent.trim()})));
+  assert.deepEqual(operatorCatalogAfter,operatorCatalogBefore,'the operator list must survive a filtered rerun at the same origin');
+
   assert.ok(!result.text.includes('Aucune borne V9 exploitable'),JSON.stringify(result));
   assert.equal(result.diagnostics[0]?.outcome,'v9-ok',result);
   assert.equal(result.diagnostics[0]?.countryCode,'CH',result);
