@@ -126,11 +126,14 @@ try{
       const area=await window.compare();
       const diagnostics=area?.diagnostics||{},source=diagnostics.sources?.['france-national']||null;
       window.__tccParisAreaDiagnostics={source,fragmentCount:diagnostics.fragmentCount,inRadiusCount:diagnostics.inRadiusCount,filteredCount:diagnostics.filteredCount,mergedStationCount:diagnostics.mergedStationCount,errors:diagnostics.errors||[]};
-      return{source,areaStations:area?.stations?.length||0,operators:area?.operators||[],inRadiusCount:diagnostics.inRadiusCount||0,filteredCount:diagnostics.filteredCount||0,errors:diagnostics.errors||[],status:document.querySelector('#routeStatus')?.innerText||'',visibleCards:document.querySelectorAll('#results .box').length,fetches:(window.__tccFetchAudit||[]).filter(item=>item.url.includes('/runtime/data/v9/france-static/'))};
+      return{source,areaStations:area?.stations?.length||0,operators:area?.operators||[],inRadiusCount:diagnostics.inRadiusCount||0,filteredCount:diagnostics.filteredCount||0,filters:area?.query?.filters||{},errors:diagnostics.errors||[],status:document.querySelector('#routeStatus')?.innerText||'',visibleCards:document.querySelectorAll('#results .box').length,fetches:(window.__tccFetchAudit||[]).filter(item=>item.url.includes('/runtime/data/v9/france-static/'))};
     });
     assert.equal(paris.source?.loaded,true,JSON.stringify(paris));
     assert.ok(paris.source?.stationCount>0,JSON.stringify(paris));
     assert.ok(paris.inRadiusCount>0,JSON.stringify(paris));
+    assert.equal(paris.filters.minPowerKw,undefined,JSON.stringify(paris));
+    assert.equal(paris.filters.maxPowerKw,undefined,JSON.stringify(paris));
+    assert.ok(paris.filteredCount>0,JSON.stringify(paris));
     assert.ok(paris.areaStations>0,JSON.stringify(paris));
     assert.ok(paris.visibleCards>0,JSON.stringify(paris));
     assert.ok(paris.fetches.some(item=>/france-static\/manifest\.json$/.test(item.url)&&item.status===200),JSON.stringify(paris));

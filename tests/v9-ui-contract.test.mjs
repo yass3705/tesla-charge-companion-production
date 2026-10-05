@@ -31,4 +31,10 @@ const teslaHtml=ui.renderTariffs({best:{total:8,targetCurrency:'EUR'}},{physical
 assert.ok(teslaHtml.includes('Tesla'));
 assert.ok(!teslaHtml.includes('Electra')&&!teslaHtml.includes('Electroverse'),'third-party categories are not shown for Tesla stations');
 
-console.log(JSON.stringify({ok:true,priceCategories:['Direct','Electra','Electroverse'],sourceLabels:true}));
+
+const emptyPowerFields={simNow:{value:'20'},simTarget:{value:'80'},simDate:{value:''},simTime:{value:''},simUnplugTime:{value:''},simMaxDistance:{value:'20'},simOperatorFilter:{value:'',dataset:{v9Mode:'all'}},simPowerType:{multiple:true,selectedOptions:[]},simMinPowerKw:{value:''},simMaxPowerKw:{value:''},simCondition:{value:'normal'},simProfile:{value:'realistic'},simRanking:{value:'balanced'}};
+const emptyPowerInputs=ui.readInputs({document:{getElementById:id=>emptyPowerFields[id]||null}});
+assert.equal(emptyPowerInputs.minPowerKw,null,'blank minimum power must mean no minimum filter');
+assert.equal(emptyPowerInputs.maxPowerKw,null,'blank maximum power must mean no maximum filter');
+assert.deepEqual(ui.areaFiltersFromInputs(emptyPowerInputs),{},'empty power inputs must not filter stations');
+console.log(JSON.stringify({ok:true,priceCategories:['Direct','Electra','Electroverse'],sourceLabels:true,blankPowerFilters:true}));
