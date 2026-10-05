@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "snapshotId": "2026-10-05-r13-full-national",
+  "policy": "fail-closed",
+  "sources": {
+    "dataLab": {
+      "repo": "yass3705/tesla-charge-companion-data-lab",
+      "sha": "3534f7312cdcfd5ec2d9fadbf8b1ce1be1d1c66a"
+    },
+    "stable": {
+      "repo": "yass3705/tesla-charge-companion-stable",
+      "sha": "e3848a6b37310c10d5e1827a7c947ef296d7e746"
+    },
+    "legacyUpdater": {
+      "repo": "yass3705/tesla-stations-updater-test",
+      "sha": "3e4c26b679617f82aae5b6de52a64a4cdbd20581"
+    },
+    "germanyRecovery": {
+      "repo": "yass3705/tesla-stations-updater-test",
+      "sha": "59573b851fd9ee015f6edac6a9302b07e09cc71e",
+      "branch": "work/germany-v9-cpo-recovery",
+      "pr": 6
+    }
+  },
+  "datasets": [
+    {
+      "id": "TESLA",
+      "kind": "tesla",
+      "coverage": "current",
+      "primarySource": "dataLab",
+      "path": "data/suc-tracker/tesla_stations.json",
+      "metadata": "data/suc-tracker/metadata.json"
+    },
+    {
+      "id": "ES",
+      "kind": "national",
+      "coverage": "complete",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/v9/spain-static"
+    },
+    {
+      "id": "NL",
+      "kind": "national",
+      "coverage": "complete-with-fail-closed-residuals",
+      "primarySource": "dataLab",
+      "path": "data/national/netherlands_dotnl/runtime",
+      "manifest": "data/national/netherlands_dotnl/runtime/manifest.json",
+      "platformArchitecture": "DOT-NL national runtime; Tesla is excluded and unmatched or unsupported direct tariffs fail closed."
+    },
+    {
+      "id": "CH",
+      "kind": "national",
+      "coverage": "complete-with-fail-closed-residuals",
+      "primarySource": "dataLab",
+      "path": "data/national/switzerland_public_charging_v9.json",
+      "directEvidence": "data/switzerland/avia-guest-direct-tariffs.json"
+    },
+    {
+      "id": "MA",
+      "kind": "cpo-consolidated",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "reports/morocco",
+      "statusLedger": "docs/morocco-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "FR",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "data/national/france_public_charging_canonical.json",
+      "statusLedger": "docs/france-cpo-progress-2026-09.json",
+      "electraPlatform": "data/platforms/electra/france",
+      "platformArchitecture": "France national station/EVSE baseline is the sole identity hub; Electra and Electroverse attach independently."
+    },
+    {
+      "id": "IT",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/v9/italy-static",
+      "statusLedger": "docs/italy-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "DE",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "snapshot-inputs/DE",
+      "statusLedger": "docs/germany-cpo-progress-2026-09.json",
+      "nationalBaseArtifact": {
+        "repository": "yass3705/tesla-charge-companion-data-lab",
+        "artifactId": 9866595035,
+        "artifactName": "germany-national-direct-cpo-staging",
+        "digest": "sha256:9aada4804c1e95b5ad734560ec7a5c83cb4e5a3cf70b7e7a6817f22d87dacc0e",
+        "sites": 63405,
+        "directCpoSites": 5471
+      },
+      "resolutionLedger": "docs/germany-cpo-second-pass-resolution-180.json",
+      "directOverlay": "data/national/ionity_direct_stations_germany.json.gz"
+    },
+    {
+      "id": "UK",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "data/national/uk_validated_open_feeds.json.gz",
+      "statusLedger": "docs/uk-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "BE",
+      "kind": "national",
+      "coverage": "partial-selected-cpo",
+      "primarySource": "dataLab",
+      "path": "data/belgium/nap-belgium-manifest.json",
+      "pages": "data/belgium/pages",
+      "statusLedger": "docs/belgium-cpo-progress-2026-09.json",
+      "platformArchitecture": "Eco-Movement Belgium NAP selected-CPO national baseline; exact tariff evidence only, unresolved tariffs fail closed."
+    }
+  ],
+  "progressIndex": "docs/v9-country-progress-2026-09-30.json",
+  "sourceSelection": {
+    "selectedDataLabCommit": "3534f7312cdcfd5ec2d9fadbf8b1ce1be1d1c66a",
+    "reason": "Full immutable national refresh candidate for V9 tests; rebuilt from the refreshed IRVE base and audited Electra/Electroverse correspondences.",
+    "safeguards": [
+      "France arithmetic 94 treated + 27 setAside + 170 active = 291.",
+      "AVIA Switzerland 583/583 national EVSE matched.",
+      "IONITY FR/IT/DE direct datasets retain zero unpriced connectors.",
+      "Germany durable national baseline remains primary; expiring Actions artifact is not required.",
+      "Electroverse uses the validated Data Lab France EVSE overlay and tariff cache at the pinned SHA; unsupported pricing stays fail-closed.",
+      "Tesla catalogue uses the pinned Data Lab SuC Tracker snapshot; Tesla rows remain excluded from national baselines.",
+      "NL DOT-NL runtime and BE Eco-Movement NAP are pinned from this Data Lab commit and run through the standard country registry.",
+      "Snapshot is a test candidate only; no release or production pointer is changed.",
+      "Refreshed France IRVE static base is pinned at the Data Lab commit and its Electra/Electroverse correspondence audits are included.",
+      "New snapshot is isolated from the previous r12 candidate and must pass the full national, EVSE-pricing, UI, Paris and manifest-hash test gates."
+    ]
+  }
+}
