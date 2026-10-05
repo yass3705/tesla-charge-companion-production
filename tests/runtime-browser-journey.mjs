@@ -51,7 +51,7 @@ try{
     networkHeadings:[...document.querySelectorAll('#compare summary')].filter(el=>el.textContent.includes('Réseaux affichés')).length,
     networkStatusBesideLabel:document.getElementById('v9ActiveNetworkFilter')?.parentElement?.tagName==='LABEL'&&document.getElementById('v9ActiveNetworkFilter')?.parentElement?.textContent.includes('Réseaux affichés'),
     batteryContainsProfile:[...document.querySelectorAll('details.v9-filter-group')].some(el=>el.querySelector('summary')?.textContent==='Batterie et objectif'&&el.contains(document.querySelector('#simProfile'))),
-    compactDateFields:['simDate','simTime'].every(id=>document.getElementById(id)?.getBoundingClientRect().width<=261),
+    compactDateFields:['simDate','simTime','simUnplugTime'].every(id=>{const rect=document.getElementById(id)?.getBoundingClientRect();return !!rect&&rect.width<=180&&rect.height<=46;}),
     acdcButtons:['AC','DC'].every(kind=>!!document.querySelector('.v9-power-toggle[data-power="'+kind+'"]')),
     obsoleteNlButtons:[...document.querySelectorAll('button')].filter(el=>/pays-bas|dot-nl/i.test(el.textContent)&&el.getClientRects().length>0).length
   }));
@@ -65,6 +65,7 @@ try{
   assert.equal(networkUi.networkStatusBesideLabel,true,JSON.stringify(networkUi));
   assert.equal(networkUi.batteryContainsProfile,true,JSON.stringify(networkUi));
   assert.equal(networkUi.compactDateFields,true,JSON.stringify(networkUi));
+  assert.ok(networkUi.operatorChoices.length>=10,JSON.stringify(networkUi));
   assert.equal(networkUi.acdcButtons,true,JSON.stringify(networkUi));
   assert.equal(networkUi.obsoleteNlButtons,0,JSON.stringify(networkUi));
   await page.evaluate(()=>{
