@@ -69,7 +69,7 @@
   }
   function ruleThresholdMatches(rule,session={},timeZone=null){return ruleThresholdStatus(rule,session,timeZone)==='match';}
   function ruleDayMatches(rule,startAt,timeZone,pricing){
-    const days=Array.isArray(rule?.daysOfWeek)?rule.daysOfWeek.map(Number).filter(n=>n>=0&&n<=6):null;
+    const rawDays=rule?.daysOfWeek??rule?.days;const days=Array.isArray(rawDays)?rawDays.map(Number).filter(n=>n>=0&&n<=6):null;
     const constrained=Boolean(days?.length||rule?.holidayOnly===true||rule?.excludeHolidays===true);
     if(!constrained)return true;
     if(!startAt)return false;
@@ -117,13 +117,19 @@
     if(rule.scope!=='allDay'){
       const end=hm(rule.end,1440);delta=end-minute;if(delta<=0)delta+=1440;
     }
-    const daySensitive=Array.isArray(rule?.daysOfWeek)&&rule.daysOfWeek.length||rule?.holidayOnly===true||rule?.excludeHolidays===true||rule?.mustEndSameLocalDay===true;
+    const ruleDays=rule?.daysOfWeek??rule?.days;const daySensitive=Array.isArray(ruleDays)&&ruleDays.length||rule?.holidayOnly===true||rule?.excludeHolidays===true||rule?.mustEndSameLocalDay===true;
     if(daySensitive)delta=Math.min(delta,1440-minute);
     return delta;
   }
-  function evaluateRule(rule,{energyKwh=0,durationMinutes=0,chargingMinutes=null}={}){
+  function durationBandRate(rule,dimension,fallback,durationMinutes){
+    const seconds=Math.max(0,num(durationMinutes)??0)*60;
+    const bands=Array.isArray(rule?.ocpiDurationBands)?rule.ocpiDurationBands:[];
+    const matching=bands.filter(b=>String(b?.[0]||'').toUpperCase()===dimension&&seconds>=(num(b?.[1])??0)&&(b?.[2]==null||seconds<(num(b[2])??Infinity)));
+    return matching.length===1?(num(matching[0][3])??fallback):fallback;
+  }
+  function evaluateRule(rule,{energyKwh=0,durationMinutes=0,chargingMinutes=null,tariffDurationMinutes=durationMinutes,postChargeMinutes=0}={}){
     const energy=Math.max(0,num(energyKwh)??0),duration=Math.max(0,num(durationMinutes)??0),charging=Math.max(0,Math.min(duration,num(chargingMinutes)??duration)),components={};let total=0;
-    const perKwh=num(rule?.pricePerKwh);
+    const perKwh=durationBandRate(rule,'ENERGY',num(rule?.pricePerKwh),tariffDurationMinutes);
     if(perKwh!=null){
       const stepWh=num(rule?.energyStepWh);const billedEnergy=stepWh>0&&energy>0?Math.ceil((energy*1000)/stepWh)*stepWh/1000:rule?.energyRounding==='started_kwh'&&energy>0?Math.ceil(energy):energy;
       components.energy=money(billedEnergy*perKwh);total+=components.energy;
@@ -136,7 +142,12 @@
     }
     const genericPerMinute=num(rule?.pricePerMinute),legacyPerMinute=num(rule?.connectedTimePerMinuteEur),perMinute=genericPerMinute??legacyPerMinute;
     if(perMinute!=null){const step=num(rule?.connectedTimeStepSeconds),billed=step>0&&duration>0?Math.ceil(duration*60/step)*step/60:duration;components.connectedTimePerMinute=money(billed*perMinute);total+=components.connectedTimePerMinute;if(billed!==duration)components.connectedTimeBilling={actualMinutes:duration,billedMinutes:billed,stepSeconds:step};}
-    const chargingPerMinute=num(rule?.chargePerMinute)??num(rule?.chargingTimePerMinuteEur);if(chargingPerMinute!=null){const step=num(rule?.chargingTimeStepSeconds),billed=step>0&&charging>0?Math.ceil(charging*60/step)*step/60:charging;components.chargingTime=money(billed*chargingPerMinute);total+=components.chargingTime;if(billed!==charging)components.chargingTimeBilling={actualMinutes:charging,billedMinutes:billed,stepSeconds:step};}
+    const chargingPerMinute=durationBandRate(rule,'TIME',num(rule?.chargePerMinute)??num(rule?.chargingTimePerMinuteEur),tariffDurationMinutes);if(chargingPerMinute!=null){const step=num(rule?.chargingTimeStepSeconds),billed=step>0&&charging>0?Math.ceil(charging*60/step)*step/60:charging;components.chargingTime=money(billed*chargingPerMinute);total+=components.chargingTime;if(billed!==charging)components.chargingTimeBilling={actualMinutes:charging,billedMinutes:billed,stepSeconds:step};}
+    const connectionFee=durationBandRate(rule,'FLAT',num(rule?.connectionFee),tariffDurationMinutes);
+    if(connectionFee!=null&&connectionFee!==0){components.connectionFee=money(connectionFee);total+=components.connectionFee;}
+    const parkingRate=durationBandRate(rule,'PARKING_TIME',num(rule?.idlePerMinute),tariffDurationMinutes);
+    const parkingMinutes=Math.max(0,num(postChargeMinutes)??0);
+    if(parkingRate!=null&&parkingRate!==0&&parkingMinutes>0){components.parkingTime=money(parkingMinutes*parkingRate);total+=components.parkingTime;}
     const freeMinutes=num(rule?.connectedTimeFreeMinutes),afterFree=num(rule?.connectedTimePerMinuteAfterFreeEur);
     if(freeMinutes!=null&&freeMinutes>=0&&afterFree!=null){
       const billableMinutes=Math.max(0,duration-freeMinutes),costEur=money(billableMinutes*afterFree);
@@ -174,7 +185,7 @@
     if(duration<=0){
       const rule=matchingRule(pricing,session.startAt,timeZone,session);if(!rule)return{complete:false,reason:'no_matching_time_rule'};
       if(!segmentableRule(rule))return{complete:false,reason:'tariff_window_crossing_unsupported_components'};
-      const evaluated=evaluateRule(rule,{energyKwh:energy,durationMinutes:0});
+      const evaluated=evaluateRule(rule,{energyKwh:energy,durationMinutes:0,tariffDurationMinutes:duration,postChargeMinutes:session.postChargeMinutes});
       return{complete:true,totalEur:evaluated.totalEur,components:{segmentedPricing:{segments:[{startAt:new Date(session.startAt).toISOString(),durationMinutes:0,energyKwh:energy,totalEur:evaluated.totalEur,rule}]}}};
     }
     let elapsed=0,total=0;const segments=[];
@@ -186,7 +197,7 @@
       if(!Number.isFinite(boundary))boundary=duration-elapsed;
       const slice=Math.min(duration-elapsed,Math.max(boundary,1e-6));
       const chargeOverlap=Math.max(0,Math.min(charging,elapsed+slice)-elapsed),segmentEnergy=charging>0?energy*(chargeOverlap/charging):0;
-      const evaluated=evaluateRule(rule,{energyKwh:segmentEnergy,durationMinutes:slice,chargingMinutes:chargeOverlap});
+      const evaluated=evaluateRule(rule,{energyKwh:segmentEnergy,durationMinutes:slice,chargingMinutes:chargeOverlap,tariffDurationMinutes:duration,postChargeMinutes:0});
       total+=evaluated.totalEur;
       segments.push({startAt:at.toISOString(),durationMinutes:money(slice),chargingMinutes:money(chargeOverlap),energyKwh:money(segmentEnergy),totalEur:evaluated.totalEur,components:evaluated.components,rule});
       elapsed+=slice;
@@ -288,7 +299,7 @@
     let base,segmented=false;
     if(boundary!=null&&Number.isFinite(boundary)&&duration>boundary+1e-9){
       base=evaluateSegmentedRules(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone,boundaryMinutes:boundary};segmented=true;
-    }else base=evaluateRule(rule,session);
+    }else base=evaluateRule(rule,{...session,tariffDurationMinutes:duration});
     const longFee=pricing.longConnectionFee;let longConnection=null,total=base.totalEur;
     if(longFee&&duration>(num(longFee.thresholdMinutes)??Infinity)){
       const rate=num(longFee.eurPerHourAfterThreshold);if(rate!=null){const excess=duration-Number(longFee.thresholdMinutes);longConnection={complete:false,reason:'hourly_rounding_unspecified',excessMinutes:excess,rateEurPerHour:rate};}
