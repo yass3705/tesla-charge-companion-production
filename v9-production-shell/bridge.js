@@ -508,7 +508,7 @@
     const redraw=()=>{
       const options=[...select.options],selected=[...select.selectedOptions];
       const labels=selected.map(o=>text(o.textContent));
-      if(summary)summary.textContent=allValue&&selected.some(o=>text(o.value)===allValue)?'Tous les réseaux':(labels.length?labels.join(', '):'Aucun');
+      if(summary)summary.textContent=allValue&&selected.some(o=>text(o.value)===allValue)?'Tous les réseaux':(select.dataset.v9Mode==='all'?'Tous les réseaux':select.dataset.v9Mode==='tesla'?'Tesla uniquement':(labels.length?labels.join(', '):'Aucun'));
     };
     if(!select.dataset.v9DropdownBound){
       select.dataset.v9DropdownBound='true';
@@ -564,7 +564,7 @@
     if(displayLabel){displayLabel.textContent='Réseaux affichés — ';displayLabel.appendChild(active);}
     const updateSummary=()=>{
       const mode=select.dataset.v9Mode||'all',names=[...select.selectedOptions].map(option=>text(option.textContent));
-      active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(names.join(', ')||'Tous les réseaux');
+      active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(names.join(', ')||'Tous les réseaux');select._v9Redraw?.();
     };
     const choose=mode=>{
       select.dataset.v9Mode=mode;
