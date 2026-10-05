@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
 const page=await browser.newPage({serviceWorkers:'block'});
-await page.addInitScript(()=>{localStorage.setItem('tccDefaultOrigin','47.61764, 9.2688');localStorage.setItem('tccMaxDistanceKm','100');});
+await page.addInitScript(()=>{localStorage.setItem('tccDefaultOrigin','47.61764, 9.2688');localStorage.setItem('tccMaxDistanceKm','100');window.__tccFetchAudit=[];const baseFetch=window.fetch.bind(window);window.fetch=(...args)=>baseFetch(...args).then(response=>{try{const request=args[0],url=typeof request==='string'?request:request.url;window.__tccFetchAudit.push({url:new URL(url,location.href).pathname,status:response.status});}catch(_){}return response;});});
 const failures=[],mockCalls={reverse:0,route:0},consoleMessages=[],requestFailures=[];
 page.on('pageerror',e=>failures.push(e.message));
 page.on('console',msg=>consoleMessages.push(msg.type()+': '+msg.text()));
@@ -17,7 +17,8 @@ await page.route('https://nominatim.openstreetmap.org/**',route=>{
   const url=new URL(route.request().url());
   if(url.pathname.endsWith('/reverse')){
     mockCalls.reverse++;
-    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({address:{country_code:'ch'},display_name:'Altnau, Schweiz'})});
+    const lat=Number(url.searchParams.get('lat')),lon=Number(url.searchParams.get('lon')),isParis=Math.abs(lat-48.8566)<0.1&&Math.abs(lon-2.3522)<0.1;
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({address:{country_code:isParis?'fr':'ch'},display_name:isParis?'Paris, France':'Altnau, Schweiz'})});
   }
   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{lat:'47.61764',lon:'9.2688',display_name:'Altnau, Schweiz'}])});
 });
@@ -118,11 +119,31 @@ try{
   assert.equal(mockCalls.route,0);
   assert.deepEqual(failures,[]);
   console.log(JSON.stringify({ok:true,scenario:'CH Altnau empty-result fallback',...result,mockCalls,pageErrors:failures}));
+  if(process.env.V9_REQUIRE_PARIS_QUERY==='1'){
+    await page.locator('#simOrigin').fill('48.8566, 2.3522');
+    await page.locator('#simMaxDistance').fill('20');
+    const paris=await page.evaluate(async()=>{
+      const area=await window.compare();
+      const diagnostics=area?.diagnostics||{},source=diagnostics.sources?.['france-national']||null;
+      window.__tccParisAreaDiagnostics={source,fragmentCount:diagnostics.fragmentCount,inRadiusCount:diagnostics.inRadiusCount,filteredCount:diagnostics.filteredCount,mergedStationCount:diagnostics.mergedStationCount,errors:diagnostics.errors||[]};
+      return{source,areaStations:area?.stations?.length||0,operators:area?.operators||[],inRadiusCount:diagnostics.inRadiusCount||0,filteredCount:diagnostics.filteredCount||0,errors:diagnostics.errors||[],status:document.querySelector('#routeStatus')?.innerText||'',visibleCards:document.querySelectorAll('#results .box').length,fetches:(window.__tccFetchAudit||[]).filter(item=>item.url.includes('/runtime/data/v9/france-static/'))};
+    });
+    assert.equal(paris.source?.loaded,true,JSON.stringify(paris));
+    assert.ok(paris.source?.stationCount>0,JSON.stringify(paris));
+    assert.ok(paris.inRadiusCount>0,JSON.stringify(paris));
+    assert.ok(paris.areaStations>0,JSON.stringify(paris));
+    assert.ok(paris.visibleCards>0,JSON.stringify(paris));
+    assert.ok(paris.fetches.some(item=>/france-static\/manifest\.json$/.test(item.url)&&item.status===200),JSON.stringify(paris));
+    assert.ok(paris.fetches.some(item=>/france-static\/t_.*\.json\.gz$/.test(item.url)&&item.status===200),JSON.stringify(paris));
+    assert.equal(paris.fetches.some(item=>item.status>=400),false,JSON.stringify(paris));
+    assert.match(paris.status,/borne\(s\) classée\(s\)/,JSON.stringify(paris));
+    console.log(JSON.stringify({ok:true,scenario:'FR Paris real snapshot tiles',...paris,mockCalls,pageErrors:failures}));
+  }
 }catch(err){
   const evidence=await page.evaluate(()=>({
     status:document.getElementById('routeStatus')?.textContent,
     results:document.getElementById('results')?.innerText?.slice(0,500),
-    diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),consoleMessages,requestFailures
+    diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),parisDiagnostics:window.__tccParisAreaDiagnostics||null,fetchAudit:window.__tccFetchAudit||[],consoleMessages,requestFailures
   })).catch(()=>({consoleMessages,requestFailures}));
   evidence.shellState=shellState;
   console.error(JSON.stringify({scenarioFailure:err.message,evidence,mockCalls,pageErrors:failures}));
