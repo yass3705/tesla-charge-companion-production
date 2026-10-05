@@ -183,6 +183,11 @@ if(requireElectra){
   assert.ok(frElectra.length>0,'FR Electra platform offers did not attach to national France stations');
   assert.ok(frDualEmsp.length>0,'FR national station hub did not independently receive both Electra and Electroverse offers');
 }
+const requireElectroverse=process.env.REQUIRE_ELECTROVERSE==='1';
+if(requireElectroverse){
+  assert.ok(frResult.diagnostics.sources['france-electroverse-r8']?.loaded===true,'FR full Electroverse EVSE tariff overlay not loaded');
+  assert.ok(frElectroverse.length>0,'Full Electroverse EVSE tariffs did not attach in Paris-area runtime query');
+}
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
