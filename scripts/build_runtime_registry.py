@@ -89,16 +89,17 @@ def build_registry(path):
     })
     upsert(sources,{
       "id":"france-electroverse-r8",
-      "label":"France pinned Electroverse exact station tariffs",
-      "adapter":"direct-offer-json",
-      "path":"../snapshot-inputs/FR/platforms/electroverse-runtime-offers.json",
+      "label":"France pinned Electroverse exact EVSE tariffs (all supported pricing components)",
+      "adapter":"direct-offer-sharded-v1",
+      "root":"../snapshot-inputs/FR/platforms/electroverse/",
+      "manifest":"../snapshot-inputs/FR/platforms/electroverse/manifest.json",
       "countries":["FR"],
       "capabilities":["tariff"],
       "priority":{"tariff":80},
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"France national station/EVSE identities are the sole attachment hub. Electroverse offers attach independently through validated IRVE mappings; no Electroverse-to-Electra dependency is permitted. Only high-confidence mappings with one uniform simple tariff across all cached connectors are exposed; complex or heterogeneous tariffs remain fail-closed."
+      "policy":"All compiled per-EVSE tariffs are exposed, including heterogeneous connector prices, duration bands, time windows, parking and connection fees. Pricing complexity never excludes an offer; unresolved identity conflicts remain separately fail-closed."
     })
     upsert(sources,{
       "id":"france-ionity-r8",
