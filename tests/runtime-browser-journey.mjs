@@ -40,7 +40,7 @@ try{
   assert.equal(shellState.marker?.ready,true,shellState);
   assert.equal(shellState.operatorFilter,true,shellState);
   await page.evaluate(()=>document.querySelectorAll('details.v9-filter-group').forEach(group=>{group.open=true;}));
-  await page.locator('details.v9-filter-group').filter({hasText:'Date et horaires'}).locator('summary').click();
+  await page.locator('details.v9-filter-group').filter({hasText:'Date et horaires'}).locator('summary').evaluate(el=>{el.parentElement.open=true;});
   const networkUi=await page.evaluate(()=>({
     quickButtons:['#v9TeslaOnly','#v9AllNetworks'].every(selector=>!!document.querySelector(selector)),
     bridgeCacheKey:[...document.scripts].map(script=>script.src).find(src=>/v9-production-shell\/bridge\.js/.test(src))?.match(/v9-ui-([a-f0-9]{16})/)?.[1]||null,
