@@ -30,6 +30,25 @@ assert.equal(seen,expected,'all compiled EVSE tariffs must be present in product
 
 const require=createRequire(import.meta.url);
 const pricing=require(path.join(root,'runtime/assets/v9/pricing-engine.js'));
+const require=createRequire(import.meta.url);
+const adapter=require(path.join(root,'runtime/assets/v9/adapters/france-emsp-compact.js'));
+const bridge=require(path.join(root,'v9-production-shell/bridge.js'));
+const exactPlatformOffers=adapter.offerRulesFromPlatformOffers([
+  {id:'evr-choisey-200',provider:'Electroverse',evseIds:['FRPD1EASCCHOBBC200011'],verifiedScope:'exact_evse_group',pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0.56}]},metadata:{verified:true,identityMode:'strict_generic_single_operator_homogeneous_exact_set'}},
+  {id:'evr-choisey-240',provider:'Electroverse',evseIds:['FRPD1EASCCHOBBC300011'],verifiedScope:'exact_evse_group',pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0.56}]},metadata:{verified:true,identityMode:'strict_pd1_official_technical_homogeneous_group'}},
+  {id:'unverified',provider:'Electroverse',evseIds:['FRPD1EASCCHOBBC200011'],verifiedScope:'exact_evse',pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0.44}]},metadata:{verified:false,identityMode:'exact_evse'}},
+  {id:'no-identity-evidence',provider:'Electroverse',evseIds:['FRPD1EASCCHOBBC240011'],pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0.44}]},metadata:{verified:true}}
+]);
+assert.equal(exactPlatformOffers.length,2,'verified EVSE exact and homogeneous group identities are both retained');
+assert.deepEqual(exactPlatformOffers.map(rule=>rule.evseIds[0]),['FRPD1EASCCHOBBC200011','FRPD1EASCCHOBBC300011']);
+assert.ok(exactPlatformOffers.every(rule=>rule.pricing.rules[0].pricePerKwh===0.56));
+
+const evrAcOffer={evseIds:['FRPD1EASCCHOALF22011']};
+assert.equal(bridge.offerAppliesToEvseGroup(evrAcOffer,new Set(['FRPD1EASCCHOBBC200011']),new Set()),false);
+assert.equal(bridge.offerAppliesToEvseGroup(evrAcOffer,new Set(['FRPD1EASCCHOBBC300011']),new Set()),false);
+assert.equal(bridge.offerAppliesToEvseGroup(exactPlatformOffers[0],new Set(['FRPD1EASCCHOBBC200011']),new Set()),true);
+assert.equal(bridge.offerAppliesToEvseGroup(exactPlatformOffers[1],new Set(['FRPD1EASCCHOBBC200011']),new Set()),false);
+
 const offer={
   id:'evr-complex-components',provider:'Electroverse',currency:'EUR',
   pricing:{type:'rules',rules:[{
