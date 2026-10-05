@@ -454,7 +454,7 @@
     if(d.getElementById('v9MobileLayoutStyle'))return;
     const style=d.createElement('style');
     style.id='v9MobileLayoutStyle';
-    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9OperatorDropdown{min-width:200px}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}#v9OperatorControls select{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown select{max-height:230px;overflow:auto}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}';
+    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9OperatorDropdown{min-width:200px}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}#v9OperatorControls select{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown select{max-height:230px;overflow:auto}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#compare .v9-filter-group .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;min-width:0!important}#compare .v9-filter-group .grid>div{min-width:0!important}#compare input#simDate,#compare input#simTime,#compare input#simUnplugTime{display:block!important;width:100%!important;max-width:160px!important;min-width:0!important;height:42px!important;min-height:42px!important;padding:6px 8px!important;font-size:15px!important;line-height:1.2!important;box-sizing:border-box!important;-webkit-appearance:none!important;appearance:none!important}#compare input#simTime,#compare input#simUnplugTime{text-align:center!important}}';
     d.head.appendChild(style);
   }
 
@@ -600,10 +600,15 @@
     }
   }
 
-  function refreshOperatorOptions(w,area){
-    const select=w.document.getElementById('simOperatorFilter');if(!select)return;
-    const current=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):(text(select.value)?[text(select.value)]:[]);
-    const mode=select.dataset.v9Mode||'all',operators=new Map([['tesla','Tesla']]);
+  const OPERATOR_CATALOG_KEY='tccV9OperatorCatalogsV1';
+  function operatorCatalogKey(area){
+    const origin=area?.query?.origin||{};
+    const filters=area?.query?.filters||{};
+    const key={country:text(area?.query?.countryCode).toUpperCase(),lat:Number(origin.lat).toFixed(3),lon:Number(origin.lon).toFixed(3),radius:Number(area?.query?.radiusKm)||0,connectorKinds:(filters.connectorKinds||[]).slice().sort(),minPowerKw:num(filters.minPowerKw),maxPowerKw:num(filters.maxPowerKw)};
+    return JSON.stringify(key);
+  }
+  function operatorRows(area){
+    const operators=new Map([['tesla','Tesla']]);
     for(const operator of area?.operators||[]){const id=text(operator?.id||'').toLowerCase(),label=text(operator?.name||'');if(id&&label&&id!=='tesla')operators.set(id,label);}
     for(const station of area?.stations||[]){
       const op=station.physicalOperator||station.operator||{};
@@ -611,10 +616,24 @@
       const label=text(op.name||station.operatorName||'');
       if(id&&label&&id!=='tesla')operators.set(id,label);
     }
+    return operators;
+  }
+  function refreshOperatorOptions(w,area){
+    const select=w.document.getElementById('simOperatorFilter');if(!select)return;
+    const current=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):(text(select.value)?[text(select.value)]:[]);
+    const mode=select.dataset.v9Mode||'all',key=operatorCatalogKey(area),cacheKey=OPERATOR_CATALOG_KEY;
+    let catalogs={};try{catalogs=JSON.parse(w.sessionStorage.getItem(cacheKey)||'{}');}catch(_){}
+    const incoming=operatorRows(area),operators=new Map([['tesla','Tesla']]);
+    const cached=catalogs[key];
+    if(cached&&Array.isArray(cached)&&mode!=='all')for(const row of cached){if(Array.isArray(row)&&row.length===2)operators.set(text(row[0]),text(row[1]));}
+    for(const [id,label] of incoming)operators.set(id,label);
+    catalogs[key]=[...operators.entries()];
+    try{w.sessionStorage.setItem(cacheKey,JSON.stringify(catalogs));}catch(_){}
     select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
     const keep=mode==='all'?[]:mode==='tesla'?['tesla']:current;
     for(const option of [...select.options])option.selected=keep.includes(text(option.value));
     select.dataset.v9Mode=keep.length?(keep.length===1&&keep[0]==='tesla'?'tesla':'selected'):'all';
+    select._v9Redraw?.();
     select.dispatchEvent(new w.Event('change',{bubbles:true}));
   }
 
@@ -659,9 +678,10 @@
         if(group.title==='Date et horaires'){
           const input=node.querySelector('input');
           if(input&&['simDate','simTime','simUnplugTime'].includes(input.id)){
-            node.style.width='100%';node.style.maxWidth='260px';node.style.boxSizing='border-box';
+            node.style.width='100%';node.style.maxWidth='260px';node.style.minWidth='0';node.style.boxSizing='border-box';
             input.style.setProperty('width','100%','important');
             input.style.setProperty('max-width','260px','important');
+            input.style.setProperty('min-width','0','important');
             input.style.setProperty('box-sizing','border-box','important');
           }
         }
