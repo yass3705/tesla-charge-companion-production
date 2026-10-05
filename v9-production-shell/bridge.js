@@ -602,8 +602,8 @@
 
   function refreshOperatorOptions(w,area){
     const select=w.document.getElementById('simOperatorFilter');if(!select)return;
-    const current=select.value,mode=select.dataset.v9Mode||'all';
-    const operators=new Map([['tesla','Tesla']]);
+    const current=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):(text(select.value)?[text(select.value)]:[]);
+    const mode=select.dataset.v9Mode||'all',operators=new Map([['tesla','Tesla']]);
     for(const operator of area?.operators||[]){const id=text(operator?.id||'').toLowerCase(),label=text(operator?.name||'');if(id&&label&&id!=='tesla')operators.set(id,label);}
     for(const station of area?.stations||[]){
       const op=station.physicalOperator||station.operator||{};
@@ -611,11 +611,10 @@
       const label=text(op.name||station.operatorName||'');
       if(id&&label&&id!=='tesla')operators.set(id,label);
     }
-    select.innerHTML='<option value="">Choisir un opérateur</option>'+
-      [...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
-    const keep=mode==='all'?'':mode==='tesla'?'tesla':current;
-    select.value=[...select.options].some(option=>option.value===keep)?keep:'';
-    select.dataset.v9Mode=select.value===''?'all':select.value==='tesla'?'tesla':'selected';
+    select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
+    const keep=mode==='all'?[]:mode==='tesla'?['tesla']:current;
+    for(const option of [...select.options])option.selected=keep.includes(text(option.value));
+    select.dataset.v9Mode=keep.length?(keep.length===1&&keep[0]==='tesla'?'tesla':'selected'):'all';
     select.dispatchEvent(new w.Event('change',{bubbles:true}));
   }
 
