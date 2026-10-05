@@ -43,8 +43,8 @@ try{
   const networkUi=await page.evaluate(()=>({
     quickButtons:['#v9TeslaOnly','#v9AllNetworks'].every(selector=>!!document.querySelector(selector)),
     bridgeCacheKey:[...document.scripts].map(script=>script.src).find(src=>/v9-production-shell\/bridge\.js/.test(src))?.match(/v9-ui-([a-f0-9]{16})/)?.[1]||null,
-    operatorSelect:!!document.querySelector('#v9OperatorControls > #simOperatorFilter')&&!document.querySelector('#v9OperatorDropdown'),
-    operatorIsSingleSelect:document.querySelector('#simOperatorFilter')?.multiple===false,
+    operatorSelect:!!document.querySelector('#v9OperatorControls #v9OperatorDropdown > #simOperatorFilter'),
+    operatorIsMultiSelect:document.querySelector('#simOperatorFilter')?.multiple===true,
     operatorChoices:[...document.querySelector('#simOperatorFilter')?.options||[]].map(option=>option.textContent.trim()),
     adjacent:[...document.querySelector('#v9OperatorControls')?.children||[]].map(el=>el.id),
     outerHeadings:document.querySelectorAll('#compare summary').length,
@@ -58,15 +58,26 @@ try{
   assert.equal(networkUi.quickButtons,true,JSON.stringify(networkUi));
   assert.ok(networkUi.bridgeCacheKey,JSON.stringify(networkUi));
   assert.equal(networkUi.operatorSelect,true,JSON.stringify(networkUi));
-  assert.equal(networkUi.operatorIsSingleSelect,true,JSON.stringify(networkUi));
+  assert.equal(networkUi.operatorIsMultiSelect,true,JSON.stringify(networkUi));
   assert.equal(networkUi.operatorChoices.includes('Tous les réseaux'),false,JSON.stringify(networkUi));
-  assert.deepEqual(networkUi.adjacent,['v9TeslaOnly','v9AllNetworks','simOperatorFilter']);
+  assert.deepEqual(networkUi.adjacent,['v9TeslaOnly','v9AllNetworks','v9OperatorDropdown']);
   assert.equal(networkUi.networkHeadings,1,JSON.stringify(networkUi));
   assert.equal(networkUi.networkStatusBesideLabel,true,JSON.stringify(networkUi));
   assert.equal(networkUi.batteryContainsProfile,true,JSON.stringify(networkUi));
   assert.equal(networkUi.compactDateFields,true,JSON.stringify(networkUi));
   assert.equal(networkUi.acdcButtons,true,JSON.stringify(networkUi));
   assert.equal(networkUi.obsoleteNlButtons,0,JSON.stringify(networkUi));
+  await page.evaluate(()=>{
+    const select=document.querySelector('#simOperatorFilter'),fixture=document.createElement('option');
+    fixture.value='coverage-fixture';fixture.textContent='Réseau de test';select.appendChild(fixture);
+    for(const option of select.options)option.selected=['tesla','coverage-fixture'].includes(option.value);
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    window.__operatorSelectionProbe=window.TCCV9ProductionShell.readInputs(window);
+  });
+  const operatorProbe=await page.evaluate(()=>window.__operatorSelectionProbe);
+  assert.equal(operatorProbe.operatorMode,'selected',JSON.stringify(operatorProbe));
+  assert.deepEqual(operatorProbe.operatorIds,['tesla','coverage-fixture'],JSON.stringify(operatorProbe));
+  await page.locator('#v9AllNetworks').click();
   await page.locator('.v9-power-toggle[data-power="AC"]').click();
   assert.equal(await page.locator('.v9-power-toggle[data-power="AC"]').getAttribute('aria-pressed'),'true');
   await page.locator('.v9-power-toggle[data-power="DC"]').click();
