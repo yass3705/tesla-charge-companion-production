@@ -112,13 +112,16 @@ try{
     text:document.getElementById('results')?.innerText?.slice(0,500),
     diagnostics:JSON.parse(localStorage.getItem('tccV9ProductionShellDiagnosticsV1')||'[]').slice(0,2)
   }));
-  assert.ok(result.text.includes('Aucune borne V9 exploitable'),JSON.stringify(result));
+  assert.ok(result.cards>0,JSON.stringify(result));
+  assert.ok(!result.text.includes('Aucune borne V9 exploitable'),JSON.stringify(result));
   assert.equal(result.diagnostics[0]?.outcome,'v9-ok',result);
   assert.equal(result.diagnostics[0]?.countryCode,'CH',result);
+  assert.ok(result.diagnostics[0]?.stationCount>0,result);
+  assert.ok(result.diagnostics[0]?.rankedCount>0,result);
   assert.ok(mockCalls.reverse>0);
-  assert.equal(mockCalls.route,0);
+  assert.ok(mockCalls.route>0);
   assert.deepEqual(failures,[]);
-  console.log(JSON.stringify({ok:true,scenario:'CH Altnau empty-result fallback',...result,mockCalls,pageErrors:failures}));
+  console.log(JSON.stringify({ok:true,scenario:'CH Altnau national tile results',...result,mockCalls,pageErrors:failures}));
   if(process.env.V9_REQUIRE_PARIS_QUERY==='1'){
     await page.locator('#simOrigin').fill('48.8566, 2.3522');
     await page.locator('#simMaxDistance').fill('20');
