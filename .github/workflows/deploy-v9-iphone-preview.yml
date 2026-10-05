@@ -71,6 +71,8 @@ jobs:
 
       - name: Belgium and Netherlands runtime smoke
         run: node production/tests/national-snapshot-smoke.mjs dist/v9-explicit-candidate
+      - name: Electroverse EVSE-level pricing and exact identities
+        run: node production/tests/electroverse-rich-pricing.test.mjs dist/v9-explicit-candidate
 
       - name: Verify fixed price categories and source labels
         run: node production/tests/v9-ui-contract.test.mjs
