@@ -147,6 +147,7 @@ try{
   assert.deepEqual(failures,[]);
   console.log(JSON.stringify({ok:true,scenario:'CH Altnau national tile results',...result,mockCalls,pageErrors:failures}));
   if(process.env.V9_REQUIRE_PARIS_QUERY==='1'){
+    await page.locator('#simOperatorFilter').evaluate(select=>{[...select.options].forEach(option=>{option.selected=option.value==='';});select.dataset.v9Mode='all';select.dispatchEvent(new Event('change',{bubbles:true}));});
     await page.locator('#simOrigin').fill('48.8566, 2.3522');
     await page.locator('#simMaxDistance').fill('20');
     const paris=await page.evaluate(async()=>{
