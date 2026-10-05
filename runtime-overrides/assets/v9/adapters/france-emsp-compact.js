@@ -57,9 +57,10 @@
     const allowedProviders=new Set((source.providers||source.providerKinds||[]).map(normProvider).filter(Boolean));
     return(offers||[]).filter(offer=>{
       const provider=providerKind(offer?.provider),evseIds=uniq(offer?.evseIds||[]);
+      const identity=text(offer?.metadata?.identityMode),scope=text(offer?.verifiedScope||offer?.metadata?.verifiedScope);
+      const identityVerified=offer?.metadata?.verified===true&&!!identity&&!!scope;
       return provider&&(!allowedProviders.size||allowedProviders.has(provider)||allowedProviders.has(normProvider(offer?.provider)))
-        &&offer?.metadata?.verified===true&&offer?.metadata?.identityMode==='exact_national_irve_evse'
-        &&evseIds.length>0&&offer?.pricing&&typeof offer.pricing==='object';
+        &&identityVerified&&evseIds.length>0&&offer?.pricing&&typeof offer.pricing==='object';
     }).map(offer=>({
       id:text(offer.id),provider:providerKind(offer.provider)==='electra'?'Electra':'Electroverse',offerKind:'roaming',
       subscriptionId:null,countries:uniq(offer.countries||['FR']),currency:text(offer.currency||'EUR').toUpperCase(),
