@@ -312,6 +312,12 @@
     return'<div class="small">Coût au km récupéré : <b>'+cost.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' '+esc(best?.targetCurrency||'EUR')+'/km</b>'+(km!=null?' · '+km.toFixed(1)+' km récupérés':'')+'</div>';
   }
 
+  function offerAppliesToEvseGroup(offer,evseTokens,connectorIds){
+    const evseIds=(offer?.evseIds||[]).map(text).filter(Boolean),offerConnectorIds=(offer?.connectorIds||[]).map(text).filter(Boolean);
+    if(evseIds.length&&![...evseTokens||[]].some(id=>evseIds.includes(text(id))))return false;
+    if(offerConnectorIds.length&&![...connectorIds||[]].some(id=>offerConnectorIds.includes(text(id))))return false;
+    return true;
+  }
   function variantsByPower(w,rows,session,selectedSubscriptions=[]){
     const planner=w.TCCV9SessionPlannerEngine,sessionEngine=w.TCCV9SessionEngine,scoreEngine=w.TCCV9StationScoreEngine;
     if(!planner?.planStation||!sessionEngine?.evaluateStation||!sessionEngine?.offerMatchesChargingKind||!scoreEngine?.scoreStation)throw new Error('per-power pricing engines unavailable');
@@ -321,12 +327,13 @@
       for(const [evseIndex,evse] of (station.evses||[]).entries())for(const [connectorIndex,raw] of (evse.connectors||[]).entries()){
         const power=num(raw.powerKw??raw.power??evse.powerKw);if(power==null||power<=0)continue;
         const connector={...raw,powerKw:power},kind=connectorKind(connector),connectorId=text(connector.id||connector.connectorId)||null,plug=text(connector.plugName||connector.type)||null;
-        const matching=(station.offers||[]).filter(offer=>sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId)).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
+        const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex,evseTokens=new Set([evseKey,text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)].filter(Boolean)),connectorTokens=new Set(connectorId?[connectorId]:[]);
+        const matching=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,evseTokens,connectorTokens)&&sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId)).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
         const key=[kind,power,matching.join(',')].join('|');
-        const group=groups.get(key)||{kind,powerKw:power,offerIds:matching,evseConnectors:new Map(),evseKeys:new Set()};
-        const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex;
+        const group=groups.get(key)||{kind,powerKw:power,offerIds:matching,evseConnectors:new Map(),evseKeys:new Set(),evseTokens:new Set(),connectorIds:new Set()};
         const connectors=group.evseConnectors.get(evseIndex)||[];
-        connectors.push({connectorIndex,connector});group.evseConnectors.set(evseIndex,connectors);group.evseKeys.add(evseKey);groups.set(key,group);
+        connectors.push({connectorIndex,connector});group.evseConnectors.set(evseIndex,connectors);group.evseKeys.add(evseKey);
+        evseTokens.forEach(id=>group.evseTokens.add(id));connectorTokens.forEach(id=>group.connectorIds.add(id));groups.set(key,group);
       }
       for(const group of groups.values()){
         const evses=[];
@@ -334,7 +341,8 @@
           const original=station.evses[evseIndex];
           evses.push({...original,connectors:connectors.map(item=>item.connector)});
         }
-        const variant={...station,evses,offers:station.offers||[]},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
+        const scopedOffers=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,group.evseTokens,group.connectorIds));
+        const variant={...station,evses,offers:scopedOffers},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
         const plan=planner.planStation(variant,session,{route:{byStationId:routeMap}});
         const evaluation=sessionEngine.evaluateStation(variant,plan.effectiveSession,{selectedSubscriptions,targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}});
         const score=scoreEngine.scoreStation(variant,evaluation,plan.effectiveSession,{route:{byStationId:routeMap},plan});
@@ -736,5 +744,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
