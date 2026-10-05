@@ -126,13 +126,16 @@ try{
     await page.locator('#simOrigin').fill('48.8566, 2.3522');
     await page.locator('#simMaxDistance').fill('20');
     const paris=await page.evaluate(async()=>{
-      const area=await window.compare();
+      const started=performance.now(),area=await window.compare(),durationMs=performance.now()-started;
       const diagnostics=area?.diagnostics||{},source=diagnostics.sources?.['france-national']||null;
       window.__tccParisAreaDiagnostics={source,fragmentCount:diagnostics.fragmentCount,inRadiusCount:diagnostics.inRadiusCount,filteredCount:diagnostics.filteredCount,mergedStationCount:diagnostics.mergedStationCount,errors:diagnostics.errors||[]};
-      return{source,areaStations:area?.stations?.length||0,operators:area?.operators||[],inRadiusCount:diagnostics.inRadiusCount||0,filteredCount:diagnostics.filteredCount||0,filters:area?.query?.filters||{},errors:diagnostics.errors||[],status:document.querySelector('#routeStatus')?.innerText||'',visibleCards:document.querySelectorAll('#results .box').length,fetches:(window.__tccFetchAudit||[]).filter(item=>item.url.includes('/runtime/data/v9/france-static/'))};
+      return{source,areaStations:area?.stations?.length||0,stationLimit:area?.query?.stationLimit,durationMs,operators:area?.operators||[],inRadiusCount:diagnostics.inRadiusCount||0,filteredCount:diagnostics.filteredCount||0,filters:area?.query?.filters||{},errors:diagnostics.errors||[],status:document.querySelector('#routeStatus')?.innerText||'',visibleCards:document.querySelectorAll('#results .box').length,fetches:(window.__tccFetchAudit||[]).filter(item=>item.url.includes('/runtime/data/v9/france-static/'))};
     });
     assert.equal(paris.source?.loaded,true,JSON.stringify(paris));
     assert.ok(paris.source?.stationCount>0,JSON.stringify(paris));
+    assert.equal(paris.stationLimit,500,JSON.stringify(paris));
+    assert.ok(paris.areaStations<=500,JSON.stringify(paris));
+    assert.ok(paris.durationMs<30000,JSON.stringify(paris));
     assert.ok(paris.inRadiusCount>0,JSON.stringify(paris));
     assert.equal(paris.filters.minPowerKw,undefined,JSON.stringify(paris));
     assert.equal(paris.filters.maxPowerKw,undefined,JSON.stringify(paris));
