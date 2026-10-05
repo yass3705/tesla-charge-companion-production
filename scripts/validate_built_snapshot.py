@@ -124,6 +124,27 @@ def main():
     assert int(ev_manifest.get("tileCount") or 0)==len(ev_manifest.get("tiles") or []), ev_manifest.get("tileCount")
     assert ev_manifest.get("policy",{}).get("evseLevelPricing") is True, ev_manifest.get("policy")
     assert ev_manifest.get("policy",{}).get("stationLevelFlattening") is False, ev_manifest.get("policy")
+    # Overlay conservation: compiled tiles enrich the national identity hub;
+    # complete source inventories must remain present and independently countable.
+    ev_source_root=root/"snapshot-inputs/FR/platforms/electroverse-source"
+    assert (ev_source_root/"tariff_cache/manifest.json").exists(), "Electroverse source cache missing"
+    assert (ev_source_root/"irve_location_mapping.json").exists(), "Electroverse source mapping missing"
+    ev_cache=load(ev_source_root/"tariff_cache/manifest.json")
+    assert int(ev_cache.get("totalStations") or ev_cache.get("stationCount") or 0)>0, ev_cache
+    electra_src=sources.get("france-electra-platform") or {}
+    assert electra_src.get("active") is True and electra_src.get("optional") is False, electra_src
+    electra_root=root/"snapshot-inputs/FR/platforms/electra"
+    electra_manifest=load(electra_root/"manifest.json")
+    source_archive=electra_manifest.get("sourceArchive") or {}
+    assert source_archive.get("file")=="source-locations.json.gz", source_archive
+    electra_source_path=electra_root/source_archive["file"]
+    assert electra_source_path.exists(), electra_source_path
+    with gzip.open(electra_source_path,"rt",encoding="utf-8") as f:
+        electra_source=json.load(f)
+    assert len(electra_source.get("locations") or [])==int(source_archive.get("locationCount") or -1), source_archive
+    assert int(source_archive.get("evseCount") or 0)>0, source_archive
+    assert (electra_root/"source-policy.json").exists()
+
     avia_ch=sources.get("switzerland-avia-r8") or {}
     assert avia_ch.get("adapter")=="switzerland-avia-v1", avia_ch
     assert avia_ch.get("path")=="../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json", avia_ch
