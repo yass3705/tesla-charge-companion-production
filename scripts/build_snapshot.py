@@ -333,16 +333,36 @@ def main():
     ev_delta=dl/"reports/electroverse/daily-delta.json"
     if ev_inventory.exists(): copy_file(ev_inventory,overlays/"FR/platforms/electroverse-france-current.json")
     if ev_delta.exists(): copy_file(ev_delta,overlays/"FR/platforms/electroverse-daily-delta.json")
-    ev_cache=dl/"data/electroverse/tariff_cache"
-    ev_manifest=ev_cache/"manifest.json"
-    if ev_manifest.exists():
-        subprocess.run([
-          sys.executable,
-          str(production_root/"scripts/build_electroverse_runtime_offers.py"),
-          "--cache-dir",str(ev_cache),
-          "--manifest",str(ev_manifest),
-          "--out",str(overlays/"FR/platforms/electroverse-runtime-offers.json")
-        ],check=True)
+    # Electroverse tariffs are compiled at EVSE granularity in Data Lab.
+    # Consume those rich rule payloads directly; the legacy station flattener
+    # discarded complex and heterogeneous tariffs and is intentionally bypassed.
+    evse_overlay=dl/"data/platforms/electroverse/france-evse"
+    evse_manifest=evse_overlay/"manifest.json"
+    if not evse_manifest.exists():
+        raise SystemExit("Pinned Electroverse EVSE tariff overlay is missing; refusing legacy complex-tariff exclusions")
+    evse_meta=load_json(evse_manifest)
+    evse_stats=evse_meta.get("stats") or {}
+    if int(evse_stats.get("publishedOffers") or 0)<5000:
+        raise SystemExit("Pinned Electroverse EVSE overlay has incomplete tariff coverage")
+    copy_tree(evse_overlay,overlays/"FR/platforms/electroverse")
+    reg=load_json(registry)
+    for src in reg.get("sources",[]):
+        if src.get("id")=="france-electroverse-r8":
+            src.update({
+              "adapter":"direct-offer-sharded-v1",
+              "root":"../snapshot-inputs/FR/platforms/electroverse/",
+              "manifest":"../snapshot-inputs/FR/platforms/electroverse/manifest.json",
+              "label":"France pinned Electroverse exact EVSE tariffs (all supported pricing components)",
+              "active":True,"optional":False,"refresh":"immutable-production-snapshot",
+              "policy":"All compiled per-EVSE Electroverse tariffs are exposed, including heterogeneous connector prices, duration bands, time windows, parking and connection fees. Pricing complexity never excludes an offer; unresolved identity conflicts remain separately fail-closed."
+            })
+            break
+    else:
+        raise AssertionError("france-electroverse-r8 registry source missing")
+    prod=reg.setdefault("productionIntegration",{})
+    local=prod.setdefault("snapshotLocalSources",[])
+    if "france-electroverse-r8" not in local: local.append("france-electroverse-r8")
+    write_json(registry,reg)
 
     # Electra eMSP aggregate overlay is independent from Electroverse and
     # attaches only through exact national France EVSE/PDC identities.
