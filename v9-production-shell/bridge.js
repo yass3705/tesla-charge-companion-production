@@ -96,7 +96,7 @@
   function readInputs(w){
     const get=id=>w.document.getElementById(id),date=get('simDate')?.value||'',time=get('simTime')?.value||'',unplug=get('simUnplugTime')?.value||'',startAt=combineDateTime(date,time),disconnectAt=unplug?combineDateTime(date,unplug,startAt):null;
     const rawRadius=text(get('simMaxDistance')?.value),radius=rawRadius===''?0:Math.max(0,num(rawRadius)||0);
-    const operatorSelect=get('simOperatorFilter'),selectedOperator=text(operatorSelect?.value),operatorMode=operatorSelect?.dataset?.v9Mode||(selectedOperator==='all'||!selectedOperator?'all':selectedOperator==='tesla'?'tesla':'selected'),operatorIds=selectedOperator&&selectedOperator!=='all'?[selectedOperator]:[];
+    const operatorSelect=get('simOperatorFilter'),selectedOperatorIds=operatorSelect?.multiple?[...operatorSelect.selectedOptions].map(option=>text(option.value)).filter(Boolean):(text(operatorSelect?.value)?[text(operatorSelect.value)]:[]),operatorMode=operatorSelect?.dataset?.v9Mode||(selectedOperatorIds.length?'selected':'all'),operatorIds=operatorMode==='all'?[]:operatorMode==='tesla'?['tesla']:selectedOperatorIds;
     const powerSelect=get('simPowerType'),connectorKinds=powerSelect?.multiple?[...powerSelect.selectedOptions].map(option=>text(option.value)).filter(v=>v==='AC'||v==='DC'):(text(powerSelect?.value)&&text(powerSelect?.value)!=='all'?[text(powerSelect.value)]:[]);
     const minPowerInput=num(get('simMinPowerKw')?.value),maxPowerInput=num(get('simMaxPowerKw')?.value);
     const minPowerKw=minPowerInput!=null?Math.max(1,minPowerInput):null,maxPowerKw=maxPowerInput!=null?Math.max(1,maxPowerInput):null;
@@ -535,7 +535,8 @@
     if(!select)return;
     const field=select.closest('.full')||select.parentElement;
     field?.querySelector(':scope > label')?.remove();
-    const previous=select.value;
+    const previousValues=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):[];
+    const previous=text(select.value),previousMode=select.dataset.v9Mode;
     const options=new Map();
     for(const option of [...select.options]){
       const value=text(option.value),label=text(option.textContent);
@@ -543,52 +544,60 @@
       options.set(value,value==='tesla'?'Tesla':label);
     }
     if(!options.has('tesla'))options.set('tesla','Tesla');
-    select.multiple=true;select.dataset.v9Multi='true';
-    select.setAttribute('aria-label','Opérateur à afficher');
-    select.innerHTML='<option value="">Choisir un opérateur</option>'+[...options.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
-    const initialMode=previous==='all'||!previous?'all':previous==='tesla'?'tesla':'selected';
-    select.dataset.v9Mode=initialMode;
-    select.value=initialMode==='all'?'':previous;
+    select.multiple=true;select.setAttribute('multiple','');select.dataset.v9Multi='true';
+    select.setAttribute('aria-label','Opérateurs à afficher');
+    const mode=previousMode||(previous==='all'||!previous?'all':previous==='tesla'?'tesla':'selected');
+    select.innerHTML=[...options.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
+    const initial=mode==='all'?[]:mode==='tesla'?['tesla']:(previousValues.length?previousValues:(previous?[previous]:[]));
+    for(const option of [...select.options])option.selected=initial.includes(text(option.value));
+    select.dataset.v9Mode=initial.length?(initial.length===1&&initial[0]==='tesla'?'tesla':'selected'):'all';
     let controls=w.document.getElementById('v9OperatorControls');
-    if(!controls){
-      controls=w.document.createElement('div');controls.id='v9OperatorControls';
-      controls.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;box-sizing:border-box';
-    }
+    if(!controls){controls=w.document.createElement('div');controls.id='v9OperatorControls';controls.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;box-sizing:border-box';}
     const makeButton=(id,label,title)=>{
       let button=w.document.getElementById(id);
-      if(!button){
-        button=w.document.createElement('button');button.type='button';button.id=id;
-        button.className='secondary';button.textContent=label;button.title=title;
-        button.style.cssText='width:auto;margin:0;padding:10px 12px;white-space:nowrap';
-      }
+      if(!button){button=w.document.createElement('button');button.type='button';button.id=id;button.className='secondary';button.textContent=label;button.title=title;button.style.cssText='width:auto;margin:0;padding:10px 12px;white-space:nowrap';}
       return button;
     };
-    const group=select.closest('details.v9-filter-group'),displayLabel=[...(group?.querySelectorAll('label')||[])].find(label=>text(label.textContent)==='Réseaux affichés');
+    const group=select.closest('details.v9-filter-group'),displayLabel=[...(group?.querySelectorAll('label')||[])].find(label=>text(label.textContent).startsWith('Réseaux affichés'));
     let active=w.document.getElementById('v9ActiveNetworkFilter');
     if(!active){active=w.document.createElement('span');active.id='v9ActiveNetworkFilter';}
     if(displayLabel){displayLabel.textContent='Réseaux affichés — ';displayLabel.appendChild(active);}
     const updateSummary=()=>{
-      const mode=select.dataset.v9Mode||'all',option=select.options[select.selectedIndex];
-      active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(option?.textContent||'Tous les réseaux');
+      const mode=select.dataset.v9Mode||'all',names=[...select.selectedOptions].map(option=>text(option.textContent));
+      active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(names.join(', ')||'Tous les réseaux');
     };
     const choose=mode=>{
       select.dataset.v9Mode=mode;
-      if(mode==='all')select.value='';
-      else if(mode==='tesla')select.value='tesla';
+      for(const option of [...select.options])option.selected=mode==='tesla'&&text(option.value)==='tesla';
       select.dispatchEvent(new w.Event('change',{bubbles:true}));
     };
+    if(!select.dataset.v9SummaryBound){
+      select.addEventListener('change',()=>{
+        const values=[...select.selectedOptions].map(option=>text(option.value));
+        select.dataset.v9Mode=values.length?(values.length===1&&values[0]==='tesla'?'tesla':'selected'):'all';
+        updateSummary();
+      });
+      select.dataset.v9SummaryBound='true';
+    }
     const tesla=makeButton('v9TeslaOnly','Tesla uniquement','Afficher uniquement le réseau Tesla');
     const all=makeButton('v9AllNetworks','Tous les réseaux','Afficher tous les réseaux');
     if(!tesla.dataset.v9Bound){tesla.addEventListener('click',()=>choose('tesla'));tesla.dataset.v9Bound='true';}
     if(!all.dataset.v9Bound){all.addEventListener('click',()=>choose('all'));all.dataset.v9Bound='true';}
-    if(!select.dataset.v9SummaryBound){
-      select.addEventListener('change',()=>{select.dataset.v9Mode=select.value===''?'all':select.value==='tesla'?'tesla':'selected';updateSummary();});
-      select.dataset.v9SummaryBound='true';
-    }
-    controls.append(tesla,all,select);
+    const dropdown=mountCheckboxDropdown(w,select,'v9OperatorDropdown',{title:'Opérateurs'});
+    controls.append(tesla,all,dropdown);
     if(controls.parentElement!==field)field?.insertBefore(controls,field.firstChild);
-    select.style.cssText='flex:1 1 220px;min-width:180px;max-width:100%;margin:0';
+    select.style.cssText='width:100%;min-height:96px;margin:0';
     updateSummary();
+    if(w.__TCCV9OperatorSelect!==select){
+      w.__TCCV9OperatorSelect=select;
+      const observer=new w.MutationObserver(()=>{
+        const current=w.document.getElementById('simOperatorFilter');
+        if(current&&current!==w.__TCCV9OperatorSelect)installOperatorMultiSelect(w);
+        else if(current&&!current.multiple){current.multiple=true;current.setAttribute('multiple','');}
+      });
+      observer.observe(w.document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['multiple']});
+      w.__TCCV9OperatorObserver=observer;
+    }
   }
 
   function refreshOperatorOptions(w,area){
