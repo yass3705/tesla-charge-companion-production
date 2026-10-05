@@ -213,12 +213,21 @@
   }
   function renderPowerLines(row){
     const lines=powerLines(row);if(!lines.length)return'<div class="small">Puissance non renseignée</div>';
+    const applied=row?.evaluation?.best||null;
+    const appliedRules=[];
+    const matched=applied?.result?.matchedRule;
+    if(matched)appliedRules.push(matched);
+    for(const segment of (applied?.result?.components?.segmentedPricing?.segments||[])){
+      if(segment?.rule)appliedRules.push(segment.rule);
+    }
+    const appliedLabels=appliedRules.length?tariffRateLabels({currency:applied.currency||'EUR',pricing:{rules:appliedRules}}):[];
     return'<div class="v9-power-lines" style="margin-top:8px">'+lines.map(line=>{
-      const evaluated=evaluatedBaseTariffs(row),fallback=baseTariffsForPower(row,line),tariffs=[...new Set(evaluated.length?evaluated:fallback)];
+      const fallback=baseTariffsForPower(row,line),tariffs=[...new Set(appliedLabels.length?appliedLabels:fallback)];
+      const provider=text(applied?.provider||'');
       const baseLine=tariffs.length
-        ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+'</div>'
+        ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+(provider?' · '+esc(provider):'')+'</div>'
         :row?.evaluation?.best
-          ?'<div class="small" style="color:#c7d0d9">Tarif unitaire non détaillé · prix final calculé ci-dessous</div>'
+          ?'<div class="small" style="color:#c7d0d9">Tarif unitaire appliqué non détaillé · prix final ci-dessous</div>'
           :'<div class="small" style="color:#c7d0d9">Tarif de base non disponible</div>';
       return '<div class="small" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><span>'+esc(line.kind)+' · <b>'+line.powerKw+' kW</b>'+baseLine+'</span><span>'+line.count+' point(s)</span></div>';
     }).join('')+'</div>';
