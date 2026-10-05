@@ -30,7 +30,6 @@ assert.equal(seen,expected,'all compiled EVSE tariffs must be present in product
 
 const require=createRequire(import.meta.url);
 const pricing=require(path.join(root,'runtime/assets/v9/pricing-engine.js'));
-const require=createRequire(import.meta.url);
 const adapter=require(path.join(root,'runtime/assets/v9/adapters/france-emsp-compact.js'));
 const bridge=require(path.join(root,'v9-production-shell/bridge.js'));
 const exactPlatformOffers=adapter.offerRulesFromPlatformOffers([
