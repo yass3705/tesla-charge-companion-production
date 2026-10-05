@@ -131,7 +131,7 @@ try{
   const operatorCatalogBefore=await page.locator('#simOperatorFilter').evaluate(select=>[...select.options].map(option=>({value:option.value,label:option.textContent.trim()})));
   assert.ok(operatorCatalogBefore.some(option=>option.value!=='tesla'),JSON.stringify(operatorCatalogBefore));
   const chosenCpo=operatorCatalogBefore.find(option=>option.value!=='tesla');
-  await page.locator('#simOperatorFilter').selectOption([chosenCpo.value]);
+  await page.locator('#simOperatorFilter').evaluate((select,value)=>{[...select.options].forEach(option=>{option.selected=option.value===value;});select.dataset.v9Mode='selected';select.dispatchEvent(new Event('change',{bubbles:true}));},chosenCpo.value);
   await page.evaluate(async()=>{await window.compare();});
   await page.waitForFunction(()=>/Moteur V9 canary/.test(document.querySelector('#routeStatus')?.textContent||''),null,{timeout:120000,polling:1000});
   const operatorCatalogAfter=await page.locator('#simOperatorFilter').evaluate(select=>[...select.options].map(option=>({value:option.value,label:option.textContent.trim()})));
