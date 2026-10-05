@@ -80,6 +80,9 @@ jobs:
           REQUIRE_ELECTRA_PLATFORM: "1"
         run: node production/tests/runtime-e2e-smoke.mjs dist/v9-explicit-candidate
 
+      - name: Electroverse rich tariff coverage and pricing
+        run: node production/tests/electroverse-rich-pricing.test.mjs dist/v9-explicit-candidate
+
       - name: Install browser test dependency
         run: npm install --no-save --no-package-lock playwright@1.55.1
 
