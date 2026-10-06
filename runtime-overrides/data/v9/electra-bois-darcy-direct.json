@@ -12,7 +12,7 @@
   "directOffers": [
     {
       "id": "electra-app-bois-darcy-e-leclerc-20260902",
-      "provider": "Electra direct · énergie seule",
+      "provider": "Electra direct · énergie seule · relevé 02/09/2026",
       "operatorAliases": ["Electra"],
       "directOperatorOnly": true,
       "stationIds": ["FRELCP12954082", "FRELCP5265355", "FRELCPBDALE"],
