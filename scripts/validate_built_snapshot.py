@@ -67,6 +67,15 @@ def main():
         assert (root/rel).exists(), f"missing runtime integration script {rel}"
     registry=load(root/registry_rel)
     sources={x.get("id"):x for x in registry.get("sources",[]) if isinstance(x,dict)}
+    if manifest["snapshotId"][:10]>="2026-10-07":
+        status_src=sources.get("france-irve-dynamic") or {}
+        assert status_src.get("freshnessMaxMinutes")==2880 and status_src.get("livePath"," ").endswith("/data/national/france-irve-dynamic-status-v9.json.gz"),status_src
+        status_path=root/"runtime/data/v9/france-irve-dynamic-status.json.gz"
+        assert status_path.exists(),status_path
+        with gzip.open(status_path,"rt",encoding="utf-8") as f:
+            status=json.load(f)
+        assert status.get("generatedAt") and status.get("matchedPdc",0)>100000,status.get("matchedPdc")
+        assert status.get("displayExcludedPdc",0)==len(status.get("records") or []),status.get("displayExcludedPdc")
     de_src=sources.get("germany-production-snapshot") or {}
     uk_src=sources.get("uk-production-open-feeds") or {}
     assert de_src.get("adapter")=="germany-national-v1" and de_src.get("path")=="../snapshot-inputs/DE/all.json.gz", de_src
@@ -112,7 +121,7 @@ def main():
     assert 1000<=ev_meta.get("publishedStationOffers",0)<=ev_meta["publishedOffers"], ev_meta
     assert sum((ev_meta.get("nationalJoin") or {}).values())+ev_meta.get("heterogeneousExactEvseFallbackOffers",0)==ev_meta["publishedOffers"], ev_meta
     assert (ev_payload.get("policy") or {}).get("unsupportedOrAmbiguousComplexPricingFailClosed") is True, ev_payload.get("policy")
-    assert (ev_payload.get("policy") or {}).get("heterogeneousConnectorTariffRequiresDistinctPowerOrKind") is True, ev_payload.get("policy")
+    assert (ev_payload.get("policy") or {}).get("heterogeneousConnectorTariffRequiresExactEvse") is True, ev_payload.get("policy")
     avia_ch=sources.get("switzerland-avia-r8") or {}
     assert avia_ch.get("adapter")=="switzerland-avia-v1", avia_ch
     assert avia_ch.get("path")=="../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json", avia_ch

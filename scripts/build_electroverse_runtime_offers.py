@@ -148,15 +148,13 @@ def station_offers(row):
         if not kind or not isinstance(power,(int,float)) or not math.isfinite(power) or power<=0:return None,"invalid_connector_identity"
         parsed.append((policy,kind,int(round(power))))
     signatures={json.dumps(item[0],sort_keys=True,separators=(",",":")) for item in parsed}
-    groups={}
-    if len(signatures)==1:
-        groups[(None,None)]=(parsed[0][0],len(parsed))
-    else:
+    if len(signatures)>1:
         by_power=collections.defaultdict(list)
         for policy,kind,power in parsed:by_power[(kind,power)].append(policy)
         for key,policies in by_power.items():
             if len({json.dumps(p,sort_keys=True,separators=(",",":")) for p in policies})!=1:return None,"same_power_tariff_collision"
-            groups[key]=(policies[0],len(policies))
+        return None,"power_specific_tariff_requires_exact_evse"
+    groups={(None,None):(parsed[0][0],len(parsed))}
     offers=[]
     for (kind,power),(policy,count) in groups.items():
         offer={
@@ -179,7 +177,7 @@ def main():
     ap.add_argument("--manifest",required=True)
     ap.add_argument("--national",required=True,help="Pinned FR static all.json.gz inventory")
     ap.add_argument("--mapping",required=True,help="Pinned high-confidence Electroverse/IRVE identity mapping")
-    ap.add_argument("--evse-platform",help="Pinned exact-EVSE Electroverse overlay for heterogeneous same-power tariffs")
+    ap.add_argument("--evse-platform",help="Pinned exact-EVSE Electroverse overlay for all heterogeneous connector tariffs")
     ap.add_argument("--out",required=True)
     args=ap.parse_args()
     cache=pathlib.Path(args.cache_dir)
@@ -196,7 +194,7 @@ def main():
             station_rules,reason=station_offers(row)
             if station_rules is None:
                 rejected[reason]=rejected.get(reason,0)+1
-                if reason=="same_power_tariff_collision":
+                if reason in {"same_power_tariff_collision","power_specific_tariff_requires_exact_evse"}:
                     heterogeneous[str(row.get("electroverseLocationPk") or "")]=str(row.get("tariffHash") or "")
                 continue
             sid=station_rules[0]["stationIds"][0]
@@ -253,7 +251,7 @@ def main():
       "policy":{
         "highConfidenceMappingOnly":True,
         "frStationsOnly":True,
-        "heterogeneousConnectorTariffRequiresDistinctPowerOrKind":True,
+        "heterogeneousConnectorTariffRequiresExactEvse":True,
         "unsupportedOrAmbiguousComplexPricingFailClosed":True,
         "nationalIdentityBridgeRequiresUniqueExactNameOperatorWithin10mAndPdcOverlapOr1m":True
       },

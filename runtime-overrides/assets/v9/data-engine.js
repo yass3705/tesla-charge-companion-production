@@ -163,6 +163,22 @@
   }
   function deriveOperators(stations){const map=new Map();for(const st of stations||[]){const op=normalizeOperator(st?.physicalOperator),row=map.get(op.id)||{id:op.id,name:op.name,count:0};row.count++;if(row.name==='Unknown'&&op.name!=='Unknown')row.name=op.name;map.set(op.id,row);}return[...map.values()].sort((a,b)=>a.name.localeCompare(b.name));}
   function eligibleOffers(station,selectedSubscriptions=[]){const selected=new Set((selectedSubscriptions||[]).map(text));return(station?.offers||[]).filter(o=>!o.subscriptionId||selected.has(text(o.subscriptionId)));}
+  function hideUnavailableIrvePdcs(station){
+    if(station?.countryCode!=='FR')return station;
+    const blocked=new Set((station?.status?.pdcs||[]).filter(p=>['out_of_service','unknown'].includes(text(p?.state))).map(p=>text(p?.id)).filter(Boolean));
+    if(!blocked.size)return station;
+    const evses=[];
+    for(const evse of station.evses||[]){
+      const ids=evse?.pdcIds||[];
+      if(ids.length){
+        const active=ids.filter(id=>!blocked.has(text(id)));
+        if(!active.length)continue;
+        evses.push({...evse,pdcIds:active,stalls:Math.min(Number(evse.stalls)||active.length,active.length),aliases:(evse.aliases||[]).filter(alias=>!blocked.has(text(alias).replace(/^irve-pdc:/,'')))});
+      }else if(!blocked.has(text(evse?.id)))evses.push(evse);
+    }
+    if(!evses.length)return null;
+    return{...station,evses,aliases:(station.aliases||[]).filter(alias=>!blocked.has(text(alias).replace(/^irve-pdc:/,''))),offers:(station.offers||[]).filter(offer=>!offer.evseIds?.length||offer.evseIds.some(id=>!blocked.has(text(id))))};
+  }
   function selectRoutingCandidates(stations,{origin,budget=80,perOperatorFloor=2}={}){
     const sorted=(stations||[]).map(st=>({st,d:distanceKm(origin,st)})).sort((a,b)=>a.d-b.d||a.st.id.localeCompare(b.st.id)),byOperator=new Map();for(const row of sorted){const id=operatorId(row.st.physicalOperator);if(!byOperator.has(id))byOperator.set(id,[]);byOperator.get(id).push(row);}const chosen=new Map();for(const rows of byOperator.values())for(const row of rows.slice(0,Math.max(1,perOperatorFloor)))chosen.set(row.st.id,row.st);const target=Math.max(Number(budget)||0,chosen.size);for(const row of sorted){if(chosen.size>=target)break;chosen.set(row.st.id,row.st);}return[...chosen.values()].sort((a,b)=>distanceKm(origin,a)-distanceKm(origin,b)||a.id.localeCompare(b.id));
   }
@@ -189,7 +205,7 @@
         const error=new Error(`required data source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
         error.code='TCC_V9_REQUIRED_SOURCE_FAILED';error.failures=requiredFailures;error.diagnostics=diagnostics;throw error;
       }
-      const resolved=resolveEntities(items),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
+      const resolved=resolveEntities(items),available=resolved.map(hideUnavailableIrvePdcs).filter(Boolean),inRadius=available.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
       const stationLimit=Math.floor(number(query.stationLimit)||0),preselected=selectRoutingCandidates(baseFiltered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2}),selected=stationLimit>0&&baseFiltered.length>stationLimit?preselected.slice(0,stationLimit):baseFiltered;
       const filtered=applyOfferRules(selected,ruleItems),operators=deriveOperators(filtered),routingCandidates=selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
       return{query:clone(query),stations:filtered,operators,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationLimit,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
@@ -197,5 +213,5 @@
     api={queryArea,registerLoader,deriveOperators,eligibleOffers,selectRoutingCandidates,sources:()=>clone(sources)};return api;
   }
 
-  return{createEngine,resolveEntities,applyOfferRules,deriveOperators,eligibleOffers,selectRoutingCandidates,materializeOffer,operatorId,distanceKm,sourceApplies,ruleMatchesStation,stationIdentityTokens,identityScopeMatches,stationMatchesFilters};
+  return{createEngine,resolveEntities,applyOfferRules,deriveOperators,eligibleOffers,hideUnavailableIrvePdcs,selectRoutingCandidates,materializeOffer,operatorId,distanceKm,sourceApplies,ruleMatchesStation,stationIdentityTokens,identityScopeMatches,stationMatchesFilters};
 });

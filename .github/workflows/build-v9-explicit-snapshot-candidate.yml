@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: ${{ inputs.datalab_sha || '95aaa2e9f16756e5040086caf6a14c452e28d74a' }}
+          ref: ${{ inputs.datalab_sha || '4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f' }}
           path: datalab
           fetch-depth: 1
           persist-credentials: false
@@ -52,18 +52,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          requested="${{ inputs.datalab_sha || '95aaa2e9f16756e5040086caf6a14c452e28d74a' }}"
+          requested="${{ inputs.datalab_sha || '4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f' }}"
           requested="$(printf '%s' "$requested" | tr -d '[:space:]')"
           test "$(git -C datalab rev-parse HEAD)" = "$requested"
 
       - name: Generate immutable candidate config
         run: |
-          snapshot_id="${{ inputs.snapshot_id || '2026-10-06-pr17-electra-refresh-candidate' }}"
+          snapshot_id="${{ inputs.snapshot_id || '2026-10-07-irve-status-electroverse-evse-preview' }}"
           snapshot_id="$(printf '%s' "$snapshot_id" | tr -d '[:space:]')"
           echo "SNAPSHOT_ID=$snapshot_id" >> "$GITHUB_ENV"
           args=(
             --base production/config/snapshots/2026-09-30-r9-electra-fr.json
-            --datalab-sha "${{ inputs.datalab_sha || '95aaa2e9f16756e5040086caf6a14c452e28d74a' }}"
+            --datalab-sha "${{ inputs.datalab_sha || '4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f' }}"
             --snapshot-id "$snapshot_id"
             --out production/config/snapshots/explicit-candidate.json
           )
@@ -124,6 +124,9 @@ jobs:
 
       - name: Direct and platform tariff joins by charging power
         run: node production/tests/tariff-join-regression.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: Daily IRVE display status
+        run: node production/tests/france-irve-dynamic-status.test.mjs
 
       - name: Electra Bois-d'Arcy tariff calculation
         run: node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime

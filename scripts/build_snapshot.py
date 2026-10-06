@@ -61,6 +61,17 @@ def main():
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
     subprocess.run([sys.executable,str(production_root/"scripts/build_electra_direct_offers.py"),str(dl/"data/operator_direct/electra_exact_france.json"),str(out/"runtime/data/v9/electra-direct-france.json")],check=True)
     snapshot_date=str(cfg.get("snapshotId") or "")[:10]
+    if snapshot_date>="2026-10-07":
+        dynamic_status=dl/"data/national/france-irve-dynamic-status-v9.json.gz"
+        if not dynamic_status.exists():
+            raise SystemExit(f"Pinned daily IRVE dynamic status missing: {dynamic_status}")
+        copy_file(dynamic_status,out/"runtime/data/v9/france-irve-dynamic-status.json.gz")
+        reg=load_json(registry)
+        status_source=next(source for source in reg["sources"] if source.get("id")=="france-irve-dynamic")
+        status_source["livePath"]="https://raw.githubusercontent.com/yass3705/tesla-charge-companion-data-lab/main/data/national/france-irve-dynamic-status-v9.json.gz"
+        status_source["freshnessMaxMinutes"]=2880
+        status_source["refresh"]="daily-data-lab-main-with-pinned-fallback"
+        write_json(registry,reg)
     if snapshot_date>="2026-10-06":
         subprocess.run([sys.executable,str(production_root/"scripts/build_electra_bois_inventory.py"),str(dl/"data/national/france-irve-static-v9/all.json.gz"),str(out/"runtime/data/v9/electra-bois-inventory.json")],check=True)
         izivia_fast_source=dl/"data/operator_direct/izivia_fast_direct_france_2026_10_06.json"

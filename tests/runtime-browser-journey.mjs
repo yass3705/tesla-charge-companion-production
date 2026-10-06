@@ -44,6 +44,7 @@ try{
   });
   assert.equal(await page.locator('#v9TeslaOnly').textContent(),'Tesla uniquement');
   assert.equal(await page.locator('#v9AllNetworks').textContent(),'Tous les réseaux');
+  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'all','All networks are selected on first page load');
   assert.equal(await page.locator('#v9OperatorDropdown').count(),1,'operator dropdown is available');
   assert.equal(await page.locator('#simPowerAc').count(),1,'AC checkbox is beside power range');
   assert.equal(await page.locator('#simPowerDc').count(),1,'DC checkbox is beside power range');
@@ -81,11 +82,10 @@ try{
   const choices=page.locator('#v9OperatorDropdown input[type="checkbox"]');
   assert.ok(await choices.count()>1,'Network selector must expose multiple choices beside shortcut buttons');
   await choices.nth(0).check();await choices.nth(1).check();
-  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'all','Network edits should wait for validation');
-  await page.locator('.v9-operator-apply').click();
-  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'selected');
-  await choices.nth(0).uncheck();await page.locator('.v9-operator-cancel').click();
-  assert.equal(await choices.nth(0).isChecked(),true,'Cancel must restore the applied selection');
+  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'selected','Network edits apply immediately');
+  await choices.nth(0).uncheck();
+  assert.equal(await choices.nth(0).isChecked(),false,'Network checkbox changes apply immediately');
+  assert.equal(await page.locator('.v9-operator-apply,.v9-operator-cancel').count(),0);
   await page.evaluate(()=>{
     window.__subscriptionApplyCalls=0;
     window.TCCV9ProductionShell.renderSubscriptionSelector({
@@ -99,11 +99,11 @@ try{
   const subscriptions=page.locator('#v9SubscriptionChoices input[type=checkbox]');
   assert.equal(await subscriptions.count(),2,'subscription plans appear as a visible multiple-choice list');
   await subscriptions.nth(0).check();await subscriptions.nth(1).check();
-  await page.locator('.v9-sub-apply').click();
   assert.deepEqual(await page.evaluate(()=>window.TCCV9ProductionShell.selectedSubscriptions(window)),['fastned-gold','atlante-go']);
-  assert.equal(await page.evaluate(()=>window.__subscriptionApplyCalls),1,'subscription selection triggers price recalculation');
-  await subscriptions.nth(0).uncheck();await page.locator('.v9-sub-cancel').click();
-  assert.equal(await subscriptions.nth(0).isChecked(),true,'subscription cancel restores the applied choice');
+  await page.waitForFunction(()=>window.__subscriptionApplyCalls>=1);
+  await subscriptions.nth(0).uncheck();
+  assert.deepEqual(await page.evaluate(()=>window.TCCV9ProductionShell.selectedSubscriptions(window)),['atlante-go']);
+  assert.equal(await page.locator('.v9-sub-apply,.v9-sub-cancel').count(),0);
   assert.ok(result.cards>0,result);
   assert.equal(result.diagnostics[0]?.outcome,'v9-ok',result);
   assert.equal(result.diagnostics[0]?.countryCode,'CH',result);

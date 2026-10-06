@@ -67,12 +67,10 @@
     box.innerHTML='<b>Abonnements recharge</b> <span class="small">('+rows.length+' offre(s) vérifiée(s) en '+esc(countryCode)+')</span>'+
       '<div class="small" style="margin-top:6px">Choisis les abonnements que tu possèdes. Le tarif intervient seulement sur les bornes auxquelles il s’applique; les frais mensuels sont indiqués séparément.</div>'+
       (rows.length?'<div id="v9SubscriptionChoices" role="group" aria-label="Abonnements recharge, sélection multiple" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:3px;max-height:180px;overflow:auto;margin-top:8px">'+choices+'</div>'+
-        '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-apply" style="width:auto">Valider</button><button type="button" class="secondary v9-sub-cancel" style="width:auto">Annuler</button><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button></div>':
+        '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button></div>':
         '<div class="small" style="margin-top:8px">Aucun tarif d’abonnement vérifié pour les bornes de cette zone.'+esc(emspMessage)+'</div>');
     const selectedIds=()=>[...box.querySelectorAll('#v9SubscriptionChoices input:checked')].map(input=>text(input.value));
-    const restore=()=>{const applied=new Set(selectedSubscriptions(w));for(const input of box.querySelectorAll('#v9SubscriptionChoices input'))input.checked=applied.has(text(input.value));};
-    box.querySelector('.v9-sub-apply')?.addEventListener('click',()=>{saveSelectedSubscriptions(w,selectedIds());w.compare();});
-    box.querySelector('.v9-sub-cancel')?.addEventListener('click',restore);
+    box.querySelector('#v9SubscriptionChoices')?.addEventListener('change',()=>{saveSelectedSubscriptions(w,selectedIds());if(box._v9SubscriptionTimer)w.clearTimeout(box._v9SubscriptionTimer);box._v9SubscriptionTimer=w.setTimeout(()=>{box._v9SubscriptionTimer=null;w.compare();},150);});
     box.querySelector('.v9-sub-none')?.addEventListener('click',()=>{saveSelectedSubscriptions(w,[]);w.compare();});
   }
 
@@ -562,7 +560,7 @@
     const panel=d.createElement('section');panel.id='v9UsageHelp';panel.className='panel';
     panel.innerHTML='<div class="card"><h2>Mode d’emploi</h2>'+
       '<h3>1. Préparer la recherche</h3><p>Saisis une adresse de départ ou utilise « Position actuelle », puis règle le niveau de batterie, l’objectif et le profil de calcul.</p>'+
-      '<h3>2. Choisir les réseaux</h3><p>« Tesla uniquement » limite la recherche au réseau Tesla. « Tous les réseaux » retire le filtre. Après une recherche, la liste déroulante Opérateurs se met à jour et permet de choisir un ou plusieurs réseaux.</p>'+
+      '<h3>2. Choisir les réseaux</h3><p>Tous les réseaux sont sélectionnés au départ. « Tesla uniquement » limite la recherche au réseau Tesla. La liste Opérateurs permet de choisir plusieurs réseaux et applique chaque changement directement.</p>'+
       '<h3>3. Régler les filtres et lancer le calcul</h3><p>Choisis le type AC/DC, la puissance minimale et maximale, la distance et la priorité de classement. Appuie sur « Simuler » pour afficher les résultats.</p>'+
       '<h3>4. Lire les prix</h3><p>Chaque puissance présente toujours Direct (ou l’abonnement sélectionné), Electra et Electroverse, dans cet ordre. « Prix non disponible » signifie qu’aucun prix comparable et validé n’est disponible dans cette catégorie. Le tarif le plus bas est mis en évidence.</p>'+
       '<h3>5. Comprendre une fiche</h3><p>Chaque fiche précise la base source de la station et le tarif de base retenu pour le calcul. Les stations sont séparées par type et puissance. Le coût par kilomètre récupéré aide au classement; le routage détaillé se lance à la demande.</p>'+
@@ -686,11 +684,10 @@
     let panel=w.document.getElementById('v9OperatorDropdown');
     if(!panel){panel=w.document.createElement('div');panel.id='v9OperatorDropdown';}
     panel.style.cssText='flex:1 1 280px;min-width:240px;max-width:450px;border:1px solid #46505b;border-radius:8px;padding:8px;background:#1a222b;box-sizing:border-box';
-    panel.innerHTML='<b style="display:block;margin-bottom:6px">Opérateurs</b><div class="v9-operator-choices" role="group" aria-label="Choix des réseaux" style="max-height:150px;overflow:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:4px"></div><div style="display:flex;gap:6px;margin-top:8px"><button type="button" class="secondary v9-operator-apply" style="width:auto;margin:0;padding:6px 10px">Valider</button><button type="button" class="secondary v9-operator-cancel" style="width:auto;margin:0;padding:6px 10px">Annuler</button></div>';
+    panel.innerHTML='<b style="display:block;margin-bottom:6px">Opérateurs</b><div class="v9-operator-choices" role="group" aria-label="Choix des réseaux" style="max-height:150px;overflow:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:4px"></div>';
     const choices=panel.querySelector('.v9-operator-choices'),selected=()=>new Set([...select.selectedOptions].map(option=>text(option.value)));
     const redraw=()=>{const values=selected();choices.innerHTML=[...select.options].map(option=>'<label style="display:flex;align-items:center;gap:5px;margin:0"><input type="checkbox" value="'+esc(option.value)+'" '+(values.has(text(option.value))?'checked':'')+' style="width:auto;margin:0"><span>'+esc(option.textContent)+'</span></label>').join('');};
-    panel.querySelector('.v9-operator-apply')?.addEventListener('click',()=>{const values=new Set([...choices.querySelectorAll('input:checked')].map(input=>text(input.value)));for(const option of [...select.options])option.selected=values.has(text(option.value));select.dispatchEvent(new w.Event('change',{bubbles:true}));});
-    panel.querySelector('.v9-operator-cancel')?.addEventListener('click',redraw);
+    choices.addEventListener('change',()=>{const values=new Set([...choices.querySelectorAll('input:checked')].map(input=>text(input.value)));for(const option of [...select.options])option.selected=values.has(text(option.value));select.dispatchEvent(new w.Event('change',{bubbles:true}));});
     select._v9Redraw=redraw;redraw();return panel;
   }
 
@@ -700,7 +697,6 @@
     const field=select.closest('.full')||select.parentElement;
     field?.querySelector(':scope > label')?.remove();
     const previousValues=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):[];
-    const previous=text(select.value),previousMode=select.dataset.v9Mode;
     const options=new Map();
     for(const option of [...select.options]){
       const value=text(option.value),label=text(option.textContent);
@@ -710,9 +706,10 @@
     if(!options.has('tesla'))options.set('tesla','Tesla');
     select.multiple=true;select.setAttribute('multiple','');select.dataset.v9Multi='true';
     select.setAttribute('aria-label','Opérateurs à afficher');
-    const mode=previousMode||(previous==='all'||!previous?'all':previous==='tesla'?'tesla':'selected');
+    const remembered=w.__TCCV9OperatorSelection;
+    const mode=remembered?.mode||'all';
     select.innerHTML=[...options.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
-    const initial=mode==='all'?[]:mode==='tesla'?['tesla']:(previousValues.length?previousValues:(previous?[previous]:[]));
+    const initial=mode==='all'?[]:mode==='tesla'?['tesla']:(remembered?.values||previousValues).filter(value=>options.has(value));
     for(const option of [...select.options])option.selected=initial.includes(text(option.value));
     select.dataset.v9Mode=initial.length?(initial.length===1&&initial[0]==='tesla'?'tesla':'selected'):'all';
     let controls=w.document.getElementById('v9OperatorControls');
@@ -728,6 +725,7 @@
     if(displayLabel){displayLabel.textContent='Réseaux affichés — ';displayLabel.appendChild(active);}
     const updateSummary=()=>{
       const mode=select.dataset.v9Mode||'all',names=[...select.selectedOptions].map(option=>text(option.textContent));
+      w.__TCCV9OperatorSelection={mode,values:[...select.selectedOptions].map(option=>text(option.value))};
       active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(names.join(', ')||'Tous les réseaux');select._v9Redraw?.();
     };
     const choose=mode=>{

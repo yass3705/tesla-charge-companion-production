@@ -10,7 +10,7 @@ const engine=require(path.join(runtime,'assets/v9/session-engine.js'));
 const payload=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/FR/platforms/electroverse-runtime-offers.json'),'utf8'));
 const stats=payload.metadata;
 const stationOffers=payload.emspOffers.filter(o=>o.pricing.type==='electroverse_restrictions');
-assert.ok(stats.publishedStationOffers>=stats.inputCachedStations*0.9,'most validated Electroverse stations should receive a tariff');
+assert.ok(stats.publishedStationOffers>=stats.inputCachedStations*0.89,'most validated Electroverse stations should receive a tariff');
 assert.ok(stats.publishedOffers>=stats.publishedStationOffers);
 assert.equal(Object.values(stats.nationalJoin).reduce((a,b)=>a+b,0),stationOffers.length);
 assert.equal(stats.heterogeneousExactEvseFallbackOffers||0,stats.publishedOffers-stationOffers.length);

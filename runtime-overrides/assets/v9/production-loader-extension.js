@@ -51,6 +51,7 @@
     const chAvia=adapters?.switzerlandAvia||root?.TCCV9Adapters?.switzerlandAvia;
     const itIonity=adapters?.italyIonityExact||root?.TCCV9Adapters?.italyIonityExact;
     const frIonity=adapters?.franceIonityExact||root?.TCCV9Adapters?.franceIonityExact;
+    const frStatus=adapters?.franceIrveStatus||root?.TCCV9Adapters?.franceIrveStatus;
     const itAtlante=adapters?.atlanteItalyExact||root?.TCCV9Adapters?.atlanteItalyExact;
     const original=target.createRegistryLoaders.bind(target);
     target.createRegistryLoaders=function(opts={}){
@@ -65,7 +66,15 @@
       const loaders=original({...opts,registry:baseRegistry});
       for(const source of registry.sources||[]){
         if(source.active===false)continue;
-        if(source.adapter==='static-station-json'){
+        if(source.adapter==='france-irve-status-json'&&source.livePath){
+          if(!frStatus?.normalizePayload)throw new Error('France IRVE status adapter missing');
+          loaders[source.id]=async()=>{
+            let payload;
+            try{payload=await fetchJsonMaybeGzip(source.livePath,opts.fetchImpl);}
+            catch(_){payload=await memoizedJson(join(basePath,source.path),opts.fetchImpl,dataCache);}
+            return frStatus.normalizePayload(payload,{maxAgeMinutes:Number(source.freshnessMaxMinutes)||2880});
+          };
+        }else if(source.adapter==='static-station-json'){
           loaders[source.id]=async query=>{
             const payload=await memoizedJson(join(basePath,source.path),opts.fetchImpl,dataCache);
             const bounds=queryBounds(query);
