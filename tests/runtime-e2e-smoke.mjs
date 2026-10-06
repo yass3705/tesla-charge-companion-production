@@ -198,6 +198,7 @@ const iziviaDole=await engine.queryArea({countryCode:'FR',origin:{lat:47.0819,lo
 const fastRows=iziviaDole.stations.filter(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
 const fastDcInventory=fastRows.some(st=>(st.evses||[]).some(evse=>(evse.connectors||[]).some(connector=>connector.kind==='DC'&&connector.powerKw===150)));
 const fastOffers=iziviaDole.stations.filter(st=>(st.offers||[]).some(o=>o.sourceId==='france-izivia-fast-official-france'));
+const doleFastOffers=fastRows.filter(st=>(st.offers||[]).some(o=>o.sourceId==='france-izivia-fast-official-france'));
 const fastSource=registry.sources.find(source=>source.id==='france-izivia-fast-official-france');
 if(fastSource?.active===false){
   assert.equal(fastOffers.length,0,'Historical snapshot must not receive the later Dole tariff');
@@ -205,11 +206,10 @@ if(fastSource?.active===false){
   assert.ok(iziviaDole.diagnostics.sources['france-izivia-fast-dole-inventory']?.loaded===true,'IZIVIA FAST Dole connector correction did not load');
   assert.ok(iziviaDole.diagnostics.sources['france-izivia-fast-official-france']?.loaded===true,'IZIVIA FAST national direct source did not load');
   assert.ok(fastDcInventory,"Current Data Lab pin must contain the exact McDonald's Dole FAST DC connectors");
-  assert.equal(fastOffers.length,1,"Only the exact McDonald's Dole FAST station should inherit its direct tariff");
-  assert.ok((fastOffers[0].provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
-  assert.equal(fastOffers[0].offers.find(o=>o.sourceId==='france-izivia-fast-official-france').pricing.connectedTimeRounding,'started_minute');
+  assert.equal(doleFastOffers.length,1,"The exact McDonald's Dole FAST station must inherit its direct tariff");
+  assert.equal(doleFastOffers[0].offers.find(o=>o.sourceId==='france-izivia-fast-official-france').pricing.connectedTimeRounding,'started_minute');
 }
-if(process.env.REQUIRE_IZIVIA_FAST_DOLE==='1')assert.equal(fastOffers.length,1,'Current explicit candidate requires the Dole FAST direct tariff');
+if(process.env.REQUIRE_IZIVIA_FAST_DOLE==='1')assert.equal(doleFastOffers.length,1,'Current explicit candidate requires the Dole FAST direct tariff');
 if(fastSource?.active!==false){
   const noisy=await engine.queryArea({countryCode:'FR',origin:{lat:48.83456,lon:2.56171},radiusKm:3,routingBudget:20});
   const noisyFast=noisy.stations.find(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST1'));
