@@ -117,6 +117,21 @@
     if(!buckets.size)buckets.set(0,new Set());
     return buckets;
   }
+  function energyOnlyEvaluation(row,power){
+    const evaluations=[row.evaluation?.best,...(row.evaluation?.alternatives||[])].filter(Boolean);
+    const connectors=(row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).filter(connector=>num(connector.powerKw)===power);
+    for(const evaluated of evaluations){
+      const offer=(row.station?.offers||[]).find(offer=>text(offer.id)===text(evaluated.offerId)&&offer.metadata?.energyOnly===true);
+      if(!offer)continue;
+      const kinds=(offer.connectorKinds||[]).map(kind=>text(kind).toUpperCase());
+      const eligible=connectors.some(connector=>{
+        const kind=text(connector.kind).toUpperCase(),value=num(connector.powerKw);
+        return (!kinds.length||kinds.includes(kind))&&(num(offer.minPowerKw)==null||value>=num(offer.minPowerKw))&&(num(offer.maxPowerKw)==null||value<=num(offer.maxPowerKw));
+      });
+      if(eligible)return{...row.evaluation,best:evaluated,alternatives:[],incomplete:[]};
+    }
+    return null;
+  }
   function groupRows(rows){
     const groups=new Map();
     for(const row of rows||[]){
@@ -124,7 +139,8 @@
         const key=siteKey(row.station,power),selectedConnector=text(row.evaluation?.chargingConnectorId);
         const matchingConnector=selectedConnector&&(row.station?.evses||[]).some(evse=>(evse.connectors||[]).some(connector=>text(connector.id)===selectedConnector&&num(connector.powerKw)===power));
         const evaluated=matchingConnector||(!selectedConnector&&power===maxPower(row.station));
-        const candidate={...row,displayPowerKw:power,evaluation:evaluated?row.evaluation:null,total:evaluated?row.total:null};
+        const evaluation=evaluated?row.evaluation:energyOnlyEvaluation(row,power);
+        const candidate={...row,displayPowerKw:power,evaluation,total:num(evaluation?.best?.total)};
         let group=groups.get(key);
         if(!group){group={...candidate,pointIds:new Set(),pointCount:0,groupedStationCount:0};groups.set(key,group);}
         group.groupedStationCount++;
