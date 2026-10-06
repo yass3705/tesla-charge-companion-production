@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: c14db657fd8ed77ea124e8cea04c580397a6d22d
+          ref: 4f59ebac5a433362be3faf3c89ab1942b804c1a1
           path: production
 
       - name: Checkout stable baseline
@@ -50,10 +50,10 @@ jobs:
 
       - name: Verify pins and build preview candidate
         env:
-          SNAPSHOT_ID: 2026-10-06-pr17-all-tariff-profiles-preview
+          SNAPSHOT_ID: 2026-10-06-pr17-map-filters-subscriptions-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = c14db657fd8ed77ea124e8cea04c580397a6d22d
+          test "$(git -C production rev-parse HEAD)" = 4f59ebac5a433362be3faf3c89ab1942b804c1a1
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = cdf55254f6ce72f67db38349d4a639ff81bcc359
           python production/scripts/build_refresh_candidate_config.py \
@@ -72,6 +72,7 @@ jobs:
           python production/scripts/validate_built_snapshot.py dist/v9-explicit-candidate "$SNAPSHOT_ID"
           python production/scripts/validate_stable_parity.py stable dist/v9-explicit-candidate --allow-pricing-engine-override
           python production/scripts/audit_tariff_profiles.py dist/v9-explicit-candidate --output tariff-audit/profile-inventory.json --expected-profile-signatures 145
+          python production/scripts/audit_electroverse_targets.py datalab dist/v9-explicit-candidate
           python production/scripts/validate_browser_asset_graph.py dist/v9-explicit-candidate
 
       - name: Verify tariff calculations and grouping
@@ -79,6 +80,7 @@ jobs:
           set -euo pipefail
           node production/tests/pricing-rule-precedence.test.mjs dist/v9-explicit-candidate/runtime
           node production/tests/pricing-profile-matrix.test.mjs dist/v9-explicit-candidate/runtime
+          node production/tests/subscription-selection.test.mjs dist/v9-explicit-candidate/runtime
           node production/tests/pricing-profile-sweep.test.mjs dist/v9-explicit-candidate tariff-audit/profile-inventory.json
           node production/tests/v9-ui-contract.test.mjs
           node production/tests/v9-shell-grouping.test.mjs
