@@ -24,7 +24,9 @@ const grouped = groupRows(dole);
 assert.equal(grouped.length, 1, 'Intermarché Dole should have one 22 kW result row');
 assert.equal(grouped[0].pointCount, 10, 'two connector types must not double-count a charge point');
 
-const mixed = groupRows([...dole, row('fast', 50), row('other-cpo', 22, 'Other CPO'), row('other-site', 22, 'IZIVIA', 'OTHER SITE')]);
+const otherSite = row('other-site', 22, 'IZIVIA', 'OTHER SITE');
+otherSite.station.address = 'OTHER ADDRESS';
+const mixed = groupRows([...dole, row('fast', 50), row('other-cpo', 22, 'Other CPO'), otherSite]);
 assert.equal(mixed.length, 4, 'power, operator, and station identity must stay separate');
 assert.equal(mixed.find(x => x.station.id === 'fast').pointCount, 1);
 
