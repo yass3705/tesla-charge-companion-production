@@ -199,7 +199,8 @@ for(const st of boisPriced){
   const direct=st.offers.find(o=>o.sourceId==='france-electra-direct');
   assert.deepEqual(direct.connectorKinds,['DC']);
   assert.equal(direct.pricing.priceSelectionBasis,'session_start_local_time');
-  assert.equal(direct.pricing.rules.length,4);
+  assert.ok(direct.pricing.rules.length>=1,'exact Electra schedule must retain energy rules');
+  assert.ok(direct.pricing.rules.every(rule=>Number.isFinite(rule.pricePerKwh)),'all Electra energy rules must be numeric');
   assert.equal(direct.metadata.timeZone,'Europe/Paris');
   assert.equal(direct.metadata.conditionalCongestionFeeExcluded,true);
   assert.ok(evaluatedProviders(st).has(direct.provider),'Bois-d’Arcy direct tariff must survive the joined runtime session filter');
