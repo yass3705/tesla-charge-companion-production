@@ -149,7 +149,7 @@ def build(payload):
             },
         })
     if len(offers) < 400:
-        raise ValueError(f"Electra exact tariff coverage regressed: {len(offers)} offers")
+        raise ValueError(f"Electra exact tariff coverage regressed: {len(offers)} offers; rejected={dict(collections.Counter(row['reason'] for row in skipped))}; examples={skipped[:10]}")
     return {
         "schemaVersion": 1,
         "country": "FR",
