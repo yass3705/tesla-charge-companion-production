@@ -180,12 +180,13 @@ for(const power of [7.4,22.1])assert.equal(lullyDirect.filter(o=>power>=o.minPow
 assert.ok(lullyResult.diagnostics.sources['e55c-direct-france']?.loaded===true,'Electric 55 direct source did not load');
 
 const boisResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.799557,lon:2.039009},radiusKm:0.5,routingBudget:20});
-const boisIds=new Set(['FRELCP12954082','FRELCP5265355','FRELCPBDALE']);
+const boisIds=new Set(['FRELCP12954082']);
 const boisPriced=boisResult.stations.filter(st=>(st.offers||[]).some(o=>o.sourceId==='france-electra-bois-darcy-direct'));
-assert.equal(boisPriced.length,3,'All three exact Bois-d\'Arcy national station IDs should receive the app energy tariff');
+assert.equal(boisPriced.length,1,'Only the current Bois-d\'Arcy DC national station ID should receive the app energy tariff');
 for(const st of boisPriced){
   assert.ok((st.provenance||[]).some(p=>boisIds.has(p.sourceStationId)),'Electra direct offer attached outside Bois-d\'Arcy');
   const direct=st.offers.find(o=>o.sourceId==='france-electra-bois-darcy-direct');
+  assert.deepEqual(direct.connectorKinds,['DC']);
   assert.equal(direct.pricing.lockAtSessionStart,true);
   assert.equal(direct.pricing.rules.length,4);
   assert.equal(direct.metadata.timeZone,'Europe/Paris');
