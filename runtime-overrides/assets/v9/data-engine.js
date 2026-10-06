@@ -153,8 +153,13 @@
   function stationMatchesFilters(station,filters={}){
     if(filters.status&&filters.status!=='all'&&text(station?.status?.state)!==text(filters.status))return false;
     const selectedOperators=(filters.operatorIds||[]).map(operatorId);if(selectedOperators.length&&!selectedOperators.includes(operatorId(station?.physicalOperator)))return false;
-    const selectedKinds=(filters.connectorKinds||[]).map(v=>text(v).toUpperCase()).filter(v=>v==='AC'||v==='DC');if(selectedKinds.length&&!selectedKinds.some(kind=>stationConnectorKinds(station).has(kind)))return false;
-    const minPower=number(filters.minPowerKw),maxPower=number(filters.maxPowerKw);if(minPower!=null||maxPower!=null){const powers=stationPowers(station);if(!powers.length)return false;if(minPower!=null&&!powers.some(p=>p>=minPower))return false;if(maxPower!=null&&!powers.some(p=>p<=maxPower))return false;}return true;
+    const selectedKinds=(filters.connectorKinds||[]).map(v=>text(v).toUpperCase()).filter(v=>v==='AC'||v==='DC');
+    const minPower=number(filters.minPowerKw),maxPower=number(filters.maxPowerKw);
+    if(selectedKinds.length||minPower!=null||maxPower!=null){
+      const connectors=(station?.evses||[]).flatMap(evse=>evse?.connectors||[]);
+      if(!connectors.some(connector=>{const power=number(connector?.powerKw),kind=connectorKind(connector);return(!selectedKinds.length||selectedKinds.includes(kind))&&power!=null&&(minPower==null||power>=minPower)&&(maxPower==null||power<=maxPower);}))return false;
+    }
+    return true;
   }
   function deriveOperators(stations){const map=new Map();for(const st of stations||[]){const op=normalizeOperator(st?.physicalOperator),row=map.get(op.id)||{id:op.id,name:op.name,count:0};row.count++;if(row.name==='Unknown'&&op.name!=='Unknown')row.name=op.name;map.set(op.id,row);}return[...map.values()].sort((a,b)=>a.name.localeCompare(b.name));}
   function eligibleOffers(station,selectedSubscriptions=[]){const selected=new Set((selectedSubscriptions||[]).map(text));return(station?.offers||[]).filter(o=>!o.subscriptionId||selected.has(text(o.subscriptionId)));}
