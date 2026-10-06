@@ -64,6 +64,24 @@ assert.equal(electraRows.length, 4);
 assert.ok(electraRows.filter(x => x.displayPowerKw >= 100).every(x => x.total === 4.9), 'energy-only price should cover every eligible DC power');
 assert.equal(electraRows.find(x => x.displayPowerKw === 22).total, null, 'historical AC connector must remain unpriced');
 
+const teslaTracker = row('tesla-le-chesnay-france', 250, 'Tesla', 'Tesla Le Chesnay, France');
+teslaTracker.station.address = '2 Avenue Charles de Gaulle, Le Chesnay 78150, France';
+teslaTracker.station.latitude = 48.828051;
+teslaTracker.station.longitude = 2.11910;
+teslaTracker.station.evses = Array.from({length:12}, (_,index)=>({id:'tracker-'+index,pdcIds:['tracker-'+index],connectors:[{kind:'DC',powerKw:250}]}));
+teslaTracker.evaluation = {best:{offerId:'tesla-price',provider:'Tesla',kind:'direct',total:8,comparable:true,result:{totalEur:8}}};
+const teslaIrve = row('FRTSLP11192', 250, 'Tesla', 'Le Chesnay, France');
+teslaIrve.station.address = '2, Avenue Charles de Gaulle, 78158';
+teslaIrve.station.latitude = 48.82805;
+teslaIrve.station.longitude = 2.11910;
+teslaIrve.station.evses = Array.from({length:12}, (_,index)=>({id:'irve-'+index,pdcIds:['irve-'+index],connectors:[{kind:'DC',powerKw:250}]}));
+teslaIrve.evaluation = null;
+teslaIrve.total = null;
+const mergedTesla=groupRows([teslaTracker,teslaIrve]);
+assert.equal(mergedTesla.length,1,'tracker and national IRVE aliases for Tesla Le Chesnay must form one site');
+assert.equal(mergedTesla[0].pointCount,12,'mirrored Tesla sources must not double-count stalls');
+assert.equal(mergedTesla[0].evaluation.best.total,8,'the priced Tesla source must win over an unpriced mirror');
+
 const unpriced = rowsFromArea({ stations: [row('unpriced', 22).station] });
 assert.equal(unpriced[0].total, null, 'missing price must not become zero');
 
