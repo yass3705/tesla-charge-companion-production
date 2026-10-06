@@ -70,6 +70,8 @@ try{
   await page.locator('.v9-view-map').click();
   assert.ok(await page.locator('#v9MapZones img[src*="tile.openstreetmap.org"]').count()>0,'Geographic map must load OpenStreetMap tile images');
   assert.ok(await page.locator('#v9MapZones .v9-map-marker').count()>0,'Geographic map must retain station markers');
+  assert.ok(await page.locator('#v9MapZones .v9-map-marker').filter({hasText:/\d+,\d{2} CHF/}).count()>0,
+    'Swiss map markers must show the simulated session total in CHF');
   await page.locator('#v9MapZones .v9-map-marker').first().click();
   if(await page.locator('#v9MapSelected .v9-map-choice').count())await page.locator('#v9MapSelected .v9-map-choice').first().click();
   assert.equal(await page.locator('#v9MapSelected').isVisible(),true,'Selecting a marker reveals the charging station');

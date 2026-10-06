@@ -59,6 +59,7 @@ def main():
                 copy_file(src,out/"runtime"/src.relative_to(overrides))
     registry=out/"runtime/data/v9/source-registry.json"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
+    subprocess.run([sys.executable,str(production_root/"scripts/build_belgium_nap_runtime.py"),str(dl),str(out/"runtime/data/v9")],check=True)
     subprocess.run([sys.executable,str(production_root/"scripts/build_electra_direct_offers.py"),str(dl/"data/operator_direct/electra_exact_france.json"),str(out/"runtime/data/v9/electra-direct-france.json")],check=True)
     snapshot_date=str(cfg.get("snapshotId") or "")[:10]
     if snapshot_date>="2026-10-07":
@@ -122,6 +123,23 @@ def main():
             if not metadata_src.exists():
                 raise SystemExit(f"Pinned Data Lab Tesla metadata missing: {metadata_path}")
             copy_file(metadata_src,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
+    # The Morocco power-band tariff is pinned from the local Tesla export on
+    # the Mac, independently of the SuC Tracker feed used for other countries.
+    mac_ma=load_json(production_root/"runtime-overrides/data/v9/tesla-morocco-mac-export.json")
+    for target in (out/"runtime/data/tesla_stations.json",out/"data/tesla_stations.json"):
+        catalogue=load_json(target)
+        mac_by_id={station["id"]:station for station in mac_ma["stations"]}
+        if isinstance(catalogue,list):
+            rows=catalogue
+        else:
+            rows=catalogue.get("stations",[])
+        merged=[mac_by_id.get(station.get("id"),station) if station.get("countryCode")=="MA" else station for station in rows]
+        present={station.get("id") for station in merged}
+        merged.extend(station for station in mac_ma["stations"] if station["id"] not in present)
+        if merged!=rows:
+            if isinstance(catalogue,list):catalogue=merged
+            else:catalogue["stations"]=merged
+            write_json(target,catalogue)
     # Netherlands: optionally replace the legacy Stable baseline with the
     # immutable national runtime built in Data Lab. The source directory already
     # contains manifest, all.json.gz and tiles; keep its layout under the stable
@@ -206,7 +224,7 @@ def main():
       "runtimeBase":"runtime",
       "snapshotId":cfg["snapshotId"],
       "observedCandidateSha":cfg["sources"]["stable"]["sha"],
-      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"],
+      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA","BE"],
       "fallback":"control/index.html",
       "notes":"Production-owned V9 shell. Root enters V9 directly; pinned V7.3 control is local fallback only."
     })
@@ -485,7 +503,7 @@ def main():
     datalab_pin=pinned_commit_date(dl,cfg.get("sources",{}).get("dataLab",{}).get("sha","HEAD"))
     stable_pin=pinned_commit_date(stable,cfg.get("sources",{}).get("stable",{}).get("sha","HEAD"))
     base_specs=[
-      ("TESLA","Tesla · SuC Tracker",[out/"snapshot-inputs/TESLA/suc-tracker-metadata.json"],datalab_pin),
+      ("TESLA","Tesla · export Mac au Maroc",[out/"runtime/data/v9/tesla-morocco-mac-export.json",out/"snapshot-inputs/TESLA/suc-tracker-metadata.json"],stable_pin),
       ("ES","Espagne · REVE",[out/"runtime/data/v9/spain-static/manifest.json"],stable_pin),
       ("NL","Pays-Bas · base nationale DOT-NL",[out/"snapshot-inputs/NL/runtime/manifest.json",out/"snapshot-inputs/NL/manifest.json"],datalab_pin),
       ("CH","Suisse · base nationale et tarifs directs",[out/"runtime/data/v9/switzerland-static/manifest.json",out/"snapshot-inputs/CH/direct/avia-reconciliation.json"],datalab_pin),
@@ -494,7 +512,7 @@ def main():
       ("IT","Italie · base nationale et tarifs CPO",[out/"snapshot-inputs/IT/cpo-ledger.json",out/"runtime/data/v9/italy-static/manifest.json"],stable_pin),
       ("DE","Allemagne · base nationale et tarifs CPO",[out/"snapshot-inputs/DE/national-source-manifest.json",out/"snapshot-inputs/DE/cpo-progress.json"],datalab_pin),
       ("UK","Royaume-Uni · flux opérateurs validés",[out/"snapshot-inputs/UK/cpo-ledger.json",out/"snapshot-inputs/UK/manifest.json"],datalab_pin),
-      ("BE","Belgique · NAP et tarifs CPO",[out/"snapshot-inputs/BE/cpo-ledger.json",out/"snapshot-inputs/BE/manifest.json"],datalab_pin),
+      ("BE","Belgique · NAP et tarifs directs vérifiés",[out/"runtime/data/v9/belgium-static/manifest.json",out/"snapshot-inputs/BE/manifest.json"],datalab_pin),
       ("ELECTRA","France · tarifs Electra",[out/"snapshot-inputs/FR/platforms/electra/manifest.json"],datalab_pin),
       ("ELECTROVERSE","France · tarifs Electroverse",[out/"snapshot-inputs/FR/platforms/electroverse-runtime-offers.json",dl/"data/electroverse/tariff_cache/manifest.json"],datalab_pin),
     ]
@@ -521,7 +539,7 @@ def main():
         "shellConfig":"v9-production-shell/shell-config.json",
         "controlFallback":"control/index.html",
         "runtimeBase":"runtime",
-        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"]
+        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA","BE"]
       },
       "runtimeIntegration":{
         "registry":"runtime/data/v9/source-registry.json",
@@ -539,7 +557,7 @@ def main():
         "loaderExtensionInstall":"TCCV9ProductionBootstrap.install()"
       },
       "datasets":{
-        "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None},
+        "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None,"moroccoSource":"runtime/data/v9/tesla-morocco-mac-export.json"},
         "ES":{"kind":"static-tiles","manifest":"runtime/data/v9/spain-static/manifest.json","offers":"runtime/data/v9/spain-reve-offers/manifest.json","coverage":"complete"},
         "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
         "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","direct":"snapshot-inputs/CH/direct","coverage":"complete-with-fail-closed-residuals"},
@@ -547,7 +565,8 @@ def main():
         "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","identityHub":"national France station/EVSE baseline","coverage":"partial"},
         "IT":{"kind":"static-tiles","manifest":"runtime/data/v9/italy-static/manifest.json","offers":"runtime/data/v9/italy-offers.json","direct":"snapshot-inputs/IT/direct","coverage":"partial"},
         "DE":{"kind":"national-baseline","manifest":"snapshot-inputs/DE/manifest.json","all":"snapshot-inputs/DE/all.json.gz","direct":"snapshot-inputs/DE/direct","coverage":"partial"},
-        "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"}
+        "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"},
+        "BE":{"kind":"static-tiles","manifest":"runtime/data/v9/belgium-static/manifest.json","offers":"runtime/data/v9/belgium-nap-offers/manifest.json","coverage":"complete-inventory-partial-direct-prices"}
       }
     }
     write_json(out/"runtime-contract.json",contract)

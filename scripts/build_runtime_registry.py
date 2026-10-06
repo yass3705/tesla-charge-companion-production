@@ -19,6 +19,20 @@ def build_registry(path):
     sources=obj.setdefault("sources",[])
     sources[:]=[source for source in sources if source.get("id")!="france-electra-bois-darcy-direct"]
     upsert(sources,{
+      "id":"belgium-nap-national","label":"Belgium pinned NAP physical baseline",
+      "adapter":"national-compact-v4","root":"data/v9/belgium-static/","manifest":"data/v9/belgium-static/manifest.json",
+      "countries":["BE"],"capabilities":["inventory","connectors","access","status"],
+      "priority":{"identity":75,"connectors":75,"access":55,"status":75,"tariff":0},
+      "refresh":"snapshot-pinned","active":True,"optional":False
+    })
+    upsert(sources,{
+      "id":"belgium-nap-direct","label":"Belgium NAP exact-EVSE ad-hoc direct tariffs",
+      "adapter":"direct-offer-sharded-v1","root":"data/v9/belgium-nap-offers/","manifest":"data/v9/belgium-nap-offers/manifest.json",
+      "countries":["BE"],"capabilities":["tariff"],"priority":{"tariff":125},
+      "refresh":"snapshot-pinned","active":True,"optional":False,
+      "policy":"Only one unambiguous ad-hoc kWh price per EVSE with known VAT treatment is exposed. Unsupported and ambiguous tariffs remain unpriced."
+    })
+    upsert(sources,{
       "id":"germany-production-snapshot",
       "label":"Germany pinned BNetzA/direct-CPO production snapshot",
       "adapter":"germany-national-v1",

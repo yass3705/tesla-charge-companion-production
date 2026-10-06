@@ -34,10 +34,15 @@ assert.ok(missing.includes('Aucune correspondance Electroverse vérifiée'),'mis
 
 assert.equal(ui.stationBaseSource({countryCode:'FR'}),'IRVE');
 assert.equal(ui.stationBaseSource({countryCode:'BE'}),'NAP Belgique');
+assert.equal(ui.stationBaseSource({countryCode:'MA',physicalOperator:{name:'Tesla Supercharger'}}),'TESLA · export Mac');
 assert.equal(ui.stationBaseSource({countryCode:'FR',physicalOperator:{name:'Tesla Supercharger'}}),'TESLA · SuC Tracker');
 const teslaHtml=ui.renderTariffs({best:{total:8,targetCurrency:'EUR'}},{physicalOperator:{name:'Tesla Supercharger'}});
 assert.ok(teslaHtml.includes('Tesla'));
 assert.ok(!teslaHtml.includes('Electra')&&!teslaHtml.includes('Electroverse'),'third-party categories are not shown for Tesla stations');
+assert.equal(ui.buildSession({startSoc:20,targetSoc:80,startAt:'2026-10-07T10:00:00Z'},'CH').targetCurrency,'CHF');
+assert.equal(ui.buildSession({startSoc:20,targetSoc:80,startAt:'2026-10-07T10:00:00Z'},'MA').targetCurrency,'MAD');
+assert.ok(ui.renderTariffs({best:{total:12.5,targetCurrency:'CHF'}},{countryCode:'CH',physicalOperator:{name:'Tesla Supercharger'}}).includes('12,50 CHF'));
+assert.ok(ui.renderTariffs({best:{offerId:'ch-direct',kind:'direct',provider:'AVIA',currency:'CHF',targetCurrency:'CHF',total:9.3,result:{totalEur:9.3}},alternatives:[],incomplete:[]},{countryCode:'CH',physicalOperator:{name:'AVIA'}}).includes('9,30 CHF'));
 
 
 const emptyPowerFields={simNow:{value:'20'},simTarget:{value:'80'},simDate:{value:''},simTime:{value:''},simUnplugTime:{value:''},simMaxDistance:{value:'20'},simOperatorFilter:{value:'',dataset:{v9Mode:'all'}},simPowerType:{multiple:true,selectedOptions:[]},simMinPowerKw:{value:''},simMaxPowerKw:{value:''},simCondition:{value:'normal'},simProfile:{value:'realistic'},simRanking:{value:'balanced'}};
