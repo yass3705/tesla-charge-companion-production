@@ -86,6 +86,24 @@ try{
   assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'selected');
   await choices.nth(0).uncheck();await page.locator('.v9-operator-cancel').click();
   assert.equal(await choices.nth(0).isChecked(),true,'Cancel must restore the applied selection');
+  await page.evaluate(()=>{
+    window.__subscriptionApplyCalls=0;
+    window.TCCV9ProductionShell.renderSubscriptionSelector({
+      document:window.document,localStorage:window.localStorage,
+      compare:()=>{window.__subscriptionApplyCalls++;}
+    },[
+      {id:'fastned-gold',label:'Fastned Gold',provider:'Fastned',monthlyFeeEur:5.99},
+      {id:'atlante-go',label:'Atlante Go',provider:'Atlante',monthlyFeeEur:9.99}
+    ],'FR',[]);
+  });
+  const subscriptions=page.locator('#v9SubscriptionChoices input[type=checkbox]');
+  assert.equal(await subscriptions.count(),2,'subscription plans appear as a visible multiple-choice list');
+  await subscriptions.nth(0).check();await subscriptions.nth(1).check();
+  await page.locator('.v9-sub-apply').click();
+  assert.deepEqual(await page.evaluate(()=>window.TCCV9ProductionShell.selectedSubscriptions(window)),['fastned-gold','atlante-go']);
+  assert.equal(await page.evaluate(()=>window.__subscriptionApplyCalls),1,'subscription selection triggers price recalculation');
+  await subscriptions.nth(0).uncheck();await page.locator('.v9-sub-cancel').click();
+  assert.equal(await subscriptions.nth(0).isChecked(),true,'subscription cancel restores the applied choice');
   assert.ok(result.cards>0,result);
   assert.equal(result.diagnostics[0]?.outcome,'v9-ok',result);
   assert.equal(result.diagnostics[0]?.countryCode,'CH',result);
