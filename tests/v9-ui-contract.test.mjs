@@ -23,6 +23,7 @@ assert.ok(html.includes('background:#c9b3f4'),'Electroverse uses violet');
 
 const missing=ui.renderTariffs({best:null,alternatives:[],incomplete:[]});
 assert.equal((missing.match(/Prix non disponible/g)||[]).length,3,'all three categories remain visible without prices');
+assert.ok(missing.includes('Aucune correspondance Electroverse vérifiée'),'missing Electroverse source must be explained');
 
 assert.equal(ui.stationBaseSource({countryCode:'FR'}),'IRVE');
 assert.equal(ui.stationBaseSource({countryCode:'BE'}),'NAP Belgique');
