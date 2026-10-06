@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { groupRows } = require('../v9-production-shell/bridge.js');
+const { groupRows, rowsFromArea } = require('../v9-production-shell/bridge.js');
 
 function row(id, powerKw, cpo = 'IZIVIA', name = 'INTERMARCHE - DOLE') {
   const point = `FROTHEOTHR686${id}`;
@@ -29,5 +29,21 @@ otherSite.station.address = 'OTHER ADDRESS';
 const mixed = groupRows([...dole, row('fast', 50), row('other-cpo', 22, 'Other CPO'), otherSite]);
 assert.equal(mixed.length, 4, 'power, operator, and station identity must stay separate');
 assert.equal(mixed.find(x => x.station.id === 'fast').pointCount, 1);
+
+const lully = row('lully', 22.1, 'Electric 55 Charging', 'PLACE LULLY');
+lully.station.address = '12 PLACE JEAN BAPTISTE LULLY';
+lully.station.evses = [
+  { id: 'low', pdcIds: ['p1', 'p2', 'p3'], connectors: [{ id: 'low-connector', powerKw: 7.4 }] },
+  { id: 'high', pdcIds: ['p4'], connectors: [{ id: 'high-connector', powerKw: 22.1 }] },
+];
+lully.evaluation = { chargingConnectorId: 'high-connector', best: { total: 5 } };
+const mixedPowers = groupRows([lully]);
+assert.equal(mixedPowers.length, 2);
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 7.4).pointCount, 3);
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 22.1).pointCount, 1);
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 7.4).total, null, 'price for 22.1 kW must not appear on 7.4 kW row');
+
+const unpriced = rowsFromArea({ stations: [row('unpriced', 22).station] });
+assert.equal(unpriced[0].total, null, 'missing price must not become zero');
 
 console.log('V9 shell grouping OK');
