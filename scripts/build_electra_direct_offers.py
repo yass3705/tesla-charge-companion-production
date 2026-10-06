@@ -2,6 +2,7 @@
 """Build exact Electra app energy offers from the pinned first-party capture."""
 import argparse
 import collections
+import copy
 import datetime as dt
 import json
 import pathlib
@@ -164,6 +165,32 @@ def build(payload):
         })
     if len(offers) < 400:
         raise ValueError(f"Electra exact tariff coverage regressed: {len(offers)} offers; rejected={dict(collections.Counter(row['reason'] for row in skipped))}")
+    subscriptions = []
+    for direct in offers:
+        for plan_id, name, discount, monthly_fee in (
+            ("electra-plus-essential", "Electra+ Essential", 0.10, 1.99),
+            ("electra-plus-smart", "Electra+ Smart", 0.20, 4.99),
+        ):
+            member = copy.deepcopy(direct)
+            member["id"] = f"{direct['id']}:{plan_id}"
+            member["provider"] = name
+            member["offerKind"] = "subscription"
+            member["subscriptionId"] = plan_id
+            member["selectionId"] = plan_id
+            member["monthlyFeeEur"] = monthly_fee
+            member["metadata"].update({
+                "subscriptionName": name,
+                "monthlyFeeEur": monthly_fee,
+                "energyDiscountEurPerKwh": discount,
+                "subscriptionSource": "https://www.go-electra.com/fr/electra-plus/",
+                "subscriptionAppliesTo": "Electra-operated DC stations with a verified Electra app base rate",
+                "monthlyFeeExcludedFromSessionTotal": True,
+            })
+            for rule in member["pricing"]["rules"]:
+                rule["pricePerKwh"] = round(rule["pricePerKwh"] - discount, 6)
+                if rule["pricePerKwh"] < 0:
+                    raise ValueError("Electra+ discount exceeds verified base rate")
+            subscriptions.append(member)
     return {
         "schemaVersion": 1,
         "country": "FR",
@@ -184,7 +211,7 @@ def build(payload):
             "skipped": skipped,
         },
         "directOffers": offers,
-        "subscriptionOffers": [],
+        "subscriptionOffers": subscriptions,
     }
 
 
