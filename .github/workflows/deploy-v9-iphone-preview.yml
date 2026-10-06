@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: 65efa2be73c5a9300c81fb6a26df8f2f3da4b55e
+          ref: c0853fcd900370ad3662b7190c999b9862750053
           path: production
 
       - name: Checkout stable baseline
@@ -53,7 +53,7 @@ jobs:
           SNAPSHOT_ID: 2026-10-07-irve-status-electroverse-evse-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = 65efa2be73c5a9300c81fb6a26df8f2f3da4b55e
+          test "$(git -C production rev-parse HEAD)" = c0853fcd900370ad3662b7190c999b9862750053
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = 4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f
           python production/scripts/build_refresh_candidate_config.py \
