@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "country": "FR",
+  "generatedAt": "2026-10-06",
+  "mode": "exact_station_direct_tariff",
+  "policy": {
+    "exactStationIdsOnly": true,
+    "networkDefault": false,
+    "fastOnly": true,
+    "expressExcluded": true,
+    "sourceEvidence": "User-transcribed tariff from the IZIVIA map for IZIVIA FAST - McDonald's - DOLE on 2026-10-06"
+  },
+  "directOffers": [
+    {
+      "id": "izivia-fast-dole-direct-2026-10-06",
+      "provider": "IZIVIA FAST direct · relevé 06/10/2026",
+      "operatorAliases": ["IZIVIA"],
+      "directOperatorOnly": true,
+      "stationIds": ["FRIZFPFAST422"],
+      "connectorKinds": ["DC"],
+      "minPowerKw": 149.5,
+      "maxPowerKw": 150.5,
+      "countries": ["FR"],
+      "currency": "EUR",
+      "priority": 125,
+      "pricing": {
+        "type": "rules",
+        "priceSelectionBasis": "session_start_local_time",
+        "connectedTimeRounding": "started_minute",
+        "rules": [
+          {"scope":"timeWindow","start":"00:00","end":"09:00","billing":"kwh","currency":"EUR","pricePerKwh":0.35,"energyRounding":"started_kwh","connectedTimeFreeMinutes":60,"connectedTimePerMinuteAfterFreeEur":0.30},
+          {"scope":"timeWindow","start":"09:00","end":"11:00","billing":"kwh","currency":"EUR","pricePerKwh":0.30,"energyRounding":"started_kwh","connectedTimeFreeMinutes":60,"connectedTimePerMinuteAfterFreeEur":0.30},
+          {"scope":"timeWindow","start":"11:00","end":"15:00","billing":"kwh","currency":"EUR","pricePerKwh":0.35,"energyRounding":"started_kwh","connectedTimeFreeMinutes":60,"connectedTimePerMinuteAfterFreeEur":0.30},
+          {"scope":"timeWindow","start":"15:00","end":"17:00","billing":"kwh","currency":"EUR","pricePerKwh":0.30,"energyRounding":"started_kwh","connectedTimeFreeMinutes":60,"connectedTimePerMinuteAfterFreeEur":0.30},
+          {"scope":"timeWindow","start":"17:00","end":"24:00","billing":"kwh","currency":"EUR","pricePerKwh":0.35,"energyRounding":"started_kwh","connectedTimeFreeMinutes":60,"connectedTimePerMinuteAfterFreeEur":0.30}
+        ]
+      },
+      "source": "https://izivia.com/carte-bornes-de-recharge-izivia",
+      "metadata": {
+        "verifiedScope": "exact_station",
+        "nationalStationId": "FRIZFPFAST422",
+        "stationName": "IZIVIA FAST - McDonald's - DOLE",
+        "address": "8 Rue du Souvenir Français 39100 Dole",
+        "network": "IZIVIA FAST",
+        "timeZone": "Europe/Paris",
+        "capturedAt": "2026-10-06",
+        "sourceEvidence": "User-transcribed official IZIVIA map station tariff",
+        "billing": "Started kWh and connected minutes; price locked at connection start"
+      }
+    }
+  ],
+  "subscriptionOffers": []
+}
