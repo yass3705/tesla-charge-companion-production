@@ -90,6 +90,7 @@ try{
     window.__subscriptionApplyCalls=0;
     window.TCCV9ProductionShell.renderSubscriptionSelector({
       document:window.document,localStorage:window.localStorage,
+      setTimeout:window.setTimeout.bind(window),clearTimeout:window.clearTimeout.bind(window),
       compare:()=>{window.__subscriptionApplyCalls++;}
     },[
       {id:'fastned-gold',label:'Fastned Gold',provider:'Fastned',monthlyFeeEur:5.99},

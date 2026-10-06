@@ -36,14 +36,21 @@ def main():
             categories = []
             if pk in unmatched_pks:
                 categories.append("sans_correspondance_irve_preview")
-            if reason in {"same_power_tariff_collision", "power_specific_tariff_requires_exact_evse"} and pk not in fallback_pks:
-                categories.append("tarifs_heterogenes_sans_jointure_borne")
+            heterogeneous = reason in {"same_power_tariff_collision", "power_specific_tariff_requires_exact_evse"}
+            if heterogeneous:
+                categories.append("tarifs_heterogenes")
             if not categories:
                 continue
+            connectors = [connector for evse in (station.get("tariff") or {}).get("evses") or [] for connector in evse.get("connectors") or []]
+            tariff_variants = {json.dumps(builder.connector_policy(connector)[0], sort_keys=True, separators=(",", ":")) for connector in connectors} if heterogeneous else set()
+            powers = sorted({str(connector.get("kilowatts")) for connector in connectors if connector.get("kilowatts") is not None}, key=lambda value: float(value))
             mapping = mappings.get(pk) or {}
             irve = mapping.get("irve") or {}
             rows.append({
                 "motif": ";".join(categories),
+                "jointure_tarif_par_borne": "resolue" if pk in fallback_pks else "non_resolue" if heterogeneous else "sans_objet",
+                "nombre_tarifs_distincts": len(tariff_variants) if heterogeneous else "",
+                "puissances_kw": ";".join(powers),
                 "electroverse_location_pk": pk,
                 "id_station_irve_source": station.get("irveStationId") or mapping.get("irveStationId") or "",
                 "nom_station": irve.get("name") or "",
@@ -61,7 +68,7 @@ def main():
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]) if rows else ["motif", "electroverse_location_pk"])
         writer.writeheader()
         writer.writerows(rows)
-    print(json.dumps({"rows": len(rows), "unmatchedStationPks": len(unmatched_pks), "heterogeneousUnresolvedPks": sum("tarifs_heterogenes_sans_jointure_borne" in row["motif"] for row in rows), "out": str(args.out)}, ensure_ascii=False))
+    print(json.dumps({"rows": len(rows), "unmatchedStationPks": len(unmatched_pks), "heterogeneousPks": sum("tarifs_heterogenes" in row["motif"] for row in rows), "heterogeneousUnresolvedPks": sum("tarifs_heterogenes" in row["motif"] and row["jointure_tarif_par_borne"] == "non_resolue" for row in rows), "out": str(args.out)}, ensure_ascii=False))
 
 
 if __name__ == "__main__":
