@@ -45,4 +45,18 @@ const parkedOffer={id:'reve-parking-probe',currency:'EUR',pricing:{type:'compone
 ]}};
 const parked=pricing.evaluateOffer(parkedOffer,{startAt:'2026-10-06T08:00:00Z',energyKwh:10,durationMinutes:60,chargingMinutes:50,postChargeMinutes:10,timeZone:'Europe/Madrid'});
 assert.equal(parked.totalEur,4.5,'REVE parking fee applies to parked minutes only');
+const tieredOffer={id:'reve-parking-tier-probe',currency:'EUR',pricing:{type:'component_groups',componentGroups:[
+  {kind:'ENERGY',rules:[{pricePerKwh:0.4}]},
+  {kind:'PARKING_TIME',rules:[
+    {maxDurationMinutes:30,connectedTimePerMinuteEur:0},
+    {minDurationMinutes:30,connectedTimePerMinuteEur:0.05}
+  ]}
+]}};
+const tiered=pricing.evaluateOffer(tieredOffer,{startAt:'2026-10-06T08:00:00Z',energyKwh:10,durationMinutes:100,chargingMinutes:60,postChargeMinutes:40,timeZone:'Europe/Madrid'});
+assert.equal(tiered.totalEur,4.5,'REVE parking fee applies only after the free 30 minutes');
+const congestionOffer={id:'reve-congestion-probe',currency:'EUR',pricing:{type:'component_groups',componentGroups:[
+  {kind:'ENERGY',rules:[{pricePerKwh:0.4}]},
+  {kind:'CONGESTION_TIME',rules:[{minVehicleSoc:80,minCongestionPct:85,connectedTimePerMinuteEur:0.6}]}
+]}};
+assert.equal(pricing.evaluateOffer(congestionOffer,{startAt:'2026-10-06T08:00:00Z',energyKwh:10,durationMinutes:60,vehicleSoc:90,congestionPct:90,timeZone:'Europe/Madrid'}).reason,'congestion_timeline_required','Unknown congestion duration cannot produce a partial total');
 console.log('Plenitude, SIGEIF, Tesla and REVE profile calculations OK');
