@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "country": "FR",
-  "sourceSnapshotAt": "2026-10-05",
+  "sourceSnapshotAt": "2026-10-06",
   "mode": "exact_national_station_connector_correction",
   "evidence": {
     "nationalStationId": "FRIZFPFAST422",
-    "basis": "French national IRVE tile dated 2026-10-05; verified station address, coordinates and PDC IDs",
+    "basis": "French national IRVE tile dated 2026-10-05 plus exact IZIVIA map connector detail captured 2026-10-06",
     "priorSnapshotIssue": "The pinned stable France tile dated 2026-08-28 contains only a Type 2 AC 150 kW row",
-    "quarantinedPdcId": "FRIZFEFAST42212",
-    "quarantineReason": "The 150 kW Type 2 AC record is technically inconsistent and has no verified direct tariff; it must not be counted as a FAST DC point"
+    "powerCorrectedPdcId": "FRIZFEFAST42212",
+    "correctionReason": "The old national tile classifies this Type 2 connector as AC 150 kW; the official station card reports one Type 2 22 kW connector."
   },
   "stations": [
     {
@@ -19,17 +19,42 @@
       "address": "8 Rue du Souvenir Français 39100 Dole",
       "latitude": 47.0819,
       "longitude": 5.47522,
-      "physicalOperator": {"name": "IZIVIA"},
+      "physicalOperator": {
+        "name": "IZIVIA"
+      },
       "networkBrand": "IZIVIA FAST",
       "evses": [
         {
           "id": "irve-1-dc-150",
-          "pdcIds": ["FRIZFEFAST42211", "FRIZFEFAST42213"],
+          "pdcIds": [
+            "FRIZFEFAST42211",
+            "FRIZFEFAST42213"
+          ],
           "stalls": 2,
-          "connectors": [{"id": "irve-1-dc-150:connector", "kind": "DC", "powerKw": 150}]
+          "connectors": [
+            {
+              "id": "irve-1-dc-150:connector",
+              "kind": "DC",
+              "powerKw": 150
+            }
+          ]
+        },
+        {
+          "id": "irve-0-ac-22",
+          "pdcIds": [
+            "FRIZFEFAST42212"
+          ],
+          "stalls": 1,
+          "connectors": [
+            {
+              "id": "irve-0-ac-22:connector",
+              "kind": "AC",
+              "powerKw": 22
+            }
+          ]
         }
       ],
-      "updatedAt": "2026-10-05"
+      "updatedAt": "2026-10-06"
     }
   ]
 }
