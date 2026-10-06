@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { groupRows, rowsFromArea } = require('../v9-production-shell/bridge.js');
+const { groupRows, rankRows, rowsFromArea } = require('../v9-production-shell/bridge.js');
 
 function row(id, powerKw, cpo = 'IZIVIA', name = 'INTERMARCHE - DOLE') {
   const point = `FROTHEOTHR686${id}`;
@@ -19,10 +19,17 @@ function row(id, powerKw, cpo = 'IZIVIA', name = 'INTERMARCHE - DOLE') {
   };
 }
 
-const dole = Array.from({ length: 10 }, (_, i) => row(i, 22));
+// IDs, location, operator and dual EF/Type 2 sockets from the pinned national tile.
+const doleIds = ['FROTHPOTHR686101', ...Array.from({ length: 9 }, (_, i) => `FROTHPOTHR686${i + 1}1`)];
+const dole = doleIds.map(id => {
+  const entry = row(id, 22);
+  for (const evse of entry.station.evses) evse.pdcIds = [id.replace('FROTHP', 'FROTHE')];
+  return entry;
+});
 const grouped = groupRows(dole);
 assert.equal(grouped.length, 1, 'Intermarché Dole should have one 22 kW result row');
 assert.equal(grouped[0].pointCount, 10, 'two connector types must not double-count a charge point');
+assert.equal(rankRows(grouped, 'balanced', 20).length, 1, 'the rendered result list must retain one Dole row');
 
 const otherSite = row('other-site', 22, 'IZIVIA', 'OTHER SITE');
 otherSite.station.address = 'OTHER ADDRESS';
