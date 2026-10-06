@@ -60,6 +60,17 @@ def main():
     registry=out/"runtime/data/v9/source-registry.json"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
     subprocess.run([sys.executable,str(production_root/"scripts/build_electra_direct_offers.py"),str(dl/"data/operator_direct/electra_exact_france.json"),str(out/"runtime/data/v9/electra-direct-france.json")],check=True)
+    # The Dole connector evidence was captured on 2026-10-05. Keep older
+    # immutable snapshot candidates on their original AC-only inventory.
+    snapshot_date=str(cfg.get("snapshotId") or "")[:10]
+    if len(snapshot_date)==10 and snapshot_date<"2026-10-05":
+        reg=load_json(registry)
+        for src in reg.get("sources",[]):
+            if src.get("id") in {"france-izivia-fast-dole-inventory","france-izivia-fast-dole-direct"}:
+                src["active"]=False
+                src["optional"]=True
+                src["disabledReason"]="IZIVIA FAST Dole evidence postdates this historical snapshot"
+        write_json(registry,reg)
 
     # Build a self-contained deployable shell in the production snapshot.
     # Root enters V9 directly; the pinned V7.3 control remains available only
