@@ -10,7 +10,8 @@ const payload=JSON.parse(fs.readFileSync(path.join(root,'runtime-overrides/data/
 const pricing=require(path.join(root,'runtime-overrides/assets/v9/pricing-engine.js'));
 const offer=payload.directOffers[0];
 
-assert.deepEqual(offer.stationIds,['FRELCP12954082','FRELCP5265355','FRELCPBDALE']);
+assert.deepEqual(offer.stationIds,['FRELCP12954082']);
+assert.deepEqual(offer.connectorKinds,['DC']);
 assert.equal(offer.metadata.officialStationId,'0a650b39-b871-4e78-9670-e56e6b20f329');
 assert.equal(offer.pricing.lockAtSessionStart,true);
 assert.equal(offer.pricing.postChargeFeeUnknown,true);
