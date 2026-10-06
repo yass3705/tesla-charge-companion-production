@@ -182,6 +182,12 @@ assert.ok(frElectroverse.some(st=>evaluatedProviders(st).has('Electroverse')),
 if(requireElectra)assert.ok(frElectra.some(st=>evaluatedProviders(st).has('Electra')),
   'Electra platform tariffs attached to Paris-area stations must survive session filtering');
 
+const galardResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.808633,lon:2.064812},radiusKm:1,routingBudget:20});
+const galard=galardResult.stations.find(st=>String(st.name).includes('GENEVIEVE DE GALARD'));
+assert.ok(galard,'Geneviève de Galard station missing');
+const galardEval=sessionEngine.evaluateStation(galard,{startAt:'2026-10-06T12:00:00Z',energyKwh:10,durationMinutes:60});
+console.log('GALARD_DIAGNOSTIC '+JSON.stringify({id:galard.id,offers:galard.offers.map(o=>({id:o.id,provider:o.provider,kind:o.kind,pricing:o.pricing})),evaluation:[galardEval.best,...galardEval.alternatives,...galardEval.incomplete].filter(Boolean).map(o=>({provider:o.provider,total:o.total,result:o.result}))}));
+
 const lullyResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.806024,lon:2.068762},radiusKm:1,routingBudget:20});
 const lully=lullyResult.stations.find(s=>String(s.name).includes('PLACE LULLY'));
 assert.ok(lully,'Electric 55 Place Lully is absent from the FR source');
