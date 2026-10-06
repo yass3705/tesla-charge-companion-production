@@ -36,6 +36,7 @@ const supplemented=dataEngine.resolveEntities([
   {source:{id:'france-izivia-fast-dole-inventory',priority:{identity:40,connectors:95}},fragment:inventory.stations[0]},
 ])[0];
 assert.equal(supplemented.evses.find(evse=>evse.id==='irve-1-dc-150')?.pdcIds.length,2);
+assert.equal(supplemented.evses.length,1,'unverified 150 kW Type 2 AC row must be quarantined');
 assert.ok(dataEngine.applyOfferRules([supplemented],[{rule:offer,source:{id:'france-izivia-fast-dole-direct',priority:{tariff:125}}}])[0]
   .offers.some(item=>item.sourceId==='france-izivia-fast-dole-direct'));
 const nationalTileStation=station();
