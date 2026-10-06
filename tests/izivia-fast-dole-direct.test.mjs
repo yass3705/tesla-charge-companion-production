@@ -8,6 +8,7 @@ const require=createRequire(import.meta.url);
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const runtime=path.resolve(process.argv[2]||path.join(root,'dist/v9-explicit-candidate/runtime'));
 const payload=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/izivia-fast-dole-direct.json'),'utf8'));
+const inventory=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/izivia-fast-dole-inventory.json'),'utf8'));
 const adapter=require(path.join(runtime,'assets/v9/adapters/direct-offers.js'));
 const dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));
 const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
@@ -27,6 +28,16 @@ function station(id='FRIZFPFAST422',kind='DC',powerKw=150){
 assert.ok(dataEngine.ruleMatchesStation(offer,station()));
 assert.equal(dataEngine.ruleMatchesStation(offer,station('FRIZFPFAST430')),false,'another Dole FAST site must remain unpriced');
 assert.equal(dataEngine.ruleMatchesStation(offer,station('FRIZFPEXPRESS')),false,'Express must not inherit FAST price');
+assert.equal(inventory.stations.length,1);
+const supplemented=dataEngine.resolveEntities([
+  {source:{id:'france-national',priority:{identity:55,connectors:60}},fragment:{
+    canonicalId:'FR:national:FRIZFPFAST422',sourceStationId:'FRIZFPFAST422',countryCode:'FR',
+    physicalOperator:{name:'IZIVIA'},evses:[{id:'old-ac',connectors:[{kind:'AC',powerKw:150}]}]}},
+  {source:{id:'france-izivia-fast-dole-inventory',priority:{identity:40,connectors:95}},fragment:inventory.stations[0]},
+])[0];
+assert.equal(supplemented.evses.find(evse=>evse.id==='irve-1-dc-150')?.pdcIds.length,2);
+assert.ok(dataEngine.applyOfferRules([supplemented],[{rule:offer,source:{id:'france-izivia-fast-dole-direct',priority:{tariff:125}}}])[0]
+  .offers.some(item=>item.sourceId==='france-izivia-fast-dole-direct'));
 const nationalTileStation=station();
 nationalTileStation.evses=[
   {id:'FRIZFEFAST42212',connectors:[{id:'type2-150',kind:'AC',powerKw:150}]},
