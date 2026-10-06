@@ -1,7 +1,51 @@
 #!/usr/bin/env python3
-import argparse, json, pathlib, re
+import argparse, collections, gzip, json, math, pathlib, re, unicodedata
 
 PRICE_RE=re.compile(r"€\s*([0-9]+(?:[.,][0-9]+)?)",re.I)
+
+def normalized(value):
+    value=unicodedata.normalize('NFKD',str(value or ''))
+    return re.sub(r'[^a-z0-9]','',value.encode('ascii','ignore').decode().lower())
+
+def national_identity_bridge(national_path,mapping_path):
+    with gzip.open(national_path,'rt',encoding='utf-8') as file:
+        national_rows=json.load(file)
+    national_ids={str(row[0]) for row in national_rows if isinstance(row,list) and row}
+    grid=collections.defaultdict(list)
+    for row in national_rows:
+        try:
+            lat,lon=float(row[3]),float(row[4])
+            if not math.isfinite(lat) or not math.isfinite(lon):continue
+        except (IndexError,TypeError,ValueError):continue
+        grid[(round(lat*200),round(lon*200))].append(row)
+    mappings=json.loads(pathlib.Path(mapping_path).read_text())['mappings']
+    proposals={};duplicate_new=set()
+    for entry in mappings:
+        new_id=str(entry.get('irveStationId') or '')
+        if not new_id.startswith('FR') or new_id in national_ids or entry.get('confidence')!='high':continue
+        if new_id in proposals:duplicate_new.add(new_id);continue
+        irve=entry.get('irve') or {}
+        lat,lon=irve.get('lat'),irve.get('lon')
+        if not isinstance(lat,(int,float)) or not isinstance(lon,(int,float)):continue
+        if not math.isfinite(lat) or not math.isfinite(lon):continue
+        candidates=[]
+        for latitude_bin in range(round(lat*200)-1,round(lat*200)+2):
+            for longitude_bin in range(round(lon*200)-1,round(lon*200)+2):
+                for row in grid[(latitude_bin,longitude_bin)]:
+                    old_id=str(row[0])
+                    if not old_id.startswith('FR'):continue
+                    distance=111195*math.hypot(lat-float(row[3]),(lon-float(row[4]))*math.cos(math.radians(lat)))
+                    if distance>10:continue
+                    if normalized(row[1])!=normalized(irve.get('name')):continue
+                    if normalized(row[5])!=normalized(irve.get('operator')):continue
+                    old_pdcs={str(pdc) for config in row[8] for pdc in (config[6] if len(config)>6 and isinstance(config[6],list) else [])}
+                    new_pdcs={str(pdc) for pdc in entry.get('irvePdcIds') or []}
+                    if not old_pdcs.intersection(new_pdcs) and distance>1:continue
+                    candidates.append((old_id,distance,bool(old_pdcs.intersection(new_pdcs))))
+        if len(candidates)==1:proposals[new_id]=candidates[0]
+    target_counts=collections.Counter(value[0] for value in proposals.values())
+    safe={new_id:target for new_id,target in proposals.items() if new_id not in duplicate_new and target_counts[target[0]]==1}
+    return national_ids,safe
 
 def parse_money(text):
     if not isinstance(text,str): return None
@@ -91,10 +135,13 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--cache-dir",required=True)
     ap.add_argument("--manifest",required=True)
+    ap.add_argument("--national",required=True,help="Pinned FR static all.json.gz inventory")
+    ap.add_argument("--mapping",required=True,help="Pinned high-confidence Electroverse/IRVE identity mapping")
     ap.add_argument("--out",required=True)
     args=ap.parse_args()
     cache=pathlib.Path(args.cache_dir)
     manifest=json.loads(pathlib.Path(args.manifest).read_text())
+    national_ids,bridges=national_identity_bridge(args.national,args.mapping)
     offers=[];rejected={};seen_station=set();input_rows=0
     for sh in manifest.get("shards") or []:
         p=cache/sh["file"]
@@ -110,6 +157,23 @@ def main():
                 rejected["duplicate_irve_station_id"]=rejected.get("duplicate_irve_station_id",0)+1
                 continue
             seen_station.add(sid);offers.append(offer)
+    join_counts=collections.Counter()
+    source_ids={offer['stationIds'][0] for offer in offers}
+    for offer in offers:
+        source_id=offer['stationIds'][0]
+        if source_id in national_ids:
+            join_counts['directNationalId']+=1
+        elif source_id in bridges and bridges[source_id][0] not in source_ids:
+            old_id,distance,pdc_overlap=bridges[source_id]
+            offer['stationIds']=[old_id]
+            offer['metadata']['sourceIrveStationId']=source_id
+            offer['metadata']['identityBridge']={
+              'nationalStationId':old_id,'distanceM':round(distance,2),
+              'sameNameAndOperator':True,'pdcIdOverlap':pdc_overlap
+            }
+            join_counts['bridgedNationalId']+=1
+        else:
+            join_counts['unmatchedNationalId']+=1
     out={
       "schemaVersion":1,
       "country":"FR",
@@ -120,14 +184,16 @@ def main():
         "frStationsOnly":True,
         "uniformConnectorTariffRequired":True,
         "complexPricingFailClosed":True,
-        "heterogeneousConnectorPricingFailClosed":True
+        "heterogeneousConnectorPricingFailClosed":True,
+        "nationalIdentityBridgeRequiresUniqueExactNameOperatorWithin10mAndPdcOverlapOr1m":True
       },
       "emspOffers":offers,
       "metadata":{
         "inputCachedStations":input_rows,
         "publishedStationOffers":len(offers),
         "rejected":rejected,
-        "sourceShardCount":manifest.get("shardCount")
+        "sourceShardCount":manifest.get("shardCount"),
+        "nationalJoin":dict(join_counts)
       }
     }
     op=pathlib.Path(args.out);op.parent.mkdir(parents=True,exist_ok=True)
