@@ -40,7 +40,7 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-direct','france-izivia-fast-dole-inventory','france-izivia-fast-official-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-direct','france-izivia-fast-dole-inventory','france-izivia-fast-official-inventory','france-izivia-fast-official-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -214,6 +214,10 @@ if(fastSource?.active!==false){
   const noisy=await engine.queryArea({countryCode:'FR',origin:{lat:48.83456,lon:2.56171},radiusKm:3,routingBudget:20});
   const noisyFast=noisy.stations.find(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST1'));
   assert.ok(noisyFast,'Noisy-le-Grand FAST national inventory did not load');
+  assert.ok(noisy.diagnostics.sources['france-izivia-fast-official-inventory']?.loaded===true,
+    'Official FAST connector correction did not load');
+  assert.ok((noisyFast.evses||[]).some(evse=>(evse.connectors||[]).some(c=>c.kind==='DC'&&c.powerKw===200)),
+    'Noisy-le-Grand stale AC 200 kW inventory was not corrected to CCS');
   assert.ok((noisyFast.offers||[]).some(o=>o.sourceId==='france-izivia-fast-official-france'),
     'National IZIVIA FAST direct tariff must attach beyond Dole');
 }
