@@ -226,7 +226,7 @@
       if(cap>0){
         const from=parseMinute(tier.afterMinutesCapStart),to=parseMinute(tier.afterMinutesCapEnd);
         if(from==null||to==null)return incomplete('invalid_after_minutes_cap_window');
-        const inside=from===to||from<to?minute>=from&&minute<to:minute>=from||minute<to;
+        const inside=from===to?true:from<to?minute>=from&&minute<to:minute>=from||minute<to;
         if(inside){
           const local=PricingEngine.localDateParts(at,timeZone);if(!local)return incomplete('unresolved_compact_minute_cap_day');
           const day=from>to&&minute<to?new Date(Date.UTC(local.year,local.month-1,local.day-1)).toISOString().slice(0,10):local.key;
@@ -237,7 +237,7 @@
       const postBillable=Math.max(0,end-Math.max(elapsed,charging+postGrace));
       let powerCost=0;
       if(Array.isArray(rule.powerBands)&&rule.powerBands.length){
-        const powerRate=power=>{const band=rule.powerBands.find(row=>power>=Number(row.minKw)&&power<Number(row.maxKw));return band?num(band.ratePerMinute):null;};
+        const powerRate=power=>{if(power==null||!Number.isFinite(power)||power<0)return null;const band=rule.powerBands.find(row=>power>=Number(row.minKw)&&power<Number(row.maxKw));return band?num(band.ratePerMinute):null;};
         if(timeline.length){
           let covered=0;
           for(const step of timeline){const overlap=Math.max(0,Math.min(end,charging,step.start+step.duration)-Math.max(elapsed,step.start));if(overlap<=0)continue;const rate=powerRate(step.powerKw);if(rate==null)return incomplete('power_band_requires_valid_charge_power');powerCost+=overlap*rate;covered+=overlap;}
