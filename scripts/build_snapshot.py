@@ -321,6 +321,8 @@ def main():
           str(production_root/"scripts/build_electroverse_runtime_offers.py"),
           "--cache-dir",str(ev_cache),
           "--manifest",str(ev_manifest),
+          "--national",str(out/"runtime/data/v9/france-static/all.json.gz"),
+          "--mapping",str(dl/"data/electroverse/irve_location_mapping.json"),
           "--out",str(overlays/"FR/platforms/electroverse-runtime-offers.json")
         ],check=True)
 
