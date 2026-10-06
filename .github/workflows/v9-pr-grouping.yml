@@ -25,5 +25,6 @@ jobs:
           cp -R stable/v9-production-runtime/assets/v9/. .unit-runtime/assets/v9/
           cp runtime-overrides/assets/v9/session-engine.js .unit-runtime/assets/v9/session-engine.js
           cp runtime-overrides/data/v9/izivia-fast-dole-direct.json .unit-runtime/data/v9/izivia-fast-dole-direct.json
+          cp runtime-overrides/data/v9/izivia-fast-dole-inventory.json .unit-runtime/data/v9/izivia-fast-dole-inventory.json
       - name: Verify IZIVIA FAST Dole direct tariff
         run: node tests/izivia-fast-dole-direct.test.mjs .unit-runtime
