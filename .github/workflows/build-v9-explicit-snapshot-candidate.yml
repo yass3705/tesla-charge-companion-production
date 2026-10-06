@@ -91,6 +91,9 @@ jobs:
       - name: Electra Bois-d'Arcy tariff calculation
         run: node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime
 
+      - name: IZIVIA FAST Dole tariff calculation
+        run: node production/tests/izivia-fast-dole-direct.test.mjs dist/v9-explicit-candidate/runtime
+
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
