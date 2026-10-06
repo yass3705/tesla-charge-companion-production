@@ -40,7 +40,7 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-direct','france-izivia-fast-dole-direct','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-direct','france-izivia-fast-dole-inventory','france-izivia-fast-dole-direct','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -198,15 +198,18 @@ const iziviaDole=await engine.queryArea({countryCode:'FR',origin:{lat:47.0819,lo
 const fastRows=iziviaDole.stations.filter(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
 const fastDcInventory=fastRows.some(st=>(st.evses||[]).some(evse=>(evse.connectors||[]).some(connector=>connector.kind==='DC'&&connector.powerKw===150)));
 const fastOffers=iziviaDole.stations.filter(st=>(st.offers||[]).some(o=>o.sourceId==='france-izivia-fast-dole-direct'));
-assert.ok(iziviaDole.diagnostics.sources['france-izivia-fast-dole-direct']?.loaded===true,'IZIVIA FAST Dole direct source did not load');
-if(fastDcInventory||process.env.REQUIRE_IZIVIA_FAST_DOLE==='1'){
+const fastSource=registry.sources.find(source=>source.id==='france-izivia-fast-dole-direct');
+if(fastSource?.active===false){
+  assert.equal(fastOffers.length,0,'Historical snapshot must not receive the later Dole tariff');
+}else{
+  assert.ok(iziviaDole.diagnostics.sources['france-izivia-fast-dole-inventory']?.loaded===true,'IZIVIA FAST Dole connector correction did not load');
+  assert.ok(iziviaDole.diagnostics.sources['france-izivia-fast-dole-direct']?.loaded===true,'IZIVIA FAST Dole direct source did not load');
   assert.ok(fastDcInventory,"Current Data Lab pin must contain the exact McDonald's Dole FAST DC connectors");
   assert.equal(fastOffers.length,1,"Only the exact McDonald's Dole FAST station should inherit its direct tariff");
   assert.ok((fastOffers[0].provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
   assert.equal(fastOffers[0].offers.find(o=>o.sourceId==='france-izivia-fast-dole-direct').pricing.connectedTimeRounding,'started_minute');
-}else{
-  assert.equal(fastOffers.length,0,'Historical AC-only Dole row must remain unpriced');
 }
+if(process.env.REQUIRE_IZIVIA_FAST_DOLE==='1')assert.equal(fastOffers.length,1,'Current explicit candidate requires the Dole FAST direct tariff');
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
