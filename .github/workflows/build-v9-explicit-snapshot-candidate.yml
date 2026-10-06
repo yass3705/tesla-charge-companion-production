@@ -98,6 +98,9 @@ jobs:
       - name: V9 tariff window precedence and weekday rules
         run: node production/tests/pricing-rule-precedence.test.mjs dist/v9-explicit-candidate/runtime
 
+      - name: V9 representative tariff profile matrix
+        run: node production/tests/pricing-profile-matrix.test.mjs dist/v9-explicit-candidate/runtime
+
       - name: V9 tariff categories and source labels
         run: node production/tests/v9-ui-contract.test.mjs
 
