@@ -12,6 +12,7 @@ const inventory=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/izivia-fas
 const adapter=require(path.join(runtime,'assets/v9/adapters/direct-offers.js'));
 const dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));
 const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
+const {groupRows}=require(path.join(root,'v9-production-shell/bridge.js'));
 
 assert.equal(payload.directOffers.length,1);
 const offer=adapter.normalizePayload(payload).offerRules[0];
@@ -37,8 +38,13 @@ const supplemented=dataEngine.resolveEntities([
 ])[0];
 assert.equal(supplemented.evses.find(evse=>evse.id==='irve-1-dc-150')?.pdcIds.length,2);
 assert.equal(supplemented.evses.length,1,'unverified 150 kW Type 2 AC row must be quarantined');
-assert.ok(dataEngine.applyOfferRules([supplemented],[{rule:offer,source:{id:'france-izivia-fast-dole-direct',priority:{tariff:125}}}])[0]
-  .offers.some(item=>item.sourceId==='france-izivia-fast-dole-direct'));
+const supplementedPriced=dataEngine.applyOfferRules([supplemented],[{rule:offer,source:{id:'france-izivia-fast-dole-direct',priority:{tariff:125}}}])[0];
+assert.ok(supplementedPriced.offers.some(item=>item.sourceId==='france-izivia-fast-dole-direct'));
+const supplementedEvaluation=sessionEngine.evaluateStation(supplementedPriced,{startAt:'2026-10-06T07:00:00Z',energyKwh:10.1,durationMinutes:60});
+const displayed=groupRows([{station:supplementedPriced,evaluation:supplementedEvaluation,total:supplementedEvaluation.best?.total,distanceKm:2}]);
+assert.equal(displayed.length,1);
+assert.equal(displayed[0].pointCount,2,'Dole FAST result must count only the verified CCS points');
+assert.equal(displayed[0].total,3.30);
 const nationalTileStation=station();
 nationalTileStation.evses=[
   {id:'FRIZFEFAST42212',connectors:[{id:'type2-150',kind:'AC',powerKw:150}]},
