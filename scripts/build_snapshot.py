@@ -76,7 +76,7 @@ def main():
         reg=load_json(registry)
         for src in reg.get("sources",[]):
             sid=src.get("id")
-            if sid in {"france-izivia-fast-official-france","france-izivia-fast-official-inventory"} or (snapshot_date<"2026-10-05" and sid in {"france-izivia-fast-dole-inventory","france-izivia-fast-dole-direct"}):
+            if sid in {"france-izivia-fast-official-france","france-izivia-fast-official-inventory","france-izivia-fast-dole-inventory","france-izivia-fast-dole-direct"}:
                 src["active"]=False
                 src["optional"]=True
                 src["disabledReason"]="IZIVIA FAST source evidence postdates this historical snapshot"
