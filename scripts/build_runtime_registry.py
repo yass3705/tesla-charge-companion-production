@@ -60,19 +60,6 @@ def build_registry(path):
       "policy":"Tariffs join only by exact connector tariff_ids to same-source tariff.id; unsupported tariff semantics fail closed."
     })
     upsert(sources,{
-      "id":"france-electra-card-bois-darcy",
-      "label":"Electra Bois-d'Arcy exact station card tariff",
-      "adapter":"direct-offer-json",
-      "path":"data/v9/france-electra-card-bois-darcy.json",
-      "countries":["FR"],
-      "capabilities":["tariff"],
-      "priority":{"tariff":125},
-      "refresh":"immutable-production-snapshot",
-      "active":True,
-      "optional":False,
-      "policy":"Official Electra bank-card tariff at the exact non-highway Bois-d'Arcy station IDs only. Dynamic app pricing is separate; unknown occupancy charges fail closed."
-    })
-    upsert(sources,{
       "id":"france-electra-platform",
       "label":"France Electra eMSP aggregate tariffs joined independently to national EVSEs",
       "adapter":"direct-offer-sharded-v1",
@@ -195,7 +182,7 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electra-card-bois-darcy","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
