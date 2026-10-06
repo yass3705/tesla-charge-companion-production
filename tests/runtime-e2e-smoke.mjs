@@ -210,6 +210,14 @@ if(fastSource?.active===false){
   assert.equal(fastOffers[0].offers.find(o=>o.sourceId==='france-izivia-fast-official-france').pricing.connectedTimeRounding,'started_minute');
 }
 if(process.env.REQUIRE_IZIVIA_FAST_DOLE==='1')assert.equal(fastOffers.length,1,'Current explicit candidate requires the Dole FAST direct tariff');
+if(fastSource?.active!==false){
+  const noisy=await engine.queryArea({countryCode:'FR',origin:{lat:48.83456,lon:2.56171},radiusKm:3,routingBudget:20});
+  const noisyFast=noisy.stations.find(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST1'));
+  assert.ok(noisyFast,'Noisy-le-Grand FAST national inventory did not load');
+  assert.ok((noisyFast.offers||[]).some(o=>o.sourceId==='france-izivia-fast-official-france'),
+    'National IZIVIA FAST direct tariff must attach beyond Dole');
+}
+
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
