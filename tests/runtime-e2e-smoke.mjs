@@ -40,7 +40,7 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-direct','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-direct','france-izivia-fast-dole-direct','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -193,6 +193,13 @@ for(const st of boisPriced){
   assert.equal(direct.metadata.conditionalCongestionFeeExcluded,true);
 }
 assert.ok(boisResult.diagnostics.sources['france-electra-direct']?.loaded===true,'Bois-d\'Arcy exact tariff source did not load');
+
+const iziviaDole=await engine.queryArea({countryCode:'FR',origin:{lat:47.0819,lon:5.47522},radiusKm:5,routingBudget:20});
+const fastOffers=iziviaDole.stations.filter(st=>(st.offers||[]).some(o=>o.sourceId==='france-izivia-fast-dole-direct'));
+assert.equal(fastOffers.length,1,'Only the exact McDonald\'s Dole FAST station should inherit its direct tariff');
+assert.ok((fastOffers[0].provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
+assert.equal(fastOffers[0].offers.find(o=>o.sourceId==='france-izivia-fast-dole-direct').pricing.connectedTimeRounding,'started_minute');
+assert.ok(iziviaDole.diagnostics.sources['france-izivia-fast-dole-direct']?.loaded===true,'IZIVIA FAST Dole direct source did not load');
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
