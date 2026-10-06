@@ -43,8 +43,8 @@ try{
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   const openFilterGroupFor=async id=>{
-    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
-    await group.locator('summary').click();
+    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)}).first();
+    await group.locator('summary').first().click();
   };
   await openFilterGroupFor('simOperatorFilter');
   await page.locator('#simOperatorFilter').selectOption('tesla');
