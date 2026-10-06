@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: 6da8bb6db366076e3c3d9da3c3a005b11b07551e
+          ref: 94a6356764712dfb8d0f87734bff36dbaba65178
           path: production
 
       - name: Checkout stable baseline
@@ -53,7 +53,7 @@ jobs:
           SNAPSHOT_ID: 2026-10-06-pr17-ui-electra-refresh-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = 6da8bb6db366076e3c3d9da3c3a005b11b07551e
+          test "$(git -C production rev-parse HEAD)" = 94a6356764712dfb8d0f87734bff36dbaba65178
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = cdf55254f6ce72f67db38349d4a639ff81bcc359
           python production/scripts/build_refresh_candidate_config.py \
