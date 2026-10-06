@@ -183,7 +183,7 @@ if(requireElectra)assert.ok(frElectra.some(st=>evaluatedProviders(st).has('Elect
   'Electra platform tariffs attached to Paris-area stations must survive session filtering');
 
 if(requireElectra){
-const e55cSource=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(runtime,'data/e55c_station_tariffs_v1.json.gz'))).toString('utf8'));
+const e55cSource=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'data/e55c_station_tariffs_v1.json.gz'))).toString('utf8'));
 const e55cOffers=legacyDirectTariffs.e55cRules(e55cSource,{priority:{tariff:95}});
 assert.ok(e55cOffers.length>=700,'Electric 55 Scan Pay coverage unexpectedly shrank');
 for(const offer of e55cOffers){
