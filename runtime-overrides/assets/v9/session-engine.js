@@ -31,7 +31,8 @@
     for(const evse of station?.evses||[])for(const connector of evse?.connectors||[]){
       if(!connectorUsable(connector))continue;
       const power=num(connector?.powerKw);if(power==null||power<=0)continue;
-      if(!selected||power>selected.powerKw)selected={powerKw:power,kind:connectorKind(connector),connectorId:text(connector?.id)||null,plugName:text(connector?.plugName||connector?.type)||null};
+      const kind=connectorKind(connector);
+      if(!selected||power>selected.powerKw||(power===selected.powerKw&&kind==='DC'&&selected.kind!=='DC'))selected={powerKw:power,kind,connectorId:text(connector?.id)||null,plugName:text(connector?.plugName||connector?.type)||null};
     }
     return selected||{powerKw:null,kind:null,connectorId:null,plugName:null};
   }
