@@ -31,15 +31,16 @@ def hhmm(value):
     return f"{value // 60:02d}:{value % 60:02d}"
 
 
+WEEKDAYS = {"SUNDAY": 0, "MONDAY": 1, "TUESDAY": 2, "WEDNESDAY": 3, "THURSDAY": 4, "FRIDAY": 5, "SATURDAY": 6}
+
+
 def energy_rules(tariff, capture_local):
     if tariff.get("currency") != "EUR":
         raise ValueError("unsupported currency")
-    rates = [None] * 1440
+    rates = [[None] * 1440 for _ in range(7)]
     congestion = []
     for element in tariff.get("elements", []):
         restrictions = element.get("restrictions") or {}
-        if restrictions.get("dayOfWeek"):
-            raise ValueError("day-specific Electra tariff needs separate verification")
         components = element.get("priceComponents") or []
         if len(components) != 1:
             raise ValueError("compound tariff element")
@@ -52,6 +53,10 @@ def energy_rules(tariff, capture_local):
         price = component.get("price")
         if not isinstance(price, (int, float)) or not 0 < price < 2:
             raise ValueError("invalid energy price")
+        raw_days = restrictions.get("dayOfWeek") or []
+        if not isinstance(raw_days, list) or any(day not in WEEKDAYS for day in raw_days):
+            raise ValueError("unsupported Electra weekday restriction")
+        days = {WEEKDAYS[day] for day in raw_days} if raw_days else set(range(7))
         start = minute(restrictions.get("startTime"), 0)
         end = minute(restrictions.get("endTime"), 1440)
         if start == end:
@@ -60,28 +65,37 @@ def energy_rules(tariff, capture_local):
             covered = range(start, end)
         else:
             covered = list(range(start, 1440)) + list(range(end))
-        for index in covered:
-            if rates[index] is not None:
-                raise ValueError("overlapping energy windows")
-            rates[index] = price
-    if not congestion or any(rate is None for rate in rates):
-        raise ValueError("missing congestion component or incomplete energy day")
+        for day in days:
+            for index in covered:
+                if rates[day][index] is not None:
+                    raise ValueError("overlapping energy windows")
+                rates[day][index] = price
+    if not congestion or any(rate is None for day in rates for rate in day):
+        raise ValueError("missing congestion component or incomplete energy week")
     captured_rate = tariff.get("currentPricePerKwh")
-    if rates[capture_local.hour * 60 + capture_local.minute] != captured_rate:
+    capture_day = (capture_local.weekday() + 1) % 7
+    if rates[capture_day][capture_local.hour * 60 + capture_local.minute] != captured_rate:
         raise ValueError("current price disagrees with local tariff window")
+    grouped = collections.defaultdict(set)
+    for day, daily_rates in enumerate(rates):
+        start = 0
+        for index in range(1, 1441):
+            if index == 1440 or daily_rates[index] != daily_rates[start]:
+                grouped[(start, index, daily_rates[start])].add(day)
+                start = index
     rules = []
-    start = 0
-    for index in range(1, 1441):
-        if index == 1440 or rates[index] != rates[start]:
-            rules.append({
-                "scope": "timeWindow",
-                "start": hhmm(start),
-                "end": hhmm(index),
-                "billing": "kwh",
-                "currency": "EUR",
-                "pricePerKwh": rates[start],
-            })
-            start = index
+    for (start, end, price), days in sorted(grouped.items()):
+        rule = {
+            "scope": "timeWindow",
+            "start": hhmm(start),
+            "end": hhmm(end),
+            "billing": "kwh",
+            "currency": "EUR",
+            "pricePerKwh": price,
+        }
+        if len(days) != 7:
+            rule["daysOfWeek"] = sorted(days)
+        rules.append(rule)
     return rules, congestion
 
 
@@ -149,8 +163,7 @@ def build(payload):
             },
         })
     if len(offers) < 400:
-        samples=[{'station':entry['station']['name'],'tariffs':[{'current':tariff.get('currentPricePerKwh'),'elements':tariff.get('elements')} for tariff in (entry.get('location') or {}).get('chargeTariffs',[])[:1]]} for entry in payload['stations'] if any((element.get('restrictions') or {}).get('dayOfWeek') for tariff in (entry.get('location') or {}).get('chargeTariffs',[]) for element in tariff.get('elements',[]))][:2]
-        raise ValueError(f"Electra exact tariff coverage regressed: {len(offers)} offers; rejected={dict(collections.Counter(row['reason'] for row in skipped))}; dayExamples={samples}")
+        raise ValueError(f"Electra exact tariff coverage regressed: {len(offers)} offers; rejected={dict(collections.Counter(row['reason'] for row in skipped))}")
     return {
         "schemaVersion": 1,
         "country": "FR",
