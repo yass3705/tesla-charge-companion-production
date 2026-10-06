@@ -47,6 +47,12 @@ const date=offer([
   rule(['DATE_BASED'],{energy:0.6},{startDate:'2026-10-06',endDate:null})
 ]);
 assert.equal(estimate(date,session('2026-10-06T10:00:00Z',30,30,10)).totalEur,6);
+const weekdays=offer([
+  rule(['WEEKDAY_BASED'],{energy:0.4},{daysOfWeek:['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY']}),
+  rule(['WEEKEND_BASED'],{energy:0.5},{daysOfWeek:['SATURDAY','SUNDAY']})
+]);
+assert.equal(estimate(weekdays,session('2026-10-06T10:00:00Z',30,30,10)).totalEur,4);
+assert.equal(estimate(weekdays,session('2026-10-10T10:00:00Z',30,30,10)).totalEur,5);
 const ambiguous=offer([
   rule(['TIME_BASED'],{energy:0.3},{startTime:'08:00',endTime:'20:00'}),
   rule(['TIME_BASED'],{energy:0.4},{startTime:'08:00',endTime:'20:00'})
