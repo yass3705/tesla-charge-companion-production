@@ -304,13 +304,18 @@ def main():
         ],check=True)
 
     # Electra eMSP aggregate overlay is independent from Electroverse and
-    # attaches only through exact national France EVSE/PDC identities.
+    # uses pinned national EVSE identities or validated curated IRVE locations.
     electra_platform=dl/"data/platforms/electra/france"
     electra_manifest=electra_platform/"manifest.json"
     if electra_manifest.exists():
         em=load_json(electra_manifest)
         assert em.get("policy",{}).get("nationalFranceIsIdentityHub") is True
-        assert em.get("policy",{}).get("exactNationalEvseOnly") is True
+        ep=em.get("policy",{})
+        if ep.get("exactNationalEvseOnly") is not True:
+            assert set(ep.get("acceptedIdentityModes") or []) == {
+                "exact_national_irve_evse", "curated_irve_location"
+            }
+            assert ep.get("curatedMatchRequiresValidatedDistanceNameAddressPowerAndConnectorEvidence") is True
         assert em.get("policy",{}).get("electroverseDependency") is False
         assert int((em.get("stats") or {}).get("publishedOffers") or 0) > 0
         copy_tree(electra_platform,overlays/"FR/platforms/electra")
