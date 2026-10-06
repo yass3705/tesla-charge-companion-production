@@ -70,6 +70,7 @@ try{
   assert.ok(await page.locator('#v9MapZones img[src*="tile.openstreetmap.org"]').count()>0,'Geographic map must load OpenStreetMap tile images');
   assert.ok(await page.locator('#v9MapZones .v9-map-marker').count()>0,'Geographic map must retain station markers');
   await page.locator('#v9MapZones .v9-map-marker').first().click();
+  if(await page.locator('#v9MapSelected .v9-map-choice').count())await page.locator('#v9MapSelected .v9-map-choice').first().click();
   assert.equal(await page.locator('#v9MapSelected').isVisible(),true,'Selecting a marker reveals the charging station');
   assert.ok((await page.locator('#v9MapSelected').innerText()).length>20,'Selected map point includes tariff details');
   await page.locator('.v9-map-open-row').click();
