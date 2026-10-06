@@ -14,6 +14,27 @@
   const num=v=>{if(v==null||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const money=v=>Math.round((Number(v)+Number.EPSILON)*1000000)/1000000;
   const addMinutes=(value,minutes)=>{const d=value instanceof Date?new Date(value.getTime()):new Date(value);if(Number.isNaN(d.getTime()))return null;return new Date(d.getTime()+Number(minutes||0)*60000);};
+  const electroverseFormatters=new Map(),electroverseLocalCache=new Map();
+  function electroverseLocal(at,timeZone){
+    const minuteKey=`${timeZone}|${Math.floor(at.getTime()/60000)}`;
+    if(electroverseLocalCache.has(minuteKey))return electroverseLocalCache.get(minuteKey);
+    let formatter=electroverseFormatters.get(timeZone);
+    if(!formatter){
+      try{formatter=new Intl.DateTimeFormat('en-GB',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});}
+      catch(_){return null;}
+      electroverseFormatters.set(timeZone,formatter);
+    }
+    let result=null;
+    try{
+      const parts=formatter.formatToParts(at),get=type=>parts.find(part=>part.type===type)?.value;
+      const weekdays={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+      const weekday=weekdays[get('weekday')],hour=Number(get('hour')),minute=Number(get('minute'));
+      if(weekday!=null&&Number.isFinite(hour)&&Number.isFinite(minute))result={weekday,minute:hour*60+minute,key:`${get('year')}-${get('month')}-${get('day')}`};
+    }catch(_){}
+    if(electroverseLocalCache.size>8192)electroverseLocalCache.clear();
+    electroverseLocalCache.set(minuteKey,result);
+    return result;
+  }
 
   function connectorKind(connector={}){
     const raw=text(connector.kind||connector.currentType||connector.powerType||connector.plugName).toUpperCase();
@@ -172,6 +193,105 @@
     return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:text(offer?.id||offer?.offerId),currency:offer?.currency||'EUR',matchedRule:rule,segmented:true,energyTimelineApplied:true,timeZone};
   }
 
+  function evaluateElectroverseOffer(offer,session={}){
+    const pricing=offer?.pricing||{};
+    if(pricing.type!=='electroverse_restrictions')return null;
+    const timeZone=session.timeZone||offer?.metadata?.timeZone||'Europe/Paris';
+    const start=new Date(session.startAt),duration=num(session.durationMinutes),energy=num(session.energyKwh);
+    if(Number.isNaN(start.getTime())||duration==null||duration<0||duration>72*60||energy==null||energy<0)
+      return{complete:false,reason:'invalid_electroverse_session',offerId:text(offer?.id),timeZone};
+    const rules=Array.isArray(pricing.rules)?pricing.rules:[];
+    if(!rules.length)return{complete:false,reason:'missing_electroverse_rules',offerId:text(offer?.id),timeZone};
+    const charging=Math.max(0,Math.min(duration,num(session.chargingMinutes)??(duration-Math.max(0,num(session.postChargeMinutes)??0))));
+    const timeline=(Array.isArray(session.chargeTimeline)?session.chargeTimeline:[]).map(step=>({
+      start:Math.max(0,num(step.offsetMinutes)??0),duration:Math.max(0,num(step.durationMinutes)??0),energy:Math.max(0,num(step.energyKwh)??0)
+    })).filter(step=>step.duration>0&&step.energy>0);
+    const timelineTotal=timeline.reduce((sum,step)=>sum+step.energy,0);
+    const ruleMatches=(rule,parts,minute,elapsed)=>{
+      const types=rule.types||[];
+      if(types.includes('DATE_BASED')&&((rule.startDate&&parts.key<rule.startDate)||(rule.endDate&&parts.key>=rule.endDate)))return false;
+      if(types.includes('TIME_BASED')){
+        const hm=value=>Number(value.slice(0,2))*60+Number(value.slice(3,5));
+        const from=hm(rule.startTime),until=hm(rule.endTime);
+        if(!(until>from?(minute>=from&&minute<until):(minute>=from||minute<until)))return false;
+      }
+      if(types.includes('DURATION_BASED')){
+        const seconds=elapsed*60;
+        if(rule.minDurationSeconds!=null&&seconds+1e-7<rule.minDurationSeconds)return false;
+        if(rule.maxDurationSeconds!=null&&seconds>=rule.maxDurationSeconds-1e-7)return false;
+      }
+      if(types.includes('WEEKDAY_BASED')||types.includes('WEEKEND_BASED')){
+        const names=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+        if(!Array.isArray(rule.daysOfWeek)||!rule.daysOfWeek.includes(names[parts.weekday]))return false;
+      }
+      return true;
+    };
+    const keys=['energy','chargingMinute','parkingMinute','flat'];
+    const selected=(at,elapsed)=>{
+      const parts=electroverseLocal(at,timeZone);
+      if(!parts)return{reason:'invalid_electroverse_local_time'};
+      const minute=parts.minute;
+      const active=[];
+      for(let i=0;i<rules.length;i++){
+        if(ruleMatches(rules[i],parts,minute,elapsed))active.push(i);
+      }
+      const rates={},indices={};
+      for(const key of keys){
+        const applicable=active.filter(i=>(rules[i].components||keys).includes(key));
+        if(applicable.length){
+          const max=Math.max(...applicable.map(i=>(rules[i].types||[]).length));
+          const best=applicable.filter(i=>(rules[i].types||[]).length===max);
+          if(best.some(i=>rules[i].rates[key]!==rules[best[0]].rates[key]))return{reason:'ambiguous_electroverse_restriction'};
+          rates[key]=rules[best[0]].rates[key];indices[key]=best[0];
+        }else{
+          const fallback=num(pricing.fallbackRates?.[key])??0;
+          const everDefined=rules.some(rule=>(rule.components||keys).includes(key));
+          if(everDefined&&fallback!==0)return{reason:'no_matching_electroverse_component'};
+          rates[key]=everDefined?0:fallback;indices[key]=null;
+        }
+      }
+      return{rates,indices,signature:JSON.stringify(indices)};
+    };
+    const startMs=start.getTime(),endMs=startMs+duration*60000;
+    const totals={energy:0,chargingTime:0,parkingTime:0,connectionFee:0};
+    const segments=[];
+    const first=selected(start,0);
+    if(first.reason)return{complete:false,reason:first.reason,offerId:text(offer?.id),timeZone};
+    totals.connectionFee=first.rates.flat;
+    let atMs=startMs,iterations=0;
+    while(atMs<endMs-0.001){
+      if(++iterations>72*60+100)return{complete:false,reason:'electroverse_segmentation_guard',offerId:text(offer?.id),timeZone};
+      let next=Math.min(endMs,(Math.floor(atMs/60000)+1)*60000);
+      for(const rule of rules)for(const seconds of [rule.minDurationSeconds,rule.maxDurationSeconds]){
+        if(seconds==null)continue;const boundary=startMs+seconds*1000;
+        if(boundary>atMs+0.001&&boundary<next)next=boundary;
+      }
+      if(next<=atMs+0.001)return{complete:false,reason:'electroverse_zero_segment',offerId:text(offer?.id),timeZone};
+      const a=(atMs-startMs)/60000,b=(next-startMs)/60000,mid=new Date((atMs+next)/2);
+      const match=selected(mid,(a+b)/2);
+      if(match.reason)return{complete:false,reason:match.reason,offerId:text(offer?.id),timeZone};
+      const chargeMinutes=Math.max(0,Math.min(b,charging)-a),parkMinutes=Math.max(0,b-Math.max(a,charging));
+      let segmentEnergy=0;
+      if(timelineTotal>0){
+        for(const step of timeline){const overlap=Math.max(0,Math.min(b,step.start+step.duration)-Math.max(a,step.start));segmentEnergy+=step.energy*overlap/step.duration;}
+        segmentEnergy*=energy/timelineTotal;
+      }else if(charging>0)segmentEnergy=energy*chargeMinutes/charging;
+      const rates=match.rates;
+      totals.energy+=segmentEnergy*rates.energy;
+      totals.chargingTime+=chargeMinutes*rates.chargingMinute;
+      totals.parkingTime+=parkMinutes*rates.parkingMinute;
+      const previous=segments[segments.length-1];
+      if(previous&&previous.ruleSignature===match.signature){previous.durationMinutes+=b-a;previous.energyKwh+=segmentEnergy;}
+      else segments.push({ruleSignature:match.signature,startAt:new Date(atMs).toISOString(),durationMinutes:b-a,energyKwh:segmentEnergy});
+      atMs=next;
+    }
+    if(duration===0&&energy>0)totals.energy=energy*first.rates.energy;
+    for(const key of Object.keys(totals))totals[key]=money(totals[key]);
+    const total=money(Object.values(totals).reduce((sum,value)=>sum+value,0));
+    return{complete:true,totalEur:total,currency:offer.currency||'EUR',offerId:text(offer?.id),timeZone,
+      components:{electroverse:totals,segments:segments.map(row=>({...row,durationMinutes:money(row.durationMinutes),energyKwh:money(row.energyKwh)}))},segmented:segments.length>1};
+  }
+
   function evaluateStation(station,session={},options={}){
     const selectedSubscriptions=options.selectedSubscriptions||session.selectedSubscriptions||[];
     const chargingProfile=stationChargingProfile(station),chargingKind=chargingProfile.kind,chargingPowerKw=chargingProfile.powerKw,chargingPlugName=chargingProfile.plugName,chargingConnectorId=chargingProfile.connectorId;
@@ -187,11 +307,12 @@
       const validity=evaluateOfferValidity(offer,effectiveSession);
       const locked=validity.complete?evaluateSessionStartLockedOffer(offer,effectiveSession):null;
       const timeline=validity.complete&&!locked?evaluateTimelineOffer(offer,effectiveSession):null;
+      const electroverse=validity.complete?evaluateElectroverseOffer(offer,effectiveSession):null;
       const result=validity.complete===false
         ?validity
         :unknownPostCharge&&postChargeMinutes>0
         ?{complete:false,reason:'post_charge_fee_unknown_for_station',offerId:text(offer.id||offer.offerId),postChargeMinutes}
-        :(locked||timeline||PricingEngine.evaluateOffer(offer,effectiveSession));
+        :(electroverse||locked||timeline||PricingEngine.evaluateOffer(offer,effectiveSession));
       const currency=text(result.currency||offer.currency||'EUR').toUpperCase();
       const rate=result.complete?fxRate(currency,targetCurrency,fxRates):null;
       const comparable=result.complete&&rate!=null;
@@ -231,5 +352,5 @@
     return rows;
   }
 
-  return{evaluateStation,evaluateArea,recoveredKm,fxRate,stationSession,evaluateOfferValidity,evaluateSessionStartLockedOffer,evaluateTimelineOffer,timelineEnergy,stationChargingProfile,stationChargingKind,offerMatchesChargingKind,connectorKind,connectorUsable};
+  return{evaluateStation,evaluateArea,recoveredKm,fxRate,stationSession,evaluateOfferValidity,evaluateSessionStartLockedOffer,evaluateTimelineOffer,evaluateElectroverseOffer,timelineEnergy,stationChargingProfile,stationChargingKind,offerMatchesChargingKind,connectorKind,connectorUsable};
 });
