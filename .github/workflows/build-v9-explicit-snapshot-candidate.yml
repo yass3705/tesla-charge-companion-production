@@ -93,7 +93,7 @@ jobs:
           python scripts/validate_browser_asset_graph.py ../dist/v9-explicit-candidate
 
       - name: Inventory every V9 tariff profile
-        run: python production/scripts/audit_tariff_profiles.py dist/v9-explicit-candidate --output tariff-audit/profile-inventory.json
+        run: python production/scripts/audit_tariff_profiles.py dist/v9-explicit-candidate --output tariff-audit/profile-inventory.json --expected-profile-signatures 145
 
       - name: V9 tariff window precedence and weekday rules
         run: node production/tests/pricing-rule-precedence.test.mjs dist/v9-explicit-candidate/runtime
