@@ -49,7 +49,6 @@ try{
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   await page.locator('#v9TeslaOnly').click();
   await page.locator('#simMaxDistance').fill('100');
-  await openFilterGroupFor('simNow');
   await page.locator('#simNow').fill('20');
   await page.locator('#simTarget').fill('80');
   assert.equal(await page.locator('#simOrigin').inputValue(),'47.61764, 9.2688');
