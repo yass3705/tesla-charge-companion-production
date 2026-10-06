@@ -155,6 +155,11 @@ def build(payload):
         "country": "FR",
         "generatedAt": captured_at,
         "mode": "exact_station_app_energy_tariffs",
+        "coverage": {
+            "capturedOfficialStations": len(payload["stations"]),
+            "rankableOfficialStations": len(offers),
+            "matchedPanStationIds": len({station_id for offer in offers for station_id in offer["stationIds"]}),
+        },
         "policy": {
             "exactStationIdsOnly": True,
             "maxPanMatchDistanceM": MAX_PAN_DISTANCE_M,
