@@ -43,6 +43,20 @@ assert.equal(mixedPowers.find(x => x.displayPowerKw === 7.4).pointCount, 3);
 assert.equal(mixedPowers.find(x => x.displayPowerKw === 22.1).pointCount, 1);
 assert.equal(mixedPowers.find(x => x.displayPowerKw === 7.4).total, null, 'price for 22.1 kW must not appear on 7.4 kW row');
 
+const electra = row('bois-d-arcy', 600, 'ELECTRA', "Bois-d'Arcy - E.Leclerc");
+electra.station.evses = [
+  { id: 'ac', connectors: [{ id: 'ac', kind: 'AC', powerKw: 22 }] },
+  { id: 'dc100', connectors: [{ id: 'dc100', kind: 'DC', powerKw: 100 }] },
+  { id: 'dc400', connectors: [{ id: 'dc400', kind: 'DC', powerKw: 400 }] },
+  { id: 'dc600', connectors: [{ id: 'dc600', kind: 'DC', powerKw: 600 }] },
+];
+electra.station.offers = [{ id: 'electra-direct', connectorKinds: ['DC'], metadata: { energyOnly: true } }];
+electra.evaluation = { chargingConnectorId: 'dc600', best: { offerId: 'electra-direct', total: 4.9, provider: 'Electra direct' } };
+const electraRows = groupRows([electra]);
+assert.equal(electraRows.length, 4);
+assert.ok(electraRows.filter(x => x.displayPowerKw >= 100).every(x => x.total === 4.9), 'energy-only price should cover every eligible DC power');
+assert.equal(electraRows.find(x => x.displayPowerKw === 22).total, null, 'historical AC connector must remain unpriced');
+
 const unpriced = rowsFromArea({ stations: [row('unpriced', 22).station] });
 assert.equal(unpriced[0].total, null, 'missing price must not become zero');
 
