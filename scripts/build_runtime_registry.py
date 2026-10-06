@@ -17,6 +17,7 @@ def upsert(sources,row):
 def build_registry(path):
     obj=load(path)
     sources=obj.setdefault("sources",[])
+    sources[:]=[source for source in sources if source.get("id")!="france-electra-bois-darcy-direct"]
     upsert(sources,{
       "id":"germany-production-snapshot",
       "label":"Germany pinned BNetzA/direct-CPO production snapshot",
