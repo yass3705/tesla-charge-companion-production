@@ -26,13 +26,15 @@ def main():
     if len(sys.argv)>2:
         assert manifest["snapshotId"]==sys.argv[2], (manifest["snapshotId"],sys.argv[2])
     assert manifest["policy"]=="fail-closed"
-    assert set(contract["datasets"])==EXPECTED
+    be_enabled=manifest["snapshotId"][:10]>="2026-10-07"
+    expected=EXPECTED if be_enabled else EXPECTED-{"BE"}
+    assert set(contract["datasets"])==expected
     deployment=contract.get("deployment") or {}
     assert deployment.get("rootIndex")=="index.html", deployment
     assert deployment.get("shell")=="v9-production-shell/index.html", deployment
     assert deployment.get("controlFallback")=="control/index.html", deployment
     assert deployment.get("runtimeBase")=="runtime", deployment
-    assert set(deployment.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA","BE"}, deployment
+    assert set(deployment.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}|({"BE"} if be_enabled else set()), deployment
     for rel in ("index.html","control/index.html","v9-production-shell/index.html","v9-production-shell/shell-config.json","assets/app.js","assets/update.js"):
         assert (root/rel).exists(), f"missing deployable file {rel}"
     root_index=(root/"index.html").read_text(encoding="utf-8")
@@ -58,10 +60,11 @@ def main():
     assert shell_cfg.get("runtimeBase")=="runtime", shell_cfg
     assert shell_cfg.get("controlIndex")=="../control/index.html", shell_cfg
     assert shell_cfg.get("snapshotId")==manifest["snapshotId"], shell_cfg
-    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA","BE"}, shell_cfg
-    be_manifest=load(root/"runtime/data/v9/belgium-static/manifest.json")
-    be_offers=load(root/"runtime/data/v9/belgium-nap-offers/manifest.json")
-    assert be_manifest.get("stationCount",0)>15000 and be_offers.get("offerCount",0)>10000,(be_manifest,be_offers)
+    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}|({"BE"} if be_enabled else set()), shell_cfg
+    if be_enabled:
+        be_manifest=load(root/"runtime/data/v9/belgium-static/manifest.json")
+        be_offers=load(root/"runtime/data/v9/belgium-nap-offers/manifest.json")
+        assert be_manifest.get("stationCount",0)>15000 and be_offers.get("offerCount",0)>10000,(be_manifest,be_offers)
 
     runtime_integration=contract.get("runtimeIntegration") or {}
     registry_rel=runtime_integration.get("registry")

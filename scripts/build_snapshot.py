@@ -58,10 +58,16 @@ def main():
             if src.is_file():
                 copy_file(src,out/"runtime"/src.relative_to(overrides))
     registry=out/"runtime/data/v9/source-registry.json"
-    subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
-    subprocess.run([sys.executable,str(production_root/"scripts/build_belgium_nap_runtime.py"),str(dl),str(out/"runtime/data/v9")],check=True)
-    subprocess.run([sys.executable,str(production_root/"scripts/build_electra_direct_offers.py"),str(dl/"data/operator_direct/electra_exact_france.json"),str(out/"runtime/data/v9/electra-direct-france.json")],check=True)
     snapshot_date=str(cfg.get("snapshotId") or "")[:10]
+    be_enabled=snapshot_date>="2026-10-07"
+    subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
+    if be_enabled:
+        subprocess.run([sys.executable,str(production_root/"scripts/build_belgium_nap_runtime.py"),str(dl),str(out/"runtime/data/v9")],check=True)
+    else:
+        reg=load_json(registry)
+        reg["sources"]=[source for source in reg["sources"] if source.get("id") not in ("belgium-nap-national","belgium-nap-direct")]
+        write_json(registry,reg)
+    subprocess.run([sys.executable,str(production_root/"scripts/build_electra_direct_offers.py"),str(dl/"data/operator_direct/electra_exact_france.json"),str(out/"runtime/data/v9/electra-direct-france.json")],check=True)
     if snapshot_date>="2026-10-07":
         dynamic_status=dl/"data/national/france-irve-dynamic-status-v9.json.gz"
         if not dynamic_status.exists():
@@ -125,21 +131,22 @@ def main():
             copy_file(metadata_src,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
     # The Morocco power-band tariff is pinned from the local Tesla export on
     # the Mac, independently of the SuC Tracker feed used for other countries.
-    mac_ma=load_json(production_root/"runtime-overrides/data/v9/tesla-morocco-mac-export.json")
-    for target in (out/"runtime/data/tesla_stations.json",out/"data/tesla_stations.json"):
-        catalogue=load_json(target)
-        mac_by_id={station["id"]:station for station in mac_ma["stations"]}
-        if isinstance(catalogue,list):
-            rows=catalogue
-        else:
-            rows=catalogue.get("stations",[])
-        merged=[mac_by_id.get(station.get("id"),station) if station.get("countryCode")=="MA" else station for station in rows]
-        present={station.get("id") for station in merged}
-        merged.extend(station for station in mac_ma["stations"] if station["id"] not in present)
-        if merged!=rows:
-            if isinstance(catalogue,list):catalogue=merged
-            else:catalogue["stations"]=merged
-            write_json(target,catalogue)
+    if be_enabled:
+        mac_ma=load_json(production_root/"runtime-overrides/data/v9/tesla-morocco-mac-export.json")
+        for target in (out/"runtime/data/tesla_stations.json",out/"data/tesla_stations.json"):
+            catalogue=load_json(target)
+            mac_by_id={station["id"]:station for station in mac_ma["stations"]}
+            if isinstance(catalogue,list):
+                rows=catalogue
+            else:
+                rows=catalogue.get("stations",[])
+            merged=[mac_by_id.get(station.get("id"),station) if station.get("countryCode")=="MA" else station for station in rows]
+            present={station.get("id") for station in merged}
+            merged.extend(station for station in mac_ma["stations"] if station["id"] not in present)
+            if merged!=rows:
+                if isinstance(catalogue,list):catalogue=merged
+                else:catalogue["stations"]=merged
+                write_json(target,catalogue)
     # Netherlands: optionally replace the legacy Stable baseline with the
     # immutable national runtime built in Data Lab. The source directory already
     # contains manifest, all.json.gz and tiles; keep its layout under the stable
@@ -224,7 +231,7 @@ def main():
       "runtimeBase":"runtime",
       "snapshotId":cfg["snapshotId"],
       "observedCandidateSha":cfg["sources"]["stable"]["sha"],
-      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA","BE"],
+      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"]+(["BE"] if be_enabled else []),
       "fallback":"control/index.html",
       "notes":"Production-owned V9 shell. Root enters V9 directly; pinned V7.3 control is local fallback only."
     })
@@ -503,7 +510,7 @@ def main():
     datalab_pin=pinned_commit_date(dl,cfg.get("sources",{}).get("dataLab",{}).get("sha","HEAD"))
     stable_pin=pinned_commit_date(stable,cfg.get("sources",{}).get("stable",{}).get("sha","HEAD"))
     base_specs=[
-      ("TESLA","Tesla · export Mac au Maroc",[out/"runtime/data/v9/tesla-morocco-mac-export.json",out/"snapshot-inputs/TESLA/suc-tracker-metadata.json"],stable_pin),
+      ("TESLA","Tesla · export Mac au Maroc" if be_enabled else "Tesla · SuC Tracker",[out/"runtime/data/v9/tesla-morocco-mac-export.json",out/"snapshot-inputs/TESLA/suc-tracker-metadata.json"] if be_enabled else [out/"snapshot-inputs/TESLA/suc-tracker-metadata.json"],stable_pin),
       ("ES","Espagne · REVE",[out/"runtime/data/v9/spain-static/manifest.json"],stable_pin),
       ("NL","Pays-Bas · base nationale DOT-NL",[out/"snapshot-inputs/NL/runtime/manifest.json",out/"snapshot-inputs/NL/manifest.json"],datalab_pin),
       ("CH","Suisse · base nationale et tarifs directs",[out/"runtime/data/v9/switzerland-static/manifest.json",out/"snapshot-inputs/CH/direct/avia-reconciliation.json"],datalab_pin),
@@ -539,7 +546,7 @@ def main():
         "shellConfig":"v9-production-shell/shell-config.json",
         "controlFallback":"control/index.html",
         "runtimeBase":"runtime",
-        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA","BE"]
+        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"]+(["BE"] if be_enabled else [])
       },
       "runtimeIntegration":{
         "registry":"runtime/data/v9/source-registry.json",
@@ -569,6 +576,9 @@ def main():
         "BE":{"kind":"static-tiles","manifest":"runtime/data/v9/belgium-static/manifest.json","offers":"runtime/data/v9/belgium-nap-offers/manifest.json","coverage":"complete-inventory-partial-direct-prices"}
       }
     }
+    if not be_enabled:
+        contract["datasets"].pop("BE")
+        contract["datasets"]["TESLA"].pop("moroccoSource")
     write_json(out/"runtime-contract.json",contract)
 
     files=[]
