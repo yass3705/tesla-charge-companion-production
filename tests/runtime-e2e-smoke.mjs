@@ -10,6 +10,7 @@ const root=path.resolve(process.argv[2]||'dist/v9-2026-09-30-r8');
 const runtime=path.join(root,'runtime');
 
 const dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));
+const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
 const browserLoaders=require(path.join(runtime,'assets/v9/browser-loaders.js'));
 const de=require(path.join(runtime,'assets/v9/adapters/germany-national.js'));
 const uk=require(path.join(runtime,'assets/v9/adapters/uk-open-feeds.js'));
@@ -171,6 +172,16 @@ if(requireElectra){
   assert.ok(frDualEmsp.length>0,'FR national station hub did not independently receive both Electra and Electroverse offers');
 }
 
+const joinSession={startAt:'2026-10-06T12:00:00Z',energyKwh:10,durationMinutes:60};
+const evaluatedProviders=station=>{
+  const evaluated=sessionEngine.evaluateStation(station,joinSession);
+  return new Set([evaluated.best,...evaluated.alternatives,...evaluated.incomplete].filter(Boolean).map(offer=>offer.provider));
+};
+assert.ok(frElectroverse.some(st=>evaluatedProviders(st).has('Electroverse')),
+  'Electroverse tariffs attached to Paris-area stations must survive session filtering');
+if(requireElectra)assert.ok(frElectra.some(st=>evaluatedProviders(st).has('Electra')),
+  'Electra platform tariffs attached to Paris-area stations must survive session filtering');
+
 const lullyResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.806024,lon:2.068762},radiusKm:1,routingBudget:20});
 const lully=lullyResult.stations.find(s=>String(s.name).includes('PLACE LULLY'));
 assert.ok(lully,'Electric 55 Place Lully is absent from the FR source');
@@ -191,6 +202,7 @@ for(const st of boisPriced){
   assert.equal(direct.pricing.rules.length,4);
   assert.equal(direct.metadata.timeZone,'Europe/Paris');
   assert.equal(direct.metadata.conditionalCongestionFeeExcluded,true);
+  assert.ok(evaluatedProviders(st).has(direct.provider),'Bois-d’Arcy direct tariff must survive the joined runtime session filter');
 }
 assert.ok(boisResult.diagnostics.sources['france-electra-direct']?.loaded===true,'Bois-d\'Arcy exact tariff source did not load');
 
