@@ -89,6 +89,32 @@ def build_registry(path):
       "policy":"Use only one unambiguous app tariff per officially matched Electra station, PAN station IDs within 10 m and DC connectors. Energy rates are selected by Europe/Paris session-start time; conditional congestion fees are excluded and visibly disclosed. Ambiguous stations stay unpriced."
     })
     upsert(sources,{
+      "id":"france-electra-bois-current-inventory",
+      "label":"Electra Bois-d'Arcy current 19-connector inventory (official card 2026-10-06)",
+      "adapter":"static-station-json",
+      "path":"data/v9/electra-bois-inventory.json",
+      "countries":["FR"],
+      "capabilities":["inventory","connectors"],
+      "priority":{"identity":45,"connectors":150},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Replace historical AC 22 kW and duplicate national aliases with the current Electra station card's 19 DC connectors, retaining national PDC identities."
+    })
+    upsert(sources,{
+      "id":"france-aldi-guyancourt-direct",
+      "label":"ALDI Guyancourt official slow AC price (observed 2026-10-06)",
+      "adapter":"direct-offer-json",
+      "path":"data/v9/aldi-guyancourt-direct.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":125},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Apply ALDI's published 0.19 EUR/kWh slow AC price only to exact national station FRALNP25007130 and its 22 kW AC connectors; exclude mobility-card surcharges."
+    })
+    upsert(sources,{
       "id":"france-izivia-fast-dole-inventory",
       "label":"IZIVIA FAST Dole exact CCS/Type 2 connector correction (IRVE + official map 2026-10-06)",
       "adapter":"static-station-json",
