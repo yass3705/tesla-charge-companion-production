@@ -190,6 +190,8 @@
     const timeRules=rules.filter(rule=>rule.scope!=='allDay'),baseRules=rules.filter(rule=>rule.scope==='allDay');
     const charging=Math.max(0,Math.min(duration,num(session.chargingMinutes)??(duration-Math.max(0,num(session.postChargeMinutes)??0))));
     if(energy>0&&charging<=0&&duration>0)return incomplete('energy_without_charging_minutes');
+    const timeline=Array.isArray(session.chargeTimeline)?session.chargeTimeline.map(step=>({start:Math.max(0,num(step.offsetMinutes)??0),duration:Math.max(0,num(step.durationMinutes)??0),energy:Math.max(0,num(step.energyKwh)??0)})).filter(step=>step.duration>0&&step.energy>0):[];
+    const timelineTotal=timeline.reduce((sum,step)=>sum+step.energy,0);
     const dayRules=(rows,at)=>{const day=PricingEngine.localDateParts(at,timeZone)?.weekday;return rows.filter(rule=>!Array.isArray(rule.days)||!rule.days.length||rule.days.includes(day));};
     const matching=(at)=>PricingEngine.matchingRule({rules:dayRules(timeRules,at)},at,timeZone,session)||PricingEngine.matchingRule({rules:dayRules(baseRules,at)},at,timeZone,session);
     const baseAfter=baseRules.find(rule=>(num(rule.afterMinutesRate)??0)>0);
@@ -213,7 +215,7 @@
       if(!Number.isFinite(boundary))boundary=duration-elapsed;
       const end=Math.min(duration,elapsed+Math.max(boundary,1e-6));
       const chargeMinutes=Math.max(0,Math.min(end,charging)-elapsed),idleMinutes=Math.max(0,end-Math.max(elapsed,charging));
-      const segmentEnergy=charging>0?energy*chargeMinutes/charging:0;
+      const segmentEnergy=timelineTotal>0?energy*timeline.reduce((sum,step)=>sum+Math.max(0,Math.min(end,step.start+step.duration)-Math.max(elapsed,step.start))*step.energy/step.duration,0)/timelineTotal:charging>0?energy*chargeMinutes/charging:0;
       const surchargeMinutes=tierRate>0?Math.max(0,end-Math.max(elapsed,tierThreshold)):0;
       const segment=money(segmentEnergy*(num(rule.pricePerKwh)??0)+chargeMinutes*(num(rule.chargePerMinute)??0)+idleMinutes*(num(rule.idlePerMinute)??0)+surchargeMinutes*tierRate);
       total+=segment;
