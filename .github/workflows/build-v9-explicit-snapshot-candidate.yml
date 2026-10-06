@@ -97,6 +97,7 @@ jobs:
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
+          REQUIRE_IZIVIA_FAST_DOLE: "1"
         run: node production/tests/runtime-e2e-smoke.mjs dist/v9-explicit-candidate
 
       - name: Install browser test dependency
