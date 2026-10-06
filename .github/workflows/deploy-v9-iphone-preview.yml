@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: 40154ccc2062858d704c013ef303e395f13df554
+          ref: e5e2c69a51d848277b2c2cfa699005807dbeba8e
           path: production
 
       - name: Checkout stable baseline
@@ -50,10 +50,10 @@ jobs:
 
       - name: Verify pins and build preview candidate
         env:
-          SNAPSHOT_ID: 2026-10-06-pr17-complex-preview
+          SNAPSHOT_ID: 2026-10-06-pr17-ui-restored-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = 40154ccc2062858d704c013ef303e395f13df554
+          test "$(git -C production rev-parse HEAD)" = e5e2c69a51d848277b2c2cfa699005807dbeba8e
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = 5791ea34b68b9fe6c2d9568ae9813e4c9dcf3100
           python production/scripts/build_refresh_candidate_config.py \
@@ -75,6 +75,7 @@ jobs:
       - name: Verify tariff calculations and grouping
         run: |
           set -euo pipefail
+          node production/tests/v9-ui-contract.test.mjs
           node production/tests/v9-shell-grouping.test.mjs
           node production/tests/electroverse-complex-pricing.test.mjs dist/v9-explicit-candidate
           node production/tests/tariff-join-regression.test.mjs dist/v9-explicit-candidate/runtime
