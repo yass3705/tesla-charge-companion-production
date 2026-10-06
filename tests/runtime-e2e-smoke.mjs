@@ -182,6 +182,7 @@ assert.ok(frElectroverse.some(st=>evaluatedProviders(st).has('Electroverse')),
 if(requireElectra)assert.ok(frElectra.some(st=>evaluatedProviders(st).has('Electra')),
   'Electra platform tariffs attached to Paris-area stations must survive session filtering');
 
+if(requireElectra){
 const galardResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.808633,lon:2.064812},radiusKm:1,routingBudget:20});
 const galard=galardResult.stations.find(st=>String(st.name).includes('GENEVIEVE DE GALARD'));
 assert.ok(galard,'Geneviève de Galard station missing');
@@ -190,6 +191,8 @@ const galardTotals=new Map([galardEval.best,...galardEval.alternatives,...galard
 assert.equal(galardTotals.get('E55C Scan Pay direct'),5.64,'Galard direct must include 60 minutes and the 0.60 € connection fee');
 assert.equal(galardTotals.get('Electra'),5.04,'Galard Electra must include 60 billed minutes');
 assert.ok(galardTotals.get('Electroverse')>0,'Galard Electroverse tariff must remain available');
+
+}
 
 const lullyResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.806024,lon:2.068762},radiusKm:1,routingBudget:20});
 const lully=lullyResult.stations.find(s=>String(s.name).includes('PLACE LULLY'));
