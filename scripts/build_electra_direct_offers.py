@@ -149,7 +149,8 @@ def build(payload):
             },
         })
     if len(offers) < 400:
-        raise ValueError(f"Electra exact tariff coverage regressed: {len(offers)} offers; rejected={dict(collections.Counter(row['reason'] for row in skipped))}; examples={skipped[:10]}")
+        samples=[{'station':entry['station']['name'],'tariffs':[{'current':tariff.get('currentPricePerKwh'),'elements':tariff.get('elements')} for tariff in (entry.get('location') or {}).get('chargeTariffs',[])[:1]]} for entry in payload['stations'] if any((element.get('restrictions') or {}).get('dayOfWeek') for tariff in (entry.get('location') or {}).get('chargeTariffs',[]) for element in tariff.get('elements',[]))][:2]
+        raise ValueError(f"Electra exact tariff coverage regressed: {len(offers)} offers; rejected={dict(collections.Counter(row['reason'] for row in skipped))}; dayExamples={samples}")
     return {
         "schemaVersion": 1,
         "country": "FR",
