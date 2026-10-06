@@ -59,7 +59,7 @@
         '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-apply" style="width:auto">Valider</button><button type="button" class="secondary v9-sub-cancel" style="width:auto">Annuler</button><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button></div>':
         '<div class="small" style="margin-top:8px">Aucun tarif d’abonnement vérifié pour les bornes de cette zone.'+esc(emspMessage)+'</div>');
     const selectedIds=()=>[...box.querySelectorAll('#v9SubscriptionChoices input:checked')].map(input=>text(input.value));
-    const restore=()=>{for(const input of box.querySelectorAll('#v9SubscriptionChoices input'))input.checked=selected.has(text(input.value));};
+    const restore=()=>{const applied=new Set(selectedSubscriptions(w));for(const input of box.querySelectorAll('#v9SubscriptionChoices input'))input.checked=applied.has(text(input.value));};
     box.querySelector('.v9-sub-apply')?.addEventListener('click',()=>{saveSelectedSubscriptions(w,selectedIds());w.compare();});
     box.querySelector('.v9-sub-cancel')?.addEventListener('click',restore);
     box.querySelector('.v9-sub-none')?.addEventListener('click',()=>{saveSelectedSubscriptions(w,[]);w.compare();});
