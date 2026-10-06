@@ -54,7 +54,7 @@
   }
   function ruleContains(rule,minute){
     if(rule?.scope==='allDay')return true;
-    const start=hm(rule?.start,0),end=hm(rule?.end,1440);
+    const start=hm(rule?.start??rule?.startTime,0),end=hm(rule?.end??rule?.endTime,1440);
     if(start===end)return true;
     if(end>start)return minute>=start&&minute<end;
     return minute>=start||minute<end;
@@ -69,7 +69,7 @@
   }
   function ruleThresholdMatches(rule,session={},timeZone=null){return ruleThresholdStatus(rule,session,timeZone)==='match';}
   function ruleDayMatches(rule,startAt,timeZone,pricing){
-    const rawDays=Array.isArray(rule?.daysOfWeek)?rule.daysOfWeek:rule?.days;const days=Array.isArray(rawDays)?rawDays.map(Number).filter(n=>n>=0&&n<=6):null;
+    const rawDays=Array.isArray(rule?.daysOfWeek)?rule.daysOfWeek:rule?.days;const names={SUN:0,MON:1,TUE:2,WED:3,THU:4,FRI:5,SAT:6};const days=Array.isArray(rawDays)?rawDays.map(value=>names[String(value).slice(0,3).toUpperCase()]??Number(value)).filter(n=>Number.isInteger(n)&&n>=0&&n<=6):null;
     const constrained=Boolean(days?.length||rule?.holidayOnly===true||rule?.excludeHolidays===true);
     if(!constrained)return true;
     if(!startAt)return false;
@@ -94,13 +94,13 @@
     const minute=minuteOfDay(startAt,timeZone);if(minute==null)return null;
     let delta=Infinity;
     if(rule.scope!=='allDay'){
-      const end=hm(rule.end,1440);delta=end-minute;if(delta<=0)delta+=1440;
+      const end=hm(rule.end??rule.endTime,1440);delta=end-minute;if(delta<=0)delta+=1440;
     }
     const daySensitive=(Array.isArray(rule?.daysOfWeek)&&rule.daysOfWeek.length)||(Array.isArray(rule?.days)&&rule.days.length)||rule?.holidayOnly===true||rule?.excludeHolidays===true||rule?.mustEndSameLocalDay===true;
     if(daySensitive)delta=Math.min(delta,1440-minute);
     for(const candidate of pricing?.rules||[]){
       if(candidate?.scope==='allDay')continue;
-      const begins=hm(candidate?.start,null);if(begins==null)continue;
+      const begins=hm(candidate?.start??candidate?.startTime,null);if(begins==null)continue;
       const until=(begins-minute+1440)%1440;
       if(until>1e-9)delta=Math.min(delta,until);
     }
@@ -247,10 +247,19 @@
     let total=0;const components={componentGroups:[]};
     for(const group of groups){
       const rules=Array.isArray(group?.rules)?group.rules:[];if(!rules.length)continue;
-      const localPricing={...pricing,rules};const match=matchingRuleDetailed(localPricing,session.startAt,timeZone,session);if(match.unknown)return{complete:false,reason:match.reason,componentKind:group.kind||null};const rule=match.rule;
+      const kind=String(group.kind||'').toUpperCase();
+      const parked=Math.max(0,num(session.postChargeMinutes)??0),charging=Math.max(0,num(session.chargingMinutes)??(Math.max(0,num(session.durationMinutes)??0)-parked));
+      const groupSession=kind==='PARKING_TIME'
+        ?{...session,energyKwh:0,durationMinutes:parked,chargingMinutes:0,startAt:session.postChargeStartAt||addMinutes(session.startAt,charging)}
+        :kind==='TIME'?{...session,energyKwh:0,durationMinutes:charging,chargingMinutes:charging}:session;
+      const localPricing={...pricing,rules};const match=matchingRuleDetailed(localPricing,groupSession.startAt,timeZone,groupSession);if(match.unknown)return{complete:false,reason:match.reason,componentKind:group.kind||null};const rule=match.rule;
       if(!rule){components.componentGroups.push({kind:group.kind||null,matched:false,costEur:0});continue;}
-      const evaluated=evaluateRule(rule,session);total+=evaluated.totalEur;components.componentGroups.push({kind:group.kind||null,matched:true,costEur:evaluated.totalEur,components:evaluated.components,rule});
+      const evaluated=evaluateRule(rule,groupSession);total+=evaluated.totalEur;components.componentGroups.push({kind:group.kind||null,matched:true,costEur:evaluated.totalEur,components:evaluated.components,rule});
     }
+    const matched=components.componentGroups.filter(row=>row.matched);
+    if(!matched.length)return{complete:false,reason:'no_matching_component_group',components};
+    const energyRequired=groups.some(group=>String(group.kind||'').toUpperCase()==='ENERGY'&&(group.rules||[]).some(rule=>(num(rule.pricePerKwh)??0)>0));
+    if(energyRequired&&!matched.some(row=>String(row.kind||'').toUpperCase()==='ENERGY'))return{complete:false,reason:'no_matching_energy_component',components};
     return{complete:true,totalEur:money(total),components};
   }
   function evaluateOffer(offer,session={}){
