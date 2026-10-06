@@ -178,7 +178,7 @@
 
   function evaluateCompactMinuteOffer(offer,session={}){
     const pricing=offer?.pricing||{},rules=Array.isArray(pricing.rules)?pricing.rules:[];
-    if(pricing.type!=='rules'||!rules.some(rule=>rule.chargePerMinute!=null||rule.idlePerMinute!=null||rule.connectionFee!=null))return null;
+    if(pricing.type!=='rules'||!rules.some(rule=>(num(rule.chargePerMinute)??0)>0||(num(rule.idlePerMinute)??0)>0||(num(rule.connectionFee)??0)>0)||!rules.every(rule=>(num(rule.pricePerKwh)??0)===0))return null;
     const start=new Date(session.startAt),duration=num(session.durationMinutes),energy=num(session.energyKwh),timeZone=session.timeZone||offer?.metadata?.timeZone||'Europe/Paris';
     if(Number.isNaN(start.getTime())||duration==null||duration<0||duration>72*60||energy==null||energy<0)
       return{complete:false,reason:'invalid_compact_minute_session',offerId:text(offer?.id||offer?.offerId),timeZone};
