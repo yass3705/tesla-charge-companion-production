@@ -65,7 +65,13 @@
       const loaders=original({...opts,registry:baseRegistry});
       for(const source of registry.sources||[]){
         if(source.active===false)continue;
-        if(source.adapter==='germany-national-v1'){
+        if(source.adapter==='static-station-json'){
+          loaders[source.id]=async query=>{
+            const payload=await memoizedJson(join(basePath,source.path),opts.fetchImpl,dataCache);
+            const bounds=queryBounds(query);
+            return (payload.stations||[]).filter(st=>pointInBounds(st.latitude,st.longitude,bounds));
+          };
+        }else if(source.adapter==='germany-national-v1'){
           if(!de?.normalizePayload)throw new Error('germany adapter missing');
           loaders[source.id]=async query=>{
             let payload;
