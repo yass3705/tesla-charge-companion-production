@@ -89,6 +89,19 @@ def build_registry(path):
       "policy":"Use only one unambiguous app tariff per officially matched Electra station, PAN station IDs within 10 m and DC connectors. Energy rates are selected by Europe/Paris session-start time; conditional congestion fees are excluded and visibly disclosed. Ambiguous stations stay unpriced."
     })
     upsert(sources,{
+      "id":"france-izivia-fast-dole-direct",
+      "label":"IZIVIA FAST McDonald's Dole exact station direct tariff (observed 2026-10-06)",
+      "adapter":"direct-offer-json",
+      "path":"data/v9/izivia-fast-dole-direct.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":125},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Exact national station FRIZFPFAST422, operator IZIVIA, DC 150 kW only. The user transcribed this station tariff from the official IZIVIA map. Lock the Europe/Paris rate at plug-in; bill started kWh and connected minutes after 60 minutes. Do not infer a network default or Express tariff."
+    })
+    upsert(sources,{
       "id":"france-electroverse-r8",
       "label":"France pinned Electroverse exact station tariffs",
       "adapter":"direct-offer-json",
@@ -196,7 +209,7 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electra-direct","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electra-direct","france-izivia-fast-dole-direct","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
