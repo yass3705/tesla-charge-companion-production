@@ -8,6 +8,7 @@ const require=createRequire(import.meta.url);
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const runtime=path.resolve(process.argv[2]||path.join(root,'dist/v9-explicit-candidate/runtime'));
 const payload=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/izivia-fast-france.json'),'utf8'));
+const inventory=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/izivia-fast-inventory-france.json'),'utf8'));
 const adapter=require(path.join(runtime,'assets/v9/adapters/direct-offers.js'));
 const dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));
 const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
@@ -18,6 +19,12 @@ assert.equal(payload.policy.expressExcluded,true);
 assert.equal(payload.policy.capturedStations,620);
 assert.equal(payload.policy.pricedStations,616);
 assert.equal(payload.policy.mapOnlyStationsWithoutNationalInventory,45);
+assert.equal(inventory.stations.length,616);
+const noisyInventory=inventory.stations.find(row=>row.sourceStationId==='FRIZFPFAST1');
+assert.ok(noisyInventory);
+assert.ok(noisyInventory.evses.some(evse=>evse.stalls===4&&evse.connectors.some(c=>c.kind==='DC'&&c.powerKw===200)));
+assert.ok(noisyInventory.evses.some(evse=>evse.stalls===2&&evse.connectors.some(c=>c.kind==='AC'&&c.powerKw===22)));
+assert.ok(noisyInventory.evses.every(evse=>!evse.pdcIds),'map-level connector counts must not invent exact PDC IDs');
 assert.deepEqual(payload.policy.excludedStations.map(row=>row.stationId).sort(),
   ['FRIZFPFAST339','FRIZFPFAST408','FRIZFPFAST560','FRIZFPFAST730']);
 
