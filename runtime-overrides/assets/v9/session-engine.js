@@ -11,7 +11,7 @@
   if(!PricingEngine)throw new Error('TCC V9 pricing engine is required');
 
   const text=v=>String(v==null?'':v).trim();
-  const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
+  const num=v=>{if(v==null||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const money=v=>Math.round((Number(v)+Number.EPSILON)*1000000)/1000000;
   const addMinutes=(value,minutes)=>{const d=value instanceof Date?new Date(value.getTime()):new Date(value);if(Number.isNaN(d.getTime()))return null;return new Date(d.getTime()+Number(minutes||0)*60000);};
 
@@ -32,13 +32,13 @@
       if(!connectorUsable(connector))continue;
       const power=num(connector?.powerKw);if(power==null||power<=0)continue;
       const kind=connectorKind(connector);
-      if(!selected||power>selected.powerKw||(power===selected.powerKw&&kind==='DC'&&selected.kind!=='DC'))selected={powerKw:power,kind,connectorId:text(connector?.id)||null,plugName:text(connector?.plugName||connector?.type)||null};
+      if(!selected||power>selected.powerKw||(power===selected.powerKw&&kind==='DC'&&selected.kind!=='DC'))selected={powerKw:power,kind,connectorId:text(connector?.id)||null,plugName:text(connector?.plugName||connector?.type)||null,evseIds:[evse?.id,...(evse?.aliases||[]),...(evse?.pdcIds||[])].map(text).filter(Boolean)};
     }
-    return selected||{powerKw:null,kind:null,connectorId:null,plugName:null};
+    return selected||{powerKw:null,kind:null,connectorId:null,plugName:null,evseIds:[]};
   }
   function stationChargingKind(station){return stationChargingProfile(station).kind;}
 
-  function offerMatchesChargingKind(offer,chargingKind,chargingPowerKw=null,chargingPlugName=null,chargingConnectorId=null){
+  function offerMatchesChargingKind(offer,chargingKind,chargingPowerKw=null,chargingPlugName=null,chargingConnectorId=null,chargingEvseIds=[]){
     const allowed=Array.isArray(offer?.connectorKinds)?offer.connectorKinds.map(v=>text(v).toUpperCase()).filter(Boolean):[];
     if(chargingKind&&allowed.length&&!allowed.includes(chargingKind))return false;
     const min=num(offer?.minPowerKw),max=num(offer?.maxPowerKw),power=num(chargingPowerKw);
@@ -49,6 +49,11 @@
     if(ids.length&&(!chargingConnectorId||!ids.includes(text(chargingConnectorId))))return false;
     const plugs=Array.isArray(offer?.plugNames)?offer.plugNames.map(v=>text(v).toUpperCase()).filter(Boolean):[];
     if(plugs.length&&(!chargingPlugName||!plugs.includes(text(chargingPlugName).toUpperCase())))return false;
+    const exactEvses=Array.isArray(offer?.evseIds)?offer.evseIds.map(v=>text(v).toUpperCase().replace(/[^A-Z0-9]/g,'')).filter(Boolean):[];
+    if(exactEvses.length){
+      const selected=new Set((chargingEvseIds||[]).map(v=>text(v).toUpperCase().replace(/[^A-Z0-9]/g,'')).filter(Boolean));
+      if(!exactEvses.some(id=>selected.has(id)))return false;
+    }
     return true;
   }
 
@@ -170,7 +175,7 @@
   function evaluateStation(station,session={},options={}){
     const selectedSubscriptions=options.selectedSubscriptions||session.selectedSubscriptions||[];
     const chargingProfile=stationChargingProfile(station),chargingKind=chargingProfile.kind,chargingPowerKw=chargingProfile.powerKw,chargingPlugName=chargingProfile.plugName,chargingConnectorId=chargingProfile.connectorId;
-    const offers=OfferEngine.eligibleOffers(station,selectedSubscriptions,{countryCode:station?.countryCode}).filter(offer=>offerMatchesChargingKind(offer,chargingKind,chargingPowerKw,chargingPlugName,chargingConnectorId));
+    const offers=OfferEngine.eligibleOffers(station,selectedSubscriptions,{countryCode:station?.countryCode}).filter(offer=>offerMatchesChargingKind(offer,chargingKind,chargingPowerKw,chargingPlugName,chargingConnectorId,chargingProfile.evseIds));
     const targetCurrency=text(options.targetCurrency||session.targetCurrency||'EUR').toUpperCase();
     const fxRates=options.fxRates||session.fxRates||{};
     const effectiveSession=stationSession(station,session,options),km=recoveredKm(session),evaluations=[];
