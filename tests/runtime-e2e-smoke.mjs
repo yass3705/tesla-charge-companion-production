@@ -200,6 +200,18 @@ const fastOffers=iziviaDole.stations.filter(st=>(st.offers||[]).some(o=>o.source
 assert.ok(iziviaDole.diagnostics.sources['france-izivia-fast-dole-direct']?.loaded===true,'IZIVIA FAST Dole direct source did not load');
 if(fastInventory||process.env.REQUIRE_IZIVIA_FAST_DOLE==='1'){
   assert.ok(fastInventory,"Current Data Lab pin must contain the exact McDonald's Dole FAST station");
+  if(fastOffers.length!==1){
+    const fastRows=iziviaDole.stations.filter(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
+    const directPayload=await loaders['france-izivia-fast-dole-direct']({});
+    console.error('IZIVIA FAST Dole attachment diagnostics',JSON.stringify({
+      source:iziviaDole.diagnostics.sources['france-izivia-fast-dole-direct'],
+      ruleCount:directPayload.offerRules?.length,
+      rows:fastRows.map(st=>({id:st.id,operator:st.physicalOperator,aliases:st.aliases,provenance:st.provenance,
+        connectors:st.evses?.flatMap(e=>e.connectors||[]).map(c=>({kind:c.kind,powerKw:c.powerKw})),
+        ruleMatches:directPayload.offerRules?.map(rule=>dataEngine.ruleMatchesStation(rule,st)),
+        offerSourceIds:st.offers?.map(o=>o.sourceId)}))
+    }));
+  }
   assert.equal(fastOffers.length,1,"Only the exact McDonald's Dole FAST station should inherit its direct tariff");
   assert.ok((fastOffers[0].provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
   assert.equal(fastOffers[0].offers.find(o=>o.sourceId==='france-izivia-fast-dole-direct').pricing.connectedTimeRounding,'started_minute');
