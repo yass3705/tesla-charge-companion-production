@@ -75,17 +75,17 @@ def build_registry(path):
       "policy":"France national station/EVSE identities are the sole attachment hub. Electra offers attach independently by exact national IRVE EVSE ID; no Electroverse dependency and no proximity inference."
     })
     upsert(sources,{
-      "id":"france-electra-bois-darcy-direct",
-      "label":"Electra Bois-d'Arcy exact station app tariff (captured 2026-09-02)",
+      "id":"france-electra-direct",
+      "label":"Electra France exact station app tariffs (captured 2026-09-02)",
       "adapter":"direct-offer-json",
-      "path":"data/v9/electra-bois-darcy-direct.json",
+      "path":"data/v9/electra-direct-france.json",
       "countries":["FR"],
       "capabilities":["tariff"],
       "priority":{"tariff":125},
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"Only the exact current PAN station ID FRELCP12954082 and its DC connectors (100, 400 and 600 kW) match the official site's 19 current connectors. Historical AC/duplicate rows at the location stay unpriced. Energy rates are the captured app tariff by local start time, locked for the session; conditional congestion fees are excluded and visibly disclosed."
+      "policy":"Use only one unambiguous app tariff per officially matched Electra station, PAN station IDs within 10 m and DC connectors. Energy rates are selected by Europe/Paris session-start time; conditional congestion fees are excluded and visibly disclosed. Ambiguous stations stay unpriced."
     })
     upsert(sources,{
       "id":"france-electroverse-r8",
@@ -195,7 +195,7 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electra-bois-darcy-direct","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electra-direct","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
