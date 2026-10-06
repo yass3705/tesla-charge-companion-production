@@ -1,0 +1,15 @@
+name: V9 PR grouping
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  grouping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify station grouping with pinned Dole IDs
+        run: node tests/v9-shell-grouping.test.mjs
