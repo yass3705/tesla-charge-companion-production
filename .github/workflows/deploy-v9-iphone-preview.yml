@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: 950610a513f9473c84de7075c9eab2f3f3b464e1
+          ref: 65efa2be73c5a9300c81fb6a26df8f2f3da4b55e
           path: production
 
       - name: Checkout stable baseline
@@ -53,7 +53,7 @@ jobs:
           SNAPSHOT_ID: 2026-10-07-irve-status-electroverse-evse-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = 950610a513f9473c84de7075c9eab2f3f3b464e1
+          test "$(git -C production rev-parse HEAD)" = 65efa2be73c5a9300c81fb6a26df8f2f3da4b55e
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = 4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f
           python production/scripts/build_refresh_candidate_config.py \
@@ -86,6 +86,7 @@ jobs:
           node production/tests/v9-shell-grouping.test.mjs
           node production/tests/electroverse-complex-pricing.test.mjs dist/v9-explicit-candidate
           node production/tests/tariff-join-regression.test.mjs dist/v9-explicit-candidate/runtime
+          node production/tests/cross-country-pricing-regression.mjs dist/v9-explicit-candidate
           node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime
           node production/tests/aldi-guyancourt-direct.test.mjs dist/v9-explicit-candidate/runtime
           node production/tests/electroverse-targets-pricing.test.mjs dist/v9-explicit-candidate
