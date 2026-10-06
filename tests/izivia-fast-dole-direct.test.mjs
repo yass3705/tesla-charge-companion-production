@@ -37,14 +37,18 @@ const supplemented=dataEngine.resolveEntities([
   {source:{id:'france-izivia-fast-dole-inventory',priority:{identity:40,connectors:95}},fragment:inventory.stations[0]},
 ])[0];
 assert.equal(supplemented.evses.find(evse=>evse.id==='irve-1-dc-150')?.pdcIds.length,2);
-assert.equal(supplemented.evses.length,1,'unverified 150 kW Type 2 AC row must be quarantined');
+assert.equal(supplemented.evses.length,2,'official map confirms a separate 22 kW Type 2 point');
+assert.ok(supplemented.evses.some(evse=>evse.id==='irve-0-ac-22'&&evse.connectors[0]?.powerKw===22));
+assert.ok(supplemented.evses.every(evse=>!evse.connectors.some(connector=>connector.kind==='AC'&&connector.powerKw===150)));
 const supplementedPriced=dataEngine.applyOfferRules([supplemented],[{rule:offer,source:{id:'france-izivia-fast-dole-direct',priority:{tariff:125}}}])[0];
 assert.ok(supplementedPriced.offers.some(item=>item.sourceId==='france-izivia-fast-dole-direct'));
 const supplementedEvaluation=sessionEngine.evaluateStation(supplementedPriced,{startAt:'2026-10-06T07:00:00Z',energyKwh:10.1,durationMinutes:60});
 const displayed=groupRows([{station:supplementedPriced,evaluation:supplementedEvaluation,total:supplementedEvaluation.best?.total,distanceKm:2}]);
-assert.equal(displayed.length,1);
-assert.equal(displayed[0].pointCount,2,'Dole FAST result must count only the verified CCS points');
-assert.equal(displayed[0].total,3.30);
+assert.equal(displayed.length,2);
+const dcRow=displayed.find(row=>row.displayPowerKw===150);
+assert.equal(dcRow?.pointCount,2,'Dole FAST 150 kW result must count the two verified CCS points');
+assert.equal(dcRow?.total,3.30);
+assert.equal(displayed.find(row=>row.displayPowerKw===22)?.pointCount,1);
 const nationalTileStation=station();
 nationalTileStation.evses=[
   {id:'FRIZFEFAST42212',connectors:[{id:'type2-150',kind:'AC',powerKw:150}]},
