@@ -64,6 +64,19 @@ try{
     text:document.getElementById('results')?.innerText?.slice(0,500),
     diagnostics:JSON.parse(localStorage.getItem('tccV9ProductionShellDiagnosticsV1')||'[]').slice(0,2)
   }));
+  await page.locator('.v9-view-map').click();
+  assert.ok(await page.locator('#v9MapZones img[src*="tile.openstreetmap.org"]').count()>0,'Geographic map must load OpenStreetMap tile images');
+  assert.ok(await page.locator('#v9MapZones .v9-map-marker').count()>0,'Geographic map must retain station markers');
+  await page.locator('.v9-view-list').click();
+  const choices=page.locator('#v9OperatorDropdown input[type="checkbox"]');
+  assert.ok(await choices.count()>1,'Network selector must expose multiple choices beside shortcut buttons');
+  await page.locator('#v9AllNetworks').click();
+  await choices.nth(0).check();await choices.nth(1).check();
+  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'all','Network edits should wait for validation');
+  await page.locator('.v9-operator-apply').click();
+  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'selected');
+  await choices.nth(0).uncheck();await page.locator('.v9-operator-cancel').click();
+  assert.equal(await choices.nth(0).isChecked(),true,'Cancel must restore the applied selection');
   assert.ok(result.cards>0,result);
   assert.equal(result.diagnostics[0]?.outcome,'v9-ok',result);
   assert.equal(result.diagnostics[0]?.countryCode,'CH',result);
