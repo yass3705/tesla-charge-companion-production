@@ -47,6 +47,18 @@ const reveTotal=(powerKw,startAt)=>pricing.evaluateOffer(reveOffer,{startAt,ener
 assert.equal(reveTotal(22,'2026-10-06T00:00:00Z').totalEur,3,'REVE 22 kW night band');
 assert.equal(reveTotal(100,'2026-10-06T00:00:00Z').totalEur,3.8,'REVE 100 kW night band');
 assert.equal(reveTotal(22,'2026-10-06T08:00:00Z').totalEur,3.5,'REVE 22 kW day band');
+const quarterHourOffer={id:'reve-quarter-hour-probe',currency:'EUR',pricing:{type:'component_groups',componentGroups:[
+  {kind:'ENERGY',rules:[
+    {startTime:'08:00',endTime:'08:14',pricePerKwh:1},
+    {startTime:'08:15',endTime:'08:29',pricePerKwh:2}
+  ]}
+]}};
+const quarterHour=pricing.evaluateOffer(quarterHourOffer,{startAt:'2026-10-06T08:00:00Z',timeZone:'UTC',energyKwh:2,durationMinutes:30,chargingMinutes:30,chargeTimeline:[
+  {offsetMinutes:0,durationMinutes:15,energyKwh:1},
+  {offsetMinutes:15,durationMinutes:15,energyKwh:1}
+]});
+assert.equal(quarterHour.complete,true,'REVE inclusive 15-minute bands must join without a gap');
+assert.equal(quarterHour.totalEur,3,'REVE adjacent energy bands must bill both intervals');
 const parkedOffer={id:'reve-parking-probe',currency:'EUR',pricing:{type:'component_groups',componentGroups:[
   {kind:'ENERGY',rules:[{pricePerKwh:0.4}]},
   {kind:'PARKING_TIME',rules:[{connectedTimePerMinuteEur:0.05}]}
