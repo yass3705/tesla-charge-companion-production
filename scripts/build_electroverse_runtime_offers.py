@@ -165,7 +165,8 @@ def station_offers(row):
           "currency":"EUR","priority":80,"pricing":policy,
           "metadata":{"verified":True,"matchPolicy":"high_confidence_irve_station_mapping_plus_connector_pricing",
             "electroverseLocationPk":str(row.get("electroverseLocationPk") or ""),
-            "tariffHash":row.get("tariffHash"),"fetchedAt":row.get("fetchedAt"),"connectorCount":count}
+            "tariffHash":row.get("tariffHash"),"fetchedAt":row.get("fetchedAt"),"connectorCount":count,
+            "timeZone":"Europe/Paris"}
         }
         if kind:
             offer.update(connectorKinds=[kind],minPowerKw=power-0.5,maxPowerKw=power+0.5)
