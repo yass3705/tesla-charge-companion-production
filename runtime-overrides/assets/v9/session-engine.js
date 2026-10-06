@@ -178,7 +178,7 @@
 
   function evaluateCompactMinuteOffer(offer,session={}){
     const pricing=offer?.pricing||{},rules=Array.isArray(pricing.rules)?pricing.rules:[];
-    const hasTimedComponent=rule=>(num(rule.chargePerMinute)??0)>0||(num(rule.idlePerMinute)??0)>0||(num(rule.connectionFee)??0)>0||(num(rule.afterMinutesRate)??0)>0;
+    const hasTimedComponent=rule=>(num(rule.chargePerMinute)??0)>0||(num(rule.idlePerMinute)??0)>0||(num(rule.connectionFee)??0)>0||(num(rule.afterMinutesRate)??0)>0||(num(rule.postChargeRate)??0)>0||(Array.isArray(rule.powerBands)&&rule.powerBands.length>0);
     if(pricing.type!=='rules'||!rules.some(hasTimedComponent))return null;
     const timeZone=session.timeZone||offer?.metadata?.timeZone||'Europe/Paris',start=new Date(session.startAt);
     const duration=num(session.durationMinutes),energy=num(session.energyKwh);
@@ -190,8 +190,9 @@
     const timeRules=rules.filter(rule=>rule.scope!=='allDay'),baseRules=rules.filter(rule=>rule.scope==='allDay');
     const charging=Math.max(0,Math.min(duration,num(session.chargingMinutes)??(duration-Math.max(0,num(session.postChargeMinutes)??0))));
     if(energy>0&&charging<=0&&duration>0)return incomplete('energy_without_charging_minutes');
-    const timeline=Array.isArray(session.chargeTimeline)?session.chargeTimeline.map(step=>({start:Math.max(0,num(step.offsetMinutes)??0),duration:Math.max(0,num(step.durationMinutes)??0),energy:Math.max(0,num(step.energyKwh)??0)})).filter(step=>step.duration>0&&step.energy>0):[];
-    const timelineTotal=timeline.reduce((sum,step)=>sum+step.energy,0);
+    const timeline=Array.isArray(session.chargeTimeline)?session.chargeTimeline.map(step=>({start:Math.max(0,num(step.offsetMinutes)??0),duration:Math.max(0,num(step.durationMinutes)??0),energy:Math.max(0,num(step.energyKwh)??0),powerKw:num(step.powerKw)})).filter(step=>step.duration>0):[];
+    const timelineTotal=timeline.reduce((sum,step)=>sum+step.energy,0),capUsed=new Map();
+    const parseMinute=value=>{const parts=String(value||'').split(':').map(Number);return parts.length===2&&parts.every(Number.isFinite)?parts[0]*60+parts[1]:null;};
     const dayRules=(rows,at)=>{const day=PricingEngine.localDateParts(at,timeZone)?.weekday;return rows.filter(rule=>!Array.isArray(rule.days)||!rule.days.length||rule.days.includes(day));};
     const matching=(at)=>PricingEngine.matchingRule({rules:dayRules(timeRules,at)},at,timeZone,session)||PricingEngine.matchingRule({rules:dayRules(baseRules,at)},at,timeZone,session);
     const baseAfter=baseRules.find(rule=>(num(rule.afterMinutesRate)??0)>0);
@@ -204,10 +205,13 @@
       const minute=PricingEngine.minuteOfDay(at,timeZone);
       if(minute==null)return incomplete('unresolved_compact_minute_boundary');
       for(const window of timeRules){
-        const startParts=String(window.start||'').split(':').map(Number);
-        if(startParts.length!==2||!startParts.every(Number.isFinite))continue;
-        const begins=startParts[0]*60+startParts[1],until=(begins-minute+1440)%1440;
+        const begins=parseMinute(window.start);if(begins==null)continue;
+        const until=(begins-minute+1440)%1440;
         if(until>1e-9)boundary=Math.min(boundary,until);
+      }
+      const capStart=parseMinute(rule.afterMinutesCapStart),capEnd=parseMinute(rule.afterMinutesCapEnd);
+      if((num(rule.afterMinutesCap)??0)>0&&capStart!=null&&capEnd!=null){
+        for(const edge of [capStart,capEnd]){const until=(edge-minute+1440)%1440;if(until>1e-9)boundary=Math.min(boundary,until);}
       }
       const tier=(num(rule.afterMinutesRate)??0)>0?rule:baseAfter;
       const tierRate=num(tier?.afterMinutesRate)??0,tierThreshold=num(tier?.afterMinutesThreshold)??0;
@@ -217,10 +221,35 @@
       const chargeMinutes=Math.max(0,Math.min(end,charging)-elapsed),idleMinutes=Math.max(0,end-Math.max(elapsed,charging));
       const segmentEnergy=timelineTotal>0?energy*timeline.reduce((sum,step)=>sum+Math.max(0,Math.min(end,step.start+step.duration)-Math.max(elapsed,step.start))*step.energy/step.duration,0)/timelineTotal:charging>0?energy*chargeMinutes/charging:0;
       const surchargeMinutes=tierRate>0?Math.max(0,end-Math.max(elapsed,tierThreshold)):0;
-      const segment=money(segmentEnergy*(num(rule.pricePerKwh)??0)+chargeMinutes*(num(rule.chargePerMinute)??0)+idleMinutes*(num(rule.idlePerMinute)??0)+surchargeMinutes*tierRate);
+      let surcharge=money(surchargeMinutes*tierRate);
+      const cap=num(tier?.afterMinutesCap)??0;
+      if(cap>0){
+        const from=parseMinute(tier.afterMinutesCapStart),to=parseMinute(tier.afterMinutesCapEnd);
+        if(from==null||to==null)return incomplete('invalid_after_minutes_cap_window');
+        const inside=from===to||from<to?minute>=from&&minute<to:minute>=from||minute<to;
+        if(inside){
+          const local=PricingEngine.localDateParts(at,timeZone);if(!local)return incomplete('unresolved_compact_minute_cap_day');
+          const day=from>to&&minute<to?new Date(Date.UTC(local.year,local.month-1,local.day-1)).toISOString().slice(0,10):local.key;
+          const used=capUsed.get(day)||0;surcharge=money(Math.min(surcharge,Math.max(0,cap-used)));capUsed.set(day,money(used+surcharge));
+        }
+      }
+      const postGrace=Math.max(0,num(rule.postChargeGraceMinutes)??0);
+      const postBillable=Math.max(0,end-Math.max(elapsed,charging+postGrace));
+      let powerCost=0;
+      if(Array.isArray(rule.powerBands)&&rule.powerBands.length){
+        const powerRate=power=>{const band=rule.powerBands.find(row=>power>=Number(row.minKw)&&power<Number(row.maxKw));return band?num(band.ratePerMinute):null;};
+        if(timeline.length){
+          let covered=0;
+          for(const step of timeline){const overlap=Math.max(0,Math.min(end,charging,step.start+step.duration)-Math.max(elapsed,step.start));if(overlap<=0)continue;const rate=powerRate(step.powerKw);if(rate==null)return incomplete('power_band_requires_valid_charge_power');powerCost+=overlap*rate;covered+=overlap;}
+          if(covered+1e-6<chargeMinutes)return incomplete('power_band_timeline_gap');
+        }else{
+          const rate=powerRate(num(session.powerKw));if(rate==null)return incomplete('power_band_requires_charge_power');powerCost=chargeMinutes*rate;
+        }
+      }
+      const segment=money(segmentEnergy*(num(rule.pricePerKwh)??0)+chargeMinutes*(num(rule.chargePerMinute)??0)+idleMinutes*(num(rule.idlePerMinute)??0)+surcharge+postBillable*(num(rule.postChargeRate)??0)+powerCost);
       total+=segment;
       if(fee==null)fee=num(rule.connectionFee)??0;
-      segments.push({startAt:at.toISOString(),durationMinutes:money(end-elapsed),chargingMinutes:money(chargeMinutes),idleMinutes:money(idleMinutes),energyKwh:money(segmentEnergy),surchargeMinutes:money(surchargeMinutes),costEur:segment});
+      segments.push({startAt:at.toISOString(),durationMinutes:money(end-elapsed),chargingMinutes:money(chargeMinutes),idleMinutes:money(idleMinutes),energyKwh:money(segmentEnergy),surchargeMinutes:money(surchargeMinutes),postChargeBillableMinutes:money(postBillable),powerCostEur:money(powerCost),costEur:segment});
       elapsed=end;
       if(segments.length>4096)return incomplete('compact_minute_segmentation_guard');
     }
