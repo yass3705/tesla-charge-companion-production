@@ -27,6 +27,13 @@ function station(id='FRIZFPFAST422',kind='DC',powerKw=150){
 assert.ok(dataEngine.ruleMatchesStation(offer,station()));
 assert.equal(dataEngine.ruleMatchesStation(offer,station('FRIZFPFAST430')),false,'another Dole FAST site must remain unpriced');
 assert.equal(dataEngine.ruleMatchesStation(offer,station('FRIZFPEXPRESS')),false,'Express must not inherit FAST price');
+const nationalTileStation=station();
+nationalTileStation.evses=[
+  {id:'FRIZFEFAST42212',connectors:[{id:'type2-150',kind:'AC',powerKw:150}]},
+  {id:'FRIZFEFAST42211',connectors:[{id:'ccs-150',kind:'DC',powerKw:150}]},
+];
+assert.equal(sessionEngine.evaluateStation(nationalTileStation,{startAt:'2026-10-06T07:00:00Z',energyKwh:10.1,durationMinutes:60}).best?.total,3.30,
+  'the national tile lists an AC 150 kW row before DC; the DC connector must be selected');
 
 for(const [startAt,energyKwh,durationMinutes,expected] of [
   ['2026-10-06T06:59:00Z',10.1,60,3.85], // 08:59 Paris
