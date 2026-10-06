@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: e56e586a83d6ef4975ad688b1681f86bad4098d0
+          ref: ded337f604b7d4933593ce51f28d40277cc85db5
           path: production
 
       - name: Checkout stable baseline
@@ -53,7 +53,7 @@ jobs:
           SNAPSHOT_ID: 2026-10-06-pr17-ui-electra-refresh-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = e56e586a83d6ef4975ad688b1681f86bad4098d0
+          test "$(git -C production rev-parse HEAD)" = ded337f604b7d4933593ce51f28d40277cc85db5
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = cdf55254f6ce72f67db38349d4a639ff81bcc359
           python production/scripts/build_refresh_candidate_config.py \
@@ -63,6 +63,7 @@ jobs:
             --out production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_electra_platform_overlay.py datalab
+          python production/tests/electra-weekday-direct.test.py
           python production/tests/electroverse-national-identity-bridge.test.py
           python production/scripts/build_snapshot.py \
             --stable stable --datalab datalab \
