@@ -5,7 +5,7 @@
   "sources": {
     "dataLab": {
       "repo": "yass3705/tesla-charge-companion-data-lab",
-      "sha": "75d27342aed17f783c6a28a5c8b1b58a8a4bcc3d"
+      "sha": "6eeff68e84b2ae829a45f2bc82b21c559b5b28ac"
     },
     "stable": {
       "repo": "yass3705/tesla-charge-companion-stable",
