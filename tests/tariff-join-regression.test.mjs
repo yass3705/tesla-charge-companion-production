@@ -49,6 +49,14 @@ assert.ok(byPower.get(22).score&&byPower.get(150).score);
 assert.ok(byPower.get(22).evaluation.chargingPowerKw===22);
 assert.ok(byPower.get(150).evaluation.chargingPowerKw===150);
 
+const fallbackStation={...joined,evses:[joined.evses[0]],offers:[
+  ...joined.offers.filter(offer=>offer.id==='direct-dc'),
+  {id:'national-ac',provider:'National AC',kind:'national_fallback',evseIds:['FR*E*AC22'],pricing:{type:'kwh',pricePerKwh:0.45}}
+]};
+const fallback=sessionEngine.evaluateStation(fallbackStation,session);
+assert.equal(fallback.best?.offerId,'national-ac',
+  'a DC direct offer must not erase the AC fallback before connector filtering');
+
 const grouped=shell.groupRows([
   {station:{...station,id:'A',evses:[station.evses[0]]},evaluation:{best:{offerId:'provider-a',provider:'Provider A',kind:'emsp',comparable:true,total:4}},distanceKm:2},
   {station:{...station,id:'B',evses:[{...station.evses[0],id:'FR*E*AC22B',pdcIds:['FR*E*AC22B']}]},evaluation:{best:{offerId:'provider-b',provider:'Provider B',kind:'emsp',comparable:true,total:5}},distanceKm:2}
