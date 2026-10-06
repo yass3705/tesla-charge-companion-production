@@ -74,6 +74,9 @@ jobs:
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_electra_platform_overlay.py datalab
 
+      - name: Electra weekday tariff conversion
+        run: python production/tests/electra-weekday-direct.test.py
+
       - name: Electroverse national identity bridge regression
         run: python production/tests/electroverse-national-identity-bridge.test.py
 
