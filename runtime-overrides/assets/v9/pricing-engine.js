@@ -83,7 +83,13 @@
   function matchingRuleDetailed(pricing,startAt,timeZone,session={}){
     const rules=Array.isArray(pricing?.rules)?pricing.rules:[];if(!rules.length)return{rule:null,unknown:false};
     const minute=minuteOfDay(startAt,timeZone);
-    const ordered=[...rules.filter(rule=>rule.scope!=='allDay'),...rules.filter(rule=>rule.scope==='allDay')];
+    const powerWidth=rule=>{const min=num(rule?.minPowerKw)??0,max=num(rule?.maxPowerKw);return max==null?Infinity:Math.max(0,max-min);};
+    const ordered=[...rules.filter(rule=>rule.scope!=='allDay'),...rules.filter(rule=>rule.scope==='allDay')].sort((a,b)=>{
+      if((a.scope==='allDay')!==(b.scope==='allDay'))return a.scope==='allDay'?1:-1;
+      const width=powerWidth(a)-powerWidth(b);if(!Number.isNaN(width)&&width!==0)return width;
+      const ad=(a.daysOfWeek||a.days||[]).length||7,bd=(b.daysOfWeek||b.days||[]).length||7;
+      return ad-bd;
+    });
     for(const rule of ordered){if(minute==null&&rule.scope!=='allDay')continue;if(!ruleDayMatches(rule,startAt,timeZone,pricing))continue;if(minute!=null&&!ruleContains(rule,minute))continue;const status=ruleThresholdStatus(rule,session,timeZone);if(status==='unknown')return{rule:null,unknown:true,reason:'missing_rule_context'};if(status==='match')return{rule,unknown:false};}
     return{rule:null,unknown:false};
   }
