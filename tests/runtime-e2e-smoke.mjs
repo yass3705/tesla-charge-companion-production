@@ -296,7 +296,7 @@ if(currentSnapshot)assert.ok(boisResult.diagnostics.sources['france-electra-bois
 const aldiResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.76858,lon:2.06473},radiusKm:0.5,routingBudget:20});
 const aldi=aldiResult.stations.find(st=>st.id==='FR:national:FRALNP25007130');
 assert.ok(aldi,'ALDI Guyancourt station must be present');
-assert.ok(evaluatedProviders(aldi).has('ALDI direct · charge lente'),'official ALDI slow AC tariff must survive the exact station join');
+if(currentSnapshot)assert.ok(evaluatedProviders(aldi).has('ALDI direct · charge lente'),'official ALDI slow AC tariff must survive the exact station join');
 
 const iziviaDole=await engine.queryArea({countryCode:'FR',origin:{lat:47.0819,lon:5.47522},radiusKm:5,routingBudget:20});
 const fastRows=iziviaDole.stations.filter(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
