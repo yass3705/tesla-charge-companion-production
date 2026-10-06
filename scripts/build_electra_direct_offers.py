@@ -81,7 +81,7 @@ def main():
         "dataset":"electra-exact-france-direct-offers",
         "generatedAt":payload.get("generatedAt"),
         "country":"FR",
-        "offers":offers,
+        "offers":offers,\n        "directOffers":offers,
         "stats":{"offers":len(offers),"skippedUnsupportedTariffs":skipped,"offersWithUnsupportedComponents":sum(1 for offer in offers if offer.get("metadata",{}).get("incompletePricingReason"))}
     },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({"offers":len(offers),"skippedUnsupportedTariffs":skipped}))
