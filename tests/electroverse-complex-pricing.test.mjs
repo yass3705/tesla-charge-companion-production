@@ -29,6 +29,7 @@ const dayNight=offer([
   rule([],{energy:0.4,chargingMinute:0.05,flat:2})
 ]);
 assert.equal(estimate(dayNight,session('2026-10-06T17:30:00Z',60,45,20)).totalEur,11.75);
+assert.equal(estimate(dayNight,{...session('2026-10-06T17:30:00Z',60,45,20),timeZone:'UTC'}).totalEur,11.75);
 const duration=offer([
   rule(['DURATION_BASED'],{energy:0.3,chargingMinute:0.2},{minDurationSeconds:3600,maxDurationSeconds:null}),
   rule([],{energy:0.3,chargingMinute:0.1})
