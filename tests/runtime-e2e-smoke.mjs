@@ -174,7 +174,7 @@ if(requireElectra){
 const lullyResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.806024,lon:2.068762},radiusKm:1,routingBudget:20});
 const lully=lullyResult.stations.find(s=>String(s.name).includes('PLACE LULLY'));
 assert.ok(lully,'Electric 55 Place Lully is absent from the FR source');
-assert.ok((lully.offers||[]).some(o=>o.provider==='E55C direct'),'Exact Electric 55 Scan Pay direct offer did not attach at Place Lully');
+assert.ok((lully.offers||[]).some(o=>o.provider==='E55C Scan Pay direct'),'Exact Electric 55 Scan Pay direct offer did not attach at Place Lully');
 assert.ok(lullyResult.diagnostics.sources['e55c-direct-france']?.loaded===true,'Electric 55 direct source did not load');
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
