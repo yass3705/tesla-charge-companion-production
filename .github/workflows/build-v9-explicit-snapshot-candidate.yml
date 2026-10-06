@@ -95,6 +95,9 @@ jobs:
       - name: Inventory every V9 tariff profile
         run: python production/scripts/audit_tariff_profiles.py dist/v9-explicit-candidate --output tariff-audit/profile-inventory.json --expected-profile-signatures 145
 
+      - name: Audit reported Electroverse station coverage
+        run: python production/scripts/audit_electroverse_targets.py datalab dist/v9-explicit-candidate
+
       - name: V9 tariff window precedence and weekday rules
         run: node production/tests/pricing-rule-precedence.test.mjs dist/v9-explicit-candidate/runtime
 
