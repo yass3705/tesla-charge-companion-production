@@ -116,6 +116,19 @@ def build_registry(path):
       "policy":"Historical single-station evidence retained for regression tests; national FAST direct source is authoritative."
     })
     upsert(sources,{
+      "id":"france-izivia-fast-official-inventory",
+      "label":"IZIVIA FAST France exact station connector stats from official map (captured 2026-10-06)",
+      "adapter":"static-station-json",
+      "path":"data/v9/izivia-fast-inventory-france.json",
+      "countries":["FR"],
+      "capabilities":["inventory","connectors"],
+      "priority":{"identity":40,"connectors":94},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Correct stale national FAST AC 150/200 kW classifications with exact official map connector kind, power and count for 616 verified station IDs; no PDC IDs are inferred. Dole's exact IRVE correction has higher connector priority."
+    })
+    upsert(sources,{
       "id":"france-izivia-fast-official-france",
       "label":"IZIVIA FAST France exact station tariffs from official map (captured 2026-10-06)",
       "adapter":"direct-offer-json",
@@ -236,7 +249,7 @@ def build_registry(path):
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electra-direct","france-izivia-fast-dole-inventory","france-izivia-fast-official-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electra-direct","france-izivia-fast-dole-inventory","france-izivia-fast-official-inventory","france-izivia-fast-official-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }
