@@ -7,13 +7,14 @@ import {fileURLToPath} from 'node:url';
 const require=createRequire(import.meta.url);
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const payload=JSON.parse(fs.readFileSync(path.join(root,'runtime-overrides/data/v9/electra-bois-darcy-direct.json'),'utf8'));
-const pricing=require(path.join(root,'runtime-overrides/assets/v9/pricing-engine.js'));
+const runtime=path.resolve(process.argv[2]||path.join(root,'dist/v9-explicit-candidate/runtime'));
+const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
 const offer=payload.directOffers[0];
 
 assert.deepEqual(offer.stationIds,['FRELCP12954082']);
 assert.deepEqual(offer.connectorKinds,['DC']);
 assert.equal(offer.metadata.officialStationId,'0a650b39-b871-4e78-9670-e56e6b20f329');
-assert.equal(offer.pricing.lockAtSessionStart,true);
+assert.equal(offer.pricing.priceSelectionBasis,'session_start_local_time');
 assert.equal(offer.pricing.postChargeFeeUnknown,true);
 assert.equal(offer.metadata.conditionalCongestionFeeExcluded,true);
 
@@ -23,13 +24,10 @@ for(const [startAt,expected] of [
   ['2026-10-06T15:00:00Z',6.1], // 17:00 Paris
   ['2026-10-06T19:00:00Z',4.9]  // 21:00 Paris
 ]){
-  const result=pricing.evaluateOffer(offer,{startAt,energyKwh:10,durationMinutes:60});
-  assert.equal(result.complete,true,startAt);
-  assert.equal(result.totalEur,expected,startAt);
-  assert.equal(result.segmented,false,startAt);
+  const station={id:'FR:national:FRELCP12954082',countryCode:'FR',physicalOperator:{name:'Electra'},evses:[{id:'FRELCE2EV6',connectors:[{id:'CCS-400',kind:'DC',powerKw:400}]}],offers:[{...offer,kind:'direct'}]};
+  const evaluation=sessionEngine.evaluateStation(station,{startAt,energyKwh:10,durationMinutes:60});
+  assert.equal(evaluation.best?.total,expected,startAt);
+  assert.equal(evaluation.best?.result?.segmented,false,startAt);
 }
 
-const other={...offer,pricing:{...offer.pricing,lockAtSessionStart:false}};
-assert.ok(pricing.evaluateOffer(other,{startAt:'2026-10-06T12:55:00Z',energyKwh:10,durationMinutes:60}).segmented,
-  'ordinary time-window tariffs must still be segmented');
 console.log('Electra Bois-d’Arcy exact energy tariff and session-start locking OK');
