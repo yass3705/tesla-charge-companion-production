@@ -92,6 +92,9 @@ jobs:
       - name: V9 station grouping
         run: node production/tests/v9-shell-grouping.test.mjs
 
+      - name: Electroverse simple and complex tariff calculations
+        run: node production/tests/electroverse-complex-pricing.test.mjs dist/v9-explicit-candidate
+
       - name: Direct and platform tariff joins by charging power
         run: node production/tests/tariff-join-regression.test.mjs dist/v9-explicit-candidate/runtime
 
