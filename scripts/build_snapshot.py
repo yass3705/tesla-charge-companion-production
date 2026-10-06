@@ -363,16 +363,21 @@ def main():
     ev_cache=dl/"data/electroverse/tariff_cache"
     ev_manifest=ev_cache/"manifest.json"
     if ev_manifest.exists():
-        subprocess.run([
+        electroverse_args=[
           sys.executable,
           str(production_root/"scripts/build_electroverse_runtime_offers.py"),
           "--cache-dir",str(ev_cache),
           "--manifest",str(ev_manifest),
           "--national",str(out/"runtime/data/v9/france-static/all.json.gz"),
           "--mapping",str(dl/"data/electroverse/irve_location_mapping.json"),
-          "--evse-platform",str(dl/"data/platforms/electroverse/france-evse"),
           "--out",str(overlays/"FR/platforms/electroverse-runtime-offers.json")
-        ],check=True)
+        ]
+        evse_platform=dl/"data/platforms/electroverse/france-evse"
+        if (evse_platform/"manifest.json").exists():
+            electroverse_args.extend(["--evse-platform",str(evse_platform)])
+        elif be_enabled:
+            raise SystemExit(f"Pinned Electroverse EVSE overlay missing: {evse_platform}")
+        subprocess.run(electroverse_args,check=True)
 
     # Electra eMSP aggregate overlay is independent from Electroverse and
     # uses pinned national EVSE identities or validated curated IRVE locations.
