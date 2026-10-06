@@ -86,7 +86,7 @@ jobs:
           python scripts/validate_browser_asset_graph.py ../dist/v9-explicit-candidate
 
       - name: Electra Bois-d'Arcy tariff calculation
-        run: node production/tests/electra-bois-darcy-direct.test.mjs
+        run: node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime
 
       - name: Multi-country runtime smoke
         env:
