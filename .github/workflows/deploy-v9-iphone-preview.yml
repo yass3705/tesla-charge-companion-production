@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: 8ed07f83ac9e0e1e90fcfda71ae5c1ed36a252ad
+          ref: ec5e1e8352f64003f7b0a9552d00c16bd20a2759
           path: production
 
       - name: Checkout stable baseline
@@ -53,7 +53,7 @@ jobs:
           SNAPSHOT_ID: 2026-10-06-pr17-ui-restored-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = 8ed07f83ac9e0e1e90fcfda71ae5c1ed36a252ad
+          test "$(git -C production rev-parse HEAD)" = ec5e1e8352f64003f7b0a9552d00c16bd20a2759
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = 5791ea34b68b9fe6c2d9568ae9813e4c9dcf3100
           python production/scripts/build_refresh_candidate_config.py \
