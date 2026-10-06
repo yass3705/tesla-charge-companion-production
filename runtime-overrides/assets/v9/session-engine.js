@@ -175,7 +175,8 @@
   function evaluateStation(station,session={},options={}){
     const selectedSubscriptions=options.selectedSubscriptions||session.selectedSubscriptions||[];
     const chargingProfile=stationChargingProfile(station),chargingKind=chargingProfile.kind,chargingPowerKw=chargingProfile.powerKw,chargingPlugName=chargingProfile.plugName,chargingConnectorId=chargingProfile.connectorId;
-    const offers=OfferEngine.eligibleOffers(station,selectedSubscriptions,{countryCode:station?.countryCode}).filter(offer=>offerMatchesChargingKind(offer,chargingKind,chargingPowerKw,chargingPlugName,chargingConnectorId,chargingProfile.evseIds));
+    const compatible=(station?.offers||[]).filter(offer=>offerMatchesChargingKind(offer,chargingKind,chargingPowerKw,chargingPlugName,chargingConnectorId,chargingProfile.evseIds));
+    const offers=OfferEngine.eligibleOffers({...station,offers:compatible},selectedSubscriptions,{countryCode:station?.countryCode});
     const targetCurrency=text(options.targetCurrency||session.targetCurrency||'EUR').toUpperCase();
     const fxRates=options.fxRates||session.fxRates||{};
     const effectiveSession=stationSession(station,session,options),km=recoveredKm(session),evaluations=[];
