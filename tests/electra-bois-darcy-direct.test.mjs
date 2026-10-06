@@ -6,10 +6,13 @@ import {fileURLToPath} from 'node:url';
 
 const require=createRequire(import.meta.url);
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const payload=JSON.parse(fs.readFileSync(path.join(root,'runtime-overrides/data/v9/electra-bois-darcy-direct.json'),'utf8'));
 const runtime=path.resolve(process.argv[2]||path.join(root,'dist/v9-explicit-candidate/runtime'));
+const payload=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/electra-direct-france.json'),'utf8'));
 const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
-const offer=payload.directOffers[0];
+assert.equal(payload.directOffers.length,410,'pinned Electra capture should yield 410 unambiguous stations');
+assert.deepEqual(payload.policy.skipped,[{station:'Montpellier - Auchan Celleneuve',reason:'ambiguous_direct_tariff'}]);
+const offer=payload.directOffers.find(item=>item.metadata.officialStationId==='0a650b39-b871-4e78-9670-e56e6b20f329');
+assert.ok(offer,'Bois-d’Arcy exact offer is missing');
 
 assert.deepEqual(offer.stationIds,['FRELCP12954082']);
 assert.deepEqual(offer.connectorKinds,['DC']);
@@ -17,6 +20,8 @@ assert.equal(offer.metadata.officialStationId,'0a650b39-b871-4e78-9670-e56e6b20f
 assert.equal(offer.pricing.priceSelectionBasis,'session_start_local_time');
 assert.equal(offer.pricing.postChargeFeeUnknown,true);
 assert.equal(offer.metadata.conditionalCongestionFeeExcluded,true);
+const waziers=payload.directOffers.find(item=>item.metadata.stationName==="Waziers - Macdonald's Douai");
+assert.equal(waziers?.pricing.rules[0]?.pricePerKwh,0.49,'all-day Electra station rate should be retained');
 
 for(const [startAt,expected] of [
   ['2026-10-06T01:30:00Z',3.9], // 03:30 Paris
