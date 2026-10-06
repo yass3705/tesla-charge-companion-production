@@ -249,14 +249,14 @@
       const segment=money(segmentEnergy*(num(rule.pricePerKwh)??0)+chargeMinutes*(num(rule.chargePerMinute)??0)+idleMinutes*(num(rule.idlePerMinute)??0)+surcharge+postBillable*(num(rule.postChargeRate)??0)+powerCost);
       total+=segment;
       if(fee==null)fee=num(rule.connectionFee)??0;
-      segments.push({startAt:at.toISOString(),durationMinutes:money(end-elapsed),chargingMinutes:money(chargeMinutes),idleMinutes:money(idleMinutes),energyKwh:money(segmentEnergy),surchargeMinutes:money(surchargeMinutes),postChargeBillableMinutes:money(postBillable),powerCostEur:money(powerCost),costEur:segment});
+      segments.push({startAt:at.toISOString(),durationMinutes:money(end-elapsed),chargingMinutes:money(chargeMinutes),idleMinutes:money(idleMinutes),energyKwh:money(segmentEnergy),surchargeMinutes:money(surchargeMinutes),postChargeBillableMinutes:money(postBillable),powerCostEur:money(powerCost),costEur:segment,rule});
       elapsed=end;
       if(segments.length>4096)return incomplete('compact_minute_segmentation_guard');
     }
     if(fee==null){const rule=matching(start);if(!rule)return incomplete('no_matching_compact_minute_rule');fee=num(rule.connectionFee)??0;total+=energy*(num(rule.pricePerKwh)??0);}
     const totalEur=money(total+fee),components={compactMinute:{segments,connectionFee:fee,chargingMinutes:charging,idleMinutes:Math.max(0,duration-charging)}};
     const finalized=PricingEngine.applyMinimumTotal(pricing,totalEur,components);
-    return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:text(offer?.id||offer?.offerId),currency:offer?.currency||'EUR',timeZone,segmented:segments.length>1};
+    return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:text(offer?.id||offer?.offerId),currency:offer?.currency||'EUR',matchedRule:matching(start),timeZone,segmented:segments.length>1};
   }
 
   function evaluateTimelineOffer(offer,session={}){
