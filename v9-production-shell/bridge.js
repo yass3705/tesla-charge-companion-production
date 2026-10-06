@@ -137,10 +137,10 @@
   function loadMapLibrary(w){
     if(w.L?.map)return Promise.resolve(w.L);
     if(w.__TCC_V9_LEAFLET_PROMISE__)return w.__TCC_V9_LEAFLET_PROMISE__;
-    w.__TCC_V9_LEAFLET_PROMISE__=new Promise((resolve,reject)=>{
-      const css=w.document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';css.integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';css.crossOrigin='anonymous';w.document.head.appendChild(css);
-      const script=w.document.createElement('script');script.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';script.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';script.crossOrigin='anonymous';script.onload=()=>w.L?.map?resolve(w.L):reject(new Error('Leaflet unavailable'));script.onerror=()=>reject(new Error('Leaflet unavailable'));w.document.head.appendChild(script);
-    }).catch(error=>{w.__TCC_V9_LEAFLET_PROMISE__=null;throw error;});
+    w.__TCC_V9_LEAFLET_PROMISE__=Promise.all([
+      new Promise((resolve,reject)=>{const css=w.document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';css.integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';css.crossOrigin='anonymous';css.onload=resolve;css.onerror=()=>reject(new Error('Leaflet CSS unavailable'));w.document.head.appendChild(css);}),
+      new Promise((resolve,reject)=>{const script=w.document.createElement('script');script.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';script.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';script.crossOrigin='anonymous';script.onload=()=>w.L?.map?resolve(w.L):reject(new Error('Leaflet unavailable'));script.onerror=()=>reject(new Error('Leaflet unavailable'));w.document.head.appendChild(script);})
+    ]).then(([,leaflet])=>leaflet).catch(error=>{w.__TCC_V9_LEAFLET_PROMISE__=null;throw error;});
     return w.__TCC_V9_LEAFLET_PROMISE__;
   }
   function renderMapSummary(w,area,rows){
