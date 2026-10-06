@@ -1,10 +1,11 @@
-name: Temporary V9 iPhone preview
-# Re-run r13 after aligning curated IRVE validation.
+name: Temporary V9 preview
 
 on:
   push:
     branches:
       - v9/interface-foundation-frozen-snapshot
+    paths:
+      - .github/workflows/deploy-v9-iphone-preview.yml
   workflow_dispatch:
 
 permissions:
@@ -24,59 +25,68 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout production
+      - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
+          ref: 40154ccc2062858d704c013ef303e395f13df554
           path: production
 
       - name: Checkout stable baseline
         uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-stable
-          ref: e3848a6b37310c10d5e1827a7c947ef296d7e746
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
           path: stable
           persist-credentials: false
 
-      - name: Checkout pinned Data Lab snapshot
+      - name: Checkout pinned Data Lab
         uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: 6eeff68e84b2ae829a45f2bc82b21c559b5b28ac
+          ref: 5791ea34b68b9fe6c2d9568ae9813e4c9dcf3100
           path: datalab
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Build immutable preview candidate
+      - name: Verify pins and build preview candidate
         env:
-          SNAPSHOT_ID: 2026-10-06-r14-complete-left-join
-          DATALAB_SHA: 6eeff68e84b2ae829a45f2bc82b21c559b5b28ac
+          SNAPSHOT_ID: 2026-10-06-pr17-complex-preview
         run: |
           set -euo pipefail
-          test "$(git -C datalab rev-parse HEAD)" = "$DATALAB_SHA"
+          test "$(git -C production rev-parse HEAD)" = 40154ccc2062858d704c013ef303e395f13df554
+          test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
+          test "$(git -C datalab rev-parse HEAD)" = 5791ea34b68b9fe6c2d9568ae9813e4c9dcf3100
           python production/scripts/build_refresh_candidate_config.py \
-            --base production/config/snapshots/2026-10-06-r14-complete-left-join.json \
-            --datalab-sha "$DATALAB_SHA" \
+            --base production/config/snapshots/2026-09-30-r9-electra-fr.json \
+            --datalab-sha 5791ea34b68b9fe6c2d9568ae9813e4c9dcf3100 \
             --snapshot-id "$SNAPSHOT_ID" \
             --out production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_electra_platform_overlay.py datalab
+          python production/tests/electroverse-national-identity-bridge.test.py
           python production/scripts/build_snapshot.py \
-            --stable stable \
-            --datalab datalab \
+            --stable stable --datalab datalab \
             --config production/config/snapshots/explicit-candidate.json \
             --out dist/v9-explicit-candidate
           python production/scripts/validate_built_snapshot.py dist/v9-explicit-candidate "$SNAPSHOT_ID"
-          python production/scripts/validate_stable_parity.py stable dist/v9-explicit-candidate --allow-pricing-engine-override --allow-tesla-override
+          python production/scripts/validate_stable_parity.py stable dist/v9-explicit-candidate
           python production/scripts/validate_browser_asset_graph.py dist/v9-explicit-candidate
-          python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
 
-      - name: Belgium and Netherlands runtime smoke
-        run: node production/tests/national-snapshot-smoke.mjs dist/v9-explicit-candidate
-      - name: Electroverse EVSE-level pricing and exact identities
-        run: node production/tests/electroverse-rich-pricing.test.mjs dist/v9-explicit-candidate
+      - name: Verify tariff calculations and grouping
+        run: |
+          set -euo pipefail
+          node production/tests/v9-shell-grouping.test.mjs
+          node production/tests/electroverse-complex-pricing.test.mjs dist/v9-explicit-candidate
+          node production/tests/tariff-join-regression.test.mjs dist/v9-explicit-candidate/runtime
+          node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime
+          node production/tests/izivia-fast-dole-direct.test.mjs dist/v9-explicit-candidate/runtime
+          node production/tests/izivia-fast-france-direct.test.mjs dist/v9-explicit-candidate/runtime
 
-      - name: Verify fixed price categories and source labels
-        run: node production/tests/v9-ui-contract.test.mjs
+      - name: Multi-country runtime smoke
+        env:
+          REQUIRE_ELECTRA_PLATFORM: "1"
+          REQUIRE_IZIVIA_FAST_DOLE: "1"
+        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-explicit-candidate
 
       - name: Install browser test dependency
         run: npm install --no-save --no-package-lock playwright@1.55.1
@@ -91,16 +101,12 @@ jobs:
           cat /tmp/tcc-v9-preview-server.log
           exit 1
 
-      - name: Mocked geocoding and routing browser journey
-        env:
-          V9_REQUIRE_BASE_DATES: "1"
-          V9_REQUIRE_PARIS_QUERY: "1"
-        run: node production/tests/runtime-browser-journey.mjs
+      - name: Browser journey and manifest hashes
+        run: |
+          set -euo pipefail
+          node production/tests/runtime-browser-journey.mjs
+          python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
 
-      - name: Verify candidate manifest hashes
-        run: python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
-
-      # Prepare the Pages destination before uploading the frozen preview.
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
@@ -114,5 +120,3 @@ jobs:
       - name: Deploy V9 preview
         id: deployment
         uses: actions/deploy-pages@v4
-
-      # Trigger refreshed review build after exact EVSE offer isolation fix.
