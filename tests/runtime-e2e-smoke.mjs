@@ -187,7 +187,7 @@ for(const st of boisPriced){
   assert.ok((st.provenance||[]).some(p=>boisIds.has(p.sourceStationId)),'Electra direct offer attached outside Bois-d\'Arcy');
   const direct=st.offers.find(o=>o.sourceId==='france-electra-bois-darcy-direct');
   assert.deepEqual(direct.connectorKinds,['DC']);
-  assert.equal(direct.pricing.lockAtSessionStart,true);
+  assert.equal(direct.pricing.priceSelectionBasis,'session_start_local_time');
   assert.equal(direct.pricing.rules.length,4);
   assert.equal(direct.metadata.timeZone,'Europe/Paris');
   assert.equal(direct.metadata.conditionalCongestionFeeExcluded,true);
