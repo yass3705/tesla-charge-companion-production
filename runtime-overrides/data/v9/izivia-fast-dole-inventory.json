@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "country": "FR",
+  "sourceSnapshotAt": "2026-10-05",
+  "mode": "exact_national_station_connector_correction",
+  "evidence": {
+    "nationalStationId": "FRIZFPFAST422",
+    "basis": "French national IRVE tile dated 2026-10-05; verified station address, coordinates and PDC IDs",
+    "priorSnapshotIssue": "The pinned stable France tile dated 2026-08-28 contains only a Type 2 AC 150 kW row"
+  },
+  "stations": [
+    {
+      "canonicalId": "FR:national:FRIZFPFAST422",
+      "sourceStationId": "FRIZFPFAST422",
+      "countryCode": "FR",
+      "name": "IZIVIA FAST - McDonald's - DOLE",
+      "address": "8 Rue du Souvenir Français 39100 Dole",
+      "latitude": 47.0819,
+      "longitude": 5.47522,
+      "physicalOperator": {"name": "IZIVIA"},
+      "networkBrand": "IZIVIA FAST",
+      "evses": [
+        {
+          "id": "irve-0-ac-150",
+          "pdcIds": ["FRIZFEFAST42212"],
+          "stalls": 1,
+          "connectors": [{"id": "irve-0-ac-150:connector", "kind": "AC", "powerKw": 150}]
+        },
+        {
+          "id": "irve-1-dc-150",
+          "pdcIds": ["FRIZFEFAST42211", "FRIZFEFAST42213"],
+          "stalls": 2,
+          "connectors": [{"id": "irve-1-dc-150:connector", "kind": "DC", "powerKw": 150}]
+        }
+      ],
+      "updatedAt": "2026-10-05"
+    }
+  ]
+}
