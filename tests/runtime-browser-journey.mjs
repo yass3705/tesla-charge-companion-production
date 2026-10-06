@@ -37,6 +37,9 @@ try{
   assert.equal(shellState.marker?.error,undefined,shellState);
   assert.equal(shellState.marker?.ready,true,shellState);
   assert.equal(shellState.operatorFilter,true,shellState);
+  assert.equal(await page.locator('#v9TeslaOnly').textContent(),'Tesla uniquement');
+  assert.equal(await page.locator('#v9AllNetworks').textContent(),'Tous les réseaux');
+  assert.equal(await page.locator('#v9OperatorDropdown').count(),1,'operator dropdown is available');
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   const openFilterGroupFor=async id=>{
