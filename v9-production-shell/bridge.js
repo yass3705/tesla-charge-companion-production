@@ -311,7 +311,7 @@
     const bestId=categories.map(category=>({id:category.id,total:num(picked[category.id]?.total)})).filter(item=>item.total!=null).sort((a,b)=>a.total-b.total)[0]?.id||null;
     return'<div class="v9-tariffs" aria-label="Comparaison des trois catégories de prix" style="display:grid;gap:6px;margin-top:8px">'+categories.map(category=>{
       const item=picked[category.id],best=category.id===bestId;
-      let amount='Prix non disponible',provider='';
+      let amount='Prix non disponible',provider=category.id==='electroverse'&&!offers.some(offer=>offerPriceCategory(offer)==='electroverse')?'Aucune correspondance Electroverse vérifiée pour cette station':'';
       if(item){
         const targetCurrency=text(item.targetCurrency||'EUR').toUpperCase(),nativeCurrency=text(item.currency||targetCurrency).toUpperCase(),nativeTotal=num(item.result?.totalEur);
         const showNative=nativeCurrency!==targetCurrency&&nativeTotal!=null;
@@ -322,7 +322,7 @@
       return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
         '<strong style="font-size:14px;line-height:1.3">'+esc(category.label)+(best?' · MEILLEUR TARIF':'')+'</strong>'+
         '<span style="font-size:15px;line-height:1.3;text-align:right">'+esc(amount)+'</span>'+
-        (provider?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(provider)+(text(item.subscriptionId)?' · abonnement':'')+'</span>':'')+
+        (provider?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(provider)+(text(item?.subscriptionId)?' · abonnement':'')+'</span>':'')+
       '</div>';
     }).join('')+'</div>';
   }
