@@ -101,6 +101,9 @@ jobs:
       - name: V9 representative tariff profile matrix
         run: node production/tests/pricing-profile-matrix.test.mjs dist/v9-explicit-candidate/runtime
 
+      - name: V9 all-profile day and night sweep
+        run: node production/tests/pricing-profile-sweep.test.mjs dist/v9-explicit-candidate tariff-audit/profile-inventory.json
+
       - name: V9 tariff categories and source labels
         run: node production/tests/v9-ui-contract.test.mjs
 
