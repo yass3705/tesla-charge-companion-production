@@ -196,7 +196,7 @@
   function evaluateElectroverseOffer(offer,session={}){
     const pricing=offer?.pricing||{};
     if(pricing.type!=='electroverse_restrictions')return null;
-    const timeZone=session.timeZone||offer?.metadata?.timeZone||'Europe/Paris';
+    const timeZone=offer?.metadata?.timeZone||'Europe/Paris';
     const start=new Date(session.startAt),duration=num(session.durationMinutes),energy=num(session.energyKwh);
     if(Number.isNaN(start.getTime())||duration==null||duration<0||duration>72*60||energy==null||energy<0)
       return{complete:false,reason:'invalid_electroverse_session',offerId:text(offer?.id),timeZone};
