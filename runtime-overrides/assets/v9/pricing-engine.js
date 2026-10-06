@@ -232,7 +232,10 @@
   }
   function evaluatePostChargeFee(fee,session={},timeZone=null){
     if(!fee)return{totalEur:0,component:null};
-    const span=postChargeBillableMinutes(fee,session,timeZone);if(span.complete===false)return{totalEur:0,component:null,complete:false,reason:span.reason};
+    const parked=Math.max(0,num(session.postChargeMinutes)??0),duration=Math.max(0,num(session.durationMinutes)??0);
+    const charging=Math.max(0,num(session.chargingMinutes)??duration-parked);
+    const postChargeStartAt=session.postChargeStartAt||((session.startAt&&parked>0)?addMinutes(session.startAt,charging):null);
+    const span=postChargeBillableMinutes(fee,{...session,postChargeStartAt},timeZone);if(span.complete===false)return{totalEur:0,component:null,complete:false,reason:span.reason};
     const duration=span.duration,grace=span.grace,billable=span.billableMinutes,exemptMinutes=span.exemptMinutes;
     const baseComponent={postChargeMinutes:duration,graceMinutes:grace,billableMinutes:billable,exemptMinutes,costEur:0};
     if(billable<=0)return{totalEur:0,component:baseComponent};
