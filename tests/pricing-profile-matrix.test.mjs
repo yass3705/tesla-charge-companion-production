@@ -74,6 +74,14 @@ const tieredOffer={id:'reve-parking-tier-probe',currency:'EUR',pricing:{type:'co
 ]}};
 const tiered=pricing.evaluateOffer(tieredOffer,{startAt:'2026-10-06T08:00:00Z',energyKwh:10,durationMinutes:100,chargingMinutes:60,postChargeMinutes:40,timeZone:'Europe/Madrid'});
 assert.equal(tiered.totalEur,4.5,'REVE parking fee applies only after the free 30 minutes');
+const afterHourOffer={id:'reve-after-hour-probe',currency:'EUR',pricing:{type:'component_groups',componentGroups:[
+  {kind:'TIME',rules:[{minDurationMinutes:60,chargingTimePerMinuteEur:0.08733333333333333}]}
+]}};
+const beforeHour=pricing.evaluateOffer(afterHourOffer,{startAt:'2026-10-06T08:00:00Z',durationMinutes:60,chargingMinutes:60,timeZone:'UTC'});
+assert.equal(beforeHour.complete,true,'A sole after-hour time fee has a valid free first hour');
+assert.equal(beforeHour.totalEur,0,'No time fee is due before the 60-minute threshold');
+const afterHour=pricing.evaluateOffer(afterHourOffer,{startAt:'2026-10-06T08:00:00Z',durationMinutes:70,chargingMinutes:70,timeZone:'UTC'});
+assert.equal(afterHour.totalEur,0.873333,'Only minutes after the 60-minute threshold are billed');
 const congestionOffer={id:'reve-congestion-probe',currency:'EUR',pricing:{type:'component_groups',componentGroups:[
   {kind:'ENERGY',rules:[{pricePerKwh:0.4}]},
   {kind:'CONGESTION_TIME',rules:[{minVehicleSoc:80,minCongestionPct:85,connectedTimePerMinuteEur:0.6}]}
