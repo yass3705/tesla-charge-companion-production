@@ -66,6 +66,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("snapshot", type=pathlib.Path)
     parser.add_argument("--output", type=pathlib.Path, required=True)
+    parser.add_argument("--expected-profile-signatures", type=int)
     args = parser.parse_args()
     root = args.snapshot
     counts = collections.Counter()
@@ -83,6 +84,8 @@ def main():
         if not isinstance(value, dict):
             return
         pricing = value.get("pricing")
+        if isinstance(pricing, dict) and pricing.get("type") not in TYPES and pricing.get("type") is not None:
+            counts["unknown_pricing_type:" + str(pricing["type"])] += 1
         if isinstance(pricing, dict) and pricing.get("type") in TYPES:
             origin = source_name(root, path)
             signature = shape(pricing)
@@ -141,8 +144,10 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"counts": report["counts"], "unique_profile_signatures": report["unique_profile_signatures"], "special_components": report["special_components"][:20], "raw_kinds": sorted({kind for row in report["raw_components"] for kind in row["kinds"]}), "read_errors": errors}, ensure_ascii=False))
-    if errors:
+    if errors or any(key.startswith("unknown_pricing_type:") for key in counts):
         raise SystemExit(1)
+    if args.expected_profile_signatures is not None and report["unique_profile_signatures"] != args.expected_profile_signatures:
+        raise SystemExit(f"Tariff profile schema changed: expected {args.expected_profile_signatures}, found {report['unique_profile_signatures']}")
 
 
 if __name__ == "__main__":
