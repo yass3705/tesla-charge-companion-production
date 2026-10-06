@@ -62,6 +62,9 @@ def main():
             "nearbyMappings": sorted(nearby, key=lambda row: row["distanceM"])[:12],
         }
     print(json.dumps(output, ensure_ascii=False))
+    missing = [label for label, rows in output.items() if rows['exactCache'] and not rows['runtimeOffers']]
+    if missing:
+        raise SystemExit('Electroverse cache has a target tariff without a joined runtime offer: ' + ', '.join(missing))
 
 
 if __name__ == "__main__":
