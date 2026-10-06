@@ -183,6 +183,31 @@ if(requireElectra)assert.ok(frElectra.some(st=>evaluatedProviders(st).has('Elect
   'Electra platform tariffs attached to Paris-area stations must survive session filtering');
 
 if(requireElectra){
+const e55cSource=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(runtime,'data/e55c_station_tariffs_v1.json.gz'))).toString('utf8'));
+const e55cOffers=legacyDirectTariffs.e55cRules(e55cSource,{priority:{tariff:95}});
+assert.ok(e55cOffers.length>=700,'Electric 55 Scan Pay coverage unexpectedly shrank');
+for(const offer of e55cOffers){
+  const rule=offer.pricing.rules.find(r=>r.scope==='timeWindow'&&r.start==='07:00')||offer.pricing.rules.find(r=>r.scope==='allDay');
+  assert.ok(rule,'Electric 55 tariff lacks a daytime or all-day rule');
+  for(const postChargeMinutes of [0,10]){
+    const actual=sessionEngine.evaluateCompactMinuteOffer(offer,{startAt:'2026-10-06T12:00:00Z',energyKwh:10,durationMinutes:60,postChargeMinutes});
+    const expected=Math.round((10*Number(rule.pricePerKwh||0)+(60-postChargeMinutes)*Number(rule.chargePerMinute||0)+postChargeMinutes*Number(rule.idlePerMinute||0)+Number(rule.connectionFee||0))*1e6)/1e6;
+    assert.equal(actual?.complete,true,`Electric 55 tariff cannot be evaluated: ${offer.id}`);
+    assert.equal(actual.totalEur,expected,`Electric 55 tariff components dropped: ${offer.id}, post-charge ${postChargeMinutes} min`);
+  }
+}
+const grimaudResult=await engine.queryArea({countryCode:'FR',origin:{lat:43.279636,lon:6.577631},radiusKm:1,routingBudget:20});
+const grimaud=grimaudResult.stations.find(st=>String(st.name).includes('SAINT-PONS'));
+assert.ok(grimaud,'Grimaud Saint-Pons station missing');
+const grimaudTotals=postChargeMinutes=>{
+  const evaluation=sessionEngine.evaluateStation(grimaud,{startAt:'2026-10-06T12:00:00Z',energyKwh:10,durationMinutes:60,postChargeMinutes});
+  return [evaluation.best,...evaluation.alternatives,...evaluation.incomplete].find(o=>o?.provider==='E55C Scan Pay direct')?.total;
+};
+assert.equal(grimaudTotals(0),6.36,'Grimaud direct must include energy and the 0.60 € connection fee');
+assert.equal(grimaudTotals(10),7.356,'Grimaud direct must include the 10-minute post-charge fee');
+}
+
+if(requireElectra){
 const galardResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.808633,lon:2.064812},radiusKm:1,routingBudget:20});
 const galard=galardResult.stations.find(st=>String(st.name).includes('GENEVIEVE DE GALARD'));
 assert.ok(galard,'Geneviève de Galard station missing');
