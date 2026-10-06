@@ -37,8 +37,9 @@
       const countries=(offer?.countries||[]).map(value=>text(value).toUpperCase());
       if(countries.length&&!countries.includes('*')&&!countries.includes(country))continue;
       const metadata=offer?.metadata||{},label=text(metadata.subscriptionName||metadata.subscriptionLabel||offer?.subscriptionName||offer?.provider||id);
-      const monthlyFeeEur=num(offer?.monthlyFeeEur??metadata.monthlyFeeEur);
-      if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur});
+      const promotionEnd=text(offer?.monthlyFeePromotionEnd||metadata.promotionEnd),feeCurrent=!promotionEnd||promotionEnd>=new Date().toISOString().slice(0,10);
+      const monthlyFeeEur=feeCurrent?num(offer?.monthlyFeeEur??metadata.monthlyFeeEur):null,annualFeeEur=num(offer?.annualFeeEur??metadata.annualFeeEur);
+      if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur,annualFeeEur,feeNote:feeCurrent?'':'Mensualité à vérifier après promotion'});
     }
     return [...options.values()].sort((a,b)=>subscriptionLabel(a).localeCompare(subscriptionLabel(b),'fr'));
   }
@@ -51,7 +52,7 @@
       .filter(offer=>/^(emsp|roaming)$/i.test(text(offer?.kind))||/electra|electroverse/i.test(text(offer?.provider)))
       .map(offer=>text(offer?.provider)).filter(name=>/electra|electroverse/i.test(name)))];
     const emspMessage=emspProviders.length?' Les tarifs '+emspProviders.join(', ')+' affichés dans les résultats sont des prix eMSP, distincts d’un abonnement.':'';
-    const choices=rows.map(row=>'<label style="display:flex;align-items:flex-start;gap:8px;margin:0;padding:5px 2px"><input type="checkbox" value="'+esc(row.id)+'"'+(selected.has(text(row.id))?' checked':'')+' style="width:auto;margin:2px 0 0"><span><b>'+esc(subscriptionLabel(row))+'</b>'+(row.monthlyFeeEur!=null?' · '+esc(formatCurrencyAmount(row.monthlyFeeEur,'EUR'))+'/mois':'')+'<span class="small" style="display:block">'+esc(row.provider)+'</span></span></label>').join('');
+    const choices=rows.map(row=>'<label style="display:flex;align-items:flex-start;gap:8px;margin:0;padding:5px 2px"><input type="checkbox" value="'+esc(row.id)+'"'+(selected.has(text(row.id))?' checked':'')+' style="width:auto;margin:2px 0 0"><span><b>'+esc(subscriptionLabel(row))+'</b>'+(row.monthlyFeeEur!=null?' · '+esc(formatCurrencyAmount(row.monthlyFeeEur,'EUR'))+'/mois':row.annualFeeEur!=null?' · '+esc(formatCurrencyAmount(row.annualFeeEur,'EUR'))+'/an':row.feeNote?' · '+esc(row.feeNote):'')+'<span class="small" style="display:block">'+esc(row.provider)+'</span></span></label>').join('');
     box.innerHTML='<b>Abonnements recharge</b> <span class="small">('+rows.length+' compatible(s) en '+esc(countryCode)+')</span>'+
       '<div class="small" style="margin-top:6px">Choisis les abonnements que tu possèdes. Leurs tarifs vérifiés participent au calcul; les frais mensuels sont indiqués séparément.</div>'+
       (rows.length?'<div id="v9SubscriptionChoices" role="group" aria-label="Abonnements recharge, sélection multiple" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:3px;max-height:180px;overflow:auto;margin-top:8px">'+choices+'</div>'+
