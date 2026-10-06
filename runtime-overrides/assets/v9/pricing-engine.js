@@ -54,7 +54,7 @@
   }
   function ruleContains(rule,minute){
     if(rule?.scope==='allDay')return true;
-    const start=hm(rule?.start??rule?.startTime,0),end=hm(rule?.end??rule?.endTime,1440);
+    const start=hm(rule?.start??rule?.startTime,0),rawEnd=hm(rule?.end??rule?.endTime,1440),end=rule?.end==null&&rule?.endTime!=null?Math.min(1440,rawEnd+1):rawEnd;
     if(start===end)return true;
     if(end>start)return minute>=start&&minute<end;
     return minute>=start||minute<end;
@@ -100,7 +100,7 @@
     const minute=minuteOfDay(startAt,timeZone);if(minute==null)return null;
     let delta=Infinity;
     if(rule.scope!=='allDay'){
-      const end=hm(rule.end??rule.endTime,1440);delta=end-minute;if(delta<=0)delta+=1440;
+      const rawEnd=hm(rule.end??rule.endTime,1440),end=rule.end==null&&rule.endTime!=null?Math.min(1440,rawEnd+1):rawEnd;delta=end-minute;if(delta<=0)delta+=1440;
     }
     const daySensitive=(Array.isArray(rule?.daysOfWeek)&&rule.daysOfWeek.length)||(Array.isArray(rule?.days)&&rule.days.length)||rule?.holidayOnly===true||rule?.excludeHolidays===true||rule?.mustEndSameLocalDay===true;
     if(daySensitive)delta=Math.min(delta,1440-minute);
