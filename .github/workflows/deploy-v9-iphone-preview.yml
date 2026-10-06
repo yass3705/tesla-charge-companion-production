@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: b11b74c53a412f2dda1a87acad56b5ef09eb64a0
+          ref: 28ce46ce7c84e4ddc50c56ff4d99e7279e55efa0
           path: production
 
       - name: Checkout stable baseline
@@ -50,10 +50,10 @@ jobs:
 
       - name: Verify pins and build preview candidate
         env:
-          SNAPSHOT_ID: 2026-10-06-pr17-ui-electra-refresh-preview
+          SNAPSHOT_ID: 2026-10-06-pr17-map-minute-tariffs-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = b11b74c53a412f2dda1a87acad56b5ef09eb64a0
+          test "$(git -C production rev-parse HEAD)" = 28ce46ce7c84e4ddc50c56ff4d99e7279e55efa0
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = cdf55254f6ce72f67db38349d4a639ff81bcc359
           python production/scripts/build_refresh_candidate_config.py \
