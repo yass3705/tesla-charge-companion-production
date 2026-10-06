@@ -26,6 +26,9 @@ def national_identity_bridge(national_path,mapping_path):
         if new_id in proposals:duplicate_new.add(new_id);continue
         irve=entry.get('irve') or {}
         lat,lon=irve.get('lat'),irve.get('lon')
+        name_key=normalized(irve.get('name'))
+        operator_key=normalized(irve.get('operator'))
+        if not name_key or not operator_key:continue
         if not isinstance(lat,(int,float)) or not isinstance(lon,(int,float)):continue
         if not math.isfinite(lat) or not math.isfinite(lon):continue
         candidates=[]
@@ -36,8 +39,8 @@ def national_identity_bridge(national_path,mapping_path):
                     if not old_id.startswith('FR'):continue
                     distance=111195*math.hypot(lat-float(row[3]),(lon-float(row[4]))*math.cos(math.radians(lat)))
                     if distance>10:continue
-                    if normalized(row[1])!=normalized(irve.get('name')):continue
-                    if normalized(row[5])!=normalized(irve.get('operator')):continue
+                    if normalized(row[1])!=name_key:continue
+                    if normalized(row[5])!=operator_key:continue
                     old_pdcs={str(pdc) for config in row[8] for pdc in (config[6] if len(config)>6 and isinstance(config[6],list) else [])}
                     new_pdcs={str(pdc) for pdc in entry.get('irvePdcIds') or []}
                     if not old_pdcs.intersection(new_pdcs) and distance>1:continue
