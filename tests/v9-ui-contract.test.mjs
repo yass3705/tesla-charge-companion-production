@@ -37,4 +37,32 @@ const emptyPowerInputs=ui.readInputs({document:{getElementById:id=>emptyPowerFie
 assert.equal(emptyPowerInputs.minPowerKw,null,'blank minimum power must mean no minimum filter');
 assert.equal(emptyPowerInputs.maxPowerKw,null,'blank maximum power must mean no maximum filter');
 assert.deepEqual(ui.areaFiltersFromInputs(emptyPowerInputs),{},'empty power inputs must not filter stations');
+const lullyOffer={id:'lully-direct',provider:'Electric 55 Charging',kind:'direct',currency:'EUR',pricing:{type:'rules',rules:[
+  {scope:'timeWindow',start:'09:00',end:'11:00',pricePerKwh:0.30},
+  {scope:'timeWindow',start:'11:00',end:'15:00',pricePerKwh:0.35}
+]}};
+const appliedLully={station:{id:'lully',name:'PLACE LULLY',evses:[{id:'p1',connectors:[{id:'c1',kind:'AC',powerKw:22}]}],offers:[lullyOffer]},
+  evaluation:{best:{offerId:'lully-direct',provider:'Electric 55 Charging',kind:'direct',currency:'EUR',total:3.5,result:{components:{compactMinute:{segments:[{rule:lullyOffer.pricing.rules[1]}]}}}}}};
+const lullyHtml=ui.renderPowerLines(appliedLully);
+assert.ok(lullyHtml.includes('0,35'),'base rate must include the rule applied by the session');
+assert.ok(!lullyHtml.includes('0,30'),'other tariff windows must not appear as an applied base rate');
+
+const acFields={...emptyPowerFields,simPowerAc:{checked:true},simPowerDc:{checked:false}};
+const acInputs=ui.readInputs({document:{getElementById:id=>acFields[id]||null}});
+assert.deepEqual(acInputs.connectorKinds,['AC'],'AC checkbox must drive the runtime filter');
+const bothFields={...emptyPowerFields,simPowerAc:{checked:true},simPowerDc:{checked:true}};
+assert.deepEqual(ui.readInputs({document:{getElementById:id=>bothFields[id]||null}}).connectorKinds,['AC','DC']);
+const dataEngine=require('../runtime-overrides/assets/v9/data-engine.js');
+const mixedStation={physicalOperator:{name:'Example'},evses:[
+  {connectors:[{kind:'AC',powerKw:22}]},{connectors:[{kind:'DC',powerKw:150}]}
+]};
+assert.equal(dataEngine.stationMatchesFilters(mixedStation,{connectorKinds:['AC'],minPowerKw:100}),false,'AC and minimum power must match the same connector');
+assert.equal(dataEngine.stationMatchesFilters(mixedStation,{connectorKinds:['DC'],minPowerKw:100}),true);
+const subscriptionOptions=ui.subscriptionOptionsForArea({stations:[{offers:[
+  {id:'fastned-gold',subscriptionId:'fastned-gold',provider:'Fastned Gold',countries:['FR'],metadata:{monthlyFeeEur:5.99}},
+  {id:'electroverse',provider:'Electroverse',kind:'emsp'}
+]}]},'FR');
+assert.deepEqual(subscriptionOptions.map(option=>option.id),['fastned-gold'],'only verified subscriptions appear in the selection list');
+assert.equal(subscriptionOptions[0].monthlyFeeEur,5.99);
+
 console.log(JSON.stringify({ok:true,priceCategories:['Direct','Electra','Electroverse'],sourceLabels:true,blankPowerFilters:true}));
