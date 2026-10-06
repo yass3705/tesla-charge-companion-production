@@ -68,13 +68,14 @@ def main():
         copy_file(izivia_fast_source,out/"runtime/data/v9/izivia-fast-france.json")
     # The Dole connector evidence was captured on 2026-10-05. Keep older
     # immutable snapshot candidates on their original AC-only inventory.
-    if len(snapshot_date)==10 and snapshot_date<"2026-10-05":
+    if len(snapshot_date)==10 and snapshot_date<"2026-10-06":
         reg=load_json(registry)
         for src in reg.get("sources",[]):
-            if src.get("id") in {"france-izivia-fast-dole-inventory","france-izivia-fast-dole-direct","france-izivia-fast-official-france"}:
+            sid=src.get("id")
+            if sid=="france-izivia-fast-official-france" or (snapshot_date<"2026-10-05" and sid in {"france-izivia-fast-dole-inventory","france-izivia-fast-dole-direct"}):
                 src["active"]=False
                 src["optional"]=True
-                src["disabledReason"]="IZIVIA FAST Dole evidence postdates this historical snapshot"
+                src["disabledReason"]="IZIVIA FAST source evidence postdates this historical snapshot"
         write_json(registry,reg)
 
     # Build a self-contained deployable shell in the production snapshot.
