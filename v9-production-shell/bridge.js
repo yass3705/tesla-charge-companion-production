@@ -97,7 +97,7 @@
   function siteKey(st){
     const normalize=value=>text(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
     const latitude=num(st?.latitude),longitude=num(st?.longitude);
-    const place=[normalize(st?.name),normalize(st?.address)].filter(Boolean).join('|')||`${latitude?.toFixed(3)}|${longitude?.toFixed(3)}`;
+    const place=normalize(st?.address)||normalize(st?.name)||`${latitude?.toFixed(4)}|${longitude?.toFixed(4)}`;
     return [text(st?.countryCode),normalize(st?.physicalOperator?.name),place,maxPower(st)].join('|');
   }
   function pointIds(st){
