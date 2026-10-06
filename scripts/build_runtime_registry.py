@@ -85,7 +85,7 @@ def build_registry(path):
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"Only the three exact PAN station IDs matched 1 m to Electra's Bois-d'Arcy location. Energy rates are the captured app tariff by local start time, locked for the session; conditional congestion fees are excluded and visibly disclosed."
+      "policy":"Only the exact current PAN station ID FRELCP12954082 and its DC connectors (100, 400 and 600 kW) match the official site's 19 current connectors. Historical AC/duplicate rows at the location stay unpriced. Energy rates are the captured app tariff by local start time, locked for the session; conditional congestion fees are excluded and visibly disclosed."
     })
     upsert(sources,{
       "id":"france-electroverse-r8",
