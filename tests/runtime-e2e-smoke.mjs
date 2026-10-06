@@ -17,6 +17,7 @@ const ma=require(path.join(runtime,'assets/v9/adapters/morocco-public.js'));
 const nationalCompact=require(path.join(runtime,'assets/v9/adapters/national-compact.js'));
 const directOffers=require(path.join(runtime,'assets/v9/adapters/direct-offers.js'));
 const legacyDirectStations=require(path.join(runtime,'assets/v9/adapters/legacy-direct-stations.js'));
+const legacyDirectTariffs=require(path.join(runtime,'assets/v9/adapters/legacy-direct-tariffs.js'));
 const switzerlandAvia=require(path.join(runtime,'assets/v9/adapters/switzerland-avia.js'));
 const italyIonityExact=require(path.join(runtime,'assets/v9/adapters/italy-ionity-exact.js'));
 const franceIonityExact=require(path.join(runtime,'assets/v9/adapters/france-ionity-exact.js'));
@@ -39,18 +40,18 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,legacyDirectTariffs,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
   registry:subRegistry,
   basePath:pathToFileURL(runtime+path.sep).href,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations},
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,legacyDirectTariffs},
   fetchImpl:fileFetch(runtime)
 });
 
@@ -59,6 +60,7 @@ assert.equal(typeof loaders['uk-production-open-feeds'],'function');
 assert.equal(typeof loaders['morocco-evgo-native'],'function');
 assert.equal(typeof loaders['morocco-kilowatt-public'],'function');
 assert.equal(typeof loaders['france-national'],'function');
+assert.equal(typeof loaders['e55c-direct-france'],'function');
 if(process.env.REQUIRE_ELECTRA_PLATFORM==='1') assert.equal(typeof loaders['france-electra-platform'],'function');
 assert.equal(typeof loaders['italy-pun'],'function');
 assert.equal(typeof loaders['switzerland-national'],'function');
@@ -168,6 +170,12 @@ if(requireElectra){
   assert.ok(frElectra.length>0,'FR Electra platform offers did not attach to national France stations');
   assert.ok(frDualEmsp.length>0,'FR national station hub did not independently receive both Electra and Electroverse offers');
 }
+
+const lullyResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.806024,lon:2.068762},radiusKm:1,routingBudget:20});
+const lully=lullyResult.stations.find(s=>String(s.name).includes('PLACE LULLY'));
+assert.ok(lully,'Electric 55 Place Lully is absent from the FR source');
+assert.ok((lully.offers||[]).some(o=>o.provider==='E55C direct'),'Exact Electric 55 Scan Pay direct offer did not attach at Place Lully');
+assert.ok(lullyResult.diagnostics.sources['e55c-direct-france']?.loaded===true,'Electric 55 direct source did not load');
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
