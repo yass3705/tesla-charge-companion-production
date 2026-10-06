@@ -5,6 +5,7 @@
   "mode": "exact_station_app_energy_tariff",
   "policy": {
     "exactStationIdsOnly": true,
+    "currentDcConnectorsOnly": true,
     "priceChannel": "Electra app without subscription",
     "energyOnly": true,
     "conditionalCongestionFeeExcluded": true
@@ -15,7 +16,8 @@
       "provider": "Electra direct · énergie seule · relevé 02/09/2026",
       "operatorAliases": ["Electra"],
       "directOperatorOnly": true,
-      "stationIds": ["FRELCP12954082", "FRELCP5265355", "FRELCPBDALE"],
+      "stationIds": ["FRELCP12954082"],
+      "connectorKinds": ["DC"],
       "countries": ["FR"],
       "currency": "EUR",
       "priority": 125,
@@ -41,6 +43,7 @@
         "sourceTariffId": "4e4869c4-a128-4d46-89a6-42de07852fdf",
         "sourceReport": "reports/france/electra/pan-exact-tariff-snapshot.json",
         "panMatchDistanceM": 1,
+        "otherHistoricalPanIdsAtLocation": ["FRELCP5265355", "FRELCPBDALE"],
         "energyOnly": true,
         "conditionalCongestionFeeExcluded": true,
         "congestionSourceComponents": [{"type": "CONGESTION_TIME", "price": 0}, {"type": "CONGESTION_TIME", "price": 24}],
