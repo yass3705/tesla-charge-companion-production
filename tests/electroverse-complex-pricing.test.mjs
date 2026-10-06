@@ -9,14 +9,16 @@ const runtime=path.join(root,'runtime');
 const engine=require(path.join(runtime,'assets/v9/session-engine.js'));
 const payload=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/FR/platforms/electroverse-runtime-offers.json'),'utf8'));
 const stats=payload.metadata;
+const stationOffers=payload.emspOffers.filter(o=>o.pricing.type==='electroverse_restrictions');
 assert.ok(stats.publishedStationOffers>=stats.inputCachedStations*0.9,'most validated Electroverse stations should receive a tariff');
 assert.ok(stats.publishedOffers>=stats.publishedStationOffers);
-assert.equal(Object.values(stats.nationalJoin).reduce((a,b)=>a+b,0),stats.publishedOffers);
+assert.equal(Object.values(stats.nationalJoin).reduce((a,b)=>a+b,0),stationOffers.length);
+assert.equal(stats.heterogeneousExactEvseFallbackOffers||0,stats.publishedOffers-stationOffers.length);
 assert.ok(stats.nationalJoin.bridgedNationalId>0);
 assert.ok(!stats.rejected.complex_pricing,'complex tariffs should be parsed, not blanket-rejected');
-assert.ok(payload.emspOffers.some(o=>o.pricing.rules.some(r=>r.types.includes('DURATION_BASED'))));
-assert.ok(payload.emspOffers.some(o=>o.pricing.rules.some(r=>r.types.includes('TIME_BASED'))));
-assert.ok(payload.emspOffers.some(o=>o.pricing.rules.some(r=>r.types.includes('DATE_BASED'))));
+assert.ok(stationOffers.some(o=>o.pricing.rules.some(r=>r.types.includes('DURATION_BASED'))));
+assert.ok(stationOffers.some(o=>o.pricing.rules.some(r=>r.types.includes('TIME_BASED'))));
+assert.ok(stationOffers.some(o=>o.pricing.rules.some(r=>r.types.includes('DATE_BASED'))));
 
 const rates=(values={})=>({energy:0,chargingMinute:0,parkingMinute:0,flat:0,...values});
 const rule=(types,values,extras={})=>({types,rates:rates(values),components:['energy','chargingMinute','parkingMinute','flat'],...extras});
@@ -60,7 +62,7 @@ const ambiguous=offer([
 ]);
 assert.equal(estimate(ambiguous,session('2026-10-06T10:00:00Z',60,60,10)).reason,'ambiguous_electroverse_restriction');
 
-const complex=payload.emspOffers.filter(o=>o.pricing.rules.some(r=>r.types.length));
+const complex=stationOffers.filter(o=>o.pricing.rules.some(r=>r.types.length));
 const sample=complex.filter((_,i)=>i%Math.max(1,Math.floor(complex.length/300))===0).slice(0,300);
 const complete=sample.filter(o=>estimate(o,session('2026-10-06T10:00:00Z',90,75,25)).complete).length;
 assert.ok(complete>=sample.length*0.9,`only ${complete}/${sample.length} sampled real complex offers could be evaluated`);

@@ -30,9 +30,10 @@
   }
   function saveSelectedSubscriptions(w,ids){const clean=[...new Set((ids||[]).map(text).filter(Boolean))];try{w.localStorage.setItem(SUBSCRIPTION_KEY,JSON.stringify(clean));}catch(_){}return clean;}
   function subscriptionLabel(row){const provider=text(row?.provider),label=text(row?.label),id=text(row?.id);if(label&&label!==id)return label;if(provider&&provider!==id)return provider;return id;}
-  function subscriptionOptionsForArea(area,countryCode){
+  function subscriptionOptionsForArea(area,countryCode,catalogue=[]){
     const options=new Map(),country=text(countryCode).toUpperCase();
-    for(const station of area?.stations||[])for(const offer of station?.offers||[]){
+    const offers=[...(catalogue||[]),...(area?.stations||[]).flatMap(station=>station?.offers||[])];
+    for(const offer of offers){
       const id=text(offer?.subscriptionId);if(!id)continue;
       const countries=(offer?.countries||[]).map(value=>text(value).toUpperCase());
       if(countries.length&&!countries.includes('*')&&!countries.includes(country))continue;
@@ -42,6 +43,16 @@
       if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur,annualFeeEur,feeNote:feeCurrent?'':'Mensualité à vérifier après promotion'});
     }
     return [...options.values()].sort((a,b)=>subscriptionLabel(a).localeCompare(subscriptionLabel(b),'fr'));
+  }
+  async function loadSubscriptionCatalogue(w,cfg){
+    const base=String(cfg.runtimeBase||'.').replace(/\/$/,'');
+    const files=['france-direct-offers.json','electra-direct-france.json'];
+    const results=await Promise.all(files.map(async file=>{
+      try{const response=await w.fetch(`${base}/data/v9/${file}`,{cache:'no-cache'});if(!response.ok)return[];
+        const payload=await response.json();return Array.isArray(payload.subscriptionOffers)?payload.subscriptionOffers:[];
+      }catch(_){return[];}
+    }));
+    return results.flat();
   }
   function renderSubscriptionSelector(w,options,countryCode,stations=[]){
     const compare=w.document.getElementById('compare'),card=compare?.querySelector('.card');if(!card)return;
@@ -53,8 +64,8 @@
       .map(offer=>text(offer?.provider)).filter(name=>/electra|electroverse/i.test(name)))];
     const emspMessage=emspProviders.length?' Les tarifs '+emspProviders.join(', ')+' affichés dans les résultats sont des prix eMSP, distincts d’un abonnement.':'';
     const choices=rows.map(row=>'<label style="display:flex;align-items:flex-start;gap:8px;margin:0;padding:5px 2px"><input type="checkbox" value="'+esc(row.id)+'"'+(selected.has(text(row.id))?' checked':'')+' style="width:auto;margin:2px 0 0"><span><b>'+esc(subscriptionLabel(row))+'</b>'+(row.monthlyFeeEur!=null?' · '+esc(formatCurrencyAmount(row.monthlyFeeEur,'EUR'))+'/mois':row.annualFeeEur!=null?' · '+esc(formatCurrencyAmount(row.annualFeeEur,'EUR'))+'/an':row.feeNote?' · '+esc(row.feeNote):'')+'<span class="small" style="display:block">'+esc(row.provider)+'</span></span></label>').join('');
-    box.innerHTML='<b>Abonnements recharge</b> <span class="small">('+rows.length+' compatible(s) en '+esc(countryCode)+')</span>'+
-      '<div class="small" style="margin-top:6px">Choisis les abonnements que tu possèdes. Leurs tarifs vérifiés participent au calcul; les frais mensuels sont indiqués séparément.</div>'+
+    box.innerHTML='<b>Abonnements recharge</b> <span class="small">('+rows.length+' offre(s) vérifiée(s) en '+esc(countryCode)+')</span>'+
+      '<div class="small" style="margin-top:6px">Choisis les abonnements que tu possèdes. Le tarif intervient seulement sur les bornes auxquelles il s’applique; les frais mensuels sont indiqués séparément.</div>'+
       (rows.length?'<div id="v9SubscriptionChoices" role="group" aria-label="Abonnements recharge, sélection multiple" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:3px;max-height:180px;overflow:auto;margin-top:8px">'+choices+'</div>'+
         '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-apply" style="width:auto">Valider</button><button type="button" class="secondary v9-sub-cancel" style="width:auto">Annuler</button><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button></div>':
         '<div class="small" style="margin-top:8px">Aucun tarif d’abonnement vérifié pour les bornes de cette zone.'+esc(emspMessage)+'</div>');
@@ -864,6 +875,7 @@
     installV9MobileLayout(w);
     const legacyCompare=w.compare;
     const enginePromise=createEngine(w,cfg);
+    const subscriptionCataloguePromise=loadSubscriptionCatalogue(w,cfg);
     installCurrentPositionButton(w);
     installUsageHelpTab(w);
     installBaseUpdatesFooter(w,cfg);
@@ -874,7 +886,7 @@
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
-      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
+      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode,await subscriptionCataloguePromise),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
         diagnosticStore(w,{mode:'candidate',outcome:'v9-error',reason:err.message,operatorIds:input.operatorIds||[]});
         if(input.operatorIds?.length){
           const status=w.document.getElementById('routeStatus'),results=w.document.getElementById('results');
@@ -888,5 +900,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });

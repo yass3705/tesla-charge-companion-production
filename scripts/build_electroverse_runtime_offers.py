@@ -179,12 +179,15 @@ def main():
     ap.add_argument("--manifest",required=True)
     ap.add_argument("--national",required=True,help="Pinned FR static all.json.gz inventory")
     ap.add_argument("--mapping",required=True,help="Pinned high-confidence Electroverse/IRVE identity mapping")
+    ap.add_argument("--evse-platform",help="Pinned exact-EVSE Electroverse overlay for heterogeneous same-power tariffs")
     ap.add_argument("--out",required=True)
     args=ap.parse_args()
     cache=pathlib.Path(args.cache_dir)
     manifest=json.loads(pathlib.Path(args.manifest).read_text())
     national_ids,bridges=national_identity_bridge(args.national,args.mapping)
-    offers=[];rejected={};seen_station=set();input_rows=0
+    with gzip.open(args.national,"rt",encoding="utf-8") as file:
+        national_evse_ids={str(evse) for station in json.load(file) for group in station[8] for evse in group[6]}
+    offers=[];rejected={};seen_station=set();input_rows=0;heterogeneous={}
     for sh in manifest.get("shards") or []:
         p=cache/sh["file"]
         data=json.loads(p.read_text())
@@ -193,6 +196,8 @@ def main():
             station_rules,reason=station_offers(row)
             if station_rules is None:
                 rejected[reason]=rejected.get(reason,0)+1
+                if reason=="same_power_tariff_collision":
+                    heterogeneous[str(row.get("electroverseLocationPk") or "")]=str(row.get("tariffHash") or "")
                 continue
             sid=station_rules[0]["stationIds"][0]
             if sid in seen_station:
@@ -216,6 +221,30 @@ def main():
             join_counts['bridgedNationalId']+=1
         else:
             join_counts['unmatchedNationalId']+=1
+    fallback_locations=set();fallback_offers=0
+    if args.evse_platform and heterogeneous:
+        platform=pathlib.Path(args.evse_platform)
+        platform_manifest=json.loads((platform/"manifest.json").read_text())
+        for tile in platform_manifest.get("tiles") or []:
+            with gzip.open(platform/tile["file"],"rt",encoding="utf-8") as file:
+                payload=json.load(file)
+            for offer in payload.get("emspOffers") or []:
+                meta=offer.get("metadata") or {}
+                pk=str(meta.get("electroverseLocationPk") or "")
+                hashes=meta.get("tariffHashes") or [meta.get("tariffHash")]
+                if pk not in heterogeneous or not hashes or any(str(value)!=heterogeneous[pk] for value in hashes):continue
+                evse_ids=offer.get("evseIds") or []
+                if not evse_ids or any(str(evse) not in national_evse_ids for evse in evse_ids):continue
+                power=meta.get("powerKw")
+                standards=meta.get("standards") or []
+                if power is not None:
+                    if not isinstance(power,(int,float)) or power<=0:continue
+                    kinds={"DC" if "COMBO" in str(s) or "CHADEMO" in str(s) else "AC" for s in standards}
+                    if len(kinds)!=1:continue
+                    offer["connectorKinds"]=sorted(kinds)
+                    offer["minPowerKw"]=power-0.5
+                    offer["maxPowerKw"]=power+0.5
+                offers.append(offer);fallback_locations.add(pk);fallback_offers+=1
     out={
       "schemaVersion":1,
       "country":"FR",
@@ -231,11 +260,14 @@ def main():
       "emspOffers":offers,
       "metadata":{
         "inputCachedStations":input_rows,
-        "publishedStationOffers":len(seen_station),
+        "publishedStationOffers":len(seen_station)+len(fallback_locations),
         "publishedOffers":len(offers),
         "rejected":rejected,
         "sourceShardCount":manifest.get("shardCount"),
-        "nationalJoin":dict(join_counts)
+        "nationalJoin":dict(join_counts),
+        "heterogeneousExactEvseFallbackStations":len(fallback_locations),
+        "heterogeneousExactEvseFallbackOffers":fallback_offers,
+        "heterogeneousUnresolvedStations":len(heterogeneous)-len(fallback_locations)
       }
     }
     op=pathlib.Path(args.out);op.parent.mkdir(parents=True,exist_ok=True)

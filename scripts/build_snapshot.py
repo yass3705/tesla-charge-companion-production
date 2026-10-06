@@ -334,6 +334,7 @@ def main():
           "--manifest",str(ev_manifest),
           "--national",str(out/"runtime/data/v9/france-static/all.json.gz"),
           "--mapping",str(dl/"data/electroverse/irve_location_mapping.json"),
+          "--evse-platform",str(dl/"data/platforms/electroverse/france-evse"),
           "--out",str(overlays/"FR/platforms/electroverse-runtime-offers.json")
         ],check=True)
 

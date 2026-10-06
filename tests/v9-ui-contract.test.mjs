@@ -76,5 +76,20 @@ const subscriptionOptions=ui.subscriptionOptionsForArea({stations:[{offers:[
 ]}]},'FR');
 assert.deepEqual(subscriptionOptions.map(option=>option.id),['fastned-gold'],'only verified subscriptions appear in the selection list');
 assert.equal(subscriptionOptions[0].monthlyFeeEur,5.99);
+const allSubscriptions=ui.subscriptionOptionsForArea({stations:[{offers:[
+  {id:'electra-essential',subscriptionId:'electra-plus-essential',provider:'Electra+ Essential',countries:['FR']}
+]}]},'FR',[
+  {id:'fastned-gold',subscriptionId:'fastned-gold',provider:'Fastned Gold',countries:['FR'],monthlyFeeEur:5.99},
+  {id:'zunder-pro',subscriptionId:'zunder-pro',provider:'Zunder Pro',countries:['FR'],monthlyFeeEur:11.99}
+]);
+assert.deepEqual(allSubscriptions.map(option=>option.id),['electra-plus-essential','fastned-gold','zunder-pro'],
+  'all verified plans in the national catalogue remain visible outside their operator search area');
+const requested=[];
+const catalogue=await ui.loadSubscriptionCatalogue({fetch:async url=>{
+  requested.push(url);
+  return {ok:true,json:async()=>({subscriptionOffers:[{subscriptionId:url.includes('electra')?'electra-plus-smart':'fastned-gold',countries:['FR']}]})};
+}}, {runtimeBase:'runtime'});
+assert.deepEqual(requested.sort(),['runtime/data/v9/electra-direct-france.json','runtime/data/v9/france-direct-offers.json']);
+assert.deepEqual(ui.subscriptionOptionsForArea({stations:[]},'FR',catalogue).map(option=>option.id),['electra-plus-smart','fastned-gold']);
 
 console.log(JSON.stringify({ok:true,priceCategories:['Direct','Electra','Electroverse'],sourceLabels:true,blankPowerFilters:true}));

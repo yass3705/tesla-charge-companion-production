@@ -8,7 +8,7 @@
     "nationalDefault": false,
     "officialAcSlowChargeCategory": true,
     "stationNominalPowerKw": 22,
-    "sourceNote": "The ALDI site labels the illustrated AC charger 11 kW; the national IRVE station reports 22 kW. The published slow AC tariff is applied to this ALDI-operated AC station, with no roaming surcharge included."
+    "sourceNote": "Slow charging is classified by the AC connector type, including the 22 kW AC connector at Guyancourt. Fast charging is DC. No roaming surcharge is included."
   },
   "directOffers": [
     {

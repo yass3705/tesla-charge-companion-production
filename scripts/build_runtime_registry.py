@@ -178,7 +178,7 @@ def build_registry(path):
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"France national station/EVSE identities are the sole attachment hub. Electroverse offers attach independently through validated IRVE mappings; no Electroverse-to-Electra dependency is permitted. Only high-confidence mappings with one uniform simple tariff across all cached connectors are exposed; complex or heterogeneous tariffs remain fail-closed."
+      "policy":"France national station/EVSE identities are the sole attachment hub. Electroverse offers attach independently through validated IRVE mappings; no Electroverse-to-Electra dependency is permitted. Complex tariffs are modeled when unambiguous. Heterogeneous same-power tariffs use pinned exact-EVSE offers only when the source tariff hash matches the current cache; unresolved identities remain fail-closed."
     })
     upsert(sources,{
       "id":"france-ionity-r8",

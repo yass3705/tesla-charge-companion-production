@@ -110,7 +110,7 @@ def main():
     assert len(ev_payload.get("emspOffers") or [])>=1000, ev_meta
     assert ev_meta.get("publishedOffers")==len(ev_payload.get("emspOffers") or []), ev_meta
     assert 1000<=ev_meta.get("publishedStationOffers",0)<=ev_meta["publishedOffers"], ev_meta
-    assert sum((ev_meta.get("nationalJoin") or {}).values())==ev_meta["publishedOffers"], ev_meta
+    assert sum((ev_meta.get("nationalJoin") or {}).values())+ev_meta.get("heterogeneousExactEvseFallbackOffers",0)==ev_meta["publishedOffers"], ev_meta
     assert (ev_payload.get("policy") or {}).get("unsupportedOrAmbiguousComplexPricingFailClosed") is True, ev_payload.get("policy")
     assert (ev_payload.get("policy") or {}).get("heterogeneousConnectorTariffRequiresDistinctPowerOrKind") is True, ev_payload.get("policy")
     avia_ch=sources.get("switzerland-avia-r8") or {}
