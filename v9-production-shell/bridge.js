@@ -37,32 +37,31 @@
       const countries=(offer?.countries||[]).map(value=>text(value).toUpperCase());
       if(countries.length&&!countries.includes('*')&&!countries.includes(country))continue;
       const metadata=offer?.metadata||{},label=text(metadata.subscriptionName||metadata.subscriptionLabel||offer?.subscriptionName||offer?.provider||id);
-      if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country]});
+      const monthlyFeeEur=num(offer?.monthlyFeeEur??metadata.monthlyFeeEur);
+      if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur});
     }
     return [...options.values()].sort((a,b)=>subscriptionLabel(a).localeCompare(subscriptionLabel(b),'fr'));
   }
   function renderSubscriptionSelector(w,options,countryCode,stations=[]){
     const compare=w.document.getElementById('compare'),card=compare?.querySelector('.card');if(!card)return;
     let box=w.document.getElementById('v9SubscriptionSelector');
-    if(!box){box=w.document.createElement('details');box.id='v9SubscriptionSelector';box.className='box v9-filter-group';box.style.marginTop='10px';const primary=card.querySelector('button.primary');if(primary)card.insertBefore(box,primary);else card.appendChild(box);}
+    if(!box){box=w.document.createElement('div');box.id='v9SubscriptionSelector';box.className='box v9-filter-group';box.style.marginTop='10px';const primary=card.querySelector('button.primary');if(primary)card.insertBefore(box,primary);else card.appendChild(box);}
     const selected=new Set(selectedSubscriptions(w)),rows=(options||[]).slice();
     const emspProviders=[...new Set((stations||[]).flatMap(st=>st?.offers||[])
       .filter(offer=>/^(emsp|roaming)$/i.test(text(offer?.kind))||/electra|electroverse/i.test(text(offer?.provider)))
       .map(offer=>text(offer?.provider)).filter(name=>/electra|electroverse/i.test(name)))];
-    const noPlanMessage='Aucun tarif d’abonnement vérifié pour les bornes de cette zone.';
     const emspMessage=emspProviders.length?' Les tarifs '+emspProviders.join(', ')+' affichés dans les résultats sont des prix eMSP, distincts d’un abonnement.':'';
-    const optionsHtml=rows.map(row=>{const id=text(row.id),countries=(row.countries||[]).join(', ');return '<option value="'+esc(id)+'"'+(selected.has(id)?' selected':'')+'>'+esc(subscriptionLabel(row))+(countries?' · '+esc(countries):'')+'</option>';}).join('');
-    box.innerHTML='<summary><b>Abonnements recharge</b> <span class="small">('+rows.length+' compatible(s) en '+esc(countryCode)+')</span></summary>'+
-      '<div class="small" style="margin-top:8px">Sélection multiple. Les abonnements sélectionnés peuvent être retenus dans le classement quand leur compatibilité est vérifiée.</div>'+
-      (rows.length?'<select id="v9SubscriptionChoices" multiple size="5" aria-label="Abonnements recharge, sélection multiple" style="margin-top:8px;width:100%;min-height:96px">'+optionsHtml+'</select>'+
-        '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button><button type="button" class="secondary v9-sub-all" style="width:auto">Tous compatibles</button></div>':
-        '<div class="small" style="margin-top:8px">'+esc(noPlanMessage+emspMessage)+'</div>');
-    const select=box.querySelector('#v9SubscriptionChoices');
-    mountCheckboxDropdown(w,select,'v9SubscriptionDropdown',{title:'Abonnements recharge'});
-    const persist=()=>{if(!select)return;saveSelectedSubscriptions(w,[...select.selectedOptions].map(option=>text(option.value)));w.compare();};
-    select?.addEventListener('change',persist);
-    box.querySelector('.v9-sub-none')?.addEventListener('click',()=>{[...select.options].forEach(option=>{option.selected=false;});persist();});
-    box.querySelector('.v9-sub-all')?.addEventListener('click',()=>{[...select.options].forEach(option=>{option.selected=true;});persist();});
+    const choices=rows.map(row=>'<label style="display:flex;align-items:flex-start;gap:8px;margin:0;padding:5px 2px"><input type="checkbox" value="'+esc(row.id)+'"'+(selected.has(text(row.id))?' checked':'')+' style="width:auto;margin:2px 0 0"><span><b>'+esc(subscriptionLabel(row))+'</b>'+(row.monthlyFeeEur!=null?' · '+esc(formatCurrencyAmount(row.monthlyFeeEur,'EUR'))+'/mois':'')+'<span class="small" style="display:block">'+esc(row.provider)+'</span></span></label>').join('');
+    box.innerHTML='<b>Abonnements recharge</b> <span class="small">('+rows.length+' compatible(s) en '+esc(countryCode)+')</span>'+
+      '<div class="small" style="margin-top:6px">Choisis les abonnements que tu possèdes. Leurs tarifs vérifiés participent au calcul; les frais mensuels sont indiqués séparément.</div>'+
+      (rows.length?'<div id="v9SubscriptionChoices" role="group" aria-label="Abonnements recharge, sélection multiple" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:3px;max-height:180px;overflow:auto;margin-top:8px">'+choices+'</div>'+
+        '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-apply" style="width:auto">Valider</button><button type="button" class="secondary v9-sub-cancel" style="width:auto">Annuler</button><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button></div>':
+        '<div class="small" style="margin-top:8px">Aucun tarif d’abonnement vérifié pour les bornes de cette zone.'+esc(emspMessage)+'</div>');
+    const selectedIds=()=>[...box.querySelectorAll('#v9SubscriptionChoices input:checked')].map(input=>text(input.value));
+    const restore=()=>{for(const input of box.querySelectorAll('#v9SubscriptionChoices input'))input.checked=selected.has(text(input.value));};
+    box.querySelector('.v9-sub-apply')?.addEventListener('click',()=>{saveSelectedSubscriptions(w,selectedIds());w.compare();});
+    box.querySelector('.v9-sub-cancel')?.addEventListener('click',restore);
+    box.querySelector('.v9-sub-none')?.addEventListener('click',()=>{saveSelectedSubscriptions(w,[]);w.compare();});
   }
 
   function rankingWeights(mode){if(mode==='price')return{price:.7,distance:.3};if(mode==='distance')return{price:.3,distance:.7};return{price:.5,distance:.5};}
@@ -97,7 +96,7 @@
     const get=id=>w.document.getElementById(id),date=get('simDate')?.value||'',time=get('simTime')?.value||'',unplug=get('simUnplugTime')?.value||'',startAt=combineDateTime(date,time),disconnectAt=unplug?combineDateTime(date,unplug,startAt):null;
     const rawRadius=text(get('simMaxDistance')?.value),radius=rawRadius===''?0:Math.max(0,num(rawRadius)||0);
     const operatorSelect=get('simOperatorFilter'),selectedOperatorIds=operatorSelect?.multiple?[...operatorSelect.selectedOptions].map(option=>text(option.value)).filter(Boolean):(text(operatorSelect?.value)?[text(operatorSelect.value)]:[]),operatorMode=operatorSelect?.dataset?.v9Mode||(selectedOperatorIds.length?'selected':'all'),operatorIds=operatorMode==='all'?[]:operatorMode==='tesla'?['tesla']:selectedOperatorIds;
-    const powerSelect=get('simPowerType'),connectorKinds=powerSelect?.multiple?[...powerSelect.selectedOptions].map(option=>text(option.value)).filter(v=>v==='AC'||v==='DC'):(text(powerSelect?.value)&&text(powerSelect?.value)!=='all'?[text(powerSelect.value)]:[]);
+    const powerSelect=get('simPowerType'),acCheckbox=get('simPowerAc'),dcCheckbox=get('simPowerDc'),connectorKinds=acCheckbox&&dcCheckbox?[...(acCheckbox.checked?['AC']:[]),...(dcCheckbox.checked?['DC']:[])]:powerSelect?.multiple?[...powerSelect.selectedOptions].map(option=>text(option.value)).filter(v=>v==='AC'||v==='DC'):(text(powerSelect?.value)&&text(powerSelect?.value)!=='all'?[text(powerSelect.value)]:[]);
     const minPowerInput=num(get('simMinPowerKw')?.value),maxPowerInput=num(get('simMaxPowerKw')?.value);
     const minPowerKw=minPowerInput!=null?Math.max(1,minPowerInput):null,maxPowerKw=maxPowerInput!=null?Math.max(1,maxPowerInput):null;
     return{startSoc:num(get('simNow')?.value),targetSoc:num(get('simTarget')?.value),date,time,startAt,disconnectAt,condition:get('simCondition')?.value||'normal',profile:get('simProfile')?.value||'realistic',operatorMode,operatorIds,connectorKinds,minPowerKw,maxPowerKw,rankingMode:get('simRanking')?.value||'balanced',radiusKm:radius,originText:text(get('simOrigin')?.value)};
@@ -217,12 +216,17 @@
     const appliedRules=[];
     const matched=applied?.result?.matchedRule;
     if(matched)appliedRules.push(matched);
-    for(const segment of (applied?.result?.components?.segmentedPricing?.segments||[])){
-      if(segment?.rule)appliedRules.push(segment.rule);
-    }
+    for(const segment of [
+      ...(applied?.result?.components?.segmentedPricing?.segments||[]),
+      ...(applied?.result?.components?.energyTimeline?.segments||[]),
+      ...(applied?.result?.components?.compactMinute?.segments||[])
+    ]){if(segment?.rule)appliedRules.push(segment.rule);}
     const appliedLabels=appliedRules.length?tariffRateLabels({currency:applied.currency||'EUR',pricing:{rules:appliedRules}}):[];
+    const appliedOffer=(row?.station?.offers||[]).find(offer=>text(offer?.id||offer?.offerId)===text(applied?.offerId));
+    const hasTimeWindows=(appliedOffer?.pricing?.rules||[]).some(rule=>rule?.scope!=='allDay');
     return'<div class="v9-power-lines" style="margin-top:8px">'+lines.map(line=>{
-      const fallback=baseTariffsForPower(row,line),tariffs=[...new Set(appliedLabels.length?appliedLabels:fallback)];
+      const fallback=applied&&!hasTimeWindows&&appliedOffer?tariffRateLabels(appliedOffer):[];
+      const tariffs=[...new Set(appliedLabels.length?appliedLabels:fallback)];
       const provider=text(applied?.provider||'');
       const baseLine=tariffs.length
         ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+(provider?' · '+esc(provider):'')+'</div>'
@@ -237,18 +241,27 @@
     const host=w.document.getElementById('v9MapSummary')||w.document.createElement('section');host.id='v9MapSummary';host.className='box';host.style.cssText='margin:10px 0;background:#11151a;border:1px solid #28323d';
     const bestByStation=new Map();for(const row of rows||[]){const id=text(row?.station?.id||row?.station?.canonicalId||row?.station?.stationId);if(!id)continue;const current=bestByStation.get(id),cost=num(row?.costPerKm);if(!current||(cost!=null&&(num(current.costPerKm)==null||cost<num(current.costPerKm))))bestByStation.set(id,row);}
     const points=[...bestByStation.values()].filter(row=>Number.isFinite(Number(row?.station?.latitude))&&Number.isFinite(Number(row?.station?.longitude))),zoneRows=engine.summarizeZones(points,{precision:1}),visible=zoneRows.slice(0,12);
-    host.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>Résultats V9</b><div role="group" aria-label="Mode d’affichage"><button type="button" class="secondary v9-view-list" style="width:auto;padding:6px 10px">☷ Liste</button><button type="button" class="secondary v9-view-map" style="width:auto;padding:6px 10px">⌖ Carte</button></div></div><div class="small" style="margin-top:6px">Stations sur fond OpenStreetMap · un point = une station · orange = tarif/km calculable.</div><div id="v9MapZones" style="display:none;margin-top:8px"><div class="v9-real-map" role="img" aria-label="Carte des stations V9 sur fond OpenStreetMap" style="position:relative;width:100%;height:380px;overflow:hidden;border:1px solid #34404c;border-radius:8px;background:#e5e3df;touch-action:none"><div class="v9-map-tiles" style="position:absolute;inset:0"></div><div class="v9-map-markers" style="position:absolute;inset:0;pointer-events:none"></div><div style="position:absolute;right:10px;top:10px;display:grid;gap:4px"><button type="button" class="v9-map-zoom-in" aria-label="Zoomer" style="width:34px;padding:5px;background:white;color:#111">+</button><button type="button" class="v9-map-zoom-out" aria-label="Dézoomer" style="width:34px;padding:5px;background:white;color:#111">−</button></div><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="position:absolute;bottom:2px;right:4px;background:#ffffffdd;color:#222;font-size:10px">© OpenStreetMap</a></div><div class="small" style="margin-top:5px">Déplacez la carte ou zoomez ; survolez un point pour le prix.</div></div><div id="v9MapZoneSummary" style="display:none;margin-top:8px">'+(visible.length?'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">'+visible.map(z=>'<div style="padding:8px;border-radius:8px;background:#1a222b"><b>'+engine.formatPricePerKm(z.bestPricePerKm)+'</b><div class="small">'+esc(z.bestStation?.name||'Zone')+' · '+z.pricedStationCount+'/'+z.stationCount+' tarifée(s)</div></div>').join('')+'</div>':'<div class="small">Aucun prix/km vérifiable dans cette zone.</div>')+'</div>';
+    host.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>Résultats V9</b><div role="group" aria-label="Mode d’affichage"><button type="button" class="secondary v9-view-list" style="width:auto;padding:6px 10px">☷ Liste</button><button type="button" class="secondary v9-view-map" style="width:auto;padding:6px 10px">⌖ Carte</button></div></div><div class="small" style="margin-top:6px">Stations sur fond OpenStreetMap · un point = une station · orange = tarif/km calculable.</div><div id="v9MapZones" style="display:none;margin-top:8px"><div class="v9-real-map" role="img" aria-label="Carte des stations V9 sur fond OpenStreetMap" style="position:relative;width:100%;height:380px;overflow:hidden;border:1px solid #34404c;border-radius:8px;background:#e5e3df;touch-action:none"><div class="v9-map-tiles" style="position:absolute;inset:0"></div><div class="v9-map-markers" style="position:absolute;inset:0;pointer-events:none"></div><div style="position:absolute;right:10px;top:10px;display:grid;gap:4px"><button type="button" class="v9-map-zoom-in" aria-label="Zoomer" style="width:34px;padding:5px;background:white;color:#111">+</button><button type="button" class="v9-map-zoom-out" aria-label="Dézoomer" style="width:34px;padding:5px;background:white;color:#111">−</button></div><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="position:absolute;bottom:2px;right:4px;background:#ffffffdd;color:#222;font-size:10px">© OpenStreetMap</a></div><div class="small" style="margin-top:5px">Déplacez la carte ou zoomez ; sélectionnez un point pour voir ses tarifs.</div><div id="v9MapSelected" class="box" style="display:none;margin-top:8px"></div></div><div id="v9MapZoneSummary" style="display:none;margin-top:8px">'+(visible.length?'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">'+visible.map(z=>'<div style="padding:8px;border-radius:8px;background:#1a222b"><b>'+engine.formatPricePerKm(z.bestPricePerKm)+'</b><div class="small">'+esc(z.bestStation?.name||'Zone')+' · '+z.pricedStationCount+'/'+z.stationCount+' tarifée(s)</div></div>').join('')+'</div>':'<div class="small">Aucun prix/km vérifiable dans cette zone.</div>')+'</div>';
     const results=w.document.getElementById('results');if(results&&host.parentNode!==results.parentNode)results.parentNode.insertBefore(host,results);
-    const listButton=host.querySelector('.v9-view-list'),mapButton=host.querySelector('.v9-view-map'),zones=host.querySelector('#v9MapZones'),summary=host.querySelector('#v9MapZoneSummary'),canvas=host.querySelector('.v9-real-map'),tiles=host.querySelector('.v9-map-tiles'),markers=host.querySelector('.v9-map-markers');
+    const listButton=host.querySelector('.v9-view-list'),mapButton=host.querySelector('.v9-view-map'),zones=host.querySelector('#v9MapZones'),summary=host.querySelector('#v9MapZoneSummary'),selected=host.querySelector('#v9MapSelected'),canvas=host.querySelector('.v9-real-map'),tiles=host.querySelector('.v9-map-tiles'),markers=host.querySelector('.v9-map-markers');
     const project=(lat,lon,z)=>{const scale=256*2**z,clamped=Math.max(-85.0511,Math.min(85.0511,lat)),rad=clamped*Math.PI/180;return{x:(lon+180)/360*scale,y:(1-Math.log(Math.tan(rad)+1/Math.cos(rad))/Math.PI)/2*scale};};
     const unproject=(x,y,z)=>{const scale=256*2**z,n=Math.PI-2*Math.PI*y/scale;return{lat:180/Math.PI*Math.atan(Math.sinh(n)),lon:x/scale*360-180};};
     const lats=points.map(row=>Number(row.station.latitude)),lons=points.map(row=>Number(row.station.longitude));
     let center=points.length?{lat:(Math.min(...lats)+Math.max(...lats))/2,lon:(Math.min(...lons)+Math.max(...lons))/2}:{lat:Number(area?.query?.origin?.lat)||46.6,lon:Number(area?.query?.origin?.lon)||2.2},zoom=12,drag=null;
     const fit=()=>{if(!points.length)return;const width=Math.max(320,canvas?.clientWidth||640),height=Math.max(260,canvas?.clientHeight||380);for(let z=16;z>=3;z--){const p=points.map(row=>project(Number(row.station.latitude),Number(row.station.longitude),z));if(Math.max(...p.map(v=>v.x))-Math.min(...p.map(v=>v.x))<width-70&&Math.max(...p.map(v=>v.y))-Math.min(...p.map(v=>v.y))<height-70){zoom=z;break;}}};
     const draw=()=>{if(!canvas||!tiles||!markers||!canvas.clientWidth)return;const width=canvas.clientWidth,height=canvas.clientHeight,mid=project(center.lat,center.lon,zoom),left=mid.x-width/2,top=mid.y-height/2,world=2**zoom;let tileHtml='';for(let tx=Math.floor(left/256);tx<=Math.floor((left+width)/256);tx++)for(let ty=Math.floor(top/256);ty<=Math.floor((top+height)/256);ty++){if(ty<0||ty>=world)continue;const wrapped=((tx%world)+world)%world;tileHtml+='<img src="https://tile.openstreetmap.org/'+zoom+'/'+wrapped+'/'+ty+'.png" alt="" draggable="false" loading="lazy" style="position:absolute;left:'+(tx*256-left).toFixed(1)+'px;top:'+(ty*256-top).toFixed(1)+'px;width:256px;height:256px;max-width:none">';}tiles.innerHTML=tileHtml;
-      markers.innerHTML=points.map(row=>{const st=row.station,p=project(Number(st.latitude),Number(st.longitude),zoom),cost=num(row.costPerKm),label=text(st.name||'Station'),price=cost==null?'Prix non disponible':cost.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/km';return'<span class="v9-map-marker" title="'+esc(label+' · '+price)+'" aria-label="'+esc(label+' · '+price)+'" style="position:absolute;left:'+(p.x-left).toFixed(1)+'px;top:'+(p.y-top).toFixed(1)+'px;width:15px;height:15px;transform:translate(-50%,-50%);border:2px solid white;border-radius:50%;box-shadow:0 1px 5px #1118;background:'+(cost==null?'#8c9399':'#f4a64a')+'"></span>';}).join('');
+      markers.innerHTML=points.map((row,index)=>{const st=row.station,p=project(Number(st.latitude),Number(st.longitude),zoom),cost=num(row.costPerKm),label=text(st.name||'Station'),price=cost==null?'Prix non disponible':cost.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/km';return'<button type="button" class="v9-map-marker" data-index="'+index+'" title="'+esc(label+' · '+price)+'" aria-label="Sélectionner '+esc(label+' · '+price)+'" style="position:absolute;left:'+(p.x-left).toFixed(1)+'px;top:'+(p.y-top).toFixed(1)+'px;width:19px;height:19px;transform:translate(-50%,-50%);border:2px solid white;border-radius:50%;box-shadow:0 1px 5px #1118;background:'+(cost==null?'#8c9399':'#f4a64a')+';pointer-events:auto;cursor:pointer;padding:0"></button>';}).join('');
     };
     const setMode=mode=>{const map=mode==='map';if(zones)zones.style.display=map?'block':'none';if(summary)summary.style.display=map?'block':'none';if(results)results.style.display=map?'none':'';listButton?.classList.toggle('primary',!map);mapButton?.classList.toggle('primary',map);host.dataset.v9View=mode;if(map){fit();draw();}};
+    const selectPoint=index=>{
+      const row=points[index];if(!row||!selected)return;
+      const st=row.station,price=num(row.costPerKm);
+      selected.style.display='block';
+      selected.innerHTML='<b>'+esc(st.name||'Station')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+' · '+esc(row.powerLine?.kind||'')+' '+esc(row.powerLine?.powerKw||'')+' kW</div>'+renderTariffs(row.evaluation,st)+'<div class="small" style="margin-top:6px">'+(price==null?'Prix/km non disponible':esc(price.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/km'))+'</div><button type="button" class="secondary v9-map-open-row" style="width:auto;margin-top:8px">Voir la fiche dans la liste</button>';
+      selected.querySelector('.v9-map-open-row')?.addEventListener('click',()=>{setMode('list');const card=[...(results?.querySelectorAll('.v9-result-card')||[])].find(item=>text(item.dataset.v9StationId)===text(st.id));card?.scrollIntoView?.({behavior:'smooth',block:'center'});});
+      for(const marker of markers.querySelectorAll('.v9-map-marker'))marker.style.outline=Number(marker.dataset.index)===index?'3px solid #fff':'none';
+    };
+    markers?.addEventListener('click',event=>{const marker=event.target.closest('.v9-map-marker');if(!marker)return;event.stopPropagation();selectPoint(Number(marker.dataset.index));});
     listButton?.addEventListener('click',()=>setMode('list'));mapButton?.addEventListener('click',()=>setMode('map'));
     host.querySelector('.v9-map-zoom-in')?.addEventListener('click',()=>{zoom=Math.min(18,zoom+1);draw();});host.querySelector('.v9-map-zoom-out')?.addEventListener('click',()=>{zoom=Math.max(2,zoom-1);draw();});
     canvas?.addEventListener('pointerdown',event=>{if(event.target.closest('button,a'))return;drag={x:event.clientX,y:event.clientY,center:project(center.lat,center.lon,zoom)};canvas.setPointerCapture?.(event.pointerId);});canvas?.addEventListener('pointermove',event=>{if(!drag)return;center=unproject(drag.center.x-(event.clientX-drag.x),drag.center.y-(event.clientY-drag.y),zoom);draw();});canvas?.addEventListener('pointerup',()=>{drag=null;});canvas?.addEventListener('pointercancel',()=>{drag=null;});
@@ -366,7 +379,9 @@
   function siteKey(st,power){
     const normalize=value=>text(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
     const latitude=num(st?.latitude),longitude=num(st?.longitude);
-    const place=(normalize(st?.address)||normalize(st?.name))+'|'+latitude?.toFixed(3)+'|'+longitude?.toFixed(3);
+    const place=isTeslaStation(st)&&latitude!=null&&longitude!=null
+      ?'tesla-site|'+latitude.toFixed(3)+'|'+longitude.toFixed(3)
+      :(normalize(st?.address)||normalize(st?.name))+'|'+latitude?.toFixed(3)+'|'+longitude?.toFixed(3);
     return [text(st?.countryCode),normalize(st?.physicalOperator?.name),place,power].join('|');
   }
   function powerBuckets(st){
@@ -443,7 +458,8 @@
         if(!group){group={...candidate,pointIds:new Set(),pointCount:0,groupedStationCount:0,evaluations:[]};groups.set(key,group);}
         if(evaluation)group.evaluations.push(evaluation);
         group.groupedStationCount++;
-        if(ids.size){for(const id of ids)group.pointIds.add(id);}else group.pointCount++;
+        if(isTeslaStation(row.station))group.pointCount=Math.max(group.pointCount,ids.size||1);
+        else if(ids.size){for(const id of ids)group.pointIds.add(id);}else group.pointCount++;
         if((Number.isFinite(candidate.total)&&(!Number.isFinite(group.total)||candidate.total<group.total))||(!Number.isFinite(group.total)&&candidate.distanceKm<group.distanceKm))Object.assign(group,{station:candidate.station,evaluation:candidate.evaluation,score:candidate.score,route:candidate.route,total:candidate.total,distanceKm:candidate.distanceKm});
       }
     }
@@ -454,7 +470,7 @@
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
     renderMapSummary(w,area,rows);
   }
 
@@ -475,7 +491,7 @@
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input);session.fxRates=engine.__tccFxRates||{};
     const selected=selectedSubscriptions(w);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
-    const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area),baseSession,selected),grouped=groupRows(expanded).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
+    const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area),baseSession,selected),eligible=expanded.filter(row=>{const line=row.powerLine||{},kind=text(line.kind).toUpperCase(),power=num(line.powerKw);return(!input.connectorKinds.length||input.connectorKinds.includes(kind))&&(input.minPowerKw==null||power!=null&&power>=input.minPowerKw)&&(input.maxPowerKw==null||power!=null&&power<=input.maxPowerKw);}),grouped=groupRows(eligible).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
     const d=w.document;
@@ -757,12 +773,11 @@
   function installPowerTypeFilter(w){
     const operator=w.document.getElementById('simOperatorFilter');if(!operator||w.document.getElementById('simPowerType'))return;
     const host=w.document.createElement('div');host.className='full';
-    host.innerHTML='<div><b>Type de recharge</b><div class="row" role="group" aria-label="Type de recharge" style="display:flex;gap:8px;margin-top:6px"><button type="button" class="secondary v9-power-toggle" data-power="AC" aria-pressed="false">AC</button><button type="button" class="secondary v9-power-toggle" data-power="DC" aria-pressed="false">DC</button></div><select id="simPowerType" multiple aria-label="Type de recharge, sélection multiple" hidden><option value="AC">AC</option><option value="DC">DC</option></select><span class="small" style="display:block;margin-top:4px">Laisser les deux boutons désactivés pour inclure AC et DC.</span><div style="margin-top:8px"><b>Plage de puissance (kW)</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><label>Minimum<input id="simMinPowerKw" type="number" min="1" max="250" step="1" inputmode="numeric" placeholder="1" aria-label="Puissance minimale en kW" style="width:100%;margin-top:3px"></label><label>Maximum<input id="simMaxPowerKw" type="number" min="1" max="250" step="1" inputmode="numeric" placeholder="250+" aria-label="Puissance maximale en kW" style="width:100%;margin-top:3px"></label></div><span class="small" style="display:block;margin-top:4px">Laisser les deux champs vides pour 1–250+ kW. Laisser le maximum vide pour inclure 250 kW et plus.</span></div></div>';
+    host.innerHTML='<div><b>Type et puissance de recharge</b><div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-top:6px"><div role="group" aria-label="Type de recharge" style="display:flex;align-items:center;gap:10px;padding-top:21px"><label style="display:flex;align-items:center;gap:5px;margin:0"><input id="simPowerAc" type="checkbox" style="width:auto;margin:0">AC</label><label style="display:flex;align-items:center;gap:5px;margin:0"><input id="simPowerDc" type="checkbox" style="width:auto;margin:0">DC</label></div><div style="flex:1 1 220px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><label>Minimum (kW)<input id="simMinPowerKw" type="number" min="1" step="1" inputmode="numeric" placeholder="1" aria-label="Puissance minimale en kW" style="width:100%;margin-top:3px"></label><label>Maximum (kW)<input id="simMaxPowerKw" type="number" min="1" step="1" inputmode="numeric" placeholder="250+" aria-label="Puissance maximale en kW" style="width:100%;margin-top:3px"></label></div></div></div><select id="simPowerType" multiple aria-hidden="true" tabindex="-1" style="display:none"><option value="AC">AC</option><option value="DC">DC</option></select><span class="small" style="display:block;margin-top:4px">Aucune case cochée : AC et DC. Laisse les champs vides pour ne pas limiter la puissance.</span></div>';
     const parent=operator.closest('label')||operator.parentElement;parent?.parentElement?.insertBefore(host,parent.nextSibling);
-    const select=host.querySelector('#simPowerType'),buttons=[...host.querySelectorAll('.v9-power-toggle')];
-    const redraw=()=>buttons.forEach(button=>{const option=[...select.options].find(item=>item.value===button.dataset.power);const active=!!option?.selected;button.setAttribute('aria-pressed',String(active));button.classList.toggle('primary',active);});
-    buttons.forEach(button=>button.addEventListener('click',()=>{const option=[...select.options].find(item=>item.value===button.dataset.power);if(option)option.selected=!option.selected;select.dispatchEvent(new w.Event('change',{bubbles:true}));}));
-    select.addEventListener('change',redraw);redraw();
+    const select=host.querySelector('#simPowerType'),ac=host.querySelector('#simPowerAc'),dc=host.querySelector('#simPowerDc');
+    const sync=()=>{for(const option of [...select.options])option.selected=option.value==='AC'?ac.checked:dc.checked;select.dispatchEvent(new w.Event('change',{bubbles:true}));};
+    ac.addEventListener('change',sync);dc.addEventListener('change',sync);
   }
 
   function installRankingOption(w){
