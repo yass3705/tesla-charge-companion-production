@@ -361,10 +361,13 @@
       const timeline=validity.complete&&!locked?evaluateTimelineOffer(offer,effectiveSession):null;
       const electroverse=validity.complete?evaluateElectroverseOffer(offer,effectiveSession):null;
       const compactMinute=validity.complete?evaluateCompactMinuteOffer(offer,effectiveSession):null;
+      const unverifiedZeroElectra=text(offer?.id).startsWith('electra-platform:')&&offer?.pricing?.type==='rules'&&Array.isArray(offer.pricing.rules)&&offer.pricing.rules.length>0&&offer.pricing.rules.every(rule=>['pricePerKwh','chargePerMinute','idlePerMinute','connectionFee','afterMinutesRate'].every(key=>(num(rule[key])??0)===0));
       const result=validity.complete===false
         ?validity
         :unknownPostCharge&&postChargeMinutes>0
         ?{complete:false,reason:'post_charge_fee_unknown_for_station',offerId:text(offer.id||offer.offerId),postChargeMinutes}
+        :unverifiedZeroElectra
+        ?{complete:false,reason:'zero_electra_tariff_components_unverified',offerId:text(offer.id||offer.offerId)}
         :(electroverse||compactMinute||locked||timeline||PricingEngine.evaluateOffer(offer,effectiveSession));
       const currency=text(result.currency||offer.currency||'EUR').toUpperCase();
       const rate=result.complete?fxRate(currency,targetCurrency,fxRates):null;
