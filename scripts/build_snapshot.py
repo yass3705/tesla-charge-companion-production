@@ -60,13 +60,14 @@ def main():
     registry=out/"runtime/data/v9/source-registry.json"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
     subprocess.run([sys.executable,str(production_root/"scripts/build_electra_direct_offers.py"),str(dl/"data/operator_direct/electra_exact_france.json"),str(out/"runtime/data/v9/electra-direct-france.json")],check=True)
-    izivia_fast_source=dl/"data/operator_direct/izivia_fast_direct_france_2026_10_06.json"
-    if not izivia_fast_source.exists():
-        raise SystemExit(f"Pinned Data Lab IZIVIA FAST direct offers missing: {izivia_fast_source}")
-    copy_file(izivia_fast_source,out/"runtime/data/v9/izivia-fast-france.json")
+    snapshot_date=str(cfg.get("snapshotId") or "")[:10]
+    if snapshot_date>="2026-10-06":
+        izivia_fast_source=dl/"data/operator_direct/izivia_fast_direct_france_2026_10_06.json"
+        if not izivia_fast_source.exists():
+            raise SystemExit(f"Pinned Data Lab IZIVIA FAST direct offers missing: {izivia_fast_source}")
+        copy_file(izivia_fast_source,out/"runtime/data/v9/izivia-fast-france.json")
     # The Dole connector evidence was captured on 2026-10-05. Keep older
     # immutable snapshot candidates on their original AC-only inventory.
-    snapshot_date=str(cfg.get("snapshotId") or "")[:10]
     if len(snapshot_date)==10 and snapshot_date<"2026-10-05":
         reg=load_json(registry)
         for src in reg.get("sources",[]):
