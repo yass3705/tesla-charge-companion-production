@@ -89,6 +89,9 @@ jobs:
           python scripts/validate_stable_parity.py "${parity_args[@]}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-explicit-candidate
 
+      - name: V9 tariff categories and source labels
+        run: node production/tests/v9-ui-contract.test.mjs
+
       - name: V9 station grouping
         run: node production/tests/v9-shell-grouping.test.mjs
 
