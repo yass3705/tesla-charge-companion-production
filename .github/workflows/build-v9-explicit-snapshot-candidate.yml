@@ -1,6 +1,7 @@
 name: Build explicit V9 snapshot candidate
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       snapshot_id:
@@ -22,8 +23,8 @@ permissions:
   actions: read
 
 concurrency:
-  group: v9-explicit-snapshot-candidate
-  cancel-in-progress: false
+  group: v9-explicit-snapshot-candidate-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -42,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: ${{ inputs.datalab_sha }}
+          ref: ${{ inputs.datalab_sha || '6eeff68e84b2ae829a45f2bc82b21c559b5b28ac' }}
           path: datalab
           fetch-depth: 1
           persist-credentials: false
@@ -51,18 +52,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          requested="${{ inputs.datalab_sha }}"
+          requested="${{ inputs.datalab_sha || '6eeff68e84b2ae829a45f2bc82b21c559b5b28ac' }}"
           requested="$(printf '%s' "$requested" | tr -d '[:space:]')"
           test "$(git -C datalab rev-parse HEAD)" = "$requested"
 
       - name: Generate immutable candidate config
         run: |
-          snapshot_id="${{ inputs.snapshot_id }}"
+          snapshot_id="${{ inputs.snapshot_id || '2026-10-06-pr17-candidate' }}"
           snapshot_id="$(printf '%s' "$snapshot_id" | tr -d '[:space:]')"
           echo "SNAPSHOT_ID=$snapshot_id" >> "$GITHUB_ENV"
           args=(
             --base production/config/snapshots/2026-09-30-r9-electra-fr.json
-            --datalab-sha "${{ inputs.datalab_sha }}"
+            --datalab-sha "${{ inputs.datalab_sha || '6eeff68e84b2ae829a45f2bc82b21c559b5b28ac' }}"
             --snapshot-id "$snapshot_id"
             --out production/config/snapshots/explicit-candidate.json
           )
