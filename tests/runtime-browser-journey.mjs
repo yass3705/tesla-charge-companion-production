@@ -45,6 +45,8 @@ try{
   assert.equal(await page.locator('#v9TeslaOnly').textContent(),'Tesla uniquement');
   assert.equal(await page.locator('#v9AllNetworks').textContent(),'Tous les réseaux');
   assert.equal(await page.locator('#v9OperatorDropdown').count(),1,'operator dropdown is available');
+  assert.equal(await page.locator('#simPowerAc').count(),1,'AC checkbox is beside power range');
+  assert.equal(await page.locator('#simPowerDc').count(),1,'DC checkbox is beside power range');
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
   await page.locator('#v9TeslaOnly').click();
@@ -67,7 +69,11 @@ try{
   await page.locator('.v9-view-map').click();
   assert.ok(await page.locator('#v9MapZones img[src*="tile.openstreetmap.org"]').count()>0,'Geographic map must load OpenStreetMap tile images');
   assert.ok(await page.locator('#v9MapZones .v9-map-marker').count()>0,'Geographic map must retain station markers');
-  await page.locator('.v9-view-list').click();
+  await page.locator('#v9MapZones .v9-map-marker').first().click();
+  assert.equal(await page.locator('#v9MapSelected').isVisible(),true,'Selecting a marker reveals the charging station');
+  assert.ok((await page.locator('#v9MapSelected').innerText()).length>20,'Selected map point includes tariff details');
+  await page.locator('.v9-map-open-row').click();
+  assert.equal(await page.locator('#results').isVisible(),true,'Map selection can open the station result');
   await page.locator('#v9AllNetworks').click();
   await page.evaluate(()=>window.compare());
   await page.waitForFunction(()=>document.querySelectorAll('#v9OperatorDropdown input[type=checkbox]').length>1,null,{timeout:120000});
