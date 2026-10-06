@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "country": "FR",
+  "generatedAt": "2026-09-02T15:48:12.939701+00:00",
+  "mode": "exact_station_app_energy_tariff",
+  "policy": {
+    "exactStationIdsOnly": true,
+    "priceChannel": "Electra app without subscription",
+    "energyOnly": true,
+    "conditionalCongestionFeeExcluded": true
+  },
+  "directOffers": [
+    {
+      "id": "electra-app-bois-darcy-e-leclerc-20260902",
+      "provider": "Electra direct · énergie seule",
+      "operatorAliases": ["Electra"],
+      "directOperatorOnly": true,
+      "stationIds": ["FRELCP12954082", "FRELCP5265355", "FRELCPBDALE"],
+      "countries": ["FR"],
+      "currency": "EUR",
+      "priority": 125,
+      "pricing": {
+        "type": "rules",
+        "lockAtSessionStart": true,
+        "postChargeFeeUnknown": true,
+        "rules": [
+          {"scope": "timeWindow", "start": "00:00", "end": "05:00", "billing": "kwh", "currency": "EUR", "pricePerKwh": 0.39},
+          {"scope": "timeWindow", "start": "05:00", "end": "15:00", "billing": "kwh", "currency": "EUR", "pricePerKwh": 0.49},
+          {"scope": "timeWindow", "start": "15:00", "end": "20:00", "billing": "kwh", "currency": "EUR", "pricePerKwh": 0.61},
+          {"scope": "timeWindow", "start": "20:00", "end": "24:00", "billing": "kwh", "currency": "EUR", "pricePerKwh": 0.49}
+        ]
+      },
+      "source": "https://emsp.go-electra.com/graphql",
+      "metadata": {
+        "verifiedScope": "exact_station",
+        "stationName": "Bois-d'Arcy - E.Leclerc",
+        "officialStationId": "0a650b39-b871-4e78-9670-e56e6b20f329",
+        "stationUrl": "https://stations.go-electra.com/fr/bois-d-arcy-e-leclerc/",
+        "timeZone": "Europe/Paris",
+        "capturedAt": "2026-09-02T15:48:12.939701+00:00",
+        "sourceTariffId": "4e4869c4-a128-4d46-89a6-42de07852fdf",
+        "sourceReport": "reports/france/electra/pan-exact-tariff-snapshot.json",
+        "panMatchDistanceM": 1,
+        "energyOnly": true,
+        "conditionalCongestionFeeExcluded": true,
+        "congestionSourceComponents": [{"type": "CONGESTION_TIME", "price": 0}, {"type": "CONGESTION_TIME", "price": 24}],
+        "congestionNote": "Frais conditionnels à la saturation et au niveau de batterie, non calculés."
+      }
+    }
+  ],
+  "subscriptionOffers": []
+}
