@@ -59,6 +59,10 @@ const mixedStation={physicalOperator:{name:'Example'},evses:[
 ]};
 assert.equal(dataEngine.stationMatchesFilters(mixedStation,{connectorKinds:['AC'],minPowerKw:100}),false,'AC and minimum power must match the same connector');
 assert.equal(dataEngine.stationMatchesFilters(mixedStation,{connectorKinds:['DC'],minPowerKw:100}),true);
+const acVariant={powerLine:{kind:'AC',powerKw:22}},dcVariant={powerLine:{kind:'DC',powerKw:150}};
+assert.equal(ui.variantMatchesFilters(acVariant,{connectorKinds:['DC']}),false,'AC result rows must be hidden when DC alone is checked');
+assert.equal(ui.variantMatchesFilters(dcVariant,{connectorKinds:['DC'],minPowerKw:100,maxPowerKw:200}),true);
+assert.equal(ui.variantMatchesFilters(dcVariant,{connectorKinds:['AC','DC'],maxPowerKw:100}),false,'power range must also filter rendered rows');
 const subscriptionOptions=ui.subscriptionOptionsForArea({stations:[{offers:[
   {id:'fastned-gold',subscriptionId:'fastned-gold',provider:'Fastned Gold',countries:['FR'],metadata:{monthlyFeeEur:5.99}},
   {id:'electroverse',provider:'Electroverse',kind:'emsp'}
