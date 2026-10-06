@@ -85,6 +85,9 @@ jobs:
           python scripts/validate_stable_parity.py "${parity_args[@]}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-explicit-candidate
 
+      - name: V9 station grouping
+        run: node production/tests/v9-shell-grouping.test.mjs
+
       - name: Electra Bois-d'Arcy tariff calculation
         run: node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime
 
