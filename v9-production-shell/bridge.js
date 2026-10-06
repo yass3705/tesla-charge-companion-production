@@ -348,6 +348,93 @@
     return variants;
   }
 
+  function siteKey(st,power){
+    const normalize=value=>text(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+    const latitude=num(st?.latitude),longitude=num(st?.longitude);
+    const place=(normalize(st?.address)||normalize(st?.name))+'|'+latitude?.toFixed(3)+'|'+longitude?.toFixed(3);
+    return [text(st?.countryCode),normalize(st?.physicalOperator?.name),place,power].join('|');
+  }
+  function powerBuckets(st){
+    const buckets=new Map();
+    for(const evse of st?.evses||[]){
+      const pdcs=(evse?.pdcIds||[]).map(text).filter(Boolean);
+      const identity=text(evse?.aliases?.[0]||evse?.id);
+      const count=Math.max(1,Math.floor(num(evse?.stalls)||1));
+      const ids=pdcs.length?pdcs:Array.from({length:count},(_,index)=>`${identity}:${index}`);
+      for(const connector of evse?.connectors||[]){
+        const power=num(connector?.powerKw);
+        if(power==null||power<=0)continue;
+        if(!buckets.has(power))buckets.set(power,new Set());
+        for(const id of ids)buckets.get(power).add(id);
+      }
+    }
+    if(!buckets.size)buckets.set(0,new Set());
+    return buckets;
+  }
+  function energyOnlyEvaluation(row,power){
+    const evaluations=[row.evaluation?.best,...(row.evaluation?.alternatives||[])].filter(Boolean);
+    const connectors=(row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).filter(connector=>num(connector.powerKw)===power);
+    for(const evaluated of evaluations){
+      const offer=(row.station?.offers||[]).find(offer=>text(offer.id)===text(evaluated.offerId)&&offer.metadata?.energyOnly===true);
+      if(!offer)continue;
+      const kinds=(offer.connectorKinds||[]).map(kind=>text(kind).toUpperCase());
+      const eligible=connectors.some(connector=>{
+        const kind=text(connector.kind).toUpperCase(),value=num(connector.powerKw);
+        return (!kinds.length||kinds.includes(kind))&&(num(offer.minPowerKw)==null||value>=num(offer.minPowerKw))&&(num(offer.maxPowerKw)==null||value<=num(offer.maxPowerKw));
+      });
+      if(eligible)return{...row.evaluation,best:evaluated,alternatives:[],incomplete:[]};
+    }
+    return null;
+  }
+  function stationAtPower(station,power){
+    const evses=(station?.evses||[]).map(evse=>({...evse,connectors:(evse.connectors||[]).filter(connector=>num(connector.powerKw)===power)})).filter(evse=>evse.connectors.length);
+    return {...station,evses};
+  }
+  function evaluatePower(row,power,context){
+    const station=stationAtPower(row.station,power),engine=context.engine,area=context.area;
+    const session=area?.effectiveSession,route=area?.routes;
+    if(!station.evses.length||!session||!engine?.planStation||!engine?.evaluateStation)return null;
+    const plan=engine.planStation(station,session,{route});
+    const evaluation=engine.evaluateStation(station,plan.effectiveSession||session,{
+      selectedSubscriptions:context.selectedSubscriptions||[],targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}
+    });
+    const score=engine.scoreStation?.(station,evaluation,plan.effectiveSession||session,{route,plan})||row.score;
+    return{...row,station,evaluation,score,total:num(evaluation.best?.total),distanceKm:num(score?.distanceKm??row.distanceKm)};
+  }
+  function combinedEvaluation(group){
+    const selected=group.evaluation;
+    const all=group.evaluations.flatMap(evaluation=>[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])]).filter(Boolean);
+    const unique=new Map();
+    for(const offer of all){
+      const key=[text(offer.provider),text(offer.kind),text(offer.subscriptionId),Number.isFinite(offer.total)?Number(offer.total).toFixed(6):text(offer.result?.reason)].join('|');
+      if(!unique.has(key))unique.set(key,offer);
+    }
+    const values=[...unique.values()];
+    const best=selected?.best||null;
+    const bestKey=best&&[text(best.provider),text(best.kind),text(best.subscriptionId),Number.isFinite(best.total)?Number(best.total).toFixed(6):text(best.result?.reason)].join('|');
+    return{...(selected||{}),best,alternatives:values.filter(offer=>offer.comparable&&[text(offer.provider),text(offer.kind),text(offer.subscriptionId),Number.isFinite(offer.total)?Number(offer.total).toFixed(6):text(offer.result?.reason)].join('|')!==bestKey),incomplete:values.filter(offer=>!offer.comparable)};
+  }
+  function groupRows(rows,context){
+    const groups=new Map();
+    for(const row of rows||[]){
+      for(const [power,ids] of powerBuckets(row.station)){
+        const key=siteKey(row.station,power)+'|'+connectorKind((row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).find(connector=>num(connector.powerKw)===power)||{}),selectedConnector=text(row.evaluation?.chargingConnectorId);
+        const matchingConnector=selectedConnector&&(row.station?.evses||[]).some(evse=>(evse.connectors||[]).some(connector=>text(connector.id)===selectedConnector&&num(connector.powerKw)===power));
+        const scoped=context?evaluatePower(row,power,context):null;
+        const evaluated=matchingConnector||(!selectedConnector&&power===maxPower(row.station));
+        const evaluation=scoped?.evaluation||(evaluated?row.evaluation:energyOnlyEvaluation(row,power));
+        const candidate={...(scoped||row),displayPowerKw:power,evaluation,total:num(evaluation?.best?.total)};
+        let group=groups.get(key);
+        if(!group){group={...candidate,pointIds:new Set(),pointCount:0,groupedStationCount:0,evaluations:[]};groups.set(key,group);}
+        if(evaluation)group.evaluations.push(evaluation);
+        group.groupedStationCount++;
+        if(ids.size){for(const id of ids)group.pointIds.add(id);}else group.pointCount++;
+        if((Number.isFinite(candidate.total)&&(!Number.isFinite(group.total)||candidate.total<group.total))||(!Number.isFinite(group.total)&&candidate.distanceKm<group.distanceKm))Object.assign(group,{station:candidate.station,evaluation:candidate.evaluation,score:candidate.score,route:candidate.route,total:candidate.total,distanceKm:candidate.distanceKm});
+      }
+    }
+    return [...groups.values()].map(group=>{group.pointCount+=group.pointIds.size;delete group.pointIds;group.evaluation=combinedEvaluation(group);delete group.evaluations;return group;});
+  }
+
   function renderCandidate(w,area,rows,originLabel){
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
@@ -373,7 +460,7 @@
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input);session.fxRates=engine.__tccFxRates||{};
     const selected=selectedSubscriptions(w);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
-    const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area),baseSession,selected),rows=rankRows(expanded,input.rankingMode,20);return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
+    const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area),baseSession,selected),grouped=groupRows(expanded).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
     const d=w.document;
@@ -739,5 +826,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
