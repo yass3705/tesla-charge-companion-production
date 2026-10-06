@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: 4f59ebac5a433362be3faf3c89ab1942b804c1a1
+          ref: a6d07e872a16e6aa0c177c7f5f7c9bb22e9bf5b7
           path: production
 
       - name: Checkout stable baseline
@@ -43,22 +43,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: cdf55254f6ce72f67db38349d4a639ff81bcc359
+          ref: 95aaa2e9f16756e5040086caf6a14c452e28d74a
           path: datalab
           fetch-depth: 1
           persist-credentials: false
 
       - name: Verify pins and build preview candidate
         env:
-          SNAPSHOT_ID: 2026-10-06-pr17-map-filters-subscriptions-preview
+          SNAPSHOT_ID: 2026-10-06-pr17-electroverse-subscriptions-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = 4f59ebac5a433362be3faf3c89ab1942b804c1a1
+          test "$(git -C production rev-parse HEAD)" = a6d07e872a16e6aa0c177c7f5f7c9bb22e9bf5b7
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
-          test "$(git -C datalab rev-parse HEAD)" = cdf55254f6ce72f67db38349d4a639ff81bcc359
+          test "$(git -C datalab rev-parse HEAD)" = 95aaa2e9f16756e5040086caf6a14c452e28d74a
           python production/scripts/build_refresh_candidate_config.py \
             --base production/config/snapshots/2026-09-30-r9-electra-fr.json \
-            --datalab-sha cdf55254f6ce72f67db38349d4a639ff81bcc359 \
+            --datalab-sha 95aaa2e9f16756e5040086caf6a14c452e28d74a \
             --snapshot-id "$SNAPSHOT_ID" \
             --out production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
@@ -87,6 +87,8 @@ jobs:
           node production/tests/electroverse-complex-pricing.test.mjs dist/v9-explicit-candidate
           node production/tests/tariff-join-regression.test.mjs dist/v9-explicit-candidate/runtime
           node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime
+          node production/tests/aldi-guyancourt-direct.test.mjs dist/v9-explicit-candidate/runtime
+          node production/tests/electroverse-targets-pricing.test.mjs dist/v9-explicit-candidate
           node production/tests/izivia-fast-dole-direct.test.mjs dist/v9-explicit-candidate/runtime
           node production/tests/izivia-fast-france-direct.test.mjs dist/v9-explicit-candidate/runtime
 
