@@ -30,4 +30,13 @@ for(const [startAt,expected] of [
   assert.equal(evaluation.best?.result?.segmented,false,startAt);
 }
 
+const dcStation={id:'FR:national:FRELCP12954082',countryCode:'FR',physicalOperator:{name:'Electra'},evses:[{id:'FRELCE2EV6',connectors:[{id:'CCS-400',kind:'DC',powerKw:400}]}],offers:[{...offer,kind:'direct'}]};
+const congestion=sessionEngine.evaluateStation(dcStation,{startAt:'2026-10-06T15:00:00Z',energyKwh:10,durationMinutes:60,postChargeMinutes:10});
+assert.equal(congestion.best,null,'unknown congestion fees must not produce a comparable total');
+assert.equal(congestion.incomplete[0]?.result?.reason,'post_charge_fee_unknown_for_station');
+
+const acStation={...dcStation,evses:[{id:'AC',connectors:[{id:'Type2',kind:'AC',powerKw:22}]}]};
+assert.equal(sessionEngine.evaluateStation(acStation,{startAt:'2026-10-06T15:00:00Z',energyKwh:10,durationMinutes:60}).eligibleOfferCount,0,
+  'historical AC connectors must not inherit the DC tariff');
+
 console.log('Electra Bois-d’Arcy exact energy tariff and session-start locking OK');
