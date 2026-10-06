@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: ${{ inputs.datalab_sha || 'cdf55254f6ce72f67db38349d4a639ff81bcc359' }}
+          ref: ${{ inputs.datalab_sha || '95aaa2e9f16756e5040086caf6a14c452e28d74a' }}
           path: datalab
           fetch-depth: 1
           persist-credentials: false
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          requested="${{ inputs.datalab_sha || 'cdf55254f6ce72f67db38349d4a639ff81bcc359' }}"
+          requested="${{ inputs.datalab_sha || '95aaa2e9f16756e5040086caf6a14c452e28d74a' }}"
           requested="$(printf '%s' "$requested" | tr -d '[:space:]')"
           test "$(git -C datalab rev-parse HEAD)" = "$requested"
 
@@ -63,7 +63,7 @@ jobs:
           echo "SNAPSHOT_ID=$snapshot_id" >> "$GITHUB_ENV"
           args=(
             --base production/config/snapshots/2026-09-30-r9-electra-fr.json
-            --datalab-sha "${{ inputs.datalab_sha || 'cdf55254f6ce72f67db38349d4a639ff81bcc359' }}"
+            --datalab-sha "${{ inputs.datalab_sha || '95aaa2e9f16756e5040086caf6a14c452e28d74a' }}"
             --snapshot-id "$snapshot_id"
             --out production/config/snapshots/explicit-candidate.json
           )
@@ -119,11 +119,17 @@ jobs:
       - name: Electroverse simple and complex tariff calculations
         run: node production/tests/electroverse-complex-pricing.test.mjs dist/v9-explicit-candidate
 
+      - name: Reported Lidl and Electra Electroverse tariffs
+        run: node production/tests/electroverse-targets-pricing.test.mjs dist/v9-explicit-candidate
+
       - name: Direct and platform tariff joins by charging power
         run: node production/tests/tariff-join-regression.test.mjs dist/v9-explicit-candidate/runtime
 
       - name: Electra Bois-d'Arcy tariff calculation
         run: node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: ALDI Guyancourt official slow AC tariff
+        run: node production/tests/aldi-guyancourt-direct.test.mjs dist/v9-explicit-candidate/runtime
 
       - name: IZIVIA FAST Dole tariff calculation
         run: node production/tests/izivia-fast-dole-direct.test.mjs dist/v9-explicit-candidate/runtime
