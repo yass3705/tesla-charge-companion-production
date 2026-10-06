@@ -8,6 +8,11 @@ const require=createRequire(import.meta.url);
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const runtime=path.resolve(process.argv[2]||path.join(root,'dist/v9-explicit-candidate/runtime'));
 const payload=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/electra-direct-france.json'),'utf8'));
+const inventory=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/electra-bois-inventory.json'),'utf8'));
+assert.equal(inventory.stations.length,3);
+assert.equal(inventory.stations.find(station=>station.sourceStationId==='FRELCP12954082').evses.reduce((sum,evse)=>sum+evse.stalls,0),19);
+assert.ok(inventory.stations.every(station=>station.evses.every(evse=>evse.connectors.every(connector=>connector.kind==='DC'))),'stale 22 kW AC rows must be removed');
+assert.ok(inventory.stations.filter(station=>station.sourceStationId!=='FRELCP12954082').every(station=>station.evses.length===0),'historical duplicate aliases must have no current connector');
 const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
 const pricingEngine=require(path.join(runtime,'assets/v9/pricing-engine.js'));
 assert.ok(payload.directOffers.length>=400,'refreshed Electra capture must retain at least 400 exact tariffs');
@@ -24,6 +29,12 @@ assert.equal(offer.metadata.officialStationId,'0a650b39-b871-4e78-9670-e56e6b20f
 assert.equal(offer.pricing.priceSelectionBasis,'session_start_local_time');
 assert.equal(offer.pricing.postChargeFeeUnknown,true);
 assert.equal(offer.metadata.conditionalCongestionFeeExcluded,true);
+const essential=payload.subscriptionOffers.find(item=>item.metadata.officialStationId==='0a650b39-b871-4e78-9670-e56e6b20f329'&&item.selectionId==='electra-plus-essential');
+const smart=payload.subscriptionOffers.find(item=>item.metadata.officialStationId==='0a650b39-b871-4e78-9670-e56e6b20f329'&&item.selectionId==='electra-plus-smart');
+assert.ok(essential&&smart,'both Electra+ plans must be present at Bois-d’Arcy');
+assert.equal(essential.monthlyFeeEur,1.99);
+assert.equal(smart.monthlyFeeEur,4.99);
+assert.equal(payload.subscriptionOffers.length,payload.directOffers.length*2);
 const waziers=payload.directOffers.find(item=>item.metadata.stationName==="Waziers - Macdonald's Douai");
 assert.ok(Number.isFinite(waziers?.pricing.rules[0]?.pricePerKwh),'all-day Electra station rate should be retained');
 
@@ -42,6 +53,12 @@ for(const startAt of [
 }
 
 const dcStation={id:'FR:national:FRELCP12954082',countryCode:'FR',physicalOperator:{name:'Electra'},evses:[{id:'FRELCE2EV6',connectors:[{id:'CCS-400',kind:'DC',powerKw:400}]}],offers:[{...offer,kind:'direct'}]};
+const membershipStation={...dcStation,offers:[{...offer,kind:'direct'},{...essential,kind:'subscription',subscriptionId:essential.selectionId},{...smart,kind:'subscription',subscriptionId:smart.selectionId}]};
+const noPlan=sessionEngine.evaluateStation(membershipStation,{startAt:'2026-10-06T15:00:00Z',energyKwh:10,durationMinutes:30},{selectedSubscriptions:[]});
+const withEssential=sessionEngine.evaluateStation(membershipStation,{startAt:'2026-10-06T15:00:00Z',energyKwh:10,durationMinutes:30},{selectedSubscriptions:['electra-plus-essential']});
+const withSmart=sessionEngine.evaluateStation(membershipStation,{startAt:'2026-10-06T15:00:00Z',energyKwh:10,durationMinutes:30},{selectedSubscriptions:['electra-plus-smart']});
+assert.equal(Math.round((noPlan.best.total-withEssential.best.total)*100)/100,1,'Essential subtracts 0.10 EUR per charged kWh');
+assert.equal(Math.round((noPlan.best.total-withSmart.best.total)*100)/100,2,'Smart subtracts 0.20 EUR per charged kWh');
 const congestion=sessionEngine.evaluateStation(dcStation,{startAt:'2026-10-06T15:00:00Z',energyKwh:10,durationMinutes:60,postChargeMinutes:10});
 assert.equal(congestion.best,null,'unknown congestion fees must not produce a comparable total');
 assert.equal(congestion.incomplete[0]?.result?.reason,'post_charge_fee_unknown_for_station');
