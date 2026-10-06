@@ -10,6 +10,7 @@ const runtime=path.resolve(process.argv[2]||path.join(root,'dist/v9-explicit-can
 const payload=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/electra-direct-france.json'),'utf8'));
 const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
 assert.equal(payload.directOffers.length,410,'pinned Electra capture should yield 410 unambiguous stations');
+assert.deepEqual(payload.coverage,{capturedOfficialStations:411,rankableOfficialStations:410,matchedPanStationIds:514});
 assert.deepEqual(payload.policy.skipped,[{station:'Montpellier - Auchan Celleneuve',reason:'ambiguous_direct_tariff'}]);
 const offer=payload.directOffers.find(item=>item.metadata.officialStationId==='0a650b39-b871-4e78-9670-e56e6b20f329');
 assert.ok(offer,'Bois-d’Arcy exact offer is missing');
