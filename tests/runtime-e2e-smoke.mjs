@@ -196,6 +196,41 @@ for(const offer of e55cOffers){
     assert.equal(actual.totalEur,expected,`Electric 55 tariff components dropped: ${offer.id}, post-charge ${postChargeMinutes} min`);
   }
 }
+const electraOverlayRoot=path.join(root,'snapshot-inputs/FR/platforms/electra');
+const electraManifest=JSON.parse(fs.readFileSync(path.join(electraOverlayRoot,'manifest.json'),'utf8'));
+let electraOffers=0,timedOffers=0,zeroOffers=0,mixedOffers=0;
+const checkedPricing=new Set();
+for(const tile of electraManifest.tiles||[]){
+  const payload=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(electraOverlayRoot,tile.file))).toString('utf8'));
+  for(const offer of payload.emspOffers||[]){
+    electraOffers++;
+    const rules=offer.pricing?.rules||[];
+    const timed=rules.some(rule=>['chargePerMinute','idlePerMinute','connectionFee','afterMinutesRate'].some(key=>Number(rule[key]||0)>0));
+    const energy=rules.some(rule=>Number(rule.pricePerKwh||0)>0);
+    if(timed)timedOffers++;
+    if(timed&&energy)mixedOffers++;
+    if(!timed&&!energy)zeroOffers++;
+    if(!timed)continue;
+    const signature=JSON.stringify(offer.pricing);
+    if(checkedPricing.has(signature))continue;
+    checkedPricing.add(signature);
+    for(const postChargeMinutes of [0,10]){
+      const session={startAt:'2026-10-06T12:00:00Z',energyKwh:10,durationMinutes:60,postChargeMinutes};
+      const actual=sessionEngine.evaluateCompactMinuteOffer(offer,session);
+      assert.equal(actual?.complete,true,`Electra timed tariff incomplete: ${offer.id} / ${actual?.reason}`);
+      assert.ok(Number.isFinite(actual.totalEur)&&actual.totalEur>=0,`Electra timed tariff invalid: ${offer.id}`);
+      if(rules.length===1&&rules[0].scope==='allDay'){
+        const rule=rules[0],charge=60-postChargeMinutes,threshold=Number(rule.afterMinutesThreshold||0);
+        const surcharge=Number(rule.afterMinutesRate||0)*Math.max(0,60-threshold);
+        const expected=Math.round((10*Number(rule.pricePerKwh||0)+charge*Number(rule.chargePerMinute||0)+postChargeMinutes*Number(rule.idlePerMinute||0)+Number(rule.connectionFee||0)+surcharge)*1e6)/1e6;
+        assert.equal(actual.totalEur,expected,`Electra all-day components dropped: ${offer.id}`);
+      }
+    }
+  }
+}
+assert.equal(electraOffers,electraManifest.stats.publishedOffers,'Electra overlay audit did not cover every offer');
+assert.ok(timedOffers>0&&mixedOffers>0,'Electra overlay lost time or mixed tariffs');
+console.log(JSON.stringify({electraOffers,timedOffers,mixedOffers,zeroOffers,uniqueTimedPricingChecked:checkedPricing.size}));
 const grimaudResult=await engine.queryArea({countryCode:'FR',origin:{lat:43.279636,lon:6.577631},radiusKm:1,routingBudget:20});
 const grimaud=grimaudResult.stations.find(st=>String(st.name).includes('SAINT-PONS'));
 assert.ok(grimaud,'Grimaud Saint-Pons station missing');
