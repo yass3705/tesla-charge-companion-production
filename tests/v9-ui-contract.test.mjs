@@ -21,6 +21,13 @@ assert.ok(html.includes('background:#f4a64a'),'Direct uses orange');
 assert.ok(html.includes('background:#a8e8d4'),'Electra uses light teal');
 assert.ok(html.includes('background:#c9b3f4'),'Electroverse uses violet');
 
+const withSubscription=ui.renderTariffs({best:{offerId:'electra-essential',provider:'Electra+ Essential',kind:'subscription',subscriptionId:'electra-plus-essential',total:4.9,targetCurrency:'EUR',currency:'EUR',result:{totalEur:4.9}},alternatives:[
+  {offerId:'electra-public',provider:'Electra direct',kind:'direct',total:5.9,targetCurrency:'EUR',currency:'EUR',result:{totalEur:5.9}},
+  {offerId:'electra-platform',provider:'Electra',kind:'emsp',total:6.3,targetCurrency:'EUR',currency:'EUR',result:{totalEur:6.3}}
+],incomplete:[]});
+assert.ok(withSubscription.indexOf('>Direct</strong>')<withSubscription.indexOf('>Electra+ Essential')&&withSubscription.indexOf('>Electra+ Essential')<withSubscription.indexOf('>Electra</strong>'),'selected subscription must occupy its own row between direct and Electra');
+assert.ok(withSubscription.includes('5,90 €')&&withSubscription.includes('4,90 €'),'both public and membership prices remain visible');
+
 const missing=ui.renderTariffs({best:null,alternatives:[],incomplete:[]});
 assert.equal((missing.match(/Prix non disponible/g)||[]).length,3,'all three categories remain visible without prices');
 assert.ok(missing.includes('Aucune correspondance Electroverse vérifiée'),'missing Electroverse source must be explained');
