@@ -322,6 +322,8 @@
           }
           elapsed+=slice;if(segments.length>4096)return fail('component_segmentation_guard',kind);
         }
+        const freeBeforeThreshold=!groupMatched&&rules.every(rule=>num(rule.minDurationMinutes)>0&&Object.keys(rule).every(key=>['minDurationMinutes','connectedTimePerMinuteEur','chargingTimePerMinuteEur','connectedTimeStepSeconds','chargingTimeStepSeconds'].includes(key)))&&phaseDuration<=Math.min(...rules.map(rule=>Number(rule.minDurationMinutes)));
+        if(freeBeforeThreshold)groupMatched=true;
         total+=groupTotal;if(groupMatched)matchedCount++;
         components.componentGroups.push({kind,matched:groupMatched,costEur:money(groupTotal),segments});
         continue;
