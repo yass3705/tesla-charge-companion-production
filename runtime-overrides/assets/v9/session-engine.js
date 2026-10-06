@@ -382,7 +382,7 @@
     const offers=OfferEngine.eligibleOffers({...station,offers:compatible},selectedSubscriptions,{countryCode:station?.countryCode});
     const targetCurrency=text(options.targetCurrency||session.targetCurrency||'EUR').toUpperCase();
     const fxRates=options.fxRates||session.fxRates||{};
-    const effectiveSession=stationSession(station,session,options),km=recoveredKm(session),evaluations=[];
+    const effectiveSession={...stationSession(station,session,options),powerKw:num(session.powerKw)??chargingPowerKw},km=recoveredKm(session),evaluations=[];
 
     for(const offer of offers){
       const postChargeMinutes=Math.max(0,num(effectiveSession.postChargeMinutes)??0);
