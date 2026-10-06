@@ -225,6 +225,7 @@ def build_registry(path):
         if src.get("id")=="e55c-direct-france":
             src["active"]=True
             src["optional"]=False
+            src["path"]="../data/e55c_station_tariffs_v1.json.gz"
             src["priority"]={"tariff":135}
             src["refresh"]="immutable-production-snapshot"
             src.pop("disabledReason",None)
