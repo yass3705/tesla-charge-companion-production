@@ -178,7 +178,7 @@
 
   function evaluateCompactMinuteOffer(offer,session={}){
     const pricing=offer?.pricing||{},rules=Array.isArray(pricing.rules)?pricing.rules:[];
-    if(pricing.type!=='rules'||!rules.some(rule=>(num(rule.chargePerMinute)??0)>0||(num(rule.idlePerMinute)??0)>0||(num(rule.connectionFee)??0)>0)||!rules.every(rule=>(num(rule.pricePerKwh)??0)===0))return null;
+    if(pricing.type!=='rules'||!rules.some(rule=>(num(rule.chargePerMinute)??0)>0||(num(rule.idlePerMinute)??0)>0||(num(rule.connectionFee)??0)>0)||(!rules.every(rule=>(num(rule.pricePerKwh)??0)===0)&&!(rules.length===1&&rules[0].scope==='allDay')))return null;
     const start=new Date(session.startAt),duration=num(session.durationMinutes),energy=num(session.energyKwh),timeZone=session.timeZone||offer?.metadata?.timeZone||'Europe/Paris';
     if(Number.isNaN(start.getTime())||duration==null||duration<0||duration>72*60||energy==null||energy<0)
       return{complete:false,reason:'invalid_compact_minute_session',offerId:text(offer?.id||offer?.offerId),timeZone};
@@ -205,7 +205,7 @@
       elapsed=end;
       if(segments.length>4096)return{complete:false,reason:'compact_minute_segmentation_guard',offerId:text(offer?.id||offer?.offerId),timeZone};
     }
-    if(fee==null){const rule=PricingEngine.matchingRule({rules:selectedRules},start,timeZone,session)||PricingEngine.matchingRule({rules:baseRules},start,timeZone,session);fee=num(rule?.connectionFee)??0;}
+    if(fee==null){const rule=PricingEngine.matchingRule({rules:selectedRules},start,timeZone,session)||PricingEngine.matchingRule({rules:baseRules},start,timeZone,session);if(!rule)return{complete:false,reason:'no_matching_compact_minute_rule',offerId:text(offer?.id||offer?.offerId),timeZone};fee=num(rule.connectionFee)??0;total+=energy*(num(rule.pricePerKwh)??0);}
     const totalEur=money(total+fee),components={compactMinute:{segments,connectionFee:fee,chargingMinutes:charging,idleMinutes:Math.max(0,duration-charging)}};
     const finalized=PricingEngine.applyMinimumTotal(pricing,totalEur,components);
     return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:text(offer?.id||offer?.offerId),currency:offer?.currency||'EUR',timeZone,segmented:segments.length>1};
