@@ -122,7 +122,7 @@
     if((rule?.stationIds||[]).length&&!anyExact(rule.stationIds,ids))return false;
     if((rule?.evseIds||[]).length&&!anyExact(rule.evseIds,ids))return false;
     const kinds=(rule?.connectorKinds||[]).map(x=>text(x).toUpperCase());if(kinds.length){const have=stationConnectorKinds(station);if(!kinds.some(k=>have.has(k)))return false;}
-    const min=number(rule?.minPowerKw),max=number(rule?.maxPowerKw);if(min!=null||max!=null){const powers=stationPowers(station);if(!powers.length)return false;if(!powers.some(p=>(min==null||p>=min)&&(max==null||p<=max)))return false;}
+    const min=number(rule?.minPowerKw),max=number(rule?.maxPowerKw);if(min!=null||max!=null){const powers=stationPowers(station);if(!powers.length)return false;if(!powers.some(p=>(min==null||Math.floor(p)>=Math.floor(min))&&(max==null||Math.floor(p)<=Math.floor(max))))return false;}
     return true;
   }
   function ruleToOffer(rule,station,source){
@@ -157,7 +157,7 @@
     const minPower=number(filters.minPowerKw),maxPower=number(filters.maxPowerKw);
     if(selectedKinds.length||minPower!=null||maxPower!=null){
       const connectors=(station?.evses||[]).flatMap(evse=>evse?.connectors||[]);
-      if(!connectors.some(connector=>{const power=number(connector?.powerKw),kind=connectorKind(connector);return(!selectedKinds.length||selectedKinds.includes(kind))&&power!=null&&(minPower==null||power>=minPower)&&(maxPower==null||power<=maxPower);}))return false;
+      if(!connectors.some(connector=>{const power=number(connector?.powerKw),kind=connectorKind(connector);return(!selectedKinds.length||selectedKinds.includes(kind))&&power!=null&&(minPower==null||Math.floor(power)>=Math.floor(minPower))&&(maxPower==null||Math.floor(power)<=Math.floor(maxPower));}))return false;
     }
     return true;
   }

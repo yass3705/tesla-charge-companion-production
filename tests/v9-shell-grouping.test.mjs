@@ -46,9 +46,9 @@ lully.station.evses = [
 lully.evaluation = { chargingConnectorId: 'high-connector', best: { total: 5 } };
 const mixedPowers = groupRows([lully]);
 assert.equal(mixedPowers.length, 2);
-assert.equal(mixedPowers.find(x => x.displayPowerKw === 7.4).pointCount, 3);
-assert.equal(mixedPowers.find(x => x.displayPowerKw === 22.1).pointCount, 1);
-assert.equal(mixedPowers.find(x => x.displayPowerKw === 7.4).total, null, 'price for 22.1 kW must not appear on 7.4 kW row');
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 7).pointCount, 3);
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 22).pointCount, 1);
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 7).total, null, 'price for 22 kW must not appear on 7 kW row');
 
 const electra = row('bois-d-arcy', 600, 'ELECTRA', "Bois-d'Arcy - E.Leclerc");
 electra.station.evses = [
@@ -84,5 +84,9 @@ assert.equal(mergedTesla[0].evaluation.best.total,8,'the priced Tesla source mus
 
 const unpriced = rowsFromArea({ stations: [row('unpriced', 22).station] });
 assert.equal(unpriced[0].total, null, 'missing price must not become zero');
+const unroutedTesla=row('tangier',250,'Tesla','Tangier');unroutedTesla.station.countryCode='MA';unroutedTesla.station.latitude=35.76;unroutedTesla.station.longitude=-5.80;
+const noRoute=rowsFromArea({stations:[unroutedTesla.station],sessionEvaluations:{tangier:{best:{total:76.63}}}}, {lat:35.75,lon:-5.79});
+assert.equal(noRoute[0].distanceEstimated,true);
+assert.equal(rankRows(noRoute,'balanced',20).length,1,'a priced Tesla station must remain visible when routing fails');
 
 console.log('V9 shell grouping OK');

@@ -55,6 +55,17 @@ assert.ok(agadirStation,'Agadir Tesla is absent from the Mac export runtime');
 const agadirPrice=morocco.sessionEvaluations[agadirStation.id]?.best;
 assert.ok(agadirPrice&&agadirPrice.total>0&&agadirPrice.currency==='MAD'&&agadirPrice.targetCurrency==='MAD',
   'Agadir power-band session must produce a comparable MAD price');
+const moroccoPrices=new Map();
+for(const source of mac.stations){
+  const area=await engine.queryArea({countryCode:'MA',origin:{lat:source.latitude,lon:source.longitude},radiusKm:1,session:{...session,targetCurrency:'MAD'},stationLimit:50});
+  const station=area.stations.find(item=>item.id===source.id);
+  assert.ok(station,`${source.id} absent from the Morocco runtime`);
+  const price=area.sessionEvaluations[station.id]?.best;
+  assert.ok(price&&price.total>0&&price.currency==='MAD',`${source.id} must have a calculated MAD tariff`);
+  moroccoPrices.set(source.id,price.total);
+}
+assert.equal(Math.round((moroccoPrices.get('tesla-casablanca-morocco')-moroccoPrices.get('tesla-rabat-morocco'))*100)/100,6,
+  'Casablanca must include the 6 MAD connection fee from the Mac export');
 const swiss=adapters.teslaJson.normalizeStation({id:'ch-currency',countryCode:'CH',pricing:{type:'kwh',currency:'CHF',pricePerKwh:.5}});
 assert.equal(swiss.offers[0].currency,'CHF','Swiss Tesla tariff must retain CHF');
 

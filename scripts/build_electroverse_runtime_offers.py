@@ -146,7 +146,7 @@ def station_offers(row):
         kind=connector_kind(conn)
         power=conn.get("kilowatts")
         if not kind or not isinstance(power,(int,float)) or not math.isfinite(power) or power<=0:return None,"invalid_connector_identity"
-        parsed.append((policy,kind,int(round(power))))
+        parsed.append((policy,kind,int(power)))
     signatures={json.dumps(item[0],sort_keys=True,separators=(",",":")) for item in parsed}
     if len(signatures)>1:
         by_power=collections.defaultdict(list)

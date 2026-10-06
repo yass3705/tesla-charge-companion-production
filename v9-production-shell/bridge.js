@@ -21,6 +21,7 @@
   'use strict';
   const text=v=>String(v==null?'':v).trim();
   const num=v=>{if(v==null||String(v).trim()==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
+  const floorPower=v=>{const n=num(v);return n==null?null:Math.floor(n);};
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const V7_DC_POINTS=[[0,175],[10,175],[20,170],[30,160],[40,145],[50,125],[60,105],[70,85],[80,60],[85,42],[90,28],[95,16],[98,10],[100,6]];
   const SUBSCRIPTION_KEY='tccV9SelectedSubscriptionsV1';
@@ -136,14 +137,20 @@
     engine.__tccFxRates=exchange?.rates||{};
     return engine;
   }
-  function rowsFromArea(area){return(area.rankedStations||area.stations||[]).map(st=>{const evaluation=area.sessionEvaluations?.[st.id],score=area.stationScores?.[st.id],route=area.routes?.byStationId?.[st.id];return{station:st,evaluation,score,route,total:num(evaluation?.best?.total),costPerKm:num(evaluation?.best?.costPerRecoveredKm),recoveredKm:num(evaluation?.recoveredKm??evaluation?.best?.result?.recoveredKm),distanceKm:num(score?.distanceKm??route?.distanceKm)};});}
+  function straightLineDistanceKm(origin,station){
+    const lat1=num(origin?.lat??origin?.latitude),lon1=num(origin?.lon??origin?.longitude),lat2=num(station?.latitude),lon2=num(station?.longitude);
+    if([lat1,lon1,lat2,lon2].some(value=>value==null))return null;
+    const rad=Math.PI/180,dLat=(lat2-lat1)*rad,dLon=(lon2-lon1)*rad,a=Math.sin(dLat/2)**2+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
+    return 12742*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)));
+  }
+  function rowsFromArea(area,origin=area?.query?.origin){return(area.rankedStations||area.stations||[]).map(st=>{const evaluation=area.sessionEvaluations?.[st.id],score=area.stationScores?.[st.id],route=area.routes?.byStationId?.[st.id],routedDistance=num(score?.distanceKm??route?.distanceKm);return{station:st,evaluation,score,route,total:num(evaluation?.best?.total),costPerKm:num(evaluation?.best?.costPerRecoveredKm),recoveredKm:num(evaluation?.recoveredKm??evaluation?.best?.result?.recoveredKm),distanceKm:routedDistance??straightLineDistanceKm(origin,st),distanceEstimated:routedDistance==null};});}
   function maxPower(st){let max=0;for(const evse of st?.evses||[])for(const c of evse?.connectors||[])max=Math.max(max,num(c?.powerKw)||0);return max;}
   function connectorKind(c={}){const raw=text(c.kind||c.currentType||c.powerType||c.plugName).toUpperCase();if(raw.includes('DC')||raw.includes('CCS')||raw.includes('CHADEMO'))return'DC';if(raw.includes('AC')||raw.includes('TYPE2')||raw.includes('TYPE 2'))return'AC';const power=num(c.powerKw);return power!=null&&power>22?'DC':'AC';}
   function powerLines(row){
     if(row?.powerLine)return[row.powerLine];
     const map=new Map(),station=row?.station||{};
     for(const [evseIndex,evse] of (station.evses||[]).entries())for(const connector of evse.connectors||[]){
-      const power=num(connector.powerKw??connector.power??evse.powerKw);if(power==null||power<=0)continue;
+      const power=floorPower(connector.powerKw??connector.power??evse.powerKw);if(power==null||power<=0)continue;
       const kind=connectorKind(connector),key=kind+':'+power,current=map.get(key)||{kind,powerKw:power,evseIds:new Set()};
       current.evseIds.add(text(evse.id||evse.evseId||evse.idTag)||'evse-'+evseIndex);map.set(key,current);
     }
@@ -153,6 +160,14 @@
   function formatRate(value,currency,unit){const n=num(value);if(n==null)return null;return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:3})+' '+text(currency||'EUR').toUpperCase()+'/'+unit;}
   function tariffRateLabels(offer){
     const pricing=offer?.pricing||{},rules=Array.isArray(pricing.rules)?pricing.rules:[],labels=[],seen=new Set();
+    if(pricing.type==='electroverse_restrictions'){
+      const rates=pricing.fallbackRates||{},currency=pricing.currency||offer?.currency||'EUR';
+      const add=(value,unit)=>{const label=formatRate(value,currency,unit);if(label&&!labels.includes(label))labels.push(label);};
+      add(rates.energy,'kWh');add(rates.chargingMinute,'min de charge');add(rates.parkingMinute,'min de stationnement');
+      if(num(rates.flat)>0)labels.push(formatCurrencyAmount(rates.flat,currency)+' frais fixes');
+      for(const rule of rules){const r=rule?.rates||{};add(r.energy,'kWh');add(r.chargingMinute,'min de charge');add(r.parkingMinute,'min de stationnement');}
+      return labels;
+    }
     const fields=['pricePerKwh','pricePerMinute','chargePerMinute','chargingTimePerMinuteEur','connectedTimePerMinuteEur','idlePerMinute','connectionFee','sessionFeeEur','connectedTimeComponentEur','connectedTimeBlockEur'];
     const positive=rule=>fields.some(key=>(num(rule?.[key])??0)>0)||(Array.isArray(rule?.ocpiDurationBands)&&rule.ocpiDurationBands.some(b=>(num(b?.[3])??0)>0));
     const zeroPlaceholder=rule=>{
@@ -184,7 +199,7 @@
     const station=row?.station||{},out=[],seen=new Set(),connectors=[];
     for(const evse of station.evses||[])for(const connector of evse.connectors||[]){
       const power=num(connector.powerKw??connector.power??evse.powerKw);
-      if(power!=null&&Math.abs(power-line.powerKw)<1e-9&&connectorKind(connector)===line.kind)connectors.push(connector);
+      if(power!=null&&floorPower(power)===line.powerKw&&connectorKind(connector)===line.kind)connectors.push(connector);
     }
     const connectorIds=new Set(connectors.map(c=>text(c.id||c.connectorId)).filter(Boolean));
     const plugNames=new Set(connectors.map(c=>text(c.plugName||c.type).toUpperCase()).filter(Boolean));
@@ -192,8 +207,8 @@
       const kinds=Array.isArray(offer?.connectorKinds)?offer.connectorKinds.map(v=>text(v).toUpperCase()).filter(Boolean):[];
       if(kinds.length&&!kinds.includes(text(line.kind).toUpperCase()))continue;
       const min=num(offer?.minPowerKw),max=num(offer?.maxPowerKw);
-      if(min!=null&&line.powerKw<min-1e-9)continue;
-      if(max!=null&&line.powerKw>max+1e-9)continue;
+      if(min!=null&&line.powerKw<floorPower(min))continue;
+      if(max!=null&&line.powerKw>floorPower(max))continue;
       const ids=(offer?.connectorIds||[]).map(text).filter(Boolean);
       if(ids.length&&![...connectorIds].some(id=>ids.includes(id)))continue;
       const plugs=(offer?.plugNames||[]).map(v=>text(v).toUpperCase()).filter(Boolean);
@@ -235,9 +250,24 @@
     const appliedLabels=appliedRules.length?tariffRateLabels({currency:applied.currency||'EUR',pricing:{rules:appliedRules}}):[];
     const appliedOffer=(row?.station?.offers||[]).find(offer=>text(offer?.id||offer?.offerId)===text(applied?.offerId));
     const hasTimeWindows=(appliedOffer?.pricing?.rules||[]).some(rule=>rule?.scope!=='allDay');
+    const electroversePricing=appliedOffer?.pricing?.type==='electroverse_restrictions'?appliedOffer.pricing:null;
+    const electroverseLabels=[];
+    if(electroversePricing){
+      const components=['energy','chargingMinute','parkingMinute','flat'];
+      const used=applied?.result?.components?.segments||[];
+      for(const segment of used){
+        let indices;try{indices=JSON.parse(segment.ruleSignature);}catch(_){continue;}
+        for(const component of components){
+          const index=indices?.[component],rule=index==null?null:electroversePricing.rules?.[index],value=num(rule?.rates?.[component]??electroversePricing.fallbackRates?.[component]);
+          if(value==null||value===0)continue;
+          const label=component==='flat'?formatCurrencyAmount(value,appliedOffer.currency||'EUR')+' frais fixes':formatRate(value,appliedOffer.currency||'EUR',{energy:'kWh',chargingMinute:'min de charge',parkingMinute:'min de stationnement'}[component]);
+          if(label&&!electroverseLabels.includes(label))electroverseLabels.push(label);
+        }
+      }
+    }
     return'<div class="v9-power-lines" style="margin-top:8px">'+lines.map(line=>{
       const fallback=applied&&!hasTimeWindows&&appliedOffer?tariffRateLabels(appliedOffer):[];
-      const tariffs=[...new Set(appliedLabels.length?appliedLabels:fallback)];
+      const tariffs=[...new Set(electroverseLabels.length?electroverseLabels:appliedLabels.length?appliedLabels:fallback)];
       const provider=text(applied?.provider||'');
       const baseLine=tariffs.length
         ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+(provider?' · '+esc(provider):'')+'</div>'
@@ -273,7 +303,7 @@
       const row=points[index];if(!row||!selected)return;
       const st=row.station,price=num(row.costPerKm);
       selected.style.display='block';
-      selected.innerHTML='<b>'+esc(st.name||'Station')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+' · '+esc(row.powerLine?.kind||'')+' '+esc(row.powerLine?.powerKw||'')+' kW</div>'+renderTariffs(row.evaluation,st)+'<div class="small" style="margin-top:6px">'+(price==null?'Prix/km non disponible':esc(price.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' €/km'))+'</div><button type="button" class="secondary v9-map-open-row" style="width:auto;margin-top:8px">Voir la fiche dans la liste</button>';
+      selected.innerHTML='<b>'+esc(st.name||'Station')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+' · '+esc(row.powerLine?.kind||'')+' '+esc(row.powerLine?.powerKw||'')+' kW</div>'+renderTariffs(row.evaluation,st,area?.displayFxRates)+'<div class="small" style="margin-top:6px">'+(price==null?'Prix/km non disponible':esc(price.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' '+text(row.evaluation?.best?.targetCurrency||'EUR')+'/km'))+'</div><button type="button" class="secondary v9-map-open-row" style="width:auto;margin-top:8px">Voir la fiche dans la liste</button>';
       selected.querySelector('.v9-map-open-row')?.addEventListener('click',()=>{setMode('list');const card=[...(results?.querySelectorAll('.v9-result-card')||[])].find(item=>text(item.dataset.v9StationId)===text(st.id));card?.scrollIntoView?.({behavior:'smooth',block:'center'});});
       for(const marker of markers.querySelectorAll('.v9-map-marker'))marker.style.outline=marker.dataset.indices.split(',').includes(String(index))?'3px solid #fff':'none';
     };
@@ -306,10 +336,17 @@
     if(provider.includes('electra')||offerId.includes('electra'))return'electra';
     return null;
   }
-  function renderTariffs(evaluation,station){
+  function displayAmount(item,fxRates={}){
+    const target=text(item?.targetCurrency||'EUR').toUpperCase(),native=text(item?.currency||target).toUpperCase(),nativeTotal=num(item?.result?.totalEur),total=num(item?.total);
+    if(total==null)return'Prix non disponible';
+    if(native!==target&&nativeTotal!=null)return formatCurrencyAmount(nativeTotal,native)+' (≈ '+formatCurrencyAmount(total,target)+')';
+    const primary=formatCurrencyAmount(total,target),rate=num(fxRates?.[target]);
+    return target!=='EUR'&&rate>0?primary+' (≈ '+formatCurrencyAmount(total/rate,'EUR')+')':primary;
+  }
+  function renderTariffs(evaluation,station,fxRates={}){
     if(isTeslaStation(station)){
       const item=[evaluation?.best,...(evaluation?.alternatives||[])].filter(row=>row&&num(row.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0];
-      return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(formatCurrencyAmount(item.total,item.targetCurrency||'EUR'))+'</div>':'<div class="v9-tesla-price">Prix Tesla non disponible</div>';
+      return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(displayAmount(item,fxRates))+'</div>':'<div class="v9-tesla-price">Prix Tesla non disponible</div>';
     }
     const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
     const subscriptions=[...new Map(offers.filter(item=>text(item.subscriptionId)).map(item=>[text(item.subscriptionId),{id:'subscription:'+text(item.subscriptionId),label:text(item.provider)||text(item.subscriptionId),color:'#f5d6a1'}])).values()];
@@ -325,10 +362,7 @@
       const item=picked[category.id],best=category.id===bestId;
       let amount='Prix non disponible',provider=category.id==='electroverse'&&!offers.some(offer=>offerPriceCategory(offer)==='electroverse')?'Aucune correspondance Electroverse vérifiée pour cette station':'';
       if(item){
-        const targetCurrency=text(item.targetCurrency||'EUR').toUpperCase(),nativeCurrency=text(item.currency||targetCurrency).toUpperCase(),nativeTotal=num(item.result?.totalEur);
-        const showNative=nativeCurrency!==targetCurrency&&nativeTotal!=null;
-        amount=showNative?formatCurrencyAmount(nativeTotal,nativeCurrency):formatCurrencyAmount(item.total,targetCurrency);
-        if(showNative)amount+=' (≈ '+formatCurrencyAmount(item.total,targetCurrency)+')';
+        amount=displayAmount(item,fxRates);
         provider=text(item.provider)||(text(item.subscriptionId)?'Abonnement sélectionné':'');
       }
       return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
@@ -376,8 +410,8 @@
         const connector={...raw,powerKw:power},kind=connectorKind(connector),connectorId=text(connector.id||connector.connectorId)||null,plug=text(connector.plugName||connector.type)||null;
         const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex,evseTokens=new Set([evseKey,text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)].filter(Boolean)),connectorTokens=new Set(connectorId?[connectorId]:[]);
         const matching=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,evseTokens,connectorTokens)&&sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId)).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
-        const key=[kind,power,matching.join(',')].join('|');
-        const group=groups.get(key)||{kind,powerKw:power,offerIds:matching,evseConnectors:new Map(),evseKeys:new Set(),evseTokens:new Set(),connectorIds:new Set()};
+        const key=[kind,floorPower(power),matching.join(',')].join('|');
+        const group=groups.get(key)||{kind,powerKw:floorPower(power),offerIds:matching,evseConnectors:new Map(),evseKeys:new Set(),evseTokens:new Set(),connectorIds:new Set()};
         const connectors=group.evseConnectors.get(evseIndex)||[];
         connectors.push({connectorIndex,connector});group.evseConnectors.set(evseIndex,connectors);group.evseKeys.add(evseKey);
         evseTokens.forEach(id=>group.evseTokens.add(id));connectorTokens.forEach(id=>group.connectorIds.add(id));groups.set(key,group);
@@ -416,7 +450,7 @@
       const count=Math.max(1,Math.floor(num(evse?.stalls)||1));
       const ids=pdcs.length?pdcs:Array.from({length:count},(_,index)=>`${identity}:${index}`);
       for(const connector of evse?.connectors||[]){
-        const power=num(connector?.powerKw);
+        const power=floorPower(connector?.powerKw);
         if(power==null||power<=0)continue;
         if(!buckets.has(power))buckets.set(power,new Set());
         for(const id of ids)buckets.get(power).add(id);
@@ -427,21 +461,21 @@
   }
   function energyOnlyEvaluation(row,power){
     const evaluations=[row.evaluation?.best,...(row.evaluation?.alternatives||[])].filter(Boolean);
-    const connectors=(row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).filter(connector=>num(connector.powerKw)===power);
+    const connectors=(row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).filter(connector=>floorPower(connector.powerKw)===power);
     for(const evaluated of evaluations){
       const offer=(row.station?.offers||[]).find(offer=>text(offer.id)===text(evaluated.offerId)&&offer.metadata?.energyOnly===true);
       if(!offer)continue;
       const kinds=(offer.connectorKinds||[]).map(kind=>text(kind).toUpperCase());
       const eligible=connectors.some(connector=>{
         const kind=text(connector.kind).toUpperCase(),value=num(connector.powerKw);
-        return (!kinds.length||kinds.includes(kind))&&(num(offer.minPowerKw)==null||value>=num(offer.minPowerKw))&&(num(offer.maxPowerKw)==null||value<=num(offer.maxPowerKw));
+        return (!kinds.length||kinds.includes(kind))&&(num(offer.minPowerKw)==null||floorPower(value)>=floorPower(offer.minPowerKw))&&(num(offer.maxPowerKw)==null||floorPower(value)<=floorPower(offer.maxPowerKw));
       });
       if(eligible)return{...row.evaluation,best:evaluated,alternatives:[],incomplete:[]};
     }
     return null;
   }
   function stationAtPower(station,power){
-    const evses=(station?.evses||[]).map(evse=>({...evse,connectors:(evse.connectors||[]).filter(connector=>num(connector.powerKw)===power)})).filter(evse=>evse.connectors.length);
+    const evses=(station?.evses||[]).map(evse=>({...evse,connectors:(evse.connectors||[]).filter(connector=>floorPower(connector.powerKw)===power)})).filter(evse=>evse.connectors.length);
     return {...station,evses};
   }
   function evaluatePower(row,power,context){
@@ -472,10 +506,10 @@
     const groups=new Map();
     for(const row of rows||[]){
       for(const [power,ids] of powerBuckets(row.station)){
-        const key=siteKey(row.station,power)+'|'+connectorKind((row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).find(connector=>num(connector.powerKw)===power)||{}),selectedConnector=text(row.evaluation?.chargingConnectorId);
-        const matchingConnector=selectedConnector&&(row.station?.evses||[]).some(evse=>(evse.connectors||[]).some(connector=>text(connector.id)===selectedConnector&&num(connector.powerKw)===power));
+        const key=siteKey(row.station,power)+'|'+connectorKind((row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).find(connector=>floorPower(connector.powerKw)===power)||{}),selectedConnector=text(row.evaluation?.chargingConnectorId);
+        const matchingConnector=selectedConnector&&(row.station?.evses||[]).some(evse=>(evse.connectors||[]).some(connector=>text(connector.id)===selectedConnector&&floorPower(connector.powerKw)===power));
         const scoped=context?evaluatePower(row,power,context):null;
-        const evaluated=matchingConnector||(!selectedConnector&&power===maxPower(row.station));
+        const evaluated=matchingConnector||(!selectedConnector&&power===floorPower(maxPower(row.station)));
         const evaluation=scoped?.evaluation||(evaluated?row.evaluation:energyOnlyEvaluation(row,power));
         const candidate={...(scoped||row),displayPowerKw:power,evaluation,total:num(evaluation?.best?.total)};
         let group=groups.get(key);
@@ -484,7 +518,7 @@
         group.groupedStationCount++;
         if(isTeslaStation(row.station))group.pointCount=Math.max(group.pointCount,ids.size||1);
         else if(ids.size){for(const id of ids)group.pointIds.add(id);}else group.pointCount++;
-        if((Number.isFinite(candidate.total)&&(!Number.isFinite(group.total)||candidate.total<group.total))||(!Number.isFinite(group.total)&&candidate.distanceKm<group.distanceKm))Object.assign(group,{station:candidate.station,evaluation:candidate.evaluation,score:candidate.score,route:candidate.route,total:candidate.total,distanceKm:candidate.distanceKm});
+        if((Number.isFinite(candidate.total)&&(!Number.isFinite(group.total)||candidate.total<group.total))||(!Number.isFinite(group.total)&&candidate.distanceKm<group.distanceKm))Object.assign(group,{station:candidate.station,evaluation:candidate.evaluation,score:candidate.score,route:candidate.route,total:candidate.total,distanceKm:candidate.distanceKm,distanceEstimated:candidate.distanceEstimated});
       }
     }
     return [...groups.values()].map(group=>{group.pointCount+=group.pointIds.size;delete group.pointIds;group.evaluation=combinedEvaluation(group);delete group.evaluations;return group;});
@@ -494,7 +528,7 @@
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+' km':'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st,area?.displayFxRates)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+(row.distanceEstimated?' km à vol d’oiseau':' km'):'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
     renderMapSummary(w,area,rows);
   }
 
@@ -521,7 +555,7 @@
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input,countryCode);session.fxRates=engine.__tccFxRates||{};
     const selected=selectedSubscriptions(w);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
-    const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),grouped=groupRows(eligible).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
+    const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),grouped=groupRows(eligible).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
     const d=w.document;

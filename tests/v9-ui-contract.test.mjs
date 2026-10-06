@@ -43,6 +43,8 @@ assert.equal(ui.buildSession({startSoc:20,targetSoc:80,startAt:'2026-10-07T10:00
 assert.equal(ui.buildSession({startSoc:20,targetSoc:80,startAt:'2026-10-07T10:00:00Z'},'MA').targetCurrency,'MAD');
 assert.ok(ui.renderTariffs({best:{total:12.5,targetCurrency:'CHF'}},{countryCode:'CH',physicalOperator:{name:'Tesla Supercharger'}}).includes('12,50 CHF'));
 assert.ok(ui.renderTariffs({best:{offerId:'ch-direct',kind:'direct',provider:'AVIA',currency:'CHF',targetCurrency:'CHF',total:9.3,result:{totalEur:9.3}},alternatives:[],incomplete:[]},{countryCode:'CH',physicalOperator:{name:'AVIA'}}).includes('9,30 CHF'));
+const morocco=ui.renderTariffs({best:{offerId:'tesla-ma',kind:'direct',provider:'Tesla',currency:'MAD',targetCurrency:'MAD',total:76.63,result:{totalEur:76.63}}},{countryCode:'MA',physicalOperator:{name:'Tesla Supercharger'}},{MAD:10.96131});
+assert.ok(morocco.includes('76,63 MAD')&&morocco.includes('6,99 €'),'Tesla Morocco price must show local and converted amounts');
 
 
 const emptyPowerFields={simNow:{value:'20'},simTarget:{value:'80'},simDate:{value:''},simTime:{value:''},simUnplugTime:{value:''},simMaxDistance:{value:'20'},simOperatorFilter:{value:'',dataset:{v9Mode:'all'}},simPowerType:{multiple:true,selectedOptions:[]},simMinPowerKw:{value:''},simMaxPowerKw:{value:''},simCondition:{value:'normal'},simProfile:{value:'realistic'},simRanking:{value:'balanced'}};
@@ -59,6 +61,10 @@ const appliedLully={station:{id:'lully',name:'PLACE LULLY',evses:[{id:'p1',conne
 const lullyHtml=ui.renderPowerLines(appliedLully);
 assert.ok(lullyHtml.includes('0,35'),'base rate must include the rule applied by the session');
 assert.ok(!lullyHtml.includes('0,30'),'other tariff windows must not appear as an applied base rate');
+const electroverseOffer={id:'evr-sigeif',provider:'Electroverse',kind:'emsp',currency:'EUR',pricing:{type:'electroverse_restrictions',fallbackRates:{energy:0.42,chargingMinute:0,parkingMinute:0,flat:0},rules:[{types:['TIME_BASED'],rates:{energy:0.28},components:['energy']} ]}};
+const electroverseHtml=ui.renderPowerLines({station:{evses:[{id:'p1',connectors:[{kind:'AC',powerKw:22.6}]}],offers:[electroverseOffer]},evaluation:{best:{offerId:'evr-sigeif',provider:'Electroverse',currency:'EUR',total:2.8,result:{components:{segments:[{ruleSignature:'{"energy":0,"chargingMinute":null,"parkingMinute":null,"flat":null}',durationMinutes:20,energyKwh:10}]}}}}});
+assert.ok(electroverseHtml.includes('22 kW')&&electroverseHtml.includes('0,28 EUR/kWh'),'applied Electroverse rate and floored power should be visible');
+assert.ok(!electroverseHtml.includes('Tarif unitaire appliqué non détaillé')&&!electroverseHtml.includes('0,42'),'other Electroverse rate must not be shown as applied');
 
 const acFields={...emptyPowerFields,simPowerAc:{checked:true},simPowerDc:{checked:false}};
 const acInputs=ui.readInputs({document:{getElementById:id=>acFields[id]||null}});

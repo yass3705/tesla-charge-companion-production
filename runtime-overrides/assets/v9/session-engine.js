@@ -64,8 +64,8 @@
     if(chargingKind&&allowed.length&&!allowed.includes(chargingKind))return false;
     const min=num(offer?.minPowerKw),max=num(offer?.maxPowerKw),power=num(chargingPowerKw);
     if((min!=null||max!=null)&&power==null)return false;
-    if(power!=null&&min!=null&&power<min-1e-9)return false;
-    if(power!=null&&max!=null&&power>max+1e-9)return false;
+    if(power!=null&&min!=null&&Math.floor(power)<Math.floor(min))return false;
+    if(power!=null&&max!=null&&Math.floor(power)>Math.floor(max))return false;
     const ids=Array.isArray(offer?.connectorIds)?offer.connectorIds.map(text).filter(Boolean):[];
     if(ids.length&&(!chargingConnectorId||!ids.includes(text(chargingConnectorId))))return false;
     const plugs=Array.isArray(offer?.plugNames)?offer.plugNames.map(v=>text(v).toUpperCase()).filter(Boolean):[];
