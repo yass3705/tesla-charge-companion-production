@@ -14,7 +14,7 @@
     {
       "id": "aldi-guyancourt-official-ac-2026-10-06",
       "provider": "ALDI direct · charge lente",
-      "operatorAliases": ["ALDI SARL"],
+      "operatorAliases": ["ALDI SARL", "ALDI MARCHE ABLIS SARL"],
       "directOperatorOnly": true,
       "stationIds": ["FRALNP25007130"],
       "connectorKinds": ["AC"],
