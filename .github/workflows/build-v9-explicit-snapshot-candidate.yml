@@ -92,6 +92,9 @@ jobs:
           python scripts/validate_stable_parity.py "${parity_args[@]}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-explicit-candidate
 
+      - name: Inventory every V9 tariff profile
+        run: python production/scripts/audit_tariff_profiles.py dist/v9-explicit-candidate --output tariff-audit/profile-inventory.json
+
       - name: V9 tariff categories and source labels
         run: node production/tests/v9-ui-contract.test.mjs
 
@@ -137,6 +140,12 @@ jobs:
 
       - name: Verify candidate manifest hashes
         run: python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v9-tariff-profile-inventory
+          path: tariff-audit/profile-inventory.json
+          retention-days: 14
 
       - uses: actions/upload-artifact@v4
         with:
