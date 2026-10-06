@@ -199,11 +199,13 @@ for(const offer of e55cOffers){
 const electraOverlayRoot=path.join(root,'snapshot-inputs/FR/platforms/electra');
 const electraManifest=JSON.parse(fs.readFileSync(path.join(electraOverlayRoot,'manifest.json'),'utf8'));
 let electraOffers=0,timedOffers=0,zeroOffers=0,mixedOffers=0;
+const targetedElectra=new Map(),targetIds=new Set(['electra-platform:78ea662d-91e1-46f0-a46f-e2e5fd2d9d8f','electra-platform:6b4376f0-7dd1-4b65-a126-8d1074c63513','electra-platform:5d1840e1-0270-41ab-a0aa-f384fb7e7499']);
 const checkedPricing=new Set();
 for(const tile of electraManifest.tiles||[]){
   const payload=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(electraOverlayRoot,tile.file))).toString('utf8'));
   for(const offer of payload.emspOffers||[]){
     electraOffers++;
+    if(targetIds.has(offer.id))targetedElectra.set(offer.id,offer);
     const rules=offer.pricing?.rules||[];
     const timed=rules.some(rule=>['chargePerMinute','idlePerMinute','connectionFee','afterMinutesRate'].some(key=>Number(rule[key]||0)>0));
     const energy=rules.some(rule=>Number(rule.pricePerKwh||0)>0);
@@ -231,6 +233,11 @@ for(const tile of electraManifest.tiles||[]){
 assert.equal(electraOffers,electraManifest.stats.publishedOffers,'Electra overlay audit did not cover every offer');
 assert.ok(timedOffers>0&&mixedOffers>0,'Electra overlay lost time or mixed tariffs');
 console.log(JSON.stringify({electraOffers,timedOffers,mixedOffers,zeroOffers,uniqueTimedPricingChecked:checkedPricing.size}));
+assert.equal(targetedElectra.size,3,'Pinned Electra mixed-pricing examples missing');
+const timedTotal=(id,durationMinutes,postChargeMinutes=0)=>sessionEngine.evaluateCompactMinuteOffer(targetedElectra.get(id),{startAt:'2026-10-06T12:00:00Z',energyKwh:10,durationMinutes,postChargeMinutes}).totalEur;
+assert.equal(timedTotal('electra-platform:78ea662d-91e1-46f0-a46f-e2e5fd2d9d8f',660),12.49,'Indigo duration surcharge or connection fee missing');
+assert.equal(timedTotal('electra-platform:6b4376f0-7dd1-4b65-a126-8d1074c63513',180),7.60002,'Seymaborne daytime duration surcharge missing');
+assert.equal(timedTotal('electra-platform:5d1840e1-0270-41ab-a0aa-f384fb7e7499',60,10),7.3,'Métropolis daytime parking fee missing');
 const grimaudResult=await engine.queryArea({countryCode:'FR',origin:{lat:43.279636,lon:6.577631},radiusKm:1,routingBudget:20});
 const grimaud=grimaudResult.stations.find(st=>String(st.name).includes('SAINT-PONS'));
 assert.ok(grimaud,'Grimaud Saint-Pons station missing');
