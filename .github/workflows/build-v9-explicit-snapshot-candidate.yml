@@ -85,7 +85,7 @@ jobs:
           cd production
           python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --config config/snapshots/explicit-candidate.json             --out ../dist/v9-explicit-candidate
           python scripts/validate_built_snapshot.py ../dist/v9-explicit-candidate "$SNAPSHOT_ID"
-          parity_args=(../stable ../dist/v9-explicit-candidate)
+          parity_args=(../stable ../dist/v9-explicit-candidate --allow-pricing-engine-override)
           if [ "${{ inputs.use_datalab_nl }}" = "true" ]; then
             parity_args+=(--allow-nl-override)
           fi
