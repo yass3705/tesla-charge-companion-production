@@ -32,6 +32,14 @@ const powerSession={startAt:'2026-10-06T12:00:00Z',durationMinutes:60,energyKwh:
 ]};
 assert.equal(engine.evaluateCompactMinuteOffer(powerOffer,powerSession).totalEur,138,'Tesla power bands must use actual power over time');
 assert.equal(engine.evaluateCompactMinuteOffer(powerOffer,{...powerSession,chargeTimeline:[]}).reason,'power_band_requires_charge_power','Tesla power band needs measured or simulated power');
+const italy=JSON.parse(fs.readFileSync(path.join(root,'data/v9/italy-offers.json'),'utf8'));
+const neogy=(italy.directOffers||[]).find(row=>row.id==='it:direct:neogy-card:IT*ASM*E100186052*1');
+assert.ok(neogy?.pricing?.postChargeFee,'Neogy post-charge window missing');
+const dayPost=pricing.evaluatePostChargeFee(neogy.pricing.postChargeFee,{startAt:'2026-10-06T12:00:00Z',durationMinutes:150,chargingMinutes:60,postChargeMinutes:90},'Europe/Rome');
+assert.equal(dayPost.totalEur,2.4,'Neogy daytime post-charge fee should derive the charge end');
+const nightPost=pricing.evaluatePostChargeFee(neogy.pricing.postChargeFee,{startAt:'2026-10-06T21:00:00Z',durationMinutes:150,chargingMinutes:60,postChargeMinutes:90},'Europe/Rome');
+assert.equal(nightPost.totalEur,0,'Neogy night exemption should apply after the grace period');
+
 const reve=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'data/v9/spain-reve-offers/offers_40_-7.json.gz'))).toString('utf8'));
 const reveOffer=(reve.directOffers||[]).find(row=>row.id==='es:reve:direct:3d0ef19c-3788-416d-92e9-bda81a9c5154');
 assert.ok(reveOffer,'Pinned REVE power-and-time profile missing');
