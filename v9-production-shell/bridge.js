@@ -20,7 +20,7 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
   const text=v=>String(v==null?'':v).trim();
-  const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
+  const num=v=>{if(v==null||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const V7_DC_POINTS=[[0,175],[10,175],[20,170],[30,160],[40,145],[50,125],[60,105],[70,85],[80,60],[85,42],[90,28],[95,16],[98,10],[100,6]];
   const SUBSCRIPTION_KEY='tccV9SelectedSubscriptionsV1';
@@ -94,32 +94,43 @@
   }
   function rowsFromArea(area){return(area.rankedStations||area.stations||[]).map(st=>{const evaluation=area.sessionEvaluations?.[st.id],score=area.stationScores?.[st.id],route=area.routes?.byStationId?.[st.id];return{station:st,evaluation,score,route,total:num(evaluation?.best?.total),distanceKm:num(score?.distanceKm??route?.distanceKm)};});}
   function maxPower(st){let max=0;for(const evse of st?.evses||[])for(const c of evse?.connectors||[])max=Math.max(max,num(c?.powerKw)||0);return max;}
-  function siteKey(st){
+  function siteKey(st,power){
     const normalize=value=>text(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
     const latitude=num(st?.latitude),longitude=num(st?.longitude);
-    const place=normalize(st?.address)||normalize(st?.name)||`${latitude?.toFixed(4)}|${longitude?.toFixed(4)}`;
-    return [text(st?.countryCode),normalize(st?.physicalOperator?.name),place,maxPower(st)].join('|');
+    const place=(normalize(st?.address)||normalize(st?.name))+'|'+latitude?.toFixed(3)+'|'+longitude?.toFixed(3);
+    return [text(st?.countryCode),normalize(st?.physicalOperator?.name),place,power].join('|');
   }
-  function pointIds(st){
-    const ids=[];
+  function powerBuckets(st){
+    const buckets=new Map();
     for(const evse of st?.evses||[]){
       const pdcs=(evse?.pdcIds||[]).map(text).filter(Boolean);
-      if(pdcs.length){ids.push(...pdcs);continue;}
       const identity=text(evse?.aliases?.[0]||evse?.id);
       const count=Math.max(1,Math.floor(num(evse?.stalls)||1));
-      if(identity)for(let index=0;index<count;index++)ids.push(`${identity}:${index}`);
+      const ids=pdcs.length?pdcs:Array.from({length:count},(_,index)=>`${identity}:${index}`);
+      for(const connector of evse?.connectors||[]){
+        const power=num(connector?.powerKw);
+        if(power==null||power<=0)continue;
+        if(!buckets.has(power))buckets.set(power,new Set());
+        for(const id of ids)buckets.get(power).add(id);
+      }
     }
-    return ids;
+    if(!buckets.size)buckets.set(0,new Set());
+    return buckets;
   }
   function groupRows(rows){
     const groups=new Map();
     for(const row of rows||[]){
-      const key=siteKey(row.station),ids=pointIds(row.station);
-      let group=groups.get(key);
-      if(!group){group={...row,pointIds:new Set(),pointCount:0,groupedStationCount:0};groups.set(key,group);}
-      group.groupedStationCount++;
-      if(ids.length){for(const id of ids)group.pointIds.add(id);}else group.pointCount++;
-      if((Number.isFinite(row.total)&&(!Number.isFinite(group.total)||row.total<group.total))||(!Number.isFinite(group.total)&&row.distanceKm<group.distanceKm))Object.assign(group,{station:row.station,evaluation:row.evaluation,score:row.score,route:row.route,total:row.total,distanceKm:row.distanceKm});
+      for(const [power,ids] of powerBuckets(row.station)){
+        const key=siteKey(row.station,power),selectedConnector=text(row.evaluation?.chargingConnectorId);
+        const matchingConnector=selectedConnector&&(row.station?.evses||[]).some(evse=>(evse.connectors||[]).some(connector=>text(connector.id)===selectedConnector&&num(connector.powerKw)===power));
+        const evaluated=matchingConnector||(!selectedConnector&&power===maxPower(row.station));
+        const candidate={...row,displayPowerKw:power,evaluation:evaluated?row.evaluation:null,total:evaluated?row.total:null};
+        let group=groups.get(key);
+        if(!group){group={...candidate,pointIds:new Set(),pointCount:0,groupedStationCount:0};groups.set(key,group);}
+        group.groupedStationCount++;
+        if(ids.size){for(const id of ids)group.pointIds.add(id);}else group.pointCount++;
+        if((Number.isFinite(candidate.total)&&(!Number.isFinite(group.total)||candidate.total<group.total))||(!Number.isFinite(group.total)&&candidate.distanceKm<group.distanceKm))Object.assign(group,{station:candidate.station,evaluation:candidate.evaluation,score:candidate.score,route:candidate.route,total:candidate.total,distanceKm:candidate.distanceKm});
+      }
     }
     return [...groups.values()].map(group=>{group.pointCount+=group.pointIds.size;delete group.pointIds;return group;});
   }
@@ -151,7 +162,7 @@
       for(const row of locations){
         const lat=Number(row.station.latitude),lon=Number(row.station.longitude),priced=Number.isFinite(row.total);
         const marker=L.circleMarker([lat,lon],{radius:8,color:'#fff',weight:2,fillColor:priced?'#24b47e':'#ed9d3b',fillOpacity:.9}).addTo(map);
-        marker.bindPopup('<b>'+esc(row.station.name||'Borne')+'</b><br>'+esc(row.station.physicalOperator?.name||'Opérateur inconnu')+' · '+maxPower(row.station)+' kW · '+row.pointCount+' point(s)<br>'+(priced?Number(row.total).toFixed(2)+' '+esc(row.evaluation?.best?.targetCurrency||'EUR'):'Tarif non comparable'));
+        marker.bindPopup('<b>'+esc(row.station.name||'Borne')+'</b><br>'+esc(row.station.physicalOperator?.name||'Opérateur inconnu')+' · '+row.displayPowerKw+' kW · '+row.pointCount+' point(s)<br>'+(priced?Number(row.total).toFixed(2)+' '+esc(row.evaluation?.best?.targetCurrency||'EUR'):'Tarif non comparable'));
         bounds.push([lat,lon]);
       }
       map.fitBounds(bounds,{padding:[25,25],maxZoom:15});w.setTimeout(()=>map.invalidateSize(),0);
@@ -170,7 +181,7 @@
     renderMapSummary(w,area,rows);
     refreshOperatorOptions(w,area);
     if(!rows.length){results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML=`<div class="small box"><b>Moteur V9 canary</b> · interface V7.3 stable · candidat moteur épinglé</div>`+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return `<div class="box" style="margin-top:10px"><b>${i+1}. ${esc(st.name||'Borne')}</b><div class="small">${esc(st.physicalOperator?.name||'Opérateur inconnu')} · ${maxPower(st)} kW · ${row.pointCount} point(s) de charge · ${esc(st.status?.state||'unknown')}</div><div style="margin-top:6px">${best?`<b>${Number(best.total).toFixed(2)} ${esc(best.targetCurrency||'EUR')}</b> · ${esc(best.provider||'tarif')}`:'<span class="warn">Tarif non comparable</span>'}${Number.isFinite(row.distanceKm)?` · ${row.distanceKm.toFixed(1)} km`:''}</div>${score?`<div class="small">Charge ${num(score.chargingMinutes)!=null?Number(score.chargingMinutes).toFixed(0)+' min':'—'} · trajet ${num(score.driveMinutes)!=null?Number(score.driveMinutes).toFixed(0)+' min':'—'} · total ${num(score.totalTimeMinutes)!=null?Number(score.totalTimeMinutes).toFixed(0)+' min':'—'}</div>`:''}${route?.provider?`<div class="small">Routage ${esc(route.provider)}</div>`:''}${renderOffers(row.evaluation)}</div>`;}).join('');
+    results.innerHTML=`<div class="small box"><b>Moteur V9 canary</b> · interface V7.3 stable · candidat moteur épinglé</div>`+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return `<div class="box" style="margin-top:10px"><b>${i+1}. ${esc(st.name||'Borne')}</b><div class="small">${esc(st.physicalOperator?.name||'Opérateur inconnu')} · ${row.displayPowerKw} kW · ${row.pointCount} point(s) de charge · ${esc(st.status?.state||'unknown')}</div><div style="margin-top:6px">${best?`<b>${Number(best.total).toFixed(2)} ${esc(best.targetCurrency||'EUR')}</b> · ${esc(best.provider||'tarif')}`:'<span class="warn">Tarif non comparable</span>'}${Number.isFinite(row.distanceKm)?` · ${row.distanceKm.toFixed(1)} km`:''}</div>${score?`<div class="small">Charge ${num(score.chargingMinutes)!=null?Number(score.chargingMinutes).toFixed(0)+' min':'—'} · trajet ${num(score.driveMinutes)!=null?Number(score.driveMinutes).toFixed(0)+' min':'—'} · total ${num(score.totalTimeMinutes)!=null?Number(score.totalTimeMinutes).toFixed(0)+' min':'—'}</div>`:''}${route?.provider?`<div class="small">Routage ${esc(route.provider)}</div>`:''}${renderOffers(row.evaluation)}</div>`;}).join('');
   }
   async function executeV9(w,engine,cfg,input){
     if(!(input.targetSoc>input.startSoc))throw new Error('invalid SOC target');if(!input.originText)throw new Error('origin required');
