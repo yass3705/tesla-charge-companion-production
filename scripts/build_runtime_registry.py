@@ -90,7 +90,7 @@ def build_registry(path):
     })
     upsert(sources,{
       "id":"france-izivia-fast-dole-inventory",
-      "label":"IZIVIA FAST Dole exact national connector correction (IRVE tile 2026-10-05)",
+      "label":"IZIVIA FAST Dole exact CCS/Type 2 connector correction (IRVE + official map 2026-10-06)",
       "adapter":"static-station-json",
       "path":"data/v9/izivia-fast-dole-inventory.json",
       "countries":["FR"],
@@ -99,7 +99,7 @@ def build_registry(path):
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"Only FRIZFPFAST422 is enriched with the dated national IRVE PDC evidence; historical snapshots before 2026-10-05 disable this source."
+      "policy":"Only FRIZFPFAST422 is enriched with dated IRVE PDC identities and the official map 22 kW Type 2 correction; historical snapshots before 2026-10-06 disable this source."
     })
     upsert(sources,{
       "id":"france-izivia-fast-dole-direct",
