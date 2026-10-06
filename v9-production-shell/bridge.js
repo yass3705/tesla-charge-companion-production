@@ -289,11 +289,11 @@
   }
   function offerPriceCategory(item){
     const provider=text(item?.provider).toLowerCase(),offerId=text(item?.offerId).toLowerCase(),kind=text(item?.kind).toLowerCase();
+    if(text(item?.subscriptionId))return'subscription:'+text(item.subscriptionId);
     // Direct CPO tariffs stay in the Direct lane even when the operator name is Electra.
     if(kind!=='emsp'&&kind!=='roaming')return'direct';
     if(provider.includes('electroverse')||offerId.includes('electroverse'))return'electroverse';
     if(provider.includes('electra')||offerId.includes('electra'))return'electra';
-    if(text(item?.subscriptionId))return'direct';
     return null;
   }
   function renderTariffs(evaluation,station){
@@ -302,14 +302,16 @@
       return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(formatCurrencyAmount(item.total,item.targetCurrency||'EUR'))+'</div>':'<div class="v9-tesla-price">Prix Tesla non disponible</div>';
     }
     const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
+    const subscriptions=[...new Map(offers.filter(item=>text(item.subscriptionId)).map(item=>[text(item.subscriptionId),{id:'subscription:'+text(item.subscriptionId),label:text(item.provider)||text(item.subscriptionId),color:'#f5d6a1'}])).values()];
     const categories=[
-      {id:'direct',label:offers.some(item=>offerPriceCategory(item)==='direct'&&text(item.subscriptionId))?'Direct / abonnement sélectionné':'Direct',color:'#f4a64a'},
+      {id:'direct',label:'Direct',color:'#f4a64a'},
+      ...subscriptions,
       {id:'electra',label:'Electra',color:'#a8e8d4'},
       {id:'electroverse',label:'Electroverse',color:'#c9b3f4'}
     ];
     const picked=Object.fromEntries(categories.map(category=>[category.id,offers.filter(item=>offerPriceCategory(item)===category.id&&num(item.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0]||null]));
     const bestId=categories.map(category=>({id:category.id,total:num(picked[category.id]?.total)})).filter(item=>item.total!=null).sort((a,b)=>a.total-b.total)[0]?.id||null;
-    return'<div class="v9-tariffs" aria-label="Comparaison des trois catégories de prix" style="display:grid;gap:6px;margin-top:8px">'+categories.map(category=>{
+    return'<div class="v9-tariffs" aria-label="Comparaison des tarifs directs, abonnements et plateformes" style="display:grid;gap:6px;margin-top:8px">'+categories.map(category=>{
       const item=picked[category.id],best=category.id===bestId;
       let amount='Prix non disponible',provider=category.id==='electroverse'&&!offers.some(offer=>offerPriceCategory(offer)==='electroverse')?'Aucune correspondance Electroverse vérifiée pour cette station':'';
       if(item){
