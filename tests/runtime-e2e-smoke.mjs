@@ -186,7 +186,10 @@ const galardResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.80863
 const galard=galardResult.stations.find(st=>String(st.name).includes('GENEVIEVE DE GALARD'));
 assert.ok(galard,'Geneviève de Galard station missing');
 const galardEval=sessionEngine.evaluateStation(galard,{startAt:'2026-10-06T12:00:00Z',energyKwh:10,durationMinutes:60});
-console.log('GALARD_DIAGNOSTIC '+JSON.stringify({id:galard.id,offers:galard.offers.map(o=>({id:o.id,provider:o.provider,kind:o.kind,pricing:o.pricing})),evaluation:[galardEval.best,...galardEval.alternatives,...galardEval.incomplete].filter(Boolean).map(o=>({provider:o.provider,total:o.total,result:o.result}))}));
+const galardTotals=new Map([galardEval.best,...galardEval.alternatives,...galardEval.incomplete].filter(Boolean).map(o=>[o.provider,o.total]));
+assert.equal(galardTotals.get('E55C Scan Pay direct'),5.64,'Galard direct must include 60 minutes and the 0.60 € connection fee');
+assert.equal(galardTotals.get('Electra'),5.04,'Galard Electra must include 60 billed minutes');
+assert.ok(galardTotals.get('Electroverse')>0,'Galard Electroverse tariff must remain available');
 
 const lullyResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.806024,lon:2.068762},radiusKm:1,routingBudget:20});
 const lully=lullyResult.stations.find(s=>String(s.name).includes('PLACE LULLY'));
