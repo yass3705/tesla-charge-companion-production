@@ -11,5 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
       - name: Verify station grouping with pinned Dole IDs
         run: node tests/v9-shell-grouping.test.mjs
+      - name: Assemble pinned pricing unit runtime
+        run: |
+          mkdir -p .unit-runtime/assets/v9 .unit-runtime/data/v9
+          cp -R stable/v9-production-runtime/assets/v9/. .unit-runtime/assets/v9/
+          cp runtime-overrides/assets/v9/session-engine.js .unit-runtime/assets/v9/session-engine.js
+          cp runtime-overrides/assets/v9/adapters/direct-offers.js .unit-runtime/assets/v9/adapters/direct-offers.js
+          cp runtime-overrides/data/v9/izivia-fast-dole-direct.json .unit-runtime/data/v9/izivia-fast-dole-direct.json
+      - name: Verify IZIVIA FAST Dole direct tariff
+        run: node tests/izivia-fast-dole-direct.test.mjs .unit-runtime
