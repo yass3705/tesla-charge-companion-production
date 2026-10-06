@@ -195,11 +195,17 @@ for(const st of boisPriced){
 assert.ok(boisResult.diagnostics.sources['france-electra-direct']?.loaded===true,'Bois-d\'Arcy exact tariff source did not load');
 
 const iziviaDole=await engine.queryArea({countryCode:'FR',origin:{lat:47.0819,lon:5.47522},radiusKm:5,routingBudget:20});
+const fastInventory=iziviaDole.stations.some(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
 const fastOffers=iziviaDole.stations.filter(st=>(st.offers||[]).some(o=>o.sourceId==='france-izivia-fast-dole-direct'));
-assert.equal(fastOffers.length,1,'Only the exact McDonald\'s Dole FAST station should inherit its direct tariff');
-assert.ok((fastOffers[0].provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
-assert.equal(fastOffers[0].offers.find(o=>o.sourceId==='france-izivia-fast-dole-direct').pricing.connectedTimeRounding,'started_minute');
 assert.ok(iziviaDole.diagnostics.sources['france-izivia-fast-dole-direct']?.loaded===true,'IZIVIA FAST Dole direct source did not load');
+if(fastInventory||process.env.REQUIRE_IZIVIA_FAST_DOLE==='1'){
+  assert.ok(fastInventory,"Current Data Lab pin must contain the exact McDonald's Dole FAST station");
+  assert.equal(fastOffers.length,1,"Only the exact McDonald's Dole FAST station should inherit its direct tariff");
+  assert.ok((fastOffers[0].provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
+  assert.equal(fastOffers[0].offers.find(o=>o.sourceId==='france-izivia-fast-dole-direct').pricing.connectedTimeRounding,'started_minute');
+}else{
+  assert.equal(fastOffers.length,0,'Older snapshot cannot attach the Dole tariff without its national station row');
+}
 
 const itResult=await engine.queryArea({countryCode:'IT',origin:{lat:41.9028,lon:12.4964},radiusKm:25,routingBudget:20});
 assert.ok(itResult.stations.length>0,'IT returned no stations');
