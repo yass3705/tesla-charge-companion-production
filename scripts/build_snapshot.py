@@ -162,6 +162,16 @@ def main():
     if fallback_old not in shell_text:
         raise AssertionError("stable shell fallback marker missing")
     shell_text=shell_text.replace(fallback_old,"const CONTROL_FALLBACK='../control/index.html';",1)
+    # Version scripts so an existing Pages visit cannot reuse stale UI or pricing code.
+    bridge_source="bridge.src='v9-production-shell/bridge.js';"
+    if shell_text.count(bridge_source)!=1:
+        raise AssertionError("stable shell bridge script marker missing or duplicated")
+    bridge_version=sha256(out/"v9-production-shell/bridge.js")[:16]
+    shell_text=shell_text.replace(bridge_source,f"bridge.src='v9-production-shell/bridge.js?v=v9-ui-{bridge_version}';",1)
+    runtime_script='script.src=`${runtimeBase}/${path}`;'
+    if shell_text.count(runtime_script)!=1:
+        raise AssertionError("stable shell runtime script marker missing or duplicated")
+    shell_text=shell_text.replace(runtime_script,'script.src=`${runtimeBase}/${path}?v='+str(cfg['snapshotId'])+'`;',1)
     dependency_anchor="'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'"
     if dependency_anchor not in shell_text:
         raise AssertionError("stable shell runtime dependency anchor missing")
