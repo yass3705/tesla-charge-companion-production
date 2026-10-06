@@ -66,13 +66,17 @@ def main():
         if not izivia_fast_source.exists():
             raise SystemExit(f"Pinned Data Lab IZIVIA FAST direct offers missing: {izivia_fast_source}")
         copy_file(izivia_fast_source,out/"runtime/data/v9/izivia-fast-france.json")
+        izivia_fast_inventory=dl/"data/operator_direct/izivia_fast_inventory_france_2026_10_06.json"
+        if not izivia_fast_inventory.exists():
+            raise SystemExit(f"Pinned Data Lab IZIVIA FAST connector correction missing: {izivia_fast_inventory}")
+        copy_file(izivia_fast_inventory,out/"runtime/data/v9/izivia-fast-inventory-france.json")
     # The Dole connector evidence was captured on 2026-10-05. Keep older
     # immutable snapshot candidates on their original AC-only inventory.
     if len(snapshot_date)==10 and snapshot_date<"2026-10-06":
         reg=load_json(registry)
         for src in reg.get("sources",[]):
             sid=src.get("id")
-            if sid=="france-izivia-fast-official-france" or (snapshot_date<"2026-10-05" and sid in {"france-izivia-fast-dole-inventory","france-izivia-fast-dole-direct"}):
+            if sid in {"france-izivia-fast-official-france","france-izivia-fast-official-inventory"} or (snapshot_date<"2026-10-05" and sid in {"france-izivia-fast-dole-inventory","france-izivia-fast-dole-direct"}):
                 src["active"]=False
                 src["optional"]=True
                 src["disabledReason"]="IZIVIA FAST source evidence postdates this historical snapshot"
