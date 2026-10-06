@@ -68,9 +68,11 @@ try{
   assert.ok(await page.locator('#v9MapZones img[src*="tile.openstreetmap.org"]').count()>0,'Geographic map must load OpenStreetMap tile images');
   assert.ok(await page.locator('#v9MapZones .v9-map-marker').count()>0,'Geographic map must retain station markers');
   await page.locator('.v9-view-list').click();
+  await page.locator('#v9AllNetworks').click();
+  await page.evaluate(()=>window.compare());
+  await page.waitForFunction(()=>document.querySelectorAll('#v9OperatorDropdown input[type=checkbox]').length>1,null,{timeout:120000});
   const choices=page.locator('#v9OperatorDropdown input[type="checkbox"]');
   assert.ok(await choices.count()>1,'Network selector must expose multiple choices beside shortcut buttons');
-  await page.locator('#v9AllNetworks').click();
   await choices.nth(0).check();await choices.nth(1).check();
   assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'all','Network edits should wait for validation');
   await page.locator('.v9-operator-apply').click();
