@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: ${{ inputs.datalab_sha || '9b0b839f9fe0189e6f338773142b2a38a7daa4c8' }}
+          ref: ${{ inputs.datalab_sha || '5791ea34b68b9fe6c2d9568ae9813e4c9dcf3100' }}
           path: datalab
           fetch-depth: 1
           persist-credentials: false
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          requested="${{ inputs.datalab_sha || '9b0b839f9fe0189e6f338773142b2a38a7daa4c8' }}"
+          requested="${{ inputs.datalab_sha || '5791ea34b68b9fe6c2d9568ae9813e4c9dcf3100' }}"
           requested="$(printf '%s' "$requested" | tr -d '[:space:]')"
           test "$(git -C datalab rev-parse HEAD)" = "$requested"
 
@@ -63,7 +63,7 @@ jobs:
           echo "SNAPSHOT_ID=$snapshot_id" >> "$GITHUB_ENV"
           args=(
             --base production/config/snapshots/2026-09-30-r9-electra-fr.json
-            --datalab-sha "${{ inputs.datalab_sha || '9b0b839f9fe0189e6f338773142b2a38a7daa4c8' }}"
+            --datalab-sha "${{ inputs.datalab_sha || '5791ea34b68b9fe6c2d9568ae9813e4c9dcf3100' }}"
             --snapshot-id "$snapshot_id"
             --out production/config/snapshots/explicit-candidate.json
           )
