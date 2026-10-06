@@ -9,7 +9,7 @@ const root=path.resolve(process.argv[2]||'dist/v9-explicit-candidate');
 const report=JSON.parse(fs.readFileSync(path.resolve(process.argv[3]||'tariff-audit/profile-inventory.json'),'utf8'));
 const pricing=require(path.join(root,'runtime/assets/v9/pricing-engine.js'));
 const sessionEngine=require(path.join(root,'runtime/assets/v9/session-engine.js'));
-const cache=new Map(),reasons=new Map(),visited=new Set();
+const cache=new Map(),reasons=new Map(),reasonExamples=new Map(),visited=new Set();
 function dataFor(file){
   if(!cache.has(file)){
     const bytes=fs.readFileSync(path.join(root,file));
@@ -56,10 +56,10 @@ for(const profile of report.profiles){
     }else{
       assert.ok(result.reason,'Unexplained incomplete result: '+example.id);
       assert.notEqual(result.reason,'unsupported_pricing','Unknown pricing type: '+example.id);
-      reasons.set(result.reason,(reasons.get(result.reason)||0)+1);incomplete++;
+      reasons.set(result.reason,(reasons.get(result.reason)||0)+1);const examples=reasonExamples.get(result.reason)||[];if(examples.length<4)examples.push(example.file+' / '+example.id);reasonExamples.set(result.reason,examples);incomplete++;
     }
     checked++;
   }
 }
 assert.equal(visited.size,report.unique_profile_signatures,'Profile sweep did not cover every unique signature');
-console.log(JSON.stringify({profiles:visited.size,scenarios:checked,complete,incomplete,reasons:Object.fromEntries(reasons)}));
+console.log(JSON.stringify({profiles:visited.size,scenarios:checked,complete,incomplete,reasons:Object.fromEntries(reasons),reasonExamples:Object.fromEntries(reasonExamples)}));
