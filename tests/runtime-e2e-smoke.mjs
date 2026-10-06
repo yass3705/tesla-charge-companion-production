@@ -41,7 +41,7 @@ function fileFetch(baseRoot){
 }
 
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json'),'utf8'));
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-direct','france-izivia-fast-dole-inventory','france-izivia-fast-official-inventory','france-izivia-fast-official-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','e55c-direct-france','atlante-direct-france','france-electra-direct','france-electra-bois-current-inventory','france-aldi-guyancourt-direct','france-izivia-fast-dole-inventory','france-izivia-fast-official-inventory','france-izivia-fast-official-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -275,7 +275,7 @@ const boisPriced=boisResult.stations.filter(st=>(st.offers||[]).some(o=>o.source
 assert.equal(boisPriced.length,1,'Only the current Bois-d\'Arcy DC national station ID should receive the app energy tariff');
 for(const st of boisPriced){
   assert.ok((st.provenance||[]).some(p=>boisIds.has(p.sourceStationId)),'Electra direct offer attached outside Bois-d\'Arcy');
-  const direct=st.offers.find(o=>o.sourceId==='france-electra-direct');
+  const direct=st.offers.find(o=>o.sourceId==='france-electra-direct'&&o.kind==='direct');
   assert.deepEqual(direct.connectorKinds,['DC']);
   assert.equal(direct.pricing.priceSelectionBasis,'session_start_local_time');
   assert.ok(direct.pricing.rules.length>=1,'exact Electra schedule must retain energy rules');
@@ -283,8 +283,17 @@ for(const st of boisPriced){
   assert.equal(direct.metadata.timeZone,'Europe/Paris');
   assert.equal(direct.metadata.conditionalCongestionFeeExcluded,true);
   assert.ok(evaluatedProviders(st).has(direct.provider),'Bois-d’Arcy direct tariff must survive the joined runtime session filter');
+  assert.ok(st.evses.every(evse=>evse.connectors.every(connector=>connector.kind==='DC')),'historical Bois-d’Arcy 22 kW AC rows must be hidden');
+  assert.equal(st.evses.reduce((sum,evse)=>sum+evse.stalls,0),19,'current Electra connector count must be retained');
+  assert.deepEqual(st.offers.filter(offer=>offer.kind==='subscription').map(offer=>offer.subscriptionId).sort(),['electra-plus-essential','electra-plus-smart'],'both Electra+ plans must attach to the current station');
 }
 assert.ok(boisResult.diagnostics.sources['france-electra-direct']?.loaded===true,'Bois-d\'Arcy exact tariff source did not load');
+assert.ok(boisResult.diagnostics.sources['france-electra-bois-current-inventory']?.loaded===true,'Bois-d\'Arcy current connector source did not load');
+
+const aldiResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.76858,lon:2.06473},radiusKm:0.5,routingBudget:20});
+const aldi=aldiResult.stations.find(st=>st.id==='FR:national:FRALNP25007130');
+assert.ok(aldi,'ALDI Guyancourt station must be present');
+assert.ok(evaluatedProviders(aldi).has('ALDI direct · charge lente'),'official ALDI slow AC tariff must survive the exact station join');
 
 const iziviaDole=await engine.queryArea({countryCode:'FR',origin:{lat:47.0819,lon:5.47522},radiusKm:5,routingBudget:20});
 const fastRows=iziviaDole.stations.filter(st=>(st.provenance||[]).some(p=>p.sourceStationId==='FRIZFPFAST422'));
