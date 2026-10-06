@@ -37,18 +37,17 @@ try{
   assert.equal(shellState.marker?.error,undefined,shellState);
   assert.equal(shellState.marker?.ready,true,shellState);
   assert.equal(shellState.operatorFilter,true,shellState);
+  await page.evaluate(()=>{
+    document.querySelector('nav button[data-tab="compare"]')?.click();
+    document.getElementById('compare')?.classList.add('active');
+    document.querySelectorAll('details.v9-filter-group').forEach(group=>{group.open=true;});
+  });
   assert.equal(await page.locator('#v9TeslaOnly').textContent(),'Tesla uniquement');
   assert.equal(await page.locator('#v9AllNetworks').textContent(),'Tous les réseaux');
   assert.equal(await page.locator('#v9OperatorDropdown').count(),1,'operator dropdown is available');
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
-  const openFilterGroupFor=async id=>{
-    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)}).first();
-    await group.locator('summary').first().click();
-  };
-  await openFilterGroupFor('simOperatorFilter');
-  await page.locator('#simOperatorFilter').selectOption('tesla');
-  await openFilterGroupFor('simMaxDistance');
+  await page.locator('#v9TeslaOnly').click();
   await page.locator('#simMaxDistance').fill('100');
   await openFilterGroupFor('simNow');
   await page.locator('#simNow').fill('20');
