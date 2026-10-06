@@ -218,7 +218,20 @@ def build_registry(path):
             src["refresh"]="immutable-production-snapshot"
             src["policy"]="Use the pinned r8 Atlante France exact-EVSE direct snapshot; unmatched EVSEs remain fail-closed."
 
-    # Re-enable the validated legacy Electric 55 direct tariff overlay.\n    # It is an exact-EVSE CPO source and must remain available alongside the\n    # canonical direct-offer JSON sources.\n    for src in sources:\n        if src.get("id")=="e55c-direct-france":\n            src["active"]=True\n            src["optional"]=False\n            src["priority"]={"tariff":135}\n            src["refresh"]="immutable-production-snapshot"\n            src.pop("disabledReason",None)\n            src["policy"]="Electric 55 direct CPO tariffs joined by exact EVSE identity; unresolved points remain fail-closed."\n            break\n\n    # Tesla is a dedicated catalogue in TCC V9. National physical baselines
+    # Re-enable the validated legacy Electric 55 direct tariff overlay.
+    # It is an exact-EVSE CPO source and must remain available alongside the
+    # canonical direct-offer JSON sources.
+    for src in sources:
+        if src.get("id")=="e55c-direct-france":
+            src["active"]=True
+            src["optional"]=False
+            src["priority"]={"tariff":135}
+            src["refresh"]="immutable-production-snapshot"
+            src.pop("disabledReason",None)
+            src["policy"]="Electric 55 direct CPO tariffs joined by exact EVSE identity; unresolved points remain fail-closed."
+            break
+
+    # Tesla is a dedicated catalogue in TCC V9. National physical baselines
     # must not reintroduce Tesla rows even when the upstream national snapshot
     # contains them. Keep this explicit per source so the rule is auditable.
     national_baseline_ids={
