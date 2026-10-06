@@ -164,7 +164,7 @@
         const at=addMinutes(session.startAt,offset+used);if(!at)return{complete:false,reason:'invalid_charge_timeline_start'};
         const rule=PricingEngine.matchingRule(pricing,at,timeZone);if(!rule)return{complete:false,reason:'no_matching_time_rule',segmentStartAt:at.toISOString()};
         if(!PricingEngine.segmentableRule(rule))return{complete:false,reason:'tariff_window_crossing_unsupported_components',segmentStartAt:at.toISOString(),matchedRule:rule};
-        let boundary=PricingEngine.minutesUntilRuleBoundary(rule,at,timeZone);if(boundary==null)return{complete:false,reason:'unresolved_tariff_boundary'};
+        let boundary=PricingEngine.minutesUntilRuleBoundary(rule,at,timeZone,pricing);if(boundary==null)return{complete:false,reason:'unresolved_tariff_boundary'};
         if(!Number.isFinite(boundary))boundary=duration-used;
         const slice=Math.min(duration-used,Math.max(boundary,1e-6)),sliceEnergy=energy*(slice/duration),rate=num(rule.pricePerKwh),cost=rate==null?0:sliceEnergy*rate;
         total+=cost;
@@ -234,7 +234,7 @@
     const pricing=offer?.pricing||{},timeZone=session.timeZone||offer?.metadata?.timeZone||null;
     if(pricing.type!=='rules'||pricing.priceSelectionBasis==='session_start_local_time'||!Array.isArray(session.chargeTimeline)||!session.chargeTimeline.length||!session.startAt)return null;
     const rule=PricingEngine.matchingRule(pricing,session.startAt,timeZone);if(!rule)return null;
-    const duration=Math.max(0,num(session.durationMinutes)??0),boundary=PricingEngine.minutesUntilRuleBoundary(rule,session.startAt,timeZone);
+    const duration=Math.max(0,num(session.durationMinutes)??0),boundary=PricingEngine.minutesUntilRuleBoundary(rule,session.startAt,timeZone,pricing);
     if(boundary==null||!Number.isFinite(boundary)||duration<=boundary+1e-9)return null;
     const threshold=num(pricing.longConnectionFee?.thresholdMinutes);if(threshold!=null&&duration>threshold)return null;
     const timeBase=PricingEngine.evaluateSegmentedRules(pricing,{...session,energyKwh:0},timeZone);if(timeBase.complete===false)return{...timeBase,offerId:text(offer?.id||offer?.offerId),timeZone};
