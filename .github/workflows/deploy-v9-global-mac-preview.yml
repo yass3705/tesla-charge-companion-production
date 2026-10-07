@@ -19,7 +19,6 @@ on:
       - "scripts/tesla_tariff_priority.py"
       - "scripts/validate_stable_parity.py"
       - "tests/test_tesla_tariff_priority.py"
-      - "data/tesla_mac_country_updates.json"
       - "docs/tesla-mac-suc-comparison-2026-10-07.json"
   schedule:
     - cron: '23 2 * * *'
@@ -28,15 +27,15 @@ on:
       stable_sha:
         description: Exact Stable commit containing the Mac Tesla export
         required: true
-        default: 680a0f467029c1f484ef087341aaa401ff702427
+        default: 6b43f09ea8c3da1bfbee7f854730c8a78d8e9bc2
       datalab_sha:
         description: Exact Data Lab commit for other current sources
         required: true
-        default: 1182910d9fec0970cc9cb8525304260ab59d37ab
+        default: 31426743803f6d807aa54dd383e03c278da5744a
       snapshot_id:
         description: Unique V9 preview snapshot ID
         required: true
-        default: 2026-10-07-r10
+        default: 2026-10-07-r11
 permissions:
   contents: read
   pages: write
@@ -52,13 +51,13 @@ jobs:
       - name: Resolve exact pins
         id: pins
         env:
-          STABLE_SHA_INPUT: ${{ inputs.stable_sha || '680a0f467029c1f484ef087341aaa401ff702427' }}
-          DATALAB_SHA_INPUT: ${{ inputs.datalab_sha || '1182910d9fec0970cc9cb8525304260ab59d37ab' }}
-          SNAPSHOT_ID_INPUT: ${{ inputs.snapshot_id || '2026-10-07-r10' }}
+          STABLE_SHA_INPUT: ${{ inputs.stable_sha || '6b43f09ea8c3da1bfbee7f854730c8a78d8e9bc2' }}
+          DATALAB_SHA_INPUT: ${{ inputs.datalab_sha || '31426743803f6d807aa54dd383e03c278da5744a' }}
+          SNAPSHOT_ID_INPUT: ${{ inputs.snapshot_id || '2026-10-07-r11' }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "push" ]]; then
             STABLE_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-stable.git refs/heads/main | cut -f1)"
             DATALAB_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-data-lab.git refs/heads/main | cut -f1)"
             SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_NUMBER}"
