@@ -7,7 +7,7 @@
   const text=v=>String(v==null?'':v).trim();
   const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
   const uniq=a=>[...new Set((a||[]).map(text).filter(Boolean))];
-  function status(v){const s=text(v).toUpperCase();if(['AVAILABLE','CHARGING','OCCUPIED','RESERVED'].includes(s))return'available';if(['OUTOFORDER','INOPERATIVE','REMOVED'].includes(s))return'out_of_service';return'unknown';}
+  function status(v){const s=text(v).toUpperCase();if(s==='AVAILABLE')return'available';if(['OUTOFORDER','INOPERATIVE','REMOVED'].includes(s))return'out_of_service';return'unknown';}
   function powerKw(c){const w=num(c?.max_electric_power);if(w!=null&&w>0)return w/1000;const v=num(c?.max_voltage),a=num(c?.max_amperage);return v!=null&&a!=null?v*a/1000:null;}
   function connectorKind(c){const p=text(c?.power_type).toUpperCase();if(p.startsWith('DC'))return'DC';if(p.startsWith('AC'))return'AC';return text(c?.standard).toUpperCase()||'UNKNOWN';}
   function tariffPricing(t){
@@ -31,6 +31,13 @@
     }
     return rules.length?{type:'rules',rules}:null;
   }
+  function validatedUbitricityOffer(offer,loc,eid,cid,source){
+    if(source?.id!=='ubitricity-pcpr-payg'||!offer||offer.kind!=='direct'||offer.provider!=='Ubitricity'||offer.currency!=='GBP')return null;
+    if(!offer.stationIds?.includes(String(loc.id))||!offer.evseIds?.includes(eid)||text(offer.metadata?.connectorId)!==cid)return null;
+    if(offer.metadata?.scope!=='cpo_direct_payg_verified'||offer.metadata?.paygVerification!==true||!Array.isArray(offer.pricing?.rules)||!offer.pricing.rules.length)return null;
+    if(offer.pricing.timeZone!=='Europe/London'||offer.pricing.rules.some(r=>r.currency!=='GBP'||!Number.isFinite(r.pricePerKwh)||r.pricePerKwh<0))return null;
+    return offer;
+  }
   function normalizeLocation(loc,source,tariffMap,{sourceId='uk-open-feeds-snapshot'}={}){
     if(!loc||!text(loc.id))return null;
     const lat=num(loc?.coordinates?.latitude),lon=num(loc?.coordinates?.longitude);if(lat==null||lon==null)return null;
@@ -42,6 +49,8 @@
       for(const c of rawEvse.connectors||[]){
         const cid=text(c.id)||eid+':connector';
         connectors.push({id:cid,kind:connectorKind(c),powerKw:powerKw(c)});
+        const verified=validatedUbitricityOffer(c.validatedV9Offer,loc,eid,cid,source);
+        if(verified)offers.push(verified);
         for(const tid of uniq(c.tariff_ids||[])){
           const tariff=tariffMap.get(tid),pricing=tariffPricing(tariff);if(!pricing)continue;
           offers.push({id:sourceId+':'+stationKey+':'+eid+':'+cid+':'+tid,provider:text(loc?.operator?.name||source?.name||party),kind:'direct',subscriptionId:null,countries:['GB'],currency:text(tariff.currency||'GBP').toUpperCase(),evseIds:[eid],pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null}});

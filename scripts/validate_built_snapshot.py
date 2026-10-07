@@ -86,6 +86,22 @@ def main():
     assert all(site.get("source",{}).get("unpricedFailClosed") is True for site in extra["sites"])
     assert uk_src.get("adapter")=="uk-open-feeds-v1" and uk_src.get("path")=="../snapshot-inputs/UK/all.json.gz", uk_src
     assert de_src.get("optional") is False and uk_src.get("optional") is False
+    ubi_src=sources.get("uk-ubitricity-pcpr-payg") or {}
+    assert ubi_src.get("adapter")=="uk-open-feeds-v1"
+    assert ubi_src.get("path")=="../snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz"
+    ubi_path=root/"snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz"
+    if ubi_path.exists():
+        assert ubi_src.get("active") is True and ubi_src.get("optional") is False
+        with gzip.open(ubi_path,"rt",encoding="utf-8") as f: ubi=json.load(f)
+        assert [s.get("id") for s in ubi.get("sources",[])]==["ubitricity-pcpr-payg"]
+        locations=ubi["sources"][0].get("locations") or []
+        assert len(locations)>=12000
+        connectors=[c for loc in locations for evse in loc.get("evses",[]) for c in evse.get("connectors",[])]
+        assert len(connectors)>=14000
+        assert sum(bool(c.get("validatedV9Offer")) for c in connectors)>13000
+        assert all(c.get("tariff_ids")==[] for c in connectors)
+    else:
+        assert ubi_src.get("active") is False and ubi_src.get("optional") is True
     for source_id in ("morocco-evgo-native","morocco-fastvolt-public","morocco-totalenergies-hosts"):
         src=sources.get(source_id) or {}
         assert str(src.get("path","")).startswith("../snapshot-inputs/MA/sources/"), src
