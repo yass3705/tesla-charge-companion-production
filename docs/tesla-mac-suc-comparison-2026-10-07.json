@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-07T16:15:53Z",
+  "macStableSha": "680a0f467029c1f484ef087341aaa401ff702427",
+  "macSource": "tesla-charge-companion-stable/data/tesla_stations.json",
+  "macUpdatedCountries": [
+    "FR",
+    "PT",
+    "MA"
+  ],
+  "macCountryStationCounts": {
+    "FR": 278,
+    "PT": 10,
+    "MA": 6
+  },
+  "macExport": {
+    "totalStations": 1169,
+    "unchangedCountriesPreserved": true,
+    "duplicateStationIds": [],
+    "removedBaselineStations": 0,
+    "manualReviewStations": 2
+  },
+  "sucSource": "https://suc-tracker.eu/data/europe.json",
+  "sucSnapshotCheckedAt": "2026-09-27T10:04:05.809023+00:00",
+  "sucSourceGeneratedAt": "2026-09-24T20:21:19.429Z",
+  "comparison": {
+    "matched": 294,
+    "sameTariff": 164,
+    "differentTariff": 130,
+    "onlySuc": 2,
+    "technicalDifferences": 28,
+    "accessHoursUnknown": 2,
+    "exportWithoutTariff": 0,
+    "perCountry": {
+      "FR": {
+        "matched": 278,
+        "sameTariff": 149,
+        "differentTariff": 129,
+        "onlySuc": 2
+      },
+      "PT": {
+        "matched": 10,
+        "sameTariff": 9,
+        "differentTariff": 1,
+        "onlySuc": 0
+      },
+      "MA": {
+        "matched": 6,
+        "sameTariff": 6,
+        "differentTariff": 0,
+        "onlySuc": 0
+      }
+    }
+  },
+  "onlySucStations": [
+    {
+      "name": "Le Cannet-des-Maures, France",
+      "teslaId": "34029",
+      "reason": "No Mac match; access hours unknown"
+    },
+    {
+      "name": "Nanteuil-lès-Meaux, France",
+      "teslaId": "444263",
+      "reason": "No Mac match; access hours unknown"
+    }
+  ],
+  "policy": "Use pinned Mac/Stable catalogue for V9 preview; SuC is separate comparison evidence. Tariff differences may reflect observation dates; do not overwrite Mac values or infer missing access."
+}
