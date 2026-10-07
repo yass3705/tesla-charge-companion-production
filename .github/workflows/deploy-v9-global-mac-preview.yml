@@ -5,6 +5,7 @@ on:
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
       - "v9-production-shell/bridge.js"
       - "tests/v9-shell-grouping.test.mjs"
+      - "tests/runtime-browser-journey.mjs"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
       - "scripts/tesla_tariff_priority.py"
