@@ -38,9 +38,6 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Resolve exact pins
         id: pins
@@ -129,7 +126,14 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist/v9-global-preview
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build-deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy V9 global preview
-        if: github.event_name != 'pull_request'
         id: deployment
         uses: actions/deploy-pages@v4
