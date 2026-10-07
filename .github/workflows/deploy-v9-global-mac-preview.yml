@@ -5,7 +5,7 @@ on:
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
       - "v9-production-shell/bridge.js"
       - "tests/v9-shell-grouping.test.mjs"
-      - "tests/runtime-browser-journey.mjs"
+      - "tests/runtime-browser-journey-global.mjs"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
       - "scripts/tesla_tariff_priority.py"
@@ -138,7 +138,7 @@ jobs:
           cat /tmp/tcc-global-preview-server.log
           exit 1
       - name: Browser journey
-        run: node production/tests/runtime-browser-journey.mjs
+        run: node production/tests/runtime-browser-journey-global.mjs
       - name: Configure Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
