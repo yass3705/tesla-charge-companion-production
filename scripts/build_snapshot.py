@@ -333,7 +333,12 @@ def main():
     if electra_manifest.exists():
         em=load_json(electra_manifest)
         assert em.get("policy",{}).get("nationalFranceIsIdentityHub") is True
-        assert em.get("policy",{}).get("exactNationalEvseOnly") is True
+        ep=em.get("policy",{})
+        if ep.get("exactNationalEvseOnly") is not True:
+            assert set(ep.get("acceptedIdentityModes") or []) == {
+                "exact_national_irve_evse", "curated_irve_location"
+            }
+            assert ep.get("curatedMatchRequiresValidatedDistanceNameAddressPowerAndConnectorEvidence") is True
         assert em.get("policy",{}).get("electroverseDependency") is False
         assert int((em.get("stats") or {}).get("publishedOffers") or 0) > 0
         copy_tree(electra_platform,overlays/"FR/platforms/electra")
