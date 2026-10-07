@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import gzip
 import hashlib
 import json
 import pathlib
@@ -221,6 +222,29 @@ def main():
     for name in ("fastned_direct_stations_uk.json.gz","ionity_direct_stations_uk.json.gz"):
         p=national/name
         if p.exists(): copy_file(p,uk/"sources"/name)
+    # Activate the Ubitricity runtime source only for a pinned, internally
+    # consistent validated artifact. Older snapshots remain buildable.
+    ubi_data=uk/"sources/uk_ubitricity_v9.json.gz"
+    ubi_report=dl/"reports/uk/ubitricity-pcpr-validation-latest.json"
+    if ubi_data.exists() and ubi_report.exists():
+        with gzip.open(ubi_data,"rt",encoding="utf-8") as f: ubi_payload=json.load(f)
+        report=load_json(ubi_report)
+        source=next((s for s in ubi_payload.get("sources",[]) if s.get("id")=="ubitricity-pcpr-payg"),None)
+        if not source or len(ubi_payload.get("sources",[]))!=1 or report.get("collectedAt")!=ubi_payload.get("collectedAt"):
+            raise AssertionError("Ubitricity source/report identity mismatch")
+        locations=source.get("locations") or []
+        connectors=[c for loc in locations for evse in loc.get("evses",[]) for c in evse.get("connectors",[])]
+        priced=sum(bool(c.get("validatedV9Offer")) for c in connectors)
+        if (len(locations)!=report.get("locations") or len(connectors)!=report.get("connectors")
+            or priced!=report.get("pricedConnectors") or priced==0
+            or priced+report.get("unpricedConnectors",0)!=len(connectors)):
+            raise AssertionError("Ubitricity V9 coverage/report mismatch")
+        current_registry=load_json(registry)
+        ubi_registry=next(s for s in current_registry["sources"] if s.get("id")=="uk-ubitricity-pcpr-payg")
+        ubi_registry["active"]=True
+        ubi_registry["optional"]=False
+        current_registry["productionIntegration"]["snapshotLocalSources"].append("uk-ubitricity-pcpr-payg")
+        write_json(registry,current_registry)
     copy_file(dl/"docs/uk-cpo-progress-2026-09.json", uk/"cpo-ledger.json")
     uk_ledger=load_json(dl/"docs/uk-cpo-progress-2026-09.json")
     uk_rows=uk_ledger.get("cpos") or []
