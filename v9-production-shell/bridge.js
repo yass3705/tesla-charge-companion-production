@@ -742,6 +742,7 @@
     if(!select)return;
     const field=select.closest('.full')||select.parentElement;
     field?.querySelector(':scope > label')?.remove();
+    select.parentElement?.querySelector(':scope > label')?.remove();
     const previousValues=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):[];
     const options=new Map();
     for(const option of [...select.options]){
