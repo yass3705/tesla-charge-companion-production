@@ -183,6 +183,17 @@
     for(const rule of rules){
       if(hasPricedWindow&&rule?.scope==='allDay'&&zeroPlaceholder(rule))continue;
       const currency=rule?.currency||pricing.currency||offer?.currency;
+      if(Array.isArray(rule?.powerBands)&&rule.powerBands.length){
+        for(const band of rule.powerBands){
+          const lower=num(band?.minKw),upper=num(band?.maxKw),rate=formatRate(band?.ratePerMinute,currency,'min');
+          if(!rate)continue;
+          const range=lower==null?'':upper==null||upper>=1000?' (≥ '+lower+' kW)':' ('+lower+'–'+upper+' kW)';
+          const label=rate+range;if(!seen.has(label)){seen.add(label);labels.push(label);}
+        }
+        const fee=num(rule.connectionFee);
+        if(fee>0){const label=formatCurrencyAmount(fee,currency)+' frais de connexion';if(!seen.has(label)){seen.add(label);labels.push(label);}}
+        continue;
+      }
       const window=rule?.scope==='allDay'?'':' ('+text(rule?.start||'')+'–'+text(rule?.end||'')+')';
       add(rule?.pricePerKwh,'kWh',currency,window);
       add(rule?.pricePerMinute,'min',currency,' connecté'+window);

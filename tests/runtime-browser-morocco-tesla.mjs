@@ -34,6 +34,7 @@ try{
     assert.ok(card,`${scenario.city}: Tesla station missing from results`);
     assert.match(card,/\d+[,.]\d{2} MAD \(≈ \d+[,.]\d{2} €\)/,`${scenario.city}: Tesla tariff must be displayed in MAD and EUR`);
     assert.ok(!card.includes('Prix Tesla non disponible'),`${scenario.city}: routed Tesla tariff was lost`);
+    assert.ok(card.includes('MAD/min')&&!card.includes('0,00 MAD/kWh'),`${scenario.city}: Tesla power-band policy must be described without zero placeholder rates`);
     assert.deepEqual(errors,[],`${scenario.city}: browser errors`);
     console.log(JSON.stringify({city:scenario.city,station:scenario.station,tariff:card.match(/\d+[,.]\d{2} MAD \(≈ \d+[,.]\d{2} €\)/)?.[0]}));
     await page.close();

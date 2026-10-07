@@ -65,6 +65,10 @@ const electroverseOffer={id:'evr-sigeif',provider:'Electroverse',kind:'emsp',cur
 const electroverseHtml=ui.renderPowerLines({station:{evses:[{id:'p1',connectors:[{kind:'AC',powerKw:22.6}]}],offers:[electroverseOffer]},evaluation:{best:{offerId:'evr-sigeif',provider:'Electroverse',currency:'EUR',total:2.8,result:{components:{segments:[{ruleSignature:'{"energy":0,"chargingMinute":null,"parkingMinute":null,"flat":null}',durationMinutes:20,energyKwh:10}]}}}}});
 assert.ok(electroverseHtml.includes('22 kW')&&electroverseHtml.includes('0,28 EUR/kWh'),'applied Electroverse rate and floored power should be visible');
 assert.ok(!electroverseHtml.includes('Tarif unitaire appliqué non détaillé')&&!electroverseHtml.includes('0,42'),'other Electroverse rate must not be shown as applied');
+const teslaPowerRule={scope:'allDay',currency:'MAD',pricePerKwh:0,chargePerMinute:0,connectionFee:6,powerBands:[{minKw:0,maxKw:60,ratePerMinute:1.1},{minKw:60,maxKw:100,ratePerMinute:2.3}]};
+const teslaPowerLabels=ui.tariffRateLabels({currency:'MAD',pricing:{type:'rules',rules:[teslaPowerRule]}});
+assert.ok(teslaPowerLabels.includes('1,10 MAD/min (0–60 kW)')&&teslaPowerLabels.includes('6,00 MAD frais de connexion'));
+assert.ok(!teslaPowerLabels.some(label=>label.startsWith('0,00')),'power-band Tesla pricing must not show zero placeholder rates');
 
 const acFields={...emptyPowerFields,simPowerAc:{checked:true},simPowerDc:{checked:false}};
 const acInputs=ui.readInputs({document:{getElementById:id=>acFields[id]||null}});
