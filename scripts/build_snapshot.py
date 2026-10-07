@@ -284,6 +284,22 @@ def main():
     # operator datasets already proven in the canonical CPO ledger.
     uk=overlays/"UK"
     copy_file(national/"uk_validated_open_feeds.json.gz", uk/"all.json.gz")
+    ck_source = national/"uk_connected_kerb_v9.json.gz"
+    if ck_source.exists():
+        import gzip
+        with gzip.open(ck_source, "rt") as f:
+            ck = json.load(f)
+        assert len(ck.get("sources", [])) == 1
+        assert ck["sources"][0]["id"] == "connected-kerb-guest"
+        with gzip.open(uk/"all.json.gz", "rt") as f:
+            aggregate = json.load(f)
+        # Replace only this operator's prior layer, leaving other UK feeds intact.
+        aggregate["sources"] = [s for s in aggregate.get("sources", [])
+                                if s.get("id") != "connected-kerb-guest"
+                                and str(s.get("name", "")).lower().replace(" ", "") != "connectedkerb"]
+        aggregate["sources"].extend(ck["sources"])
+        with gzip.open(uk/"all.json.gz", "wt") as f:
+            json.dump(aggregate, f, separators=(",", ":"))
     for p in national.glob("uk_*"):
         if p.is_file() and p.name != "uk_validated_open_feeds.json.gz":
             copy_file(p,uk/"sources"/p.name)

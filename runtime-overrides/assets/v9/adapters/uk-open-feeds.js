@@ -42,6 +42,12 @@
       for(const c of rawEvse.connectors||[]){
         const cid=text(c.id)||eid+':connector';
         connectors.push({id:cid,kind:connectorKind(c),powerKw:powerKw(c)});
+        if(source?.id==='connected-kerb-guest'){
+          const validated=c.validatedV9Offer;
+          if(source.pricingScope!=='cpo_direct_standard_guest'||!validated||validated.metadata?.connectorId!==cid||!validated.evseIds?.includes(eid)||!validated.stationIds?.includes(text(loc.id))||validated.pricing?.timeZone!=='UTC')throw new Error('Invalid Connected Kerb connector pricing scope');
+          offers.push({...validated,kind:'direct',subscriptionId:null});
+          continue;
+        }
         for(const tid of uniq(c.tariff_ids||[])){
           const tariff=tariffMap.get(tid),pricing=tariffPricing(tariff);if(!pricing)continue;
           offers.push({id:sourceId+':'+stationKey+':'+eid+':'+cid+':'+tid,provider:text(loc?.operator?.name||source?.name||party),kind:'direct',subscriptionId:null,countries:['GB'],currency:text(tariff.currency||'GBP').toUpperCase(),evseIds:[eid],pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null}});

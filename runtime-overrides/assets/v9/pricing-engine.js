@@ -344,7 +344,7 @@
   }
 
   function evaluateOffer(offer,session={}){
-    const pricing=offer?.pricing||{},timeZone=session.timeZone||offer?.metadata?.timeZone||null;
+    const pricing=offer?.pricing||{},timeZone=pricing.timeZone||session.timeZone||offer?.metadata?.timeZone||null;
     if(pricing.type==='component_groups'){
       const base=evaluateComponentGroups(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone};
       const finalized=applyMinimumTotal(pricing,base.totalEur,base.components);return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:offer?.id||null,currency:offer?.currency||'EUR',timeZone};
