@@ -55,9 +55,13 @@
   }
   async function loadSubscriptionCatalogue(w,cfg){
     const base=String(cfg.runtimeBase||'.').replace(/\/$/,'');
-    const files=['france-direct-offers.json','electra-direct-france.json'];
+    let files=[];
+    try{
+      const response=await w.fetch(`${base}/data/v9/source-registry.json`,{cache:'no-cache'});
+      if(response.ok){const registry=await response.json();files=(registry.sources||[]).filter(source=>source.active!==false&&source.adapter==='direct-offer-json'&&(source.capabilities||[]).includes('subscription')).map(source=>text(source.path)).filter(Boolean);}
+    }catch(_){}
     const results=await Promise.all(files.map(async file=>{
-      try{const response=await w.fetch(`${base}/data/v9/${file}`,{cache:'no-cache'});if(!response.ok)return[];
+      try{const response=await w.fetch(`${base}/${file}`,{cache:'no-cache'});if(!response.ok)return[];
         const payload=await response.json();return Array.isArray(payload.subscriptionOffers)?payload.subscriptionOffers:[];
       }catch(_){return[];}
     }));
@@ -212,10 +216,22 @@
       add(rule?.chargePerMinute??rule?.chargingTimePerMinuteEur,'min',currency,' charge'+window);
       add(rule?.connectedTimePerMinuteEur,'min',currency,' connecté'+window);
       add(rule?.idlePerMinute,'min',currency,' après charge'+window);
+      const fixed=[['connectionFee','frais de connexion'],['sessionFeeEur','frais de session'],['connectedTimeComponentEur','temps connecté']];
+      for(const [field,description] of fixed){const value=num(rule?.[field]);if(value==null||value===0)continue;const label=formatCurrencyAmount(value,currency)+' '+description+window;if(!seen.has(label)){seen.add(label);labels.push(label);}}
+      if(num(rule?.connectedTimeBlockMinutes)>0&&num(rule?.connectedTimeBlockEur)!=null){
+        const label=formatCurrencyAmount(rule.connectedTimeBlockEur,currency)+' / '+rule.connectedTimeBlockMinutes+' min connectées'+window;if(!seen.has(label)){seen.add(label);labels.push(label);}
+      }
+      if(num(rule?.minimumSessionEur)>0){const label='Minimum '+formatCurrencyAmount(rule.minimumSessionEur,currency)+window;if(!seen.has(label)){seen.add(label);labels.push(label);}}
+      if(Array.isArray(rule?.ocpiDurationBands))for(const band of rule.ocpiDurationBands){
+        const rate=formatRate(band?.[3],currency,'min');if(!rate)continue;
+        const label=rate+' ('+text(band?.[0])+'–'+text(band?.[1])+' min)';if(!seen.has(label)){seen.add(label);labels.push(label);}
+      }
     }
     add(pricing.pricePerKwh,'kWh',pricing.currency||offer?.currency);
     add(pricing.pricePerMinute,'min',pricing.currency||offer?.currency,' connecté');
     add(pricing.chargePerMinute??pricing.chargingTimePerMinuteEur,'min',pricing.currency||offer?.currency,' charge');
+    const late=pricing.longConnectionFee;
+    if(num(late?.eurPerHourAfterThreshold)>0){const label=formatRate(late.eurPerHourAfterThreshold,pricing.currency||offer?.currency,'h')+' après '+late.thresholdMinutes+' min';if(!seen.has(label)){seen.add(label);labels.push(label);}}
     return labels;
   }
   function baseTariffsForPower(row,line){
@@ -290,7 +306,8 @@
     }
     return'<div class="v9-power-lines" style="margin-top:8px">'+lines.map(line=>{
       const fallback=applied&&!hasTimeWindows&&appliedOffer?tariffRateLabels(appliedOffer):[];
-      const tariffs=[...new Set(electroverseLabels.length?electroverseLabels:appliedLabels.length?appliedLabels:fallback)];
+      const tariffs=[...new Set([...(electroverseLabels.length?electroverseLabels:appliedLabels.length?appliedLabels:fallback),
+        ...(appliedOffer?.pricing?.longConnectionFee?tariffRateLabels({currency:appliedOffer.currency,pricing:{longConnectionFee:appliedOffer.pricing.longConnectionFee}}):[])])];
       const provider=text(applied?.provider||'');
       const baseLine=tariffs.length
         ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+(provider?' · '+esc(provider):'')+(hasTimeWindows&&appliedOffer?.pricing?.timeZone==='UTC'?' · horaires UTC':'')+'</div>'
@@ -360,17 +377,12 @@
     return null;
   }
   function displayAmount(item,fxRates={}){
-    const target=text(item?.targetCurrency||'EUR').toUpperCase(),native=text(item?.currency||target).toUpperCase(),nativeTotal=num(item?.result?.totalEur),total=num(item?.total);
+    const target=text(item?.targetCurrency||'EUR').toUpperCase(),total=num(item?.total);
     if(total==null)return'Prix non disponible';
-    if(native!==target&&nativeTotal!=null)return formatCurrencyAmount(nativeTotal,native)+' (≈ '+formatCurrencyAmount(total,target)+')';
     const primary=formatCurrencyAmount(total,target),rate=num(fxRates?.[target]);
     return target!=='EUR'&&rate>0?primary+' (≈ '+formatCurrencyAmount(total/rate,'EUR')+')':primary;
   }
   function renderTariffs(evaluation,station,fxRates={}){
-    if(isTeslaStation(station)){
-      const item=[evaluation?.best,...(evaluation?.alternatives||[])].filter(row=>row&&num(row.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0];
-      return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(displayAmount(item,fxRates))+'</div>':'<div class="v9-tesla-price">Prix Tesla non disponible</div>';
-    }
     const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
     const subscriptions=[...new Map(offers.filter(item=>text(item.subscriptionId)).map(item=>[text(item.subscriptionId),{id:'subscription:'+text(item.subscriptionId),label:text(item.provider)||text(item.subscriptionId),color:'#f5d6a1'}])).values()];
     const categories=[
@@ -881,16 +893,17 @@
     const groups=[
       {title:'Date et horaires',ids:['simDate','simTime','simUnplugTime']},
       {title:'Batterie et objectif',ids:['simNow','simTarget','simCondition','simProfile']},
-      {title:'Réseaux affichés',ids:['simOperatorFilter']},
       {title:'Type de recharge',ids:['simPowerType']},
       {title:'Distance maximale',ids:['simMaxDistance']},
-      {title:'Priorité de classement',ids:['simRanking']}
+      {title:'Priorité de classement',ids:['simRanking']},
+      {title:'Réseaux affichés',ids:['simOperatorFilter']}
     ];
     const captured=groups.map(group=>({group,nodes:group.ids.map(field).filter(Boolean)}));
     grid.innerHTML='';origin.classList.add('full');grid.appendChild(origin);
     for(const {group,nodes} of captured){
       if(group.title==='Réseaux affichés'){
         const section=w.document.createElement('section');section.className='full box v9-network-controls';
+        section.hidden=true;
         const heading=w.document.createElement('b');heading.className='v9-network-heading';heading.textContent=group.title;section.appendChild(heading);
         for(const node of nodes)section.appendChild(node);
         grid.appendChild(section);continue;
@@ -949,7 +962,7 @@
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
-      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode,await subscriptionCataloguePromise),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
+      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);const networkControls=w.document.querySelector('.v9-network-controls');if(networkControls)networkControls.hidden=false;renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode,await subscriptionCataloguePromise),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
         diagnosticStore(w,{mode:'candidate',outcome:'v9-error',reason:err.message,operatorIds:input.operatorIds||[]});
         if(input.operatorIds?.length){
           const status=w.document.getElementById('routeStatus'),results=w.document.getElementById('results');

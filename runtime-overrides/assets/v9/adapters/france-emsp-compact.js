@@ -27,7 +27,7 @@
       const pdcIds=uniq(Array.isArray(config?.[6])?config[6]:[]);if(!pdcIds.length)continue;
       const pricingRows=Array.isArray(config?.[5])?config[5]:[];if(!pricingRows.length)continue;
       const kind=text(config?.[2]||'').toUpperCase();
-      out.push({stationId,index,provider,pdcIds,kind,powerKw:Number(config?.[3]||0),stalls:Number(config?.[4]||0),pricingRows,signature:pricingSignature(pricingRows),configId:text(config?.[0]),label:text(config?.[1])});
+      out.push({stationId,index,provider,pdcIds,kind,powerKw:Math.floor(Number(config?.[3]||0)),stalls:Number(config?.[4]||0),pricingRows,signature:pricingSignature(pricingRows),configId:text(config?.[0]),label:text(config?.[1])});
     }
     return out;
   }
