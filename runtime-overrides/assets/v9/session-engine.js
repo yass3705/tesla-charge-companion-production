@@ -241,7 +241,11 @@
         if(timeline.length){
           let covered=0;
           for(const step of timeline){const overlap=Math.max(0,Math.min(end,charging,step.start+step.duration)-Math.max(elapsed,step.start));if(overlap<=0)continue;const rate=powerRate(step.powerKw);if(rate==null)return incomplete('power_band_requires_valid_charge_power');powerCost+=overlap*rate;covered+=overlap;}
-          if(covered+1e-6<chargeMinutes)return incomplete('power_band_timeline_gap');
+          // The planner rounds each charge step to six decimal places. Across
+          // hundreds of steps, their summed durations can be a few micro-minutes
+          // shorter than the rounded session duration even with no real gap.
+          const roundingSlack=Math.min(0.001,timeline.length*1e-6+1e-6);
+          if(covered+roundingSlack<chargeMinutes)return incomplete('power_band_timeline_gap');
         }else{
           const rate=powerRate(num(session.powerKw));if(rate==null)return incomplete('power_band_requires_charge_power');powerCost=chargeMinutes*rate;
         }

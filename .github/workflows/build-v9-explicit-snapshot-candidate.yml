@@ -163,7 +163,9 @@ jobs:
           exit 1
 
       - name: Mocked geocoding/routing browser journey
-        run: node production/tests/runtime-browser-journey.mjs
+        run: |
+          node production/tests/runtime-browser-journey.mjs
+          node production/tests/runtime-browser-morocco-tesla.mjs
 
       - name: Verify candidate manifest hashes
         run: python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate

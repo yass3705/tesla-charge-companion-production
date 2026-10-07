@@ -5,6 +5,7 @@ import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 
 const require=createRequire(import.meta.url);
+const shell=require('../v9-production-shell/bridge.js');
 const root=path.resolve(process.argv[2]||'dist/v9-explicit-candidate');
 const runtime=path.join(root,'runtime');
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json')));
@@ -66,6 +67,19 @@ for(const source of mac.stations){
 }
 assert.equal(Math.round((moroccoPrices.get('tesla-casablanca-morocco')-moroccoPrices.get('tesla-rabat-morocco'))*100)/100,6,
   'Casablanca must include the 6 MAD connection fee from the Mac export');
+const planner=require(path.join(runtime,'assets/v9/session-planner-engine.js'));
+const sessionEngine=require(path.join(runtime,'assets/v9/session-engine.js'));
+const tangierSource=mac.stations.find(row=>row.id==='tesla-tangier-morocco');
+const tangierStation={...adapters.teslaJson.normalizeStation(tangierSource),id:tangierSource.id};
+const routedSession={...shell.buildSession({startSoc:20,targetSoc:80,startAt:'2026-10-07T00:20:00Z',condition:'normal',profile:'realistic'},'MA'),fxRates:{EUR:1,MAD:10.96131}};
+const route={byStationId:{[tangierStation.id]:{approachEnergyKwh:2.903685,driveMinutes:25.228283}}};
+const routedPlan=planner.planStation(tangierStation,routedSession,{route});
+assert.ok(routedPlan.effectiveSession.chargeTimeline.length>200,'routed Tangier case should exercise the rounded charge timeline');
+const routedPrice=sessionEngine.evaluateStation(tangierStation,routedPlan.effectiveSession,{targetCurrency:'MAD',fxRates:routedSession.fxRates});
+assert.ok(routedPrice.best?.total>0,`Tesla Tangier must remain priced after a routed arrival: ${routedPrice.incomplete?.[0]?.result?.reason}`);
+const gapSession={...routedPlan.effectiveSession,chargeTimeline:routedPlan.effectiveSession.chargeTimeline.slice(1)};
+const gapPrice=sessionEngine.evaluateStation(tangierStation,gapSession,{targetCurrency:'MAD',fxRates:routedSession.fxRates});
+assert.equal(gapPrice.incomplete?.[0]?.result?.reason,'power_band_timeline_gap','a real missing timeline step must still be rejected');
 const swiss=adapters.teslaJson.normalizeStation({id:'ch-currency',countryCode:'CH',pricing:{type:'kwh',currency:'CHF',pricePerKwh:.5}});
 assert.equal(swiss.offers[0].currency,'CHF','Swiss Tesla tariff must retain CHF');
 
