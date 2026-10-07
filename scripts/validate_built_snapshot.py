@@ -66,6 +66,12 @@ def main():
         be_offers=load(root/"runtime/data/v9/belgium-nap-offers/manifest.json")
         assert be_manifest.get("stationCount",0)>15000 and be_offers.get("offerCount",0)>10000,(be_manifest,be_offers)
 
+    if manifest["snapshotId"][:10]>="2026-10-06":
+        fr_static=root/"runtime/data/v9/france-static"
+        fr_manifest=load(fr_static/"manifest.json")
+        assert fr_manifest.get("sourceUrl")=="https://proxy.transport.data.gouv.fr/resource/consolidation-transport-irve-statique",fr_manifest.get("sourceUrl")
+        assert fr_manifest.get("pdcCount",0)>120000 and (fr_static/"all.json.gz").exists(),fr_manifest.get("pdcCount")
+
     runtime_integration=contract.get("runtimeIntegration") or {}
     registry_rel=runtime_integration.get("registry")
     assert registry_rel=="runtime/data/v9/source-registry.json", runtime_integration
