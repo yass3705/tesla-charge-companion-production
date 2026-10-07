@@ -3,7 +3,7 @@ name: Temporary V9 preview
 on:
   push:
     branches:
-      - v9/interface-foundation-frozen-snapshot
+      - v9/ubitricity-preview
     paths:
       - .github/workflows/deploy-v9-iphone-preview.yml
   workflow_dispatch:
