@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: 38e2e8307ce1f762f5cc5330c1062065184299c2
+          ref: 572d536f36cf940abf7849c91c5ac5c404b7799a
           path: production
 
       - name: Checkout stable baseline
@@ -53,7 +53,7 @@ jobs:
           SNAPSHOT_ID: 2026-10-07-ubitricity-pcpr-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = 38e2e8307ce1f762f5cc5330c1062065184299c2
+          test "$(git -C production rev-parse HEAD)" = 572d536f36cf940abf7849c91c5ac5c404b7799a
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = 8e3462094dfa36d6e5623bfc9838f5fc53bab914
           python production/scripts/build_refresh_candidate_config.py \
