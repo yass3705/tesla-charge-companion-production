@@ -56,4 +56,7 @@ for(const evse of corrupted.evses||[])for(const connector of evse.connectors||[]
   if(connector.validatedV9Offer)connector.validatedV9Offer.metadata.connectorId='wrong';
 }
 assert.equal(adapter.normalizePayload({sources:[{...source,locations:[corrupted]}]})[0].offers.length,0);
+const occupied=structuredClone(pricedLocation);
+for(const evse of occupied.evses||[])evse.status='CHARGING';
+assert.equal(adapter.normalizePayload({sources:[{...source,locations:[occupied]}]})[0].status.state,'unknown','charging EVSEs are not available');
 console.log(JSON.stringify({locations:source.locations.length,connectors,priced,unpriced,runtimeAdapter:'pass'}));
