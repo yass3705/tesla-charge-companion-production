@@ -688,6 +688,7 @@
     const select=w.document.getElementById('simOperatorFilter');
     if(!select)return;
     const field=select.closest('.full')||select.parentElement;
+    field?.querySelector(':scope > label')?.remove();
     select.multiple=true;select.setAttribute('multiple','');select.dataset.v9Multi='true';
     select.setAttribute('aria-hidden','true');select.tabIndex=-1;
     select.innerHTML='<option value="tesla">Tesla</option>';
