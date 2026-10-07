@@ -161,7 +161,7 @@
     select.setAttribute('aria-label','Réseaux affichés, sélection multiple');
     const options=[['tesla','Tesla'],['all','Tous les réseaux']];
     select.innerHTML=options.map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join('');
-    select.options[0].selected=true;
+    select.options[1].selected=true;
     const quick=w.document.createElement('button');quick.type='button';quick.id='v9TeslaOnly';
     quick.className='secondary';quick.textContent='Tesla uniquement';quick.title='Afficher uniquement le réseau Tesla';
     quick.style.cssText='width:auto;margin-top:6px;padding:8px 12px';
@@ -184,7 +184,7 @@
       if(id&&label&&id!=='tesla')operators.set(id,label);
     }
     for(const [id,label] of currentLabels){if(id&&id!=='all'&&!operators.has(id))operators.set(id,label);}
-    const selected=current.size?current:new Set(['tesla']);
+    const selected=current.size?current:new Set(['all']);
     select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('')+
       '<option value="all">Tous les réseaux</option>';
     [...select.options].forEach(option=>{option.selected=selected.has(option.value);});
