@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
+      - "v9-production-shell/bridge.js"
+      - "tests/v9-shell-grouping.test.mjs"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
       - "scripts/tesla_tariff_priority.py"
@@ -120,7 +122,9 @@ jobs:
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
-        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-global-preview
+        run: |
+          node production/tests/v9-shell-grouping.test.mjs
+          node production/tests/runtime-e2e-smoke.mjs dist/v9-global-preview
       - name: Install browser test dependency
         run: npm install --no-save --no-package-lock playwright@1.55.1
       - name: Serve preview locally
