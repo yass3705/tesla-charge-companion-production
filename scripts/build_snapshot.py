@@ -300,6 +300,25 @@ def main():
         aggregate["sources"].extend(ck["sources"])
         with gzip.open(uk/"all.json.gz", "wt") as f:
             json.dump(aggregate, f, separators=(",", ":"))
+    ubi_source = national/"uk_ubitricity_v9.json.gz"
+    if ubi_source.exists():
+        import gzip
+        with gzip.open(ubi_source, "rt") as f:
+            ubi = json.load(f)
+        assert len(ubi.get("sources", [])) == 1
+        assert ubi["sources"][0]["id"] == "ubitricity-pcpr-payg"
+        with gzip.open(uk/"all.json.gz", "rt") as f:
+            aggregate = json.load(f)
+        retained=[]
+        for source in aggregate.get("sources", []):
+            if source.get("id") == "ubitricity-pcpr-payg": continue
+            source["locations"] = [loc for loc in source.get("locations", [])
+                if str(loc.get("party_id", "")).upper() != "UBI"
+                and "ubitricity" not in str(loc.get("operator", {}).get("name", "")).lower()]
+            retained.append(source)
+        aggregate["sources"] = retained + ubi["sources"]
+        with gzip.open(uk/"all.json.gz", "wt") as f:
+            json.dump(aggregate, f, separators=(",", ":"))
     for p in national.glob("uk_*"):
         if p.is_file() and p.name != "uk_validated_open_feeds.json.gz":
             copy_file(p,uk/"sources"/p.name)

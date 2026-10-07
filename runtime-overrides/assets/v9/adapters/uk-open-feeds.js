@@ -42,6 +42,13 @@
       for(const c of rawEvse.connectors||[]){
         const cid=text(c.id)||eid+':connector';
         connectors.push({id:cid,kind:connectorKind(c),powerKw:powerKw(c)});
+        if(source?.id==='ubitricity-pcpr-payg'){
+          const validated=c.validatedV9Offer;
+          if(!validated)continue;
+          if(source.pricingScope!=='cpo_direct_payg_verified'||validated.metadata?.scope!=='cpo_direct_payg_verified'||validated.metadata?.connectorId!==cid||!validated.evseIds?.includes(eid)||!validated.stationIds?.includes(text(loc.id))||validated.pricing?.timeZone!=='Europe/London'||validated.metadata?.vatIncluded!==true||validated.metadata?.paygVerification!==true)throw new Error('Invalid Ubitricity connector pricing scope');
+          offers.push({...validated,kind:'direct',subscriptionId:null});
+          continue;
+        }
         if(source?.id==='connected-kerb-guest'){
           const validated=c.validatedV9Offer;
           if(source.pricingScope!=='cpo_direct_standard_guest'||!validated||validated.metadata?.connectorId!==cid||!validated.evseIds?.includes(eid)||!validated.stationIds?.includes(text(loc.id))||validated.pricing?.timeZone!=='UTC')throw new Error('Invalid Connected Kerb connector pricing scope');
