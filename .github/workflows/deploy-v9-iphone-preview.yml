@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: fc983bc71f5cf42e70f6aa0417d4d26b45896cf9
+          ref: 9335e0acd8777a9baebf182b634a636016429996
           path: production
 
       - name: Checkout stable baseline
@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: 218618bd641ead04f85f6961f3ebe4c21ddfbf63
+          ref: 49fc25d21afb16352c3066c7dec22c7392394718
           path: datalab
           fetch-depth: 1
           persist-credentials: false
@@ -53,12 +53,12 @@ jobs:
           SNAPSHOT_ID: 2026-10-07-connected-kerb-utc-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = fc983bc71f5cf42e70f6aa0417d4d26b45896cf9
+          test "$(git -C production rev-parse HEAD)" = 9335e0acd8777a9baebf182b634a636016429996
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
-          test "$(git -C datalab rev-parse HEAD)" = 218618bd641ead04f85f6961f3ebe4c21ddfbf63
+          test "$(git -C datalab rev-parse HEAD)" = 49fc25d21afb16352c3066c7dec22c7392394718
           python production/scripts/build_refresh_candidate_config.py \
             --base production/config/snapshots/2026-09-30-r9-electra-fr.json \
-            --datalab-sha 218618bd641ead04f85f6961f3ebe4c21ddfbf63 \
+            --datalab-sha 49fc25d21afb16352c3066c7dec22c7392394718 \
             --snapshot-id "$SNAPSHOT_ID" \
             --out production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
