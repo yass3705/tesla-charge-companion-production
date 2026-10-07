@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { groupRows, rankRows, rowsFromArea } = require('../v9-production-shell/bridge.js');
+const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea } = require('../v9-production-shell/bridge.js');
+
+const francePlans=subscriptionOptionsForArea({stations:[]},'FR');
+assert.deepEqual(francePlans.filter(row=>row.id.startsWith('electra-plus-')).map(row=>[row.id,row.monthlyFeeEur]),
+  [['electra-plus-essential',1.99],['electra-plus-smart',4.99]]);
+assert.equal(subscriptionOptionsForArea({stations:[]},'CH').some(row=>row.id.startsWith('electra-plus-')),false);
 
 function row(id, powerKw, cpo = 'IZIVIA', name = 'INTERMARCHE - DOLE') {
   const point = `FROTHEOTHR686${id}`;

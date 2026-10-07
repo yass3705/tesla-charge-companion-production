@@ -110,6 +110,14 @@ try{
   await page.waitForFunction(()=>window.__subscriptionApplyCalls>=1);
   await subscriptions.nth(0).uncheck();
   assert.deepEqual(await page.evaluate(()=>window.TCCV9ProductionShell.selectedSubscriptions(window)),['atlante-go']);
+  await page.evaluate(()=>window.TCCV9ProductionShell.renderSubscriptionSelector({
+    document:window.document,localStorage:window.localStorage,
+    setTimeout:window.setTimeout.bind(window),clearTimeout:window.clearTimeout.bind(window),compare:()=>{}
+  },window.TCCV9ProductionShell.subscriptionOptionsForArea({stations:[]},'FR'),'FR',[]));
+  await page.locator('#v9SubscriptionChoices input[value="electra-plus-essential"]').check();
+  await page.locator('#v9SubscriptionChoices input[value="electra-plus-smart"]').check();
+  assert.equal(await page.locator('#v9SubscriptionChoices input[value="electra-plus-essential"]').isChecked(),false,'Electra+ plans are mutually exclusive');
+  assert.equal(await page.locator('#v9SubscriptionChoices input[value="electra-plus-smart"]').isChecked(),true);
   assert.equal(await page.locator('.v9-sub-apply,.v9-sub-cancel').count(),0);
   assert.ok(result.cards>0,result);
   assert.equal(result.diagnostics[0]?.outcome,'v9-ok',result);
