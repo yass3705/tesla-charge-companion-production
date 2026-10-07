@@ -59,6 +59,12 @@ def main():
                 copy_file(src,out/"runtime"/src.relative_to(overrides))
     registry=out/"runtime/data/v9/source-registry.json"
     snapshot_date=str(cfg.get("snapshotId") or "")[:10]
+    if snapshot_date>="2026-10-06":
+        pan_static=dl/"data/national/france-irve-static-v9"
+        pan_manifest=load_json(pan_static/"manifest.json")
+        assert pan_manifest.get("sourceUrl")=="https://proxy.transport.data.gouv.fr/resource/consolidation-transport-irve-statique", pan_manifest.get("sourceUrl")
+        assert pan_manifest.get("pdcCount",0)>120000, pan_manifest.get("pdcCount")
+        copy_tree(pan_static,out/"runtime/data/v9/france-static")
     be_enabled=snapshot_date>="2026-10-07"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
     if be_enabled:
