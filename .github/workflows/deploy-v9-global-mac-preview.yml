@@ -33,9 +33,9 @@ on:
         required: true
         default: 1a301d7e2b5229853b5f24d6f9d0ae2bf6493774
       snapshot_id:
-        description: Unique V9 preview snapshot ID
-        required: true
-        default: 2026-10-07-r12
+        description: Optional unique V9 preview snapshot ID; blank uses the GitHub run ID
+        required: false
+        default: ''
 permissions:
   contents: read
   pages: write
@@ -53,14 +53,17 @@ jobs:
         env:
           STABLE_SHA_INPUT: ${{ inputs.stable_sha || '44126acbd122c45c5ec9278daf86968bfe94de6f' }}
           DATALAB_SHA_INPUT: ${{ inputs.datalab_sha || '1a301d7e2b5229853b5f24d6f9d0ae2bf6493774' }}
-          SNAPSHOT_ID_INPUT: ${{ inputs.snapshot_id || '2026-10-07-r12' }}
+          SNAPSHOT_ID_INPUT: ${{ inputs.snapshot_id || '' }}
         shell: bash
         run: |
           set -euo pipefail
           if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "push" ]]; then
             STABLE_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-stable.git refs/heads/main | cut -f1)"
             DATALAB_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-data-lab.git refs/heads/main | cut -f1)"
-            SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_NUMBER}"
+            SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_ID}"
+          fi
+          if [[ -z "$SNAPSHOT_ID_INPUT" ]]; then
+            SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_ID}"
           fi
           [[ "$STABLE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]]
           [[ "$DATALAB_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]]
