@@ -47,7 +47,8 @@ try{
   assert.equal(await page.locator('#v9TeslaOnly').textContent(),'Tesla uniquement');
   assert.equal(await page.locator('#v9AllNetworks').textContent(),'Tous les réseaux');
   assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'all','All networks are selected on first page load');
-  assert.equal(await page.locator('#v9OperatorDropdown').count(),1,'operator dropdown is available');
+  assert.equal(await page.locator('#v9OperatorDropdown').count(),0,'No operator menu is displayed');
+  assert.equal(await page.locator('#v9AllNetworks').getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('#simPowerAc').count(),1,'AC checkbox is beside power range');
   assert.equal(await page.locator('#simPowerDc').count(),1,'DC checkbox is beside power range');
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
@@ -82,14 +83,9 @@ try{
   assert.equal(await page.locator('#results').isVisible(),true,'Map selection can open the station result');
   await page.locator('#v9AllNetworks').click();
   await page.evaluate(()=>window.compare());
-  await page.waitForFunction(()=>document.querySelectorAll('#v9OperatorDropdown input[type=checkbox]').length>1,null,{timeout:120000});
-  const choices=page.locator('#v9OperatorDropdown input[type="checkbox"]');
-  assert.ok(await choices.count()>1,'Network selector must expose multiple choices beside shortcut buttons');
-  await choices.nth(0).check();await choices.nth(1).check();
-  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'selected','Network edits apply immediately');
-  await choices.nth(0).uncheck();
-  assert.equal(await choices.nth(0).isChecked(),false,'Network checkbox changes apply immediately');
-  assert.equal(await page.locator('.v9-operator-apply,.v9-operator-cancel').count(),0);
+  assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'all');
+  assert.equal(await page.locator('#v9AllNetworks').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#v9OperatorDropdown').count(),0);
   await page.evaluate(()=>{
     window.__subscriptionApplyCalls=0;
     window.TCCV9ProductionShell.renderSubscriptionSelector({
