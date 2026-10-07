@@ -7,7 +7,7 @@
   const text=v=>String(v==null?'':v).trim();
   const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
   const uniq=a=>[...new Set((a||[]).map(text).filter(Boolean))];
-  function status(v){const s=text(v).toUpperCase();if(['AVAILABLE','CHARGING','OCCUPIED','RESERVED'].includes(s))return'available';if(['OUTOFORDER','INOPERATIVE','REMOVED'].includes(s))return'out_of_service';return'unknown';}
+  function status(v){const s=text(v).toUpperCase();if(s==='AVAILABLE')return'available';if(['OUTOFORDER','INOPERATIVE','REMOVED'].includes(s))return'out_of_service';return'unknown';}
   function powerKw(c){const w=num(c?.max_electric_power);if(w!=null&&w>0)return w/1000;const v=num(c?.max_voltage),a=num(c?.max_amperage);return v!=null&&a!=null?v*a/1000:null;}
   function connectorKind(c){const p=text(c?.power_type).toUpperCase();if(p.startsWith('DC'))return'DC';if(p.startsWith('AC'))return'AC';return text(c?.standard).toUpperCase()||'UNKNOWN';}
   function tariffPricing(t){
