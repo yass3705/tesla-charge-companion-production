@@ -281,7 +281,7 @@
       const tariffs=[...new Set(electroverseLabels.length?electroverseLabels:appliedLabels.length?appliedLabels:fallback)];
       const provider=text(applied?.provider||'');
       const baseLine=tariffs.length
-        ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+(provider?' · '+esc(provider):'')+'</div>'
+        ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+(provider?' · '+esc(provider):'')+(hasTimeWindows&&appliedOffer?.pricing?.timeZone==='UTC'?' · horaires UTC':'')+'</div>'
         :row?.evaluation?.best
           ?'<div class="small" style="color:#c7d0d9">Tarif unitaire appliqué non détaillé · prix final ci-dessous</div>'
           :'<div class="small" style="color:#c7d0d9">Tarif de base non disponible</div>';

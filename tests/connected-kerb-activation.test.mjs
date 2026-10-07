@@ -8,6 +8,7 @@ const root=path.resolve(process.argv[2]);
 const pricing=require(path.join(root,'runtime/assets/v9/pricing-engine.js'));
 const sessionEngine=require(path.join(root,'runtime/assets/v9/session-engine.js'));
 const adapter=require(path.join(root,'runtime/assets/v9/adapters/uk-open-feeds.js'));
+const shell=require(path.join(root,'v9-production-shell/bridge.js'));
 const payload=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/UK/all.json.gz'))));
 const source=payload.sources.find(s=>s.id==='connected-kerb-guest');
 assert(source);
@@ -39,6 +40,9 @@ for(const date of ['2026-07-07','2026-12-07']){
 }
 const crossing=pricing.evaluateOffer(peregrine,{startAt:'2026-07-07T22:30:00Z',timeZone:'Europe/Paris',energyKwh:2,durationMinutes:60,chargingMinutes:60});
 assert(crossing.complete);assert.equal(crossing.totalEur,0.96);
+const peregrineStation=stations.find(s=>s.offers.some(o=>o.evseIds.includes('GB*CK0*E27099')));
+const evaluation=sessionEngine.evaluateStation(peregrineStation,{startAt:'2026-07-07T22:30:00Z',timeZone:'Europe/Paris',energyKwh:2,durationMinutes:60,chargingMinutes:60},{targetCurrency:'GBP'});
+assert(evaluation.best);assert(shell.renderPowerLines({station:peregrineStation,evaluation}).includes('horaires UTC'));
 const timeline=sessionEngine.evaluateTimelineOffer(peregrine,{startAt:'2026-07-07T22:30:00Z',timeZone:'Europe/Paris',energyKwh:3,durationMinutes:60,chargingMinutes:60,chargeTimeline:[{offsetMinutes:0,durationMinutes:30,energyKwh:2},{offsetMinutes:30,durationMinutes:30,energyKwh:1}]});
 assert(timeline.complete);assert.equal(timeline.totalEur,1.49004);assert.equal(timeline.timeZone,'UTC');
 const lyndhurst=offers.find(o=>o.evseIds.includes('GB*CK0*E18250'));
