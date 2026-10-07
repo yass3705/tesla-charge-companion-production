@@ -25,6 +25,11 @@
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const V7_DC_POINTS=[[0,175],[10,175],[20,170],[30,160],[40,145],[50,125],[60,105],[70,85],[80,60],[85,42],[90,28],[95,16],[98,10],[100,6]];
   const SUBSCRIPTION_KEY='tccV9SelectedSubscriptionsV1';
+  // France prices and Electra-only discounts: https://www.go-electra.com/fr/electra-plus/
+  const ELECTRA_PLUS_PLANS=[
+    {id:'electra-plus-essential',label:'Electra+ Essentiel',provider:'Electra',monthlyFeeEur:1.99,discountPerKwhEur:0.10},
+    {id:'electra-plus-smart',label:'Electra+ Smart',provider:'Electra',monthlyFeeEur:4.99,discountPerKwhEur:0.20}
+  ];
 
   function selectedSubscriptions(w){
     try{const raw=JSON.parse(w.localStorage.getItem(SUBSCRIPTION_KEY)||'[]');return Array.isArray(raw)?[...new Set(raw.map(text).filter(Boolean))]:[];}catch(_){return[];}
@@ -42,6 +47,9 @@
       const promotionEnd=text(offer?.monthlyFeePromotionEnd||metadata.promotionEnd),feeCurrent=!promotionEnd||promotionEnd>=new Date().toISOString().slice(0,10);
       const monthlyFeeEur=feeCurrent?num(offer?.monthlyFeeEur??metadata.monthlyFeeEur):null,annualFeeEur=num(offer?.annualFeeEur??metadata.annualFeeEur);
       if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur,annualFeeEur,feeNote:feeCurrent?'':'Mensualité à vérifier après promotion'});
+    }
+    if(country==='FR')for(const plan of ELECTRA_PLUS_PLANS){
+      if(!options.has(plan.id))options.set(plan.id,{...plan,countries:['FR'],coverageNote:'Remise sur les bornes Electra. Le prix de la session exige un tarif direct vérifié pour la borne.'});
     }
     return [...options.values()].sort((a,b)=>subscriptionLabel(a).localeCompare(subscriptionLabel(b),'fr'));
   }
@@ -64,14 +72,18 @@
       .filter(offer=>/^(emsp|roaming)$/i.test(text(offer?.kind))||/electra|electroverse/i.test(text(offer?.provider)))
       .map(offer=>text(offer?.provider)).filter(name=>/electra|electroverse/i.test(name)))];
     const emspMessage=emspProviders.length?' Les tarifs '+emspProviders.join(', ')+' affichés dans les résultats sont des prix eMSP, distincts d’un abonnement.':'';
-    const choices=rows.map(row=>'<label style="display:flex;align-items:flex-start;gap:8px;margin:0;padding:5px 2px"><input type="checkbox" value="'+esc(row.id)+'"'+(selected.has(text(row.id))?' checked':'')+' style="width:auto;margin:2px 0 0"><span><b>'+esc(subscriptionLabel(row))+'</b>'+(row.monthlyFeeEur!=null?' · '+esc(formatCurrencyAmount(row.monthlyFeeEur,'EUR'))+'/mois':row.annualFeeEur!=null?' · '+esc(formatCurrencyAmount(row.annualFeeEur,'EUR'))+'/an':row.feeNote?' · '+esc(row.feeNote):'')+'<span class="small" style="display:block">'+esc(row.provider)+'</span></span></label>').join('');
+    const choices=rows.map(row=>'<label style="display:flex;align-items:flex-start;gap:8px;margin:0;padding:5px 2px"><input type="checkbox" value="'+esc(row.id)+'"'+(selected.has(text(row.id))?' checked':'')+' style="width:auto;margin:2px 0 0"><span><b>'+esc(subscriptionLabel(row))+'</b>'+(row.monthlyFeeEur!=null?' · '+esc(formatCurrencyAmount(row.monthlyFeeEur,'EUR'))+'/mois':row.annualFeeEur!=null?' · '+esc(formatCurrencyAmount(row.annualFeeEur,'EUR'))+'/an':row.feeNote?' · '+esc(row.feeNote):'')+'<span class="small" style="display:block">'+esc(row.coverageNote||row.provider)+'</span></span></label>').join('');
     box.innerHTML='<b>Abonnements recharge</b> <span class="small">('+rows.length+' offre(s) vérifiée(s) en '+esc(countryCode)+')</span>'+
       '<div class="small" style="margin-top:6px">Choisis les abonnements que tu possèdes. Le tarif intervient seulement sur les bornes auxquelles il s’applique; les frais mensuels sont indiqués séparément.</div>'+
       (rows.length?'<div id="v9SubscriptionChoices" role="group" aria-label="Abonnements recharge, sélection multiple" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:3px;max-height:180px;overflow:auto;margin-top:8px">'+choices+'</div>'+
         '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button></div>':
         '<div class="small" style="margin-top:8px">Aucun tarif d’abonnement vérifié pour les bornes de cette zone.'+esc(emspMessage)+'</div>');
     const selectedIds=()=>[...box.querySelectorAll('#v9SubscriptionChoices input:checked')].map(input=>text(input.value));
-    box.querySelector('#v9SubscriptionChoices')?.addEventListener('change',()=>{saveSelectedSubscriptions(w,selectedIds());if(box._v9SubscriptionTimer)w.clearTimeout(box._v9SubscriptionTimer);box._v9SubscriptionTimer=w.setTimeout(()=>{box._v9SubscriptionTimer=null;w.compare();},150);});
+    box.querySelector('#v9SubscriptionChoices')?.addEventListener('change',event=>{
+      const changed=event.target,plans=ELECTRA_PLUS_PLANS.map(plan=>plan.id);
+      if(changed?.checked&&plans.includes(text(changed.value)))for(const input of box.querySelectorAll('#v9SubscriptionChoices input'))if(input!==changed&&plans.includes(text(input.value)))input.checked=false;
+      saveSelectedSubscriptions(w,selectedIds());if(box._v9SubscriptionTimer)w.clearTimeout(box._v9SubscriptionTimer);box._v9SubscriptionTimer=w.setTimeout(()=>{box._v9SubscriptionTimer=null;w.compare();},150);
+    });
     box.querySelector('.v9-sub-none')?.addEventListener('click',()=>{saveSelectedSubscriptions(w,[]);w.compare();});
   }
 
