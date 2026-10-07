@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: c0853fcd900370ad3662b7190c999b9862750053
+          ref: f853a93fa2f4b5bfcddca0fde18e58780c33e16b
           path: production
 
       - name: Checkout stable baseline
@@ -53,7 +53,7 @@ jobs:
           SNAPSHOT_ID: 2026-10-07-irve-status-electroverse-evse-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = c0853fcd900370ad3662b7190c999b9862750053
+          test "$(git -C production rev-parse HEAD)" = f853a93fa2f4b5bfcddca0fde18e58780c33e16b
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = 4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f
           python production/scripts/build_refresh_candidate_config.py \
@@ -116,6 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           node production/tests/runtime-browser-journey.mjs
+          node production/tests/runtime-browser-morocco-tesla.mjs
           python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
 
       - name: Configure Pages
