@@ -17,6 +17,21 @@ def upsert(sources,row):
 def build_registry(path):
     obj=load(path)
     sources=obj.setdefault("sources",[])
+    sources[:]=[source for source in sources if source.get("id")!="france-electra-bois-darcy-direct"]
+    upsert(sources,{
+      "id":"belgium-nap-national","label":"Belgium pinned NAP physical baseline",
+      "adapter":"national-compact-v4","root":"data/v9/belgium-static/","manifest":"data/v9/belgium-static/manifest.json",
+      "countries":["BE"],"capabilities":["inventory","connectors","access","status"],
+      "priority":{"identity":75,"connectors":75,"access":55,"status":75,"tariff":0},
+      "refresh":"snapshot-pinned","active":True,"optional":False
+    })
+    upsert(sources,{
+      "id":"belgium-nap-direct","label":"Belgium NAP exact-EVSE ad-hoc direct tariffs",
+      "adapter":"direct-offer-sharded-v1","root":"data/v9/belgium-nap-offers/","manifest":"data/v9/belgium-nap-offers/manifest.json",
+      "countries":["BE"],"capabilities":["tariff"],"priority":{"tariff":125},
+      "refresh":"snapshot-pinned","active":True,"optional":False,
+      "policy":"Only one unambiguous ad-hoc kWh price per EVSE with known VAT treatment is exposed. Unsupported and ambiguous tariffs remain unpriced."
+    })
     upsert(sources,{
       "id":"germany-production-snapshot",
       "label":"Germany pinned BNetzA/direct-CPO production snapshot",
@@ -75,6 +90,98 @@ def build_registry(path):
       "policy":"France national station/EVSE identities are the sole attachment hub. Electra offers attach independently by exact national IRVE EVSE ID; no Electroverse dependency and no proximity inference."
     })
     upsert(sources,{
+      "id":"france-electra-direct",
+      "label":"Electra France exact station app tariffs (captured 2026-09-02)",
+      "adapter":"direct-offer-json",
+      "path":"data/v9/electra-direct-france.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":125},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Use only one unambiguous app tariff per officially matched Electra station, PAN station IDs within 10 m and DC connectors. Energy rates are selected by Europe/Paris session-start time; conditional congestion fees are excluded and visibly disclosed. Ambiguous stations stay unpriced."
+    })
+    upsert(sources,{
+      "id":"france-electra-bois-current-inventory",
+      "label":"Electra Bois-d'Arcy current 19-connector inventory (official card 2026-10-06)",
+      "adapter":"static-station-json",
+      "path":"data/v9/electra-bois-inventory.json",
+      "countries":["FR"],
+      "capabilities":["inventory","connectors"],
+      "priority":{"identity":45,"connectors":150},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Replace historical AC 22 kW and duplicate national aliases with the current Electra station card's 19 DC connectors, retaining national PDC identities."
+    })
+    upsert(sources,{
+      "id":"france-aldi-guyancourt-direct",
+      "label":"ALDI Guyancourt official slow AC price (observed 2026-10-06)",
+      "adapter":"direct-offer-json",
+      "path":"data/v9/aldi-guyancourt-direct.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":125},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Apply ALDI's published 0.19 EUR/kWh slow AC price only to exact national station FRALNP25007130 and its 22 kW AC connectors; exclude mobility-card surcharges."
+    })
+    upsert(sources,{
+      "id":"france-izivia-fast-dole-inventory",
+      "label":"IZIVIA FAST Dole exact CCS/Type 2 connector correction (IRVE + official map 2026-10-06)",
+      "adapter":"static-station-json",
+      "path":"data/v9/izivia-fast-dole-inventory.json",
+      "countries":["FR"],
+      "capabilities":["inventory","connectors"],
+      "priority":{"identity":40,"connectors":95},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Only FRIZFPFAST422 is enriched with dated IRVE PDC identities and the official map 22 kW Type 2 correction; historical snapshots before 2026-10-06 disable this source."
+    })
+    upsert(sources,{
+      "id":"france-izivia-fast-dole-direct",
+      "label":"IZIVIA FAST McDonald's Dole exact station direct tariff (observed 2026-10-06)",
+      "adapter":"direct-offer-json",
+      "path":"data/v9/izivia-fast-dole-direct.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":125},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "disabledReason":"Superseded by official station-by-station national FAST capture.",
+      "policy":"Historical single-station evidence retained for regression tests; national FAST direct source is authoritative."
+    })
+    upsert(sources,{
+      "id":"france-izivia-fast-official-inventory",
+      "label":"IZIVIA FAST France exact station connector stats from official map (captured 2026-10-06)",
+      "adapter":"static-station-json",
+      "path":"data/v9/izivia-fast-inventory-france.json",
+      "countries":["FR"],
+      "capabilities":["inventory","connectors"],
+      "priority":{"identity":40,"connectors":94},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Correct stale national FAST AC 150/200 kW classifications with exact official map connector kind, power and count for 616 verified station IDs; no PDC IDs are inferred. Dole's exact IRVE correction has higher connector priority."
+    })
+    upsert(sources,{
+      "id":"france-izivia-fast-official-france",
+      "label":"IZIVIA FAST France exact station tariffs from official map (captured 2026-10-06)",
+      "adapter":"direct-offer-json",
+      "path":"data/v9/izivia-fast-france.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":125},
+      "refresh":"immutable-production-snapshot",
+      "active":True,
+      "optional":False,
+      "policy":"Attach direct tariffs only to exact national FAST station IDs and matching official connector kinds/powers from the 2026-10-06 per-station map capture. Unknown tariff text or missing connector evidence fails closed; Express and other IZIVIA networks are excluded."
+    })
+    upsert(sources,{
       "id":"france-electroverse-r8",
       "label":"France pinned Electroverse exact station tariffs",
       "adapter":"direct-offer-json",
@@ -85,7 +192,7 @@ def build_registry(path):
       "refresh":"immutable-production-snapshot",
       "active":True,
       "optional":False,
-      "policy":"France national station/EVSE identities are the sole attachment hub. Electroverse offers attach independently through validated IRVE mappings; no Electroverse-to-Electra dependency is permitted. Only high-confidence mappings with one uniform simple tariff across all cached connectors are exposed; complex or heterogeneous tariffs remain fail-closed."
+      "policy":"France national station/EVSE identities are the sole attachment hub. Electroverse offers attach independently through validated IRVE mappings; no Electroverse-to-Electra dependency is permitted. A station-wide offer is used only for a genuinely uniform connector tariff. All heterogeneous tariffs require pinned exact-EVSE offers with a source tariff hash matching the current cache; unresolved identities remain fail-closed."
     })
     upsert(sources,{
       "id":"france-ionity-r8",
@@ -172,10 +279,17 @@ def build_registry(path):
             src["optional"]=True
             src["refresh"]="immutable-production-snapshot"
             src["policy"]="Use the pinned r8 Atlante France exact-EVSE direct snapshot; unmatched EVSEs remain fail-closed."
+        elif src.get("id")=="e55c-direct-france":
+            src["label"]="Electric 55 Scan Pay direct tariffs attached by exact EVSE"
+            src["path"]="../data/e55c_station_tariffs_v1.json.gz"
+            src["active"]=True
+            src["optional"]=False
+            src["refresh"]="immutable-production-snapshot"
+            src["policy"]="Use only the pinned Electric 55 Scan Pay tariffs attached by exact EVSE identity and physical operator. Unresolved points remain unpriced."
 
     obj["productionIntegration"]={
       "schemaVersion":1,
-      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
+      "snapshotLocalSources":["germany-production-snapshot","germany-ionity-isolated-r8","uk-production-open-feeds","morocco-evgo-native","morocco-fastvolt-public","morocco-kilowatt-public","morocco-totalenergies-hosts","atlante-direct-france","e55c-direct-france","france-electra-direct","france-izivia-fast-dole-inventory","france-izivia-fast-official-inventory","france-izivia-fast-official-france","france-electroverse-r8","france-ionity-r8","switzerland-avia-r8","italy-atlante-r8","italy-ionity-r8"],
       "remainingExternalSources":[],
       "policy":"Snapshot-local sources are required wherever an exact validated r8 artifact exists. No Morocco runtime source depends on Data Lab main; stale dynamic status fails closed while inventory and validated tariff evidence remain available."
     }

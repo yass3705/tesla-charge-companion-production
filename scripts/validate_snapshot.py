@@ -14,7 +14,8 @@ def main():
     datasets = obj.get("datasets", [])
     ids = [d.get("id") for d in datasets]
     assert len(ids) == len(set(ids)), "duplicate dataset ids"
-    assert set(ids) == EXPECTED, f"scope mismatch: {set(ids) ^ EXPECTED}"
+    expected=EXPECTED|({"BE"} if str(obj.get("snapshotId") or "")[:10]>="2026-10-07" else set())
+    assert set(ids) == expected, f"scope mismatch: {set(ids) ^ expected}"
     sources = obj.get("sources", {})
     for d in datasets:
         assert d.get("coverage") in ALLOWED, f"bad coverage for {d.get('id')}"

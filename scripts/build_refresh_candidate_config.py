@@ -17,6 +17,8 @@ def main():
     obj["snapshotId"]=args.snapshot_id or ("refresh-candidate-"+sha[:12])
     obj["sources"]["dataLab"]["sha"]=sha
     obj["sourceSelection"]["selectedDataLabCommit"]=sha
+    if obj["snapshotId"][:10]>="2026-10-07" and not any(d.get("id")=="BE" for d in obj["datasets"]):
+        obj["datasets"].append({"id":"BE","kind":"national","coverage":"partial","primarySource":"dataLab","path":"data/belgium/nap-belgium-manifest.json","materialization":"Tiled NAP inventory plus exact-EVSE ad-hoc prices with known VAT treatment"})
     if args.use_datalab_tesla:
         tesla=next((d for d in obj.get("datasets",[]) if d.get("id")=="TESLA"),None)
         if not tesla:

@@ -58,7 +58,61 @@ def main():
             if src.is_file():
                 copy_file(src,out/"runtime"/src.relative_to(overrides))
     registry=out/"runtime/data/v9/source-registry.json"
+    snapshot_date=str(cfg.get("snapshotId") or "")[:10]
+    if snapshot_date>="2026-10-06":
+        pan_static=dl/"data/national/france-irve-static-v9"
+        pan_manifest=load_json(pan_static/"manifest.json")
+        assert pan_manifest.get("sourceUrl")=="https://proxy.transport.data.gouv.fr/resource/consolidation-transport-irve-statique", pan_manifest.get("sourceUrl")
+        assert pan_manifest.get("pdcCount",0)>120000, pan_manifest.get("pdcCount")
+        copy_tree(pan_static,out/"runtime/data/v9/france-static")
+    be_enabled=snapshot_date>="2026-10-07"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
+    if snapshot_date>="2026-10-06":
+        reg=load_json(registry)
+        fr_source=next(source for source in reg["sources"] if source.get("id")=="france-national")
+        fr_source["label"]="France PAN IRVE static validated and deduplicated"
+        fr_source["refresh"]="snapshot-pinned-data-lab-pan"
+        fr_source["sourceUrl"]=pan_manifest["sourceUrl"]
+        write_json(registry,reg)
+    if be_enabled:
+        subprocess.run([sys.executable,str(production_root/"scripts/build_belgium_nap_runtime.py"),str(dl),str(out/"runtime/data/v9")],check=True)
+    else:
+        reg=load_json(registry)
+        reg["sources"]=[source for source in reg["sources"] if source.get("id") not in ("belgium-nap-national","belgium-nap-direct")]
+        write_json(registry,reg)
+    subprocess.run([sys.executable,str(production_root/"scripts/build_electra_direct_offers.py"),str(dl/"data/operator_direct/electra_exact_france.json"),str(out/"runtime/data/v9/electra-direct-france.json")],check=True)
+    if snapshot_date>="2026-10-07":
+        dynamic_status=dl/"data/national/france-irve-dynamic-status-v9.json.gz"
+        if not dynamic_status.exists():
+            raise SystemExit(f"Pinned daily IRVE dynamic status missing: {dynamic_status}")
+        copy_file(dynamic_status,out/"runtime/data/v9/france-irve-dynamic-status.json.gz")
+        reg=load_json(registry)
+        status_source=next(source for source in reg["sources"] if source.get("id")=="france-irve-dynamic")
+        status_source["livePath"]="https://raw.githubusercontent.com/yass3705/tesla-charge-companion-data-lab/main/data/national/france-irve-dynamic-status-v9.json.gz"
+        status_source["freshnessMaxMinutes"]=2880
+        status_source["refresh"]="daily-data-lab-main-with-pinned-fallback"
+        write_json(registry,reg)
+    if snapshot_date>="2026-10-06":
+        subprocess.run([sys.executable,str(production_root/"scripts/build_electra_bois_inventory.py"),str(dl/"data/national/france-irve-static-v9/all.json.gz"),str(out/"runtime/data/v9/electra-bois-inventory.json")],check=True)
+        izivia_fast_source=dl/"data/operator_direct/izivia_fast_direct_france_2026_10_06.json"
+        if not izivia_fast_source.exists():
+            raise SystemExit(f"Pinned Data Lab IZIVIA FAST direct offers missing: {izivia_fast_source}")
+        copy_file(izivia_fast_source,out/"runtime/data/v9/izivia-fast-france.json")
+        izivia_fast_inventory=dl/"data/operator_direct/izivia_fast_inventory_france_2026_10_06.json"
+        if not izivia_fast_inventory.exists():
+            raise SystemExit(f"Pinned Data Lab IZIVIA FAST connector correction missing: {izivia_fast_inventory}")
+        copy_file(izivia_fast_inventory,out/"runtime/data/v9/izivia-fast-inventory-france.json")
+    # The Dole connector evidence was captured on 2026-10-05. Keep older
+    # immutable snapshot candidates on their original AC-only inventory.
+    if len(snapshot_date)==10 and snapshot_date<"2026-10-06":
+        reg=load_json(registry)
+        for src in reg.get("sources",[]):
+            sid=src.get("id")
+            if sid in {"france-izivia-fast-official-france","france-izivia-fast-official-inventory","france-izivia-fast-dole-inventory","france-izivia-fast-dole-direct","france-electra-bois-current-inventory","france-aldi-guyancourt-direct"}:
+                src["active"]=False
+                src["optional"]=True
+                src["disabledReason"]="IZIVIA FAST source evidence postdates this historical snapshot"
+        write_json(registry,reg)
 
     # Build a self-contained deployable shell in the production snapshot.
     # Root enters V9 directly; the pinned V7.3 control remains available only
@@ -88,6 +142,24 @@ def main():
             if not metadata_src.exists():
                 raise SystemExit(f"Pinned Data Lab Tesla metadata missing: {metadata_path}")
             copy_file(metadata_src,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
+    # The Morocco power-band tariff is pinned from the local Tesla export on
+    # the Mac, independently of the SuC Tracker feed used for other countries.
+    if be_enabled:
+        mac_ma=load_json(production_root/"runtime-overrides/data/v9/tesla-morocco-mac-export.json")
+        for target in (out/"runtime/data/tesla_stations.json",out/"data/tesla_stations.json"):
+            catalogue=load_json(target)
+            mac_by_id={station["id"]:station for station in mac_ma["stations"]}
+            if isinstance(catalogue,list):
+                rows=catalogue
+            else:
+                rows=catalogue.get("stations",[])
+            merged=[mac_by_id.get(station.get("id"),station) if station.get("countryCode")=="MA" else station for station in rows]
+            present={station.get("id") for station in merged}
+            merged.extend(station for station in mac_ma["stations"] if station["id"] not in present)
+            if merged!=rows:
+                if isinstance(catalogue,list):catalogue=merged
+                else:catalogue["stations"]=merged
+                write_json(target,catalogue)
     # Netherlands: optionally replace the legacy Stable baseline with the
     # immutable national runtime built in Data Lab. The source directory already
     # contains manifest, all.json.gz and tiles; keep its layout under the stable
@@ -140,6 +212,16 @@ def main():
     if fallback_old not in shell_text:
         raise AssertionError("stable shell fallback marker missing")
     shell_text=shell_text.replace(fallback_old,"const CONTROL_FALLBACK='../control/index.html';",1)
+    # Version scripts so an existing Pages visit cannot reuse stale UI or pricing code.
+    bridge_source="bridge.src='v9-production-shell/bridge.js';"
+    if shell_text.count(bridge_source)!=1:
+        raise AssertionError("stable shell bridge script marker missing or duplicated")
+    bridge_version=sha256(out/"v9-production-shell/bridge.js")[:16]
+    shell_text=shell_text.replace(bridge_source,f"bridge.src='v9-production-shell/bridge.js?v=v9-ui-{bridge_version}';",1)
+    runtime_script='script.src=`${runtimeBase}/${path}`;'
+    if shell_text.count(runtime_script)!=1:
+        raise AssertionError("stable shell runtime script marker missing or duplicated")
+    shell_text=shell_text.replace(runtime_script,'script.src=`${runtimeBase}/${path}?v='+str(cfg['snapshotId'])+'`;',1)
     dependency_anchor="'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'"
     if dependency_anchor not in shell_text:
         raise AssertionError("stable shell runtime dependency anchor missing")
@@ -162,7 +244,7 @@ def main():
       "runtimeBase":"runtime",
       "snapshotId":cfg["snapshotId"],
       "observedCandidateSha":cfg["sources"]["stable"]["sha"],
-      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"],
+      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"]+(["BE"] if be_enabled else []),
       "fallback":"control/index.html",
       "notes":"Production-owned V9 shell. Root enters V9 directly; pinned V7.3 control is local fallback only."
     })
@@ -294,22 +376,35 @@ def main():
     ev_cache=dl/"data/electroverse/tariff_cache"
     ev_manifest=ev_cache/"manifest.json"
     if ev_manifest.exists():
-        subprocess.run([
+        electroverse_args=[
           sys.executable,
           str(production_root/"scripts/build_electroverse_runtime_offers.py"),
           "--cache-dir",str(ev_cache),
           "--manifest",str(ev_manifest),
+          "--national",str(out/"runtime/data/v9/france-static/all.json.gz"),
+          "--mapping",str(dl/"data/electroverse/irve_location_mapping.json"),
           "--out",str(overlays/"FR/platforms/electroverse-runtime-offers.json")
-        ],check=True)
+        ]
+        evse_platform=dl/"data/platforms/electroverse/france-evse"
+        if (evse_platform/"manifest.json").exists():
+            electroverse_args.extend(["--evse-platform",str(evse_platform)])
+        elif be_enabled:
+            raise SystemExit(f"Pinned Electroverse EVSE overlay missing: {evse_platform}")
+        subprocess.run(electroverse_args,check=True)
 
     # Electra eMSP aggregate overlay is independent from Electroverse and
-    # attaches only through exact national France EVSE/PDC identities.
+    # uses pinned national EVSE identities or validated curated IRVE locations.
     electra_platform=dl/"data/platforms/electra/france"
     electra_manifest=electra_platform/"manifest.json"
     if electra_manifest.exists():
         em=load_json(electra_manifest)
         assert em.get("policy",{}).get("nationalFranceIsIdentityHub") is True
-        assert em.get("policy",{}).get("exactNationalEvseOnly") is True
+        ep=em.get("policy",{})
+        if ep.get("exactNationalEvseOnly") is not True:
+            assert set(ep.get("acceptedIdentityModes") or []) == {
+                "exact_national_irve_evse", "curated_irve_location"
+            }
+            assert ep.get("curatedMatchRequiresValidatedDistanceNameAddressPowerAndConnectorEvidence") is True
         assert em.get("policy",{}).get("electroverseDependency") is False
         assert int((em.get("stats") or {}).get("publishedOffers") or 0) > 0
         copy_tree(electra_platform,overlays/"FR/platforms/electra")
@@ -405,6 +500,58 @@ def main():
           "policy":"National station baseline is publishable; only validated direct/EVSE pricing is applied. Residual tariffs remain fail-closed."
         })
 
+    def metadata_date(paths):
+        fields=("sourceGeneratedAt","generatedAt","updatedAt","asOf","effectiveTariffDate","checkedAt","snapshotDate","date")
+        for raw_path in paths:
+            candidate=pathlib.Path(raw_path)
+            if not candidate.exists():
+                continue
+            try:
+                obj=load_json(candidate)
+            except Exception:
+                continue
+            if not isinstance(obj,dict):
+                continue
+            for field in fields:
+                value=obj.get(field)
+                if isinstance(value,str) and len(value)>=10:
+                    return value[:10],"source",str(candidate)
+        return None,None,None
+
+    def pinned_commit_date(repo_path,sha):
+        try:
+            result=subprocess.run(["git","-C",str(repo_path),"show","-s","--format=%cs",str(sha)],check=True,capture_output=True,text=True)
+            return result.stdout.strip()[:10]
+        except Exception:
+            return cfg.get("snapshotId","")[:10]
+
+    datalab_pin=pinned_commit_date(dl,cfg.get("sources",{}).get("dataLab",{}).get("sha","HEAD"))
+    stable_pin=pinned_commit_date(stable,cfg.get("sources",{}).get("stable",{}).get("sha","HEAD"))
+    base_specs=[
+      ("TESLA","Tesla · export Mac au Maroc" if be_enabled else "Tesla · SuC Tracker",[out/"runtime/data/v9/tesla-morocco-mac-export.json",out/"snapshot-inputs/TESLA/suc-tracker-metadata.json"] if be_enabled else [out/"snapshot-inputs/TESLA/suc-tracker-metadata.json"],stable_pin),
+      ("ES","Espagne · REVE",[out/"runtime/data/v9/spain-static/manifest.json"],stable_pin),
+      ("NL","Pays-Bas · base nationale DOT-NL",[out/"snapshot-inputs/NL/runtime/manifest.json",out/"snapshot-inputs/NL/manifest.json"],datalab_pin),
+      ("CH","Suisse · base nationale et tarifs directs",[out/"runtime/data/v9/switzerland-static/manifest.json",out/"snapshot-inputs/CH/direct/avia-reconciliation.json"],datalab_pin),
+      ("MA","Maroc · bases CPO publiques",[out/"snapshot-inputs/MA/cpo-ledger.json",out/"snapshot-inputs/MA/manifest.json"],datalab_pin),
+      ("FR","France · IRVE et tarifs CPO",[out/"snapshot-inputs/FR/cpo-ledger.json",out/"runtime/data/v9/france-static/manifest.json"],datalab_pin),
+      ("IT","Italie · base nationale et tarifs CPO",[out/"snapshot-inputs/IT/cpo-ledger.json",out/"runtime/data/v9/italy-static/manifest.json"],stable_pin),
+      ("DE","Allemagne · base nationale et tarifs CPO",[out/"snapshot-inputs/DE/national-source-manifest.json",out/"snapshot-inputs/DE/cpo-progress.json"],datalab_pin),
+      ("UK","Royaume-Uni · flux opérateurs validés",[out/"snapshot-inputs/UK/cpo-ledger.json",out/"snapshot-inputs/UK/manifest.json"],datalab_pin),
+      ("BE","Belgique · NAP et tarifs directs vérifiés",[out/"runtime/data/v9/belgium-static/manifest.json",out/"snapshot-inputs/BE/manifest.json"],datalab_pin),
+      ("ELECTRA","France · tarifs Electra",[out/"snapshot-inputs/FR/platforms/electra/manifest.json"],datalab_pin),
+      ("ELECTROVERSE","France · tarifs Electroverse",[out/"snapshot-inputs/FR/platforms/electroverse-runtime-offers.json",dl/"data/electroverse/tariff_cache/manifest.json"],datalab_pin),
+    ]
+    base_dates=[]
+    for base_id,label,paths,pinned_date in base_specs:
+        date,date_type,date_source=metadata_date(paths)
+        if not date:
+            pin_sha=cfg.get("sources",{}).get("stable",{}).get("sha") if pinned_date==stable_pin else cfg.get("sources",{}).get("dataLab",{}).get("sha")
+            date,date_type,date_source=pinned_date,"revision",pin_sha
+        base_dates.append({"id":base_id,"label":label,"date":date,"dateType":date_type,"dateSource":date_source})
+    write_json(out/"runtime/data/v9/base-dates.json",{
+      "schemaVersion":1,"snapshotId":cfg["snapshotId"],"bases":base_dates
+    })
+
     # One common route table for the Worker/R2 runtime. This preserves existing
     # validated country formats while giving the frontend one stable discovery contract.
     contract={
@@ -417,7 +564,7 @@ def main():
         "shellConfig":"v9-production-shell/shell-config.json",
         "controlFallback":"control/index.html",
         "runtimeBase":"runtime",
-        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"]
+        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"]+(["BE"] if be_enabled else [])
       },
       "runtimeIntegration":{
         "registry":"runtime/data/v9/source-registry.json",
@@ -435,7 +582,7 @@ def main():
         "loaderExtensionInstall":"TCCV9ProductionBootstrap.install()"
       },
       "datasets":{
-        "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None},
+        "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None,"moroccoSource":"runtime/data/v9/tesla-morocco-mac-export.json"},
         "ES":{"kind":"static-tiles","manifest":"runtime/data/v9/spain-static/manifest.json","offers":"runtime/data/v9/spain-reve-offers/manifest.json","coverage":"complete"},
         "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
         "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","direct":"snapshot-inputs/CH/direct","coverage":"complete-with-fail-closed-residuals"},
@@ -443,9 +590,13 @@ def main():
         "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","identityHub":"national France station/EVSE baseline","coverage":"partial"},
         "IT":{"kind":"static-tiles","manifest":"runtime/data/v9/italy-static/manifest.json","offers":"runtime/data/v9/italy-offers.json","direct":"snapshot-inputs/IT/direct","coverage":"partial"},
         "DE":{"kind":"national-baseline","manifest":"snapshot-inputs/DE/manifest.json","all":"snapshot-inputs/DE/all.json.gz","direct":"snapshot-inputs/DE/direct","coverage":"partial"},
-        "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"}
+        "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"},
+        "BE":{"kind":"static-tiles","manifest":"runtime/data/v9/belgium-static/manifest.json","offers":"runtime/data/v9/belgium-nap-offers/manifest.json","coverage":"complete-inventory-partial-direct-prices"}
       }
     }
+    if not be_enabled:
+        contract["datasets"].pop("BE")
+        contract["datasets"]["TESLA"].pop("moroccoSource")
     write_json(out/"runtime-contract.json",contract)
 
     files=[]

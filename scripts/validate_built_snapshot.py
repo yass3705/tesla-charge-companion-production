@@ -4,7 +4,7 @@ import json
 import pathlib
 import sys
 
-EXPECTED={"TESLA","ES","NL","CH","MA","FR","IT","DE","UK"}
+EXPECTED={"TESLA","ES","NL","CH","MA","FR","IT","DE","UK","BE"}
 
 def load(path):
     return json.loads(path.read_text(encoding="utf-8"))
@@ -26,13 +26,15 @@ def main():
     if len(sys.argv)>2:
         assert manifest["snapshotId"]==sys.argv[2], (manifest["snapshotId"],sys.argv[2])
     assert manifest["policy"]=="fail-closed"
-    assert set(contract["datasets"])==EXPECTED
+    be_enabled=manifest["snapshotId"][:10]>="2026-10-07"
+    expected=EXPECTED if be_enabled else EXPECTED-{"BE"}
+    assert set(contract["datasets"])==expected
     deployment=contract.get("deployment") or {}
     assert deployment.get("rootIndex")=="index.html", deployment
     assert deployment.get("shell")=="v9-production-shell/index.html", deployment
     assert deployment.get("controlFallback")=="control/index.html", deployment
     assert deployment.get("runtimeBase")=="runtime", deployment
-    assert set(deployment.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}, deployment
+    assert set(deployment.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}|({"BE"} if be_enabled else set()), deployment
     for rel in ("index.html","control/index.html","v9-production-shell/index.html","v9-production-shell/shell-config.json","assets/app.js","assets/update.js"):
         assert (root/rel).exists(), f"missing deployable file {rel}"
     root_index=(root/"index.html").read_text(encoding="utf-8")
@@ -58,7 +60,17 @@ def main():
     assert shell_cfg.get("runtimeBase")=="runtime", shell_cfg
     assert shell_cfg.get("controlIndex")=="../control/index.html", shell_cfg
     assert shell_cfg.get("snapshotId")==manifest["snapshotId"], shell_cfg
-    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}, shell_cfg
+    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}|({"BE"} if be_enabled else set()), shell_cfg
+    if be_enabled:
+        be_manifest=load(root/"runtime/data/v9/belgium-static/manifest.json")
+        be_offers=load(root/"runtime/data/v9/belgium-nap-offers/manifest.json")
+        assert be_manifest.get("stationCount",0)>15000 and be_offers.get("offerCount",0)>10000,(be_manifest,be_offers)
+
+    if manifest["snapshotId"][:10]>="2026-10-06":
+        fr_static=root/"runtime/data/v9/france-static"
+        fr_manifest=load(fr_static/"manifest.json")
+        assert fr_manifest.get("sourceUrl")=="https://proxy.transport.data.gouv.fr/resource/consolidation-transport-irve-statique",fr_manifest.get("sourceUrl")
+        assert fr_manifest.get("pdcCount",0)>120000 and (fr_static/"all.json.gz").exists(),fr_manifest.get("pdcCount")
 
     runtime_integration=contract.get("runtimeIntegration") or {}
     registry_rel=runtime_integration.get("registry")
@@ -67,6 +79,19 @@ def main():
         assert (root/rel).exists(), f"missing runtime integration script {rel}"
     registry=load(root/registry_rel)
     sources={x.get("id"):x for x in registry.get("sources",[]) if isinstance(x,dict)}
+    if manifest["snapshotId"][:10]>="2026-10-06":
+        fr_source=sources.get("france-national") or {}
+        assert fr_source.get("sourceUrl")==fr_manifest["sourceUrl"],fr_source
+        assert fr_source.get("refresh")=="snapshot-pinned-data-lab-pan",fr_source
+    if manifest["snapshotId"][:10]>="2026-10-07":
+        status_src=sources.get("france-irve-dynamic") or {}
+        assert status_src.get("freshnessMaxMinutes")==2880 and status_src.get("livePath"," ").endswith("/data/national/france-irve-dynamic-status-v9.json.gz"),status_src
+        status_path=root/"runtime/data/v9/france-irve-dynamic-status.json.gz"
+        assert status_path.exists(),status_path
+        with gzip.open(status_path,"rt",encoding="utf-8") as f:
+            status=json.load(f)
+        assert status.get("generatedAt") and status.get("matchedPdc",0)>100000,status.get("matchedPdc")
+        assert status.get("displayExcludedPdc",0)==len(status.get("records") or []),status.get("displayExcludedPdc")
     de_src=sources.get("germany-production-snapshot") or {}
     uk_src=sources.get("uk-production-open-feeds") or {}
     assert de_src.get("adapter")=="germany-national-v1" and de_src.get("path")=="../snapshot-inputs/DE/all.json.gz", de_src
@@ -108,9 +133,11 @@ def main():
     ev_payload=load(ev_runtime)
     ev_meta=ev_payload.get("metadata") or {}
     assert len(ev_payload.get("emspOffers") or [])>=1000, ev_meta
-    assert ev_meta.get("publishedStationOffers")==len(ev_payload.get("emspOffers") or []), ev_meta
-    assert (ev_payload.get("policy") or {}).get("complexPricingFailClosed") is True, ev_payload.get("policy")
-    assert (ev_payload.get("policy") or {}).get("heterogeneousConnectorPricingFailClosed") is True, ev_payload.get("policy")
+    assert ev_meta.get("publishedOffers")==len(ev_payload.get("emspOffers") or []), ev_meta
+    assert 1000<=ev_meta.get("publishedStationOffers",0)<=ev_meta["publishedOffers"], ev_meta
+    assert sum((ev_meta.get("nationalJoin") or {}).values())+ev_meta.get("heterogeneousExactEvseFallbackOffers",0)==ev_meta["publishedOffers"], ev_meta
+    assert (ev_payload.get("policy") or {}).get("unsupportedOrAmbiguousComplexPricingFailClosed") is True, ev_payload.get("policy")
+    assert (ev_payload.get("policy") or {}).get("heterogeneousConnectorTariffRequiresExactEvse") is True, ev_payload.get("policy")
     avia_ch=sources.get("switzerland-avia-r8") or {}
     assert avia_ch.get("adapter")=="switzerland-avia-v1", avia_ch
     assert avia_ch.get("path")=="../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json", avia_ch

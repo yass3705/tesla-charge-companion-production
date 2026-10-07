@@ -1,10 +1,6 @@
 name: Full V9 RC1 comparison browser journey
 on:
-  push:
-    paths:
-      - "tests/runtime-browser-journey.mjs"
-      - ".github/workflows/smoke-v9-rc1-journey.yml"
-  workflow_dispatch:
+  workflow_dispatch: # Historical RC1 artifact only; active preview uses the explicit candidate journey.
 permissions:
   actions: read
   contents: read

@@ -1,0 +1,989 @@
+{
+  "source": "Tesla export via Mac",
+  "sourceSha256": "fd9bb12505968a054f61e95266ade3b4bf1f5c94cdef636c38ab672833690ba2",
+  "stations": [
+    {
+      "id": "tesla-agadir-morocco",
+      "name": "Tesla Agadir, Morocco",
+      "kind": "DC",
+      "source": "teslaSupercharger",
+      "countryCode": "MA",
+      "department": "Commune de Bensergao",
+      "powerKw": 150,
+      "stalls": 4,
+      "address": "Baie des palmiers - Cité Founty P5, Agadir 80010, Morocco",
+      "latitude": 30.391503,
+      "longitude": -9.596681,
+      "mapsUrl": "https://maps.google.com/maps?daddr=30.391503,-9.596681",
+      "teslaUrl": "https://www.tesla.com/fr_FR/findus/location/supercharger/agadirsupercharger",
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "billing": "powerMinute",
+            "currency": "MAD",
+            "pricePerKwh": 0,
+            "chargePerMinute": 0,
+            "connectionFee": 0,
+            "idlePerMinute": 0,
+            "powerBands": [
+              {
+                "minKw": 0,
+                "maxKw": 60,
+                "ratePerMinute": 1.1
+              },
+              {
+                "minKw": 60,
+                "maxKw": 100,
+                "ratePerMinute": 2.3
+              },
+              {
+                "minKw": 100,
+                "maxKw": 180,
+                "ratePerMinute": 3.5
+              },
+              {
+                "minKw": 180,
+                "maxKw": 1000,
+                "ratePerMinute": 6.0
+              }
+            ]
+          }
+        ]
+      },
+      "access": {
+        "limited": false,
+        "days": {
+          "0": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "1": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "2": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "3": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "4": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "5": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "6": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          }
+        },
+        "afterCloseMode": "exit_allowed",
+        "afterCloseNote": "Accès 24 h/24, 7 j/7 indiqué par Tesla."
+      },
+      "lastUpdated": "2026-07-22",
+      "temporarilyUnavailable": false,
+      "operator": "Tesla",
+      "chargingConfigurations": [
+        {
+          "id": "main",
+          "label": "DC 150 kW",
+          "kind": "DC",
+          "powerKw": 150,
+          "stalls": 4,
+          "pricing": {
+            "type": "rules",
+            "rules": [
+              {
+                "scope": "allDay",
+                "start": "00:00",
+                "end": "24:00",
+                "billing": "powerMinute",
+                "currency": "MAD",
+                "pricePerKwh": 0,
+                "chargePerMinute": 0,
+                "connectionFee": 0,
+                "idlePerMinute": 0,
+                "powerBands": [
+                  {
+                    "minKw": 0,
+                    "maxKw": 60,
+                    "ratePerMinute": 1.1
+                  },
+                  {
+                    "minKw": 60,
+                    "maxKw": 100,
+                    "ratePerMinute": 2.3
+                  },
+                  {
+                    "minKw": 100,
+                    "maxKw": 180,
+                    "ratePerMinute": 3.5
+                  },
+                  {
+                    "minKw": 180,
+                    "maxKw": 1000,
+                    "ratePerMinute": 6.0
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "teslaRawPricebooks": [
+        {
+          "currencyCode": "MAD",
+          "uom": "min",
+          "rateBase": 0,
+          "rateTier1": 1.1,
+          "rateTier2": 2.3,
+          "rateMinTier1": 1.1,
+          "rateMinTier2": 2.3,
+          "rateMinTier3": 3.5,
+          "rateMinTier4": 6,
+          "startTime": "",
+          "endTime": "",
+          "days": "",
+          "isTou": false
+        }
+      ],
+      "teslaCongestionFeePerMinute": 4.5
+    },
+    {
+      "id": "tesla-casablanca-morocco",
+      "name": "Tesla Casablanca, Morocco",
+      "kind": "DC",
+      "source": "teslaSupercharger",
+      "countryCode": "MA",
+      "department": "",
+      "powerKw": 150,
+      "stalls": 4,
+      "address": "Parking Onomo Hotel, Boulevard Al Massira Al Khadra, Casablanca 20250, Morocco",
+      "latitude": 33.586741,
+      "longitude": -7.6386354,
+      "mapsUrl": "https://maps.google.com/maps?daddr=33.586741,-7.6386354",
+      "teslaUrl": "https://www.tesla.com/fr_FR/findus/location/supercharger/casablancamoroccosupercharger",
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "billing": "powerMinute",
+            "currency": "MAD",
+            "pricePerKwh": 0,
+            "chargePerMinute": 0,
+            "connectionFee": 6.0,
+            "idlePerMinute": 0,
+            "powerBands": [
+              {
+                "minKw": 0,
+                "maxKw": 60,
+                "ratePerMinute": 1.1
+              },
+              {
+                "minKw": 60,
+                "maxKw": 100,
+                "ratePerMinute": 2.3
+              },
+              {
+                "minKw": 100,
+                "maxKw": 180,
+                "ratePerMinute": 3.5
+              },
+              {
+                "minKw": 180,
+                "maxKw": 1000,
+                "ratePerMinute": 6.0
+              }
+            ]
+          }
+        ]
+      },
+      "access": {
+        "limited": false,
+        "days": {
+          "0": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "1": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "2": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "3": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "4": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "5": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "6": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          }
+        },
+        "afterCloseMode": "exit_allowed",
+        "afterCloseNote": "Accès 24 h/24, 7 j/7 indiqué par Tesla."
+      },
+      "lastUpdated": "2026-07-22",
+      "temporarilyUnavailable": false,
+      "operator": "Tesla",
+      "chargingConfigurations": [
+        {
+          "id": "main",
+          "label": "DC 150 kW",
+          "kind": "DC",
+          "powerKw": 150,
+          "stalls": 4,
+          "pricing": {
+            "type": "rules",
+            "rules": [
+              {
+                "scope": "allDay",
+                "start": "00:00",
+                "end": "24:00",
+                "billing": "powerMinute",
+                "currency": "MAD",
+                "pricePerKwh": 0,
+                "chargePerMinute": 0,
+                "connectionFee": 6.0,
+                "idlePerMinute": 0,
+                "powerBands": [
+                  {
+                    "minKw": 0,
+                    "maxKw": 60,
+                    "ratePerMinute": 1.1
+                  },
+                  {
+                    "minKw": 60,
+                    "maxKw": 100,
+                    "ratePerMinute": 2.3
+                  },
+                  {
+                    "minKw": 100,
+                    "maxKw": 180,
+                    "ratePerMinute": 3.5
+                  },
+                  {
+                    "minKw": 180,
+                    "maxKw": 1000,
+                    "ratePerMinute": 6.0
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "teslaRawPricebooks": [
+        {
+          "currencyCode": "MAD",
+          "uom": "min",
+          "rateBase": 0,
+          "rateTier1": 1.1,
+          "rateTier2": 2.3,
+          "rateMinTier1": 1.1,
+          "rateMinTier2": 2.3,
+          "rateMinTier3": 3.5,
+          "rateMinTier4": 6,
+          "startTime": "",
+          "endTime": "",
+          "days": "",
+          "isTou": false
+        }
+      ],
+      "teslaParkingFee": {
+        "amount": 6.0,
+        "currency": "MAD",
+        "sourceText": "Parking fee (6.00 MAD)"
+      },
+      "teslaCongestionFeePerMinute": 4.5
+    },
+    {
+      "id": "tesla-fes-morocco",
+      "name": "Tesla Fes, Morocco",
+      "kind": "DC",
+      "source": "teslaSupercharger",
+      "countryCode": "MA",
+      "department": "",
+      "powerKw": 150,
+      "stalls": 4,
+      "address": "0 Route de Sefrou, Fes 30060, Morocco",
+      "latitude": 33.99711468,
+      "longitude": -4.96987716,
+      "mapsUrl": "https://maps.google.com/maps?daddr=33.99711468,-4.96987716",
+      "teslaUrl": "https://www.tesla.com/fr_FR/findus/location/supercharger/fessupercharger",
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "billing": "powerMinute",
+            "currency": "MAD",
+            "pricePerKwh": 0,
+            "chargePerMinute": 0,
+            "connectionFee": 0,
+            "idlePerMinute": 0,
+            "powerBands": [
+              {
+                "minKw": 0,
+                "maxKw": 60,
+                "ratePerMinute": 1.1
+              },
+              {
+                "minKw": 60,
+                "maxKw": 100,
+                "ratePerMinute": 2.3
+              },
+              {
+                "minKw": 100,
+                "maxKw": 180,
+                "ratePerMinute": 3.5
+              },
+              {
+                "minKw": 180,
+                "maxKw": 1000,
+                "ratePerMinute": 6.0
+              }
+            ]
+          }
+        ]
+      },
+      "access": {
+        "limited": false,
+        "days": {
+          "0": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "1": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "2": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "3": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "4": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "5": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "6": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          }
+        },
+        "afterCloseMode": "exit_allowed",
+        "afterCloseNote": "Accès 24 h/24, 7 j/7 indiqué par Tesla."
+      },
+      "lastUpdated": "2026-07-22",
+      "temporarilyUnavailable": false,
+      "operator": "Tesla",
+      "chargingConfigurations": [
+        {
+          "id": "main",
+          "label": "DC 150 kW",
+          "kind": "DC",
+          "powerKw": 150,
+          "stalls": 4,
+          "pricing": {
+            "type": "rules",
+            "rules": [
+              {
+                "scope": "allDay",
+                "start": "00:00",
+                "end": "24:00",
+                "billing": "powerMinute",
+                "currency": "MAD",
+                "pricePerKwh": 0,
+                "chargePerMinute": 0,
+                "connectionFee": 0,
+                "idlePerMinute": 0,
+                "powerBands": [
+                  {
+                    "minKw": 0,
+                    "maxKw": 60,
+                    "ratePerMinute": 1.1
+                  },
+                  {
+                    "minKw": 60,
+                    "maxKw": 100,
+                    "ratePerMinute": 2.3
+                  },
+                  {
+                    "minKw": 100,
+                    "maxKw": 180,
+                    "ratePerMinute": 3.5
+                  },
+                  {
+                    "minKw": 180,
+                    "maxKw": 1000,
+                    "ratePerMinute": 6.0
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "teslaRawPricebooks": [
+        {
+          "currencyCode": "MAD",
+          "uom": "min",
+          "rateBase": 0,
+          "rateTier1": 1.1,
+          "rateTier2": 2.3,
+          "rateMinTier1": 1.1,
+          "rateMinTier2": 2.3,
+          "rateMinTier3": 3.5,
+          "rateMinTier4": 6,
+          "startTime": "",
+          "endTime": "",
+          "days": "",
+          "isTou": false
+        }
+      ],
+      "teslaCongestionFeePerMinute": 4.5
+    },
+    {
+      "id": "tesla-marrakech-morocco",
+      "name": "Tesla Marrakech, Morocco",
+      "kind": "DC",
+      "source": "teslaSupercharger",
+      "countryCode": "MA",
+      "department": "",
+      "powerKw": 150,
+      "stalls": 4,
+      "address": "Rue Haroun Errachid Quartier de l'Hivernarge, Marrakesh 40000, Morocco",
+      "latitude": 31.62182637,
+      "longitude": -8.0022266,
+      "mapsUrl": "https://maps.google.com/maps?daddr=31.62182637,-8.0022266",
+      "teslaUrl": "https://www.tesla.com/fr_FR/findus/location/supercharger/marrakechsupercharger",
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "billing": "powerMinute",
+            "currency": "MAD",
+            "pricePerKwh": 0,
+            "chargePerMinute": 0,
+            "connectionFee": 0,
+            "idlePerMinute": 0,
+            "powerBands": [
+              {
+                "minKw": 0,
+                "maxKw": 60,
+                "ratePerMinute": 1.1
+              },
+              {
+                "minKw": 60,
+                "maxKw": 100,
+                "ratePerMinute": 2.3
+              },
+              {
+                "minKw": 100,
+                "maxKw": 180,
+                "ratePerMinute": 3.5
+              },
+              {
+                "minKw": 180,
+                "maxKw": 1000,
+                "ratePerMinute": 6.0
+              }
+            ]
+          }
+        ]
+      },
+      "access": {
+        "limited": false,
+        "days": {
+          "0": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "1": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "2": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "3": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "4": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "5": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "6": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          }
+        },
+        "afterCloseMode": "exit_allowed",
+        "afterCloseNote": "Accès 24 h/24, 7 j/7 indiqué par Tesla."
+      },
+      "lastUpdated": "2026-07-22",
+      "temporarilyUnavailable": false,
+      "operator": "Tesla",
+      "chargingConfigurations": [
+        {
+          "id": "main",
+          "label": "DC 150 kW",
+          "kind": "DC",
+          "powerKw": 150,
+          "stalls": 4,
+          "pricing": {
+            "type": "rules",
+            "rules": [
+              {
+                "scope": "allDay",
+                "start": "00:00",
+                "end": "24:00",
+                "billing": "powerMinute",
+                "currency": "MAD",
+                "pricePerKwh": 0,
+                "chargePerMinute": 0,
+                "connectionFee": 0,
+                "idlePerMinute": 0,
+                "powerBands": [
+                  {
+                    "minKw": 0,
+                    "maxKw": 60,
+                    "ratePerMinute": 1.1
+                  },
+                  {
+                    "minKw": 60,
+                    "maxKw": 100,
+                    "ratePerMinute": 2.3
+                  },
+                  {
+                    "minKw": 100,
+                    "maxKw": 180,
+                    "ratePerMinute": 3.5
+                  },
+                  {
+                    "minKw": 180,
+                    "maxKw": 1000,
+                    "ratePerMinute": 6.0
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "teslaRawPricebooks": [
+        {
+          "currencyCode": "MAD",
+          "uom": "min",
+          "rateBase": 0,
+          "rateTier1": 1.1,
+          "rateTier2": 2.3,
+          "rateMinTier1": 1.1,
+          "rateMinTier2": 2.3,
+          "rateMinTier3": 3.5,
+          "rateMinTier4": 6,
+          "startTime": "",
+          "endTime": "",
+          "days": "",
+          "isTou": false
+        }
+      ],
+      "teslaCongestionFeePerMinute": 4.5
+    },
+    {
+      "id": "tesla-rabat-morocco",
+      "name": "Tesla Rabat, Morocco",
+      "kind": "DC",
+      "source": "teslaSupercharger",
+      "countryCode": "MA",
+      "department": "",
+      "powerKw": 150,
+      "stalls": 4,
+      "address": "Bp 450 Souissi, Quartier Aviation, Rabat 10000, Morocco",
+      "latitude": 33.991213,
+      "longitude": -6.837664,
+      "mapsUrl": "https://maps.google.com/maps?daddr=33.991213,-6.837664",
+      "teslaUrl": "https://www.tesla.com/fr_FR/findus/location/supercharger/26002",
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "billing": "powerMinute",
+            "currency": "MAD",
+            "pricePerKwh": 0,
+            "chargePerMinute": 0,
+            "connectionFee": 0,
+            "idlePerMinute": 0,
+            "powerBands": [
+              {
+                "minKw": 0,
+                "maxKw": 60,
+                "ratePerMinute": 1.1
+              },
+              {
+                "minKw": 60,
+                "maxKw": 100,
+                "ratePerMinute": 2.3
+              },
+              {
+                "minKw": 100,
+                "maxKw": 180,
+                "ratePerMinute": 3.5
+              },
+              {
+                "minKw": 180,
+                "maxKw": 1000,
+                "ratePerMinute": 6.0
+              }
+            ]
+          }
+        ]
+      },
+      "access": {
+        "limited": false,
+        "days": {
+          "0": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "1": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "2": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "3": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "4": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "5": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "6": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          }
+        },
+        "afterCloseMode": "exit_allowed",
+        "afterCloseNote": "Accès 24 h/24, 7 j/7 indiqué par Tesla."
+      },
+      "lastUpdated": "2026-07-22",
+      "temporarilyUnavailable": false,
+      "operator": "Tesla",
+      "chargingConfigurations": [
+        {
+          "id": "main",
+          "label": "DC 150 kW",
+          "kind": "DC",
+          "powerKw": 150,
+          "stalls": 4,
+          "pricing": {
+            "type": "rules",
+            "rules": [
+              {
+                "scope": "allDay",
+                "start": "00:00",
+                "end": "24:00",
+                "billing": "powerMinute",
+                "currency": "MAD",
+                "pricePerKwh": 0,
+                "chargePerMinute": 0,
+                "connectionFee": 0,
+                "idlePerMinute": 0,
+                "powerBands": [
+                  {
+                    "minKw": 0,
+                    "maxKw": 60,
+                    "ratePerMinute": 1.1
+                  },
+                  {
+                    "minKw": 60,
+                    "maxKw": 100,
+                    "ratePerMinute": 2.3
+                  },
+                  {
+                    "minKw": 100,
+                    "maxKw": 180,
+                    "ratePerMinute": 3.5
+                  },
+                  {
+                    "minKw": 180,
+                    "maxKw": 1000,
+                    "ratePerMinute": 6.0
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "teslaRawPricebooks": [
+        {
+          "currencyCode": "MAD",
+          "uom": "min",
+          "rateBase": 0,
+          "rateTier1": 1.1,
+          "rateTier2": 2.3,
+          "rateMinTier1": 1.1,
+          "rateMinTier2": 2.3,
+          "rateMinTier3": 3.5,
+          "rateMinTier4": 6,
+          "startTime": "",
+          "endTime": "",
+          "days": "",
+          "isTou": false
+        }
+      ],
+      "teslaCongestionFeePerMinute": 4.5
+    },
+    {
+      "id": "tesla-tangier-morocco",
+      "name": "Tesla Tangier, Morocco",
+      "kind": "DC",
+      "source": "teslaSupercharger",
+      "countryCode": "MA",
+      "department": "",
+      "powerKw": 150,
+      "stalls": 4,
+      "address": "Km 19.8, National Route 1, Tangier 90100, Morocco",
+      "latitude": 35.666173,
+      "longitude": -5.964525,
+      "mapsUrl": "https://maps.google.com/maps?daddr=35.666173,-5.964525",
+      "teslaUrl": "https://www.tesla.com/fr_FR/findus/location/supercharger/tangiersupercharger",
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "billing": "powerMinute",
+            "currency": "MAD",
+            "pricePerKwh": 0,
+            "chargePerMinute": 0,
+            "connectionFee": 0,
+            "idlePerMinute": 0,
+            "powerBands": [
+              {
+                "minKw": 0,
+                "maxKw": 60,
+                "ratePerMinute": 1.1
+              },
+              {
+                "minKw": 60,
+                "maxKw": 100,
+                "ratePerMinute": 2.3
+              },
+              {
+                "minKw": 100,
+                "maxKw": 180,
+                "ratePerMinute": 3.5
+              },
+              {
+                "minKw": 180,
+                "maxKw": 1000,
+                "ratePerMinute": 6.0
+              }
+            ]
+          }
+        ]
+      },
+      "access": {
+        "limited": false,
+        "days": {
+          "0": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "1": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "2": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "3": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "4": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "5": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          },
+          "6": {
+            "open": true,
+            "start": "00:00",
+            "end": "24:00"
+          }
+        },
+        "afterCloseMode": "exit_allowed",
+        "afterCloseNote": "Accès 24 h/24, 7 j/7 indiqué par Tesla."
+      },
+      "lastUpdated": "2026-07-22",
+      "temporarilyUnavailable": false,
+      "operator": "Tesla",
+      "chargingConfigurations": [
+        {
+          "id": "main",
+          "label": "DC 150 kW",
+          "kind": "DC",
+          "powerKw": 150,
+          "stalls": 4,
+          "pricing": {
+            "type": "rules",
+            "rules": [
+              {
+                "scope": "allDay",
+                "start": "00:00",
+                "end": "24:00",
+                "billing": "powerMinute",
+                "currency": "MAD",
+                "pricePerKwh": 0,
+                "chargePerMinute": 0,
+                "connectionFee": 0,
+                "idlePerMinute": 0,
+                "powerBands": [
+                  {
+                    "minKw": 0,
+                    "maxKw": 60,
+                    "ratePerMinute": 1.1
+                  },
+                  {
+                    "minKw": 60,
+                    "maxKw": 100,
+                    "ratePerMinute": 2.3
+                  },
+                  {
+                    "minKw": 100,
+                    "maxKw": 180,
+                    "ratePerMinute": 3.5
+                  },
+                  {
+                    "minKw": 180,
+                    "maxKw": 1000,
+                    "ratePerMinute": 6.0
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "teslaRawPricebooks": [
+        {
+          "currencyCode": "MAD",
+          "uom": "min",
+          "rateBase": 0,
+          "rateTier1": 1.1,
+          "rateTier2": 2.3,
+          "rateMinTier1": 1.1,
+          "rateMinTier2": 2.3,
+          "rateMinTier3": 3.5,
+          "rateMinTier4": 6,
+          "startTime": "",
+          "endTime": "",
+          "days": "",
+          "isTou": false
+        }
+      ],
+      "teslaCongestionFeePerMinute": 4.5
+    }
+  ]
+}

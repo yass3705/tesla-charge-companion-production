@@ -1,6 +1,7 @@
 name: Build explicit V9 snapshot candidate
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       snapshot_id:
@@ -22,8 +23,8 @@ permissions:
   actions: read
 
 concurrency:
-  group: v9-explicit-snapshot-candidate
-  cancel-in-progress: false
+  group: v9-explicit-snapshot-candidate-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -42,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: ${{ inputs.datalab_sha }}
+          ref: ${{ inputs.datalab_sha || '4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f' }}
           path: datalab
           fetch-depth: 1
           persist-credentials: false
@@ -51,18 +52,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          requested="${{ inputs.datalab_sha }}"
+          requested="${{ inputs.datalab_sha || '4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f' }}"
           requested="$(printf '%s' "$requested" | tr -d '[:space:]')"
           test "$(git -C datalab rev-parse HEAD)" = "$requested"
 
       - name: Generate immutable candidate config
         run: |
-          snapshot_id="${{ inputs.snapshot_id }}"
+          snapshot_id="${{ inputs.snapshot_id || '2026-10-07-irve-status-electroverse-evse-preview' }}"
           snapshot_id="$(printf '%s' "$snapshot_id" | tr -d '[:space:]')"
           echo "SNAPSHOT_ID=$snapshot_id" >> "$GITHUB_ENV"
           args=(
             --base production/config/snapshots/2026-09-30-r9-electra-fr.json
-            --datalab-sha "${{ inputs.datalab_sha }}"
+            --datalab-sha "${{ inputs.datalab_sha || '4f4312cb4f095a45bf1bb4eb51b9b6ec3586d42f' }}"
             --snapshot-id "$snapshot_id"
             --out production/config/snapshots/explicit-candidate.json
           )
@@ -73,21 +74,79 @@ jobs:
           python production/scripts/validate_snapshot.py production/config/snapshots/explicit-candidate.json
           python production/scripts/validate_electra_platform_overlay.py datalab
 
+      - name: Electra weekday tariff conversion
+        run: python production/tests/electra-weekday-direct.test.py
+
+      - name: Electroverse national identity bridge regression
+        run: python production/tests/electroverse-national-identity-bridge.test.py
+
       - name: Build and validate snapshot candidate
         run: |
           cd production
           python scripts/build_snapshot.py             --stable ../stable             --datalab ../datalab             --config config/snapshots/explicit-candidate.json             --out ../dist/v9-explicit-candidate
           python scripts/validate_built_snapshot.py ../dist/v9-explicit-candidate "$SNAPSHOT_ID"
-          parity_args=(../stable ../dist/v9-explicit-candidate)
+          parity_args=(../stable ../dist/v9-explicit-candidate --allow-pricing-engine-override)
           if [ "${{ inputs.use_datalab_nl }}" = "true" ]; then
             parity_args+=(--allow-nl-override)
           fi
           python scripts/validate_stable_parity.py "${parity_args[@]}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-explicit-candidate
 
+      - name: Inventory every V9 tariff profile
+        run: python production/scripts/audit_tariff_profiles.py dist/v9-explicit-candidate --output tariff-audit/profile-inventory.json --expected-profile-signatures 145
+
+      - name: Audit reported Electroverse station coverage
+        run: python production/scripts/audit_electroverse_targets.py datalab dist/v9-explicit-candidate
+
+      - name: V9 tariff window precedence and weekday rules
+        run: node production/tests/pricing-rule-precedence.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: V9 representative tariff profile matrix
+        run: node production/tests/pricing-profile-matrix.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: Selected CPO subscription changes tariff calculation
+        run: node production/tests/subscription-selection.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: V9 all-profile day and night sweep
+        run: node production/tests/pricing-profile-sweep.test.mjs dist/v9-explicit-candidate tariff-audit/profile-inventory.json
+
+      - name: V9 tariff categories and source labels
+        run: node production/tests/v9-ui-contract.test.mjs
+
+      - name: V9 station grouping
+        run: node production/tests/v9-shell-grouping.test.mjs
+
+      - name: Electroverse simple and complex tariff calculations
+        run: node production/tests/electroverse-complex-pricing.test.mjs dist/v9-explicit-candidate
+
+      - name: Reported Lidl and Electra Electroverse tariffs
+        run: node production/tests/electroverse-targets-pricing.test.mjs dist/v9-explicit-candidate
+
+      - name: Direct and platform tariff joins by charging power
+        run: node production/tests/tariff-join-regression.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: Eibar, Belgium, Swiss currency and Tesla Morocco tariff regression
+        run: node production/tests/cross-country-pricing-regression.mjs dist/v9-explicit-candidate
+
+      - name: Daily IRVE display status
+        run: node production/tests/france-irve-dynamic-status.test.mjs
+
+      - name: Electra Bois-d'Arcy tariff calculation
+        run: node production/tests/electra-bois-darcy-direct.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: ALDI Guyancourt official slow AC tariff
+        run: node production/tests/aldi-guyancourt-direct.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: IZIVIA FAST Dole tariff calculation
+        run: node production/tests/izivia-fast-dole-direct.test.mjs dist/v9-explicit-candidate/runtime
+
+      - name: IZIVIA FAST France official tariff coverage
+        run: node production/tests/izivia-fast-france-direct.test.mjs dist/v9-explicit-candidate/runtime
+
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
+          REQUIRE_IZIVIA_FAST_DOLE: "1"
         run: node production/tests/runtime-e2e-smoke.mjs dist/v9-explicit-candidate
 
       - name: Install browser test dependency
@@ -104,10 +163,18 @@ jobs:
           exit 1
 
       - name: Mocked geocoding/routing browser journey
-        run: node production/tests/runtime-browser-journey.mjs
+        run: |
+          node production/tests/runtime-browser-journey.mjs
+          node production/tests/runtime-browser-morocco-tesla.mjs
 
       - name: Verify candidate manifest hashes
         run: python production/scripts/verify_candidate_manifest.py dist/v9-explicit-candidate
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v9-tariff-profile-inventory
+          path: tariff-audit/profile-inventory.json
+          retention-days: 14
 
       - uses: actions/upload-artifact@v4
         with:

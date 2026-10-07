@@ -1,0 +1,110 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+
+const require=createRequire(import.meta.url);
+const ui=require('../v9-production-shell/bridge.js');
+
+const html=ui.renderTariffs({
+  best:{offerId:'evr-1',provider:'Electroverse',kind:'emsp',total:4.2,targetCurrency:'EUR',currency:'EUR',result:{totalEur:4.2}},
+  alternatives:[
+    {offerId:'electra-1',provider:'Electra',kind:'emsp',total:5.1,targetCurrency:'EUR',currency:'EUR',result:{totalEur:5.1}},
+    {offerId:'direct-1',provider:'Fastned',kind:'direct',total:6.3,targetCurrency:'EUR',currency:'EUR',result:{totalEur:6.3}}
+  ],
+  incomplete:[]
+});
+const direct=html.indexOf('<strong style="font-size:14px;line-height:1.3">Direct</strong>');
+const electra=html.indexOf('<strong style="font-size:14px;line-height:1.3">Electra</strong>');
+const electroverse=html.indexOf('<strong style="font-size:14px;line-height:1.3">Electroverse · MEILLEUR TARIF</strong>');
+assert.ok(direct>=0&&direct<electra&&electra<electroverse,'fixed order must be Direct, Electra, Electroverse');
+assert.equal((html.match(/MEILLEUR TARIF/g)||[]).length,1,'only the lowest available category is highlighted');
+assert.ok(html.includes('background:#f4a64a'),'Direct uses orange');
+assert.ok(html.includes('background:#a8e8d4'),'Electra uses light teal');
+assert.ok(html.includes('background:#c9b3f4'),'Electroverse uses violet');
+
+const withSubscription=ui.renderTariffs({best:{offerId:'electra-essential',provider:'Electra+ Essential',kind:'subscription',subscriptionId:'electra-plus-essential',total:4.9,targetCurrency:'EUR',currency:'EUR',result:{totalEur:4.9}},alternatives:[
+  {offerId:'electra-public',provider:'Electra direct',kind:'direct',total:5.9,targetCurrency:'EUR',currency:'EUR',result:{totalEur:5.9}},
+  {offerId:'electra-platform',provider:'Electra',kind:'emsp',total:6.3,targetCurrency:'EUR',currency:'EUR',result:{totalEur:6.3}}
+],incomplete:[]});
+assert.ok(withSubscription.indexOf('>Direct</strong>')<withSubscription.indexOf('>Electra+ Essential')&&withSubscription.indexOf('>Electra+ Essential')<withSubscription.indexOf('>Electra</strong>'),'selected subscription must occupy its own row between direct and Electra');
+assert.ok(withSubscription.includes('5,90 €')&&withSubscription.includes('4,90 €'),'both public and membership prices remain visible');
+
+const missing=ui.renderTariffs({best:null,alternatives:[],incomplete:[]});
+assert.equal((missing.match(/Prix non disponible/g)||[]).length,3,'all three categories remain visible without prices');
+assert.ok(missing.includes('Aucune correspondance Electroverse vérifiée'),'missing Electroverse source must be explained');
+
+assert.equal(ui.stationBaseSource({countryCode:'FR'}),'IRVE');
+assert.equal(ui.stationBaseSource({countryCode:'BE'}),'NAP Belgique');
+assert.equal(ui.stationBaseSource({countryCode:'MA',physicalOperator:{name:'Tesla Supercharger'}}),'TESLA · export Mac');
+assert.equal(ui.stationBaseSource({countryCode:'FR',physicalOperator:{name:'Tesla Supercharger'}}),'TESLA · SuC Tracker');
+const teslaHtml=ui.renderTariffs({best:{total:8,targetCurrency:'EUR'}},{physicalOperator:{name:'Tesla Supercharger'}});
+assert.ok(teslaHtml.includes('Tesla'));
+assert.ok(!teslaHtml.includes('Electra')&&!teslaHtml.includes('Electroverse'),'third-party categories are not shown for Tesla stations');
+assert.equal(ui.buildSession({startSoc:20,targetSoc:80,startAt:'2026-10-07T10:00:00Z'},'CH').targetCurrency,'CHF');
+assert.equal(ui.buildSession({startSoc:20,targetSoc:80,startAt:'2026-10-07T10:00:00Z'},'MA').targetCurrency,'MAD');
+assert.ok(ui.renderTariffs({best:{total:12.5,targetCurrency:'CHF'}},{countryCode:'CH',physicalOperator:{name:'Tesla Supercharger'}}).includes('12,50 CHF'));
+assert.ok(ui.renderTariffs({best:{offerId:'ch-direct',kind:'direct',provider:'AVIA',currency:'CHF',targetCurrency:'CHF',total:9.3,result:{totalEur:9.3}},alternatives:[],incomplete:[]},{countryCode:'CH',physicalOperator:{name:'AVIA'}}).includes('9,30 CHF'));
+const morocco=ui.renderTariffs({best:{offerId:'tesla-ma',kind:'direct',provider:'Tesla',currency:'MAD',targetCurrency:'MAD',total:76.63,result:{totalEur:76.63}}},{countryCode:'MA',physicalOperator:{name:'Tesla Supercharger'}},{MAD:10.96131});
+assert.ok(morocco.includes('76,63 MAD')&&morocco.includes('6,99 €'),'Tesla Morocco price must show local and converted amounts');
+
+
+const emptyPowerFields={simNow:{value:'20'},simTarget:{value:'80'},simDate:{value:''},simTime:{value:''},simUnplugTime:{value:''},simMaxDistance:{value:'20'},simOperatorFilter:{value:'',dataset:{v9Mode:'all'}},simPowerType:{multiple:true,selectedOptions:[]},simMinPowerKw:{value:''},simMaxPowerKw:{value:''},simCondition:{value:'normal'},simProfile:{value:'realistic'},simRanking:{value:'balanced'}};
+const emptyPowerInputs=ui.readInputs({document:{getElementById:id=>emptyPowerFields[id]||null}});
+assert.equal(emptyPowerInputs.minPowerKw,null,'blank minimum power must mean no minimum filter');
+assert.equal(emptyPowerInputs.maxPowerKw,null,'blank maximum power must mean no maximum filter');
+assert.deepEqual(ui.areaFiltersFromInputs(emptyPowerInputs),{},'empty power inputs must not filter stations');
+const lullyOffer={id:'lully-direct',provider:'Electric 55 Charging',kind:'direct',currency:'EUR',pricing:{type:'rules',rules:[
+  {scope:'timeWindow',start:'09:00',end:'11:00',pricePerKwh:0.30},
+  {scope:'timeWindow',start:'11:00',end:'15:00',pricePerKwh:0.35}
+]}};
+const appliedLully={station:{id:'lully',name:'PLACE LULLY',evses:[{id:'p1',connectors:[{id:'c1',kind:'AC',powerKw:22}]}],offers:[lullyOffer]},
+  evaluation:{best:{offerId:'lully-direct',provider:'Electric 55 Charging',kind:'direct',currency:'EUR',total:3.5,result:{components:{compactMinute:{segments:[{rule:lullyOffer.pricing.rules[1]}]}}}}}};
+const lullyHtml=ui.renderPowerLines(appliedLully);
+assert.ok(lullyHtml.includes('0,35'),'base rate must include the rule applied by the session');
+assert.ok(!lullyHtml.includes('0,30'),'other tariff windows must not appear as an applied base rate');
+const electroverseOffer={id:'evr-sigeif',provider:'Electroverse',kind:'emsp',currency:'EUR',pricing:{type:'electroverse_restrictions',fallbackRates:{energy:0.42,chargingMinute:0,parkingMinute:0,flat:0},rules:[{types:['TIME_BASED'],rates:{energy:0.28},components:['energy']} ]}};
+const electroverseHtml=ui.renderPowerLines({station:{evses:[{id:'p1',connectors:[{kind:'AC',powerKw:22.6}]}],offers:[electroverseOffer]},evaluation:{best:{offerId:'evr-sigeif',provider:'Electroverse',currency:'EUR',total:2.8,result:{components:{segments:[{ruleSignature:'{"energy":0,"chargingMinute":null,"parkingMinute":null,"flat":null}',durationMinutes:20,energyKwh:10}]}}}}});
+assert.ok(electroverseHtml.includes('22 kW')&&electroverseHtml.includes('0,28 EUR/kWh'),'applied Electroverse rate and floored power should be visible');
+assert.ok(!electroverseHtml.includes('Tarif unitaire appliqué non détaillé')&&!electroverseHtml.includes('0,42'),'other Electroverse rate must not be shown as applied');
+const teslaPowerRule={scope:'allDay',currency:'MAD',pricePerKwh:0,chargePerMinute:0,connectionFee:6,powerBands:[{minKw:0,maxKw:60,ratePerMinute:1.1},{minKw:60,maxKw:100,ratePerMinute:2.3}]};
+const teslaPowerLabels=ui.tariffRateLabels({currency:'MAD',pricing:{type:'rules',rules:[teslaPowerRule]}});
+assert.ok(teslaPowerLabels.includes('1,10 MAD/min (0–60 kW)')&&teslaPowerLabels.includes('6,00 MAD frais de connexion'));
+assert.ok(!teslaPowerLabels.some(label=>label.startsWith('0,00')),'power-band Tesla pricing must not show zero placeholder rates');
+
+const acFields={...emptyPowerFields,simPowerAc:{checked:true},simPowerDc:{checked:false}};
+const acInputs=ui.readInputs({document:{getElementById:id=>acFields[id]||null}});
+assert.deepEqual(acInputs.connectorKinds,['AC'],'AC checkbox must drive the runtime filter');
+const bothFields={...emptyPowerFields,simPowerAc:{checked:true},simPowerDc:{checked:true}};
+assert.deepEqual(ui.readInputs({document:{getElementById:id=>bothFields[id]||null}}).connectorKinds,['AC','DC']);
+const dataEngine=require('../runtime-overrides/assets/v9/data-engine.js');
+const mixedStation={physicalOperator:{name:'Example'},evses:[
+  {connectors:[{kind:'AC',powerKw:22}]},{connectors:[{kind:'DC',powerKw:150}]}
+]};
+assert.equal(dataEngine.stationMatchesFilters(mixedStation,{connectorKinds:['AC'],minPowerKw:100}),false,'AC and minimum power must match the same connector');
+assert.equal(dataEngine.stationMatchesFilters(mixedStation,{connectorKinds:['DC'],minPowerKw:100}),true);
+const acVariant={powerLine:{kind:'AC',powerKw:22}},dcVariant={powerLine:{kind:'DC',powerKw:150}};
+assert.equal(ui.variantMatchesFilters(acVariant,{connectorKinds:['DC']}),false,'AC result rows must be hidden when DC alone is checked');
+assert.equal(ui.variantMatchesFilters(dcVariant,{connectorKinds:['DC'],minPowerKw:100,maxPowerKw:200}),true);
+assert.equal(ui.variantMatchesFilters(dcVariant,{connectorKinds:['AC','DC'],maxPowerKw:100}),false,'power range must also filter rendered rows');
+const subscriptionOptions=ui.subscriptionOptionsForArea({stations:[{offers:[
+  {id:'fastned-gold',subscriptionId:'fastned-gold',provider:'Fastned Gold',countries:['FR'],metadata:{monthlyFeeEur:5.99}},
+  {id:'electroverse',provider:'Electroverse',kind:'emsp'}
+]}]},'FR');
+assert.deepEqual(subscriptionOptions.map(option=>option.id),['fastned-gold'],'only verified subscriptions appear in the selection list');
+assert.equal(subscriptionOptions[0].monthlyFeeEur,5.99);
+const allSubscriptions=ui.subscriptionOptionsForArea({stations:[{offers:[
+  {id:'electra-essential',subscriptionId:'electra-plus-essential',provider:'Electra+ Essential',countries:['FR']}
+]}]},'FR',[
+  {id:'fastned-gold',subscriptionId:'fastned-gold',provider:'Fastned Gold',countries:['FR'],monthlyFeeEur:5.99},
+  {id:'zunder-pro',subscriptionId:'zunder-pro',provider:'Zunder Pro',countries:['FR'],monthlyFeeEur:11.99}
+]);
+assert.deepEqual(allSubscriptions.map(option=>option.id),['electra-plus-essential','fastned-gold','zunder-pro'],
+  'all verified plans in the national catalogue remain visible outside their operator search area');
+const requested=[];
+const catalogue=await ui.loadSubscriptionCatalogue({fetch:async url=>{
+  requested.push(url);
+  return {ok:true,json:async()=>({subscriptionOffers:[{subscriptionId:url.includes('electra')?'electra-plus-smart':'fastned-gold',countries:['FR']}]})};
+}}, {runtimeBase:'runtime'});
+assert.deepEqual(requested.sort(),['runtime/data/v9/electra-direct-france.json','runtime/data/v9/france-direct-offers.json']);
+assert.deepEqual(ui.subscriptionOptionsForArea({stations:[]},'FR',catalogue).map(option=>option.id),['electra-plus-smart','fastned-gold']);
+
+console.log(JSON.stringify({ok:true,priceCategories:['Direct','Electra','Electroverse'],sourceLabels:true,blankPowerFilters:true}));

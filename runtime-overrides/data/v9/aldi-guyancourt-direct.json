@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "country": "FR",
+  "generatedAt": "2026-10-06",
+  "mode": "exact_station_official_ac_tariff",
+  "policy": {
+    "exactStationIdsOnly": true,
+    "nationalDefault": false,
+    "officialAcSlowChargeCategory": true,
+    "stationNominalPowerKw": 22,
+    "sourceNote": "Slow charging is classified by the AC connector type, including the 22 kW AC connector at Guyancourt. Fast charging is DC. No roaming surcharge is included."
+  },
+  "directOffers": [
+    {
+      "id": "aldi-guyancourt-official-ac-2026-10-06",
+      "provider": "ALDI direct · charge lente",
+      "operatorAliases": ["ALDI SARL", "ALDI MARCHE ABLIS SARL"],
+      "directOperatorOnly": true,
+      "stationIds": ["FRALNP25007130"],
+      "connectorKinds": ["AC"],
+      "minPowerKw": 21.5,
+      "maxPowerKw": 22.5,
+      "countries": ["FR"],
+      "currency": "EUR",
+      "priority": 125,
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "billing": "kwh",
+            "currency": "EUR",
+            "pricePerKwh": 0.19
+          }
+        ]
+      },
+      "source": "https://www.aldi.fr/services/borne-recharge.html",
+      "metadata": {
+        "verifiedScope": "official_aldi_slow_ac_category_applied_to_exact_aldi_station",
+        "nationalStationId": "FRALNP25007130",
+        "stationName": "GUYANCOURT",
+        "officialImage": "https://s7g10.scene7.com/is/image/aldinord/borne",
+        "observedAt": "2026-10-06",
+        "roamingBadgeSurchargeExcluded": true
+      }
+    }
+  ],
+  "subscriptionOffers": []
+}
