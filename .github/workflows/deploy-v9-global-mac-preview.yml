@@ -27,15 +27,15 @@ on:
       stable_sha:
         description: Exact Stable commit containing the Mac Tesla export
         required: true
-        default: 6b43f09ea8c3da1bfbee7f854730c8a78d8e9bc2
+        default: 44126acbd122c45c5ec9278daf86968bfe94de6f
       datalab_sha:
         description: Exact Data Lab commit for other current sources
         required: true
-        default: 31426743803f6d807aa54dd383e03c278da5744a
+        default: 1a301d7e2b5229853b5f24d6f9d0ae2bf6493774
       snapshot_id:
         description: Unique V9 preview snapshot ID
         required: true
-        default: 2026-10-07-r11
+        default: 2026-10-07-r12
 permissions:
   contents: read
   pages: write
@@ -51,9 +51,9 @@ jobs:
       - name: Resolve exact pins
         id: pins
         env:
-          STABLE_SHA_INPUT: ${{ inputs.stable_sha || '6b43f09ea8c3da1bfbee7f854730c8a78d8e9bc2' }}
-          DATALAB_SHA_INPUT: ${{ inputs.datalab_sha || '31426743803f6d807aa54dd383e03c278da5744a' }}
-          SNAPSHOT_ID_INPUT: ${{ inputs.snapshot_id || '2026-10-07-r11' }}
+          STABLE_SHA_INPUT: ${{ inputs.stable_sha || '44126acbd122c45c5ec9278daf86968bfe94de6f' }}
+          DATALAB_SHA_INPUT: ${{ inputs.datalab_sha || '1a301d7e2b5229853b5f24d6f9d0ae2bf6493774' }}
+          SNAPSHOT_ID_INPUT: ${{ inputs.snapshot_id || '2026-10-07-r12' }}
         shell: bash
         run: |
           set -euo pipefail
