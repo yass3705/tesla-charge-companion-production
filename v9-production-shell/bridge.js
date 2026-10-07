@@ -606,7 +606,7 @@
     const panel=d.createElement('section');panel.id='v9UsageHelp';panel.className='panel';
     panel.innerHTML='<div class="card"><h2>Mode d’emploi</h2>'+
       '<h3>1. Préparer la recherche</h3><p>Saisis une adresse de départ ou utilise « Position actuelle », puis règle le niveau de batterie, l’objectif et le profil de calcul.</p>'+
-      '<h3>2. Choisir les réseaux</h3><p>Tous les réseaux sont sélectionnés au départ. « Tesla uniquement » limite la recherche au réseau Tesla. Utilise « Tous les réseaux » pour revenir à la recherche complète.</p>'+
+      '<h3>2. Choisir les réseaux</h3><p>Tous les réseaux sont sélectionnés au départ. « Tesla uniquement » limite la recherche au réseau Tesla. La liste Opérateurs permet de choisir plusieurs réseaux et applique chaque changement directement.</p>'+
       '<h3>3. Régler les filtres et lancer le calcul</h3><p>Choisis le type AC/DC, la puissance minimale et maximale, la distance et la priorité de classement. Appuie sur « Simuler » pour afficher les résultats.</p>'+
       '<h3>4. Lire les prix</h3><p>Chaque puissance présente toujours Direct (ou l’abonnement sélectionné), Electra et Electroverse, dans cet ordre. « Prix non disponible » signifie qu’aucun prix comparable et validé n’est disponible dans cette catégorie. Le tarif le plus bas est mis en évidence.</p>'+
       '<h3>5. Comprendre une fiche</h3><p>Chaque fiche précise la base source de la station et le tarif de base retenu pour le calcul. Les stations sont séparées par type et puissance. Le coût par kilomètre récupéré aide au classement; le routage détaillé se lance à la demande.</p>'+
@@ -650,7 +650,7 @@
     if(d.getElementById('v9MobileLayoutStyle'))return;
     const style=d.createElement('style');
     style.id='v9MobileLayoutStyle';
-    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}#compare .v9-filter-group .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;min-width:0!important}#compare .v9-filter-group .grid>div{min-width:0!important}#compare input#simDate,#compare input#simTime,#compare input#simUnplugTime{display:block!important;width:100%!important;max-width:160px!important;min-width:0!important;height:42px!important;min-height:42px!important;padding:6px 8px!important;font-size:15px!important;line-height:1.2!important;box-sizing:border-box!important;-webkit-appearance:none!important;appearance:none!important}#compare input#simTime,#compare input#simUnplugTime{text-align:center!important}}';
+    style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9OperatorDropdown{min-width:200px}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}#v9OperatorControls select{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown select{max-height:230px;overflow:auto}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#compare .v9-filter-group .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;min-width:0!important}#compare .v9-filter-group .grid>div{min-width:0!important}#compare input#simDate,#compare input#simTime,#compare input#simUnplugTime{display:block!important;width:100%!important;max-width:160px!important;min-width:0!important;height:42px!important;min-height:42px!important;padding:6px 8px!important;font-size:15px!important;line-height:1.2!important;box-sizing:border-box!important;-webkit-appearance:none!important;appearance:none!important}#compare input#simTime,#compare input#simUnplugTime{text-align:center!important}}';
     d.head.appendChild(style);
   }
 
@@ -684,17 +684,80 @@
     });
   }
 
+  function mountCheckboxDropdown(w,select,detailsId,{title,allValue=null}={}){
+    if(!select)return null;
+    select.multiple=true;
+    select.style.display='block';
+    select.setAttribute('aria-label',title||'Sélection multiple');
+    select.style.width='100%';
+    select.style.minHeight='96px';
+    let details=w.document.getElementById(detailsId);
+    if(!details){
+      details=w.document.createElement('details');
+      details.id=detailsId;
+      details.className='v9-select-dropdown';
+      select.parentNode?.insertBefore(details,select);
+    }
+    details.innerHTML='<summary><b>'+esc(title||'Sélection')+'</b><span class="v9-dropdown-value"></span></summary>';details.style.flex='1 1 auto';
+    details.appendChild(select);
+    const summary=details.querySelector('.v9-dropdown-value');
+    const redraw=()=>{
+      const options=[...select.options],selected=[...select.selectedOptions];
+      const labels=selected.map(o=>text(o.textContent));
+      if(summary)summary.textContent=allValue&&selected.some(o=>text(o.value)===allValue)?'Tous les réseaux':(select.dataset.v9Mode==='all'?'Tous les réseaux':select.dataset.v9Mode==='tesla'?'Tesla uniquement':(labels.length?labels.join(', '):'Aucun'));
+    };
+    if(!select.dataset.v9DropdownBound){
+      select.dataset.v9DropdownBound='true';
+      select.addEventListener('change',()=>{
+        if(allValue){
+          const all=[...select.options].find(o=>text(o.value)===allValue);
+          const picked=[...select.selectedOptions];
+          if(all&&picked.some(o=>o===all)&&picked.length>1){
+            [...select.options].forEach(o=>{o.selected=o===all;});
+          }else if(all&&picked.some(o=>o!==all)){
+            all.selected=false;
+          }
+        }
+        redraw();
+      });
+    }
+    select._v9Redraw=redraw;
+    redraw();
+    return details;
+  }
+
+  function mountOperatorPicker(w,select){
+    let panel=w.document.getElementById('v9OperatorDropdown');
+    if(!panel){panel=w.document.createElement('div');panel.id='v9OperatorDropdown';}
+    panel.style.cssText='flex:1 1 280px;min-width:240px;max-width:450px;border:1px solid #46505b;border-radius:8px;padding:8px;background:#1a222b;box-sizing:border-box';
+    panel.innerHTML='<b style="display:block;margin-bottom:6px">Opérateurs</b><div class="v9-operator-choices" role="group" aria-label="Choix des réseaux" style="max-height:150px;overflow:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:4px"></div>';
+    const choices=panel.querySelector('.v9-operator-choices'),selected=()=>new Set([...select.selectedOptions].map(option=>text(option.value)));
+    const redraw=()=>{const values=selected();choices.innerHTML=[...select.options].map(option=>'<label style="display:flex;align-items:center;gap:5px;margin:0"><input type="checkbox" value="'+esc(option.value)+'" '+(values.has(text(option.value))?'checked':'')+' style="width:auto;margin:0"><span>'+esc(option.textContent)+'</span></label>').join('');};
+    choices.addEventListener('change',()=>{const values=new Set([...choices.querySelectorAll('input:checked')].map(input=>text(input.value)));for(const option of [...select.options])option.selected=values.has(text(option.value));select.dispatchEvent(new w.Event('change',{bubbles:true}));});
+    select._v9Redraw=redraw;redraw();return panel;
+  }
+
   function installOperatorMultiSelect(w){
     const select=w.document.getElementById('simOperatorFilter');
     if(!select)return;
     const field=select.closest('.full')||select.parentElement;
     field?.querySelector(':scope > label')?.remove();
+    const previousValues=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):[];
+    const options=new Map();
+    for(const option of [...select.options]){
+      const value=text(option.value),label=text(option.textContent);
+      if(!value||value==='all')continue;
+      options.set(value,value==='tesla'?'Tesla':label);
+    }
+    if(!options.has('tesla'))options.set('tesla','Tesla');
     select.multiple=true;select.setAttribute('multiple','');select.dataset.v9Multi='true';
-    select.setAttribute('aria-hidden','true');select.tabIndex=-1;
-    select.innerHTML='<option value="tesla">Tesla</option>';
-    select.dataset.v9Mode=w.__TCCV9OperatorSelection?.mode==='tesla'?'tesla':'all';
-    select.options[0].selected=select.dataset.v9Mode==='tesla';
-    if(select.parentElement!==field)select.parentElement.style.display='none';
+    select.setAttribute('aria-label','Opérateurs à afficher');
+    const remembered=w.__TCCV9OperatorSelection;
+    const mode=remembered?.mode||'all';
+    select.innerHTML=[...options.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
+    const initial=mode==='all'?[]:mode==='tesla'?['tesla']:(remembered?.values||previousValues).filter(value=>options.has(value));
+    for(const option of [...select.options])option.selected=initial.includes(text(option.value));
+    select.dataset.v9Mode=initial.length?(initial.length===1&&initial[0]==='tesla'?'tesla':'selected'):'all';
     let controls=w.document.getElementById('v9OperatorControls');
     if(!controls){controls=w.document.createElement('div');controls.id='v9OperatorControls';controls.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;box-sizing:border-box';}
     const makeButton=(id,label,title)=>{
@@ -702,16 +765,14 @@
       if(!button){button=w.document.createElement('button');button.type='button';button.id=id;button.className='secondary';button.textContent=label;button.title=title;button.style.cssText='width:auto;margin:0;padding:10px 12px;white-space:nowrap';}
       return button;
     };
-    const tesla=makeButton('v9TeslaOnly','Tesla uniquement','Afficher uniquement le réseau Tesla');
-    const all=makeButton('v9AllNetworks','Tous les réseaux','Afficher tous les réseaux');
+    const group=select.closest('.v9-network-controls'),displayLabel=group?.querySelector('.v9-network-heading');
+    let active=w.document.getElementById('v9ActiveNetworkFilter');
+    if(!active){active=w.document.createElement('span');active.id='v9ActiveNetworkFilter';}
+    if(displayLabel){displayLabel.textContent='Réseaux affichés — ';displayLabel.appendChild(active);}
     const updateSummary=()=>{
-      const mode=select.dataset.v9Mode==='tesla'?'tesla':'all';
-      select.options[0].selected=mode==='tesla';
-      w.__TCCV9OperatorSelection={mode,values:mode==='tesla'?['tesla']:[]};
-      for(const [button,active] of [[tesla,mode==='tesla'],[all,mode==='all']]){
-        button.setAttribute('aria-pressed',active?'true':'false');
-        button.classList.toggle('primary',active);button.classList.toggle('secondary',!active);
-      }
+      const mode=select.dataset.v9Mode||'all',names=[...select.selectedOptions].map(option=>text(option.textContent));
+      w.__TCCV9OperatorSelection={mode,values:[...select.selectedOptions].map(option=>text(option.value))};
+      active.textContent=mode==='all'?'Tous les réseaux':mode==='tesla'?'Tesla uniquement':(names.join(', ')||'Tous les réseaux');select._v9Redraw?.();
     };
     const choose=mode=>{
       select.dataset.v9Mode=mode;
@@ -720,14 +781,18 @@
     };
     if(!select.dataset.v9SummaryBound){
       select.addEventListener('change',()=>{
-        select.dataset.v9Mode=select.options[0].selected?'tesla':'all';
+        const values=[...select.selectedOptions].map(option=>text(option.value));
+        select.dataset.v9Mode=values.length?(values.length===1&&values[0]==='tesla'?'tesla':'selected'):'all';
         updateSummary();
       });
       select.dataset.v9SummaryBound='true';
     }
+    const tesla=makeButton('v9TeslaOnly','Tesla uniquement','Afficher uniquement le réseau Tesla');
+    const all=makeButton('v9AllNetworks','Tous les réseaux','Afficher tous les réseaux');
     if(!tesla.dataset.v9Bound){tesla.addEventListener('click',()=>choose('tesla'));tesla.dataset.v9Bound='true';}
     if(!all.dataset.v9Bound){all.addEventListener('click',()=>choose('all'));all.dataset.v9Bound='true';}
-    controls.append(tesla,all);
+    const dropdown=mountOperatorPicker(w,select);
+    controls.append(tesla,all,dropdown);
     if(controls.parentElement!==field)field?.insertBefore(controls,field.firstChild);
     select.style.cssText='display:none';
     updateSummary();
@@ -741,6 +806,43 @@
       observer.observe(w.document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['multiple']});
       w.__TCCV9OperatorObserver=observer;
     }
+  }
+
+  const OPERATOR_CATALOG_KEY='tccV9OperatorCatalogsV1';
+  function operatorCatalogKey(area){
+    const origin=area?.query?.origin||{};
+    const filters=area?.query?.filters||{};
+    const key={country:text(area?.query?.countryCode).toUpperCase(),lat:Number(origin.lat).toFixed(3),lon:Number(origin.lon).toFixed(3),radius:Number(area?.query?.radiusKm)||0,connectorKinds:(filters.connectorKinds||[]).slice().sort(),minPowerKw:num(filters.minPowerKw),maxPowerKw:num(filters.maxPowerKw)};
+    return JSON.stringify(key);
+  }
+  function operatorRows(area){
+    const operators=new Map([['tesla','Tesla']]);
+    for(const operator of area?.operators||[]){const id=text(operator?.id||'').toLowerCase(),label=text(operator?.name||'');if(id&&label&&id!=='tesla')operators.set(id,label);}
+    for(const station of area?.stations||[]){
+      const op=station.physicalOperator||station.operator||{};
+      const id=text(op.id||station.operatorId||'').toLowerCase();
+      const label=text(op.name||station.operatorName||'');
+      if(id&&label&&id!=='tesla')operators.set(id,label);
+    }
+    return operators;
+  }
+  function refreshOperatorOptions(w,area){
+    const select=w.document.getElementById('simOperatorFilter');if(!select)return;
+    const current=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):(text(select.value)?[text(select.value)]:[]);
+    const mode=select.dataset.v9Mode||'all',key=operatorCatalogKey(area),cacheKey=OPERATOR_CATALOG_KEY;
+    let catalogs={};try{catalogs=JSON.parse(w.sessionStorage.getItem(cacheKey)||'{}');}catch(_){}
+    const incoming=operatorRows(area),operators=new Map([['tesla','Tesla']]);
+    const cached=catalogs[key];
+    if(cached&&Array.isArray(cached)&&mode!=='all')for(const row of cached){if(Array.isArray(row)&&row.length===2)operators.set(text(row[0]),text(row[1]));}
+    for(const [id,label] of incoming)operators.set(id,label);
+    catalogs[key]=[...operators.entries()];
+    try{w.sessionStorage.setItem(cacheKey,JSON.stringify(catalogs));}catch(_){}
+    select.innerHTML=[...operators.entries()].map(([value,label])=>'<option value="'+esc(value)+'">'+esc(label)+'</option>').join('');
+    const keep=mode==='all'?[]:mode==='tesla'?['tesla']:current;
+    for(const option of [...select.options])option.selected=keep.includes(text(option.value));
+    select.dataset.v9Mode=keep.length?(keep.length===1&&keep[0]==='tesla'?'tesla':'selected'):'all';
+    select._v9Redraw?.();
+    select.dispatchEvent(new w.Event('change',{bubbles:true}));
   }
 
   function installPowerTypeFilter(w){
@@ -776,7 +878,7 @@
     for(const {group,nodes} of captured){
       if(group.title==='Réseaux affichés'){
         const section=w.document.createElement('section');section.className='full box v9-network-controls';
-        const heading=w.document.createElement('b');heading.textContent=group.title;section.appendChild(heading);
+        const heading=w.document.createElement('b');heading.className='v9-network-heading';heading.textContent=group.title;section.appendChild(heading);
         for(const node of nodes)section.appendChild(node);
         grid.appendChild(section);continue;
       }
@@ -834,7 +936,7 @@
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
-      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode,await subscriptionCataloguePromise),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
+      try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode,await subscriptionCataloguePromise),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
         diagnosticStore(w,{mode:'candidate',outcome:'v9-error',reason:err.message,operatorIds:input.operatorIds||[]});
         if(input.operatorIds?.length){
           const status=w.document.getElementById('routeStatus'),results=w.document.getElementById('results');
@@ -848,5 +950,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,executeV9,install};
+  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
