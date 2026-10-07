@@ -79,6 +79,10 @@ def main():
         assert (root/rel).exists(), f"missing runtime integration script {rel}"
     registry=load(root/registry_rel)
     sources={x.get("id"):x for x in registry.get("sources",[]) if isinstance(x,dict)}
+    if manifest["snapshotId"][:10]>="2026-10-06":
+        fr_source=sources.get("france-national") or {}
+        assert fr_source.get("sourceUrl")==fr_manifest["sourceUrl"],fr_source
+        assert fr_source.get("refresh")=="snapshot-pinned-data-lab-pan",fr_source
     if manifest["snapshotId"][:10]>="2026-10-07":
         status_src=sources.get("france-irve-dynamic") or {}
         assert status_src.get("freshnessMaxMinutes")==2880 and status_src.get("livePath"," ").endswith("/data/national/france-irve-dynamic-status-v9.json.gz"),status_src
