@@ -10,7 +10,11 @@ def main():
     policy=obj.get("policy") or {}
     stats=obj.get("stats") or {}
     assert policy.get("nationalFranceIsIdentityHub") is True, policy
-    assert policy.get("exactNationalEvseOnly") is True, policy
+    if policy.get("exactNationalEvseOnly") is not True:
+        assert set(policy.get("acceptedIdentityModes") or []) == {
+            "exact_national_irve_evse", "curated_irve_location"
+        }, policy
+        assert policy.get("curatedMatchRequiresValidatedDistanceNameAddressPowerAndConnectorEvidence") is True, policy
     assert policy.get("electroverseDependency") is False, policy
     assert policy.get("heterogeneousLocationTariffsFailClosed") is True, policy
     assert policy.get("unsupportedComponentsFailClosed") is True, policy
