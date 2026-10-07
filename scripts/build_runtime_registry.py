@@ -60,6 +60,19 @@ def build_registry(path):
       "policy":"Tariffs join only by exact connector tariff_ids to same-source tariff.id; unsupported tariff semantics fail closed."
     })
     upsert(sources,{
+      "id":"uk-ubitricity-pcpr-payg",
+      "label":"UK Ubitricity authenticated PCPR with exact public PAYG verification",
+      "adapter":"uk-open-feeds-v1",
+      "path":"../snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz",
+      "countries":["GB"],
+      "capabilities":["inventory","connectors","access","status","tariff"],
+      "priority":{"identity":80,"connectors":85,"access":60,"status":85,"tariff":135},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Only connector-bound offers verified against the same Ubitricity public PAYG tariff are rankable. Rejected tariffs stay unpriced."
+    })
+    upsert(sources,{
       "id":"france-electra-platform",
       "label":"France Electra eMSP aggregate tariffs joined independently to national EVSEs",
       "adapter":"direct-offer-sharded-v1",
