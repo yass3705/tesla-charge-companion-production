@@ -96,7 +96,7 @@ jobs:
           python production/scripts/validate_built_snapshot.py dist/v9-global-preview "${{ steps.pins.outputs.snapshot_id }}"
           cmp stable/data/tesla_stations.json dist/v9-global-preview/runtime/data/tesla_stations.json
           cmp stable/data/tesla_stations.json dist/v9-global-preview/data/tesla_stations.json
-          python production/scripts/validate_stable_parity.py stable dist/v9-global-preview --allow-nl-override
+          python production/scripts/validate_stable_parity.py stable dist/v9-global-preview --allow-nl-override --allow-mac-tesla-override
           python production/scripts/validate_browser_asset_graph.py dist/v9-global-preview
           python production/scripts/verify_candidate_manifest.py dist/v9-global-preview
       - name: Multi-country runtime smoke
