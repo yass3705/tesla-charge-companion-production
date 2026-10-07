@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
+      - "v9-production-shell/bridge.js"
+      - "tests/v9-shell-grouping.test.mjs"
+      - "tests/runtime-browser-journey-global.mjs"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
       - "scripts/tesla_tariff_priority.py"
@@ -58,7 +61,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "push" ]]; then
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "push" || "${{ github.event_name }}" == "pull_request" ]]; then
             STABLE_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-stable.git refs/heads/main | cut -f1)"
             DATALAB_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-data-lab.git refs/heads/main | cut -f1)"
             SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_ID}"
@@ -120,7 +123,9 @@ jobs:
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
-        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-global-preview
+        run: |
+          node production/tests/v9-shell-grouping.test.mjs
+          node production/tests/runtime-e2e-smoke.mjs dist/v9-global-preview
       - name: Install browser test dependency
         run: npm install --no-save --no-package-lock playwright@1.55.1
       - name: Serve preview locally
@@ -133,7 +138,7 @@ jobs:
           cat /tmp/tcc-global-preview-server.log
           exit 1
       - name: Browser journey
-        run: node production/tests/runtime-browser-journey.mjs
+        run: node production/tests/runtime-browser-journey-global.mjs
       - name: Configure Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
