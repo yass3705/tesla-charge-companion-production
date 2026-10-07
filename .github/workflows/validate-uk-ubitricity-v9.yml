@@ -14,7 +14,7 @@ permissions:
 jobs:
   integration:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: main
+          ref: 8e3462094dfa36d6e5623bfc9838f5fc53bab914
           path: datalab
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -47,3 +47,20 @@ jobs:
           assert report["rejectedTariffs"]
           print({k:report[k] for k in ("locations","connectors","pricedConnectors","unpricedConnectors")})
           PY
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - name: Build and validate pinned Ubitricity snapshot
+        run: |
+          python production/scripts/build_refresh_candidate_config.py \
+            --base production/config/snapshots/2026-09-30-r9-electra-fr.json \
+            --datalab-sha 8e3462094dfa36d6e5623bfc9838f5fc53bab914 \
+            --snapshot-id 2026-10-07-r10 \
+            --out production/config/snapshots/ubitricity-ci.json
+          python production/scripts/validate_snapshot.py production/config/snapshots/ubitricity-ci.json
+          python production/scripts/build_snapshot.py --stable stable --datalab datalab \
+            --config production/config/snapshots/ubitricity-ci.json --out dist/ubitricity-ci
+          python production/scripts/validate_built_snapshot.py dist/ubitricity-ci 2026-10-07-r10
