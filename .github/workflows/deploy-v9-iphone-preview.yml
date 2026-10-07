@@ -28,7 +28,7 @@ jobs:
       - name: Checkout reviewed production candidate
         uses: actions/checkout@v4
         with:
-          ref: 9335e0acd8777a9baebf182b634a636016429996
+          ref: a46d0673eebb69053bf4b0b217aa473bfdd60f67
           path: production
 
       - name: Checkout stable baseline
@@ -53,7 +53,7 @@ jobs:
           SNAPSHOT_ID: 2026-10-07-connected-kerb-utc-preview
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = 9335e0acd8777a9baebf182b634a636016429996
+          test "$(git -C production rev-parse HEAD)" = a46d0673eebb69053bf4b0b217aa473bfdd60f67
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
           test "$(git -C datalab rev-parse HEAD)" = 49fc25d21afb16352c3066c7dec22c7392394718
           python production/scripts/build_refresh_candidate_config.py \
