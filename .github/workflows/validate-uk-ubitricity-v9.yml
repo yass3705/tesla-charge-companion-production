@@ -1,0 +1,49 @@
+name: Validate UK Ubitricity V9 integration
+on:
+  pull_request:
+    paths:
+      - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
+      - "scripts/build_runtime_registry.py"
+      - "scripts/build_snapshot.py"
+      - "scripts/validate_built_snapshot.py"
+      - "tests/uk-ubitricity-integration.test.mjs"
+      - ".github/workflows/validate-uk-ubitricity-v9.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: main
+          path: datalab
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m py_compile production/scripts/build_runtime_registry.py production/scripts/build_snapshot.py production/scripts/validate_built_snapshot.py
+      - run: node production/tests/uk-ubitricity-integration.test.mjs datalab/data/national/uk_ubitricity_v9.json.gz
+      - name: Compare independent Data Lab validation report
+        run: |
+          python - <<'PY'
+          import json,gzip
+          from pathlib import Path
+          root=Path("datalab")
+          report=json.loads((root/"reports/uk/ubitricity-pcpr-validation-latest.json").read_text())
+          with gzip.open(root/"data/national/uk_ubitricity_v9.json.gz","rt") as f: payload=json.load(f)
+          assert report["collectedAt"]==payload["collectedAt"]
+          assert report["pricedConnectors"]+report["unpricedConnectors"]==report["connectors"]
+          assert report["locations"]==len(payload["sources"][0]["locations"])
+          assert report["rejectedTariffs"]
+          print({k:report[k] for k in ("locations","connectors","pricedConnectors","unpricedConnectors")})
+          PY
