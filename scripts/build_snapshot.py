@@ -314,7 +314,7 @@ def main():
             if source.get("id") == "ubitricity-pcpr-payg": continue
             source["locations"] = [loc for loc in source.get("locations", [])
                 if str(loc.get("party_id", "")).upper() != "UBI"
-                and "ubitricity" not in str(loc.get("operator", {}).get("name", "")).lower()]
+                and "ubitricity" not in str((loc.get("operator") or {}).get("name", "")).lower()]
             retained.append(source)
         aggregate["sources"] = retained + ubi["sources"]
         with gzip.open(uk/"all.json.gz", "wt") as f:
