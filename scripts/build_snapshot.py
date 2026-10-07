@@ -89,6 +89,15 @@ def main():
             if not metadata_src.exists():
                 raise SystemExit(f"Pinned Data Lab Tesla metadata missing: {metadata_path}")
             copy_file(metadata_src,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
+    elif tesla_cfg.get("primarySource")=="stable" and tesla_cfg.get("path")=="data/tesla_stations.json":
+        mac_source=stable/"data/tesla_stations.json"
+        if not mac_source.exists():
+            raise SystemExit("Pinned Stable Mac Tesla catalogue missing")
+        copy_file(mac_source,out/"runtime/data/tesla_stations.json")
+        if (out/"data/tesla_stations.json").read_bytes()!=mac_source.read_bytes():
+            raise AssertionError("Control and V9 Tesla catalogues differ")
+        comparison=production_root/"docs/tesla-mac-suc-comparison-2026-10-07.json"
+        if comparison.exists(): copy_file(comparison,out/"snapshot-inputs/TESLA/mac-suc-comparison.json")
     # Netherlands: optionally replace the legacy Stable baseline with the
     # immutable national runtime built in Data Lab. The source directory already
     # contains manifest, all.json.gz and tiles; keep its layout under the stable
