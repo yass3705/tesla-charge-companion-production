@@ -5,6 +5,10 @@ on:
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
+      - "scripts/tesla_tariff_priority.py"
+      - "scripts/validate_stable_parity.py"
+      - "tests/test_tesla_tariff_priority.py"
+      - "data/tesla_mac_country_updates.json"
       - "docs/tesla-mac-suc-comparison-2026-10-07.json"
   push:
     branches: [main]
@@ -12,7 +16,13 @@ on:
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
+      - "scripts/tesla_tariff_priority.py"
+      - "scripts/validate_stable_parity.py"
+      - "tests/test_tesla_tariff_priority.py"
+      - "data/tesla_mac_country_updates.json"
       - "docs/tesla-mac-suc-comparison-2026-10-07.json"
+  schedule:
+    - cron: '23 2 * * *'
   workflow_dispatch:
     inputs:
       stable_sha:
@@ -48,6 +58,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            STABLE_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-stable.git refs/heads/main | cut -f1)"
+            DATALAB_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-data-lab.git refs/heads/main | cut -f1)"
+            SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_NUMBER}"
+          fi
           [[ "$STABLE_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]]
           [[ "$DATALAB_SHA_INPUT" =~ ^[0-9a-f]{40}$ ]]
           [[ "$SNAPSHOT_ID_INPUT" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-r[0-9]+$ ]]
@@ -87,16 +102,16 @@ jobs:
             --stable-sha "${{ steps.pins.outputs.stable_sha }}" \
             --datalab-sha "${{ steps.pins.outputs.datalab_sha }}" \
             --snapshot-id "${{ steps.pins.outputs.snapshot_id }}" \
-            --use-stable-tesla-data --use-datalab-nl \
+            --use-stable-tesla-data --use-country-tesla-priority --use-datalab-nl \
             --out production/config/snapshots/global-mac-preview.json
           python production/scripts/validate_snapshot.py production/config/snapshots/global-mac-preview.json
           python production/scripts/validate_electra_platform_overlay.py datalab
           python production/scripts/build_snapshot.py --stable stable --datalab datalab \
             --config production/config/snapshots/global-mac-preview.json --out dist/v9-global-preview
           python production/scripts/validate_built_snapshot.py dist/v9-global-preview "${{ steps.pins.outputs.snapshot_id }}"
-          cmp stable/data/tesla_stations.json dist/v9-global-preview/runtime/data/tesla_stations.json
-          cmp stable/data/tesla_stations.json dist/v9-global-preview/data/tesla_stations.json
-          python production/scripts/validate_stable_parity.py stable dist/v9-global-preview --allow-nl-override --allow-mac-tesla-override
+          cmp dist/v9-global-preview/runtime/data/tesla_stations.json dist/v9-global-preview/data/tesla_stations.json
+          python production/scripts/validate_stable_parity.py stable dist/v9-global-preview --allow-nl-override --allow-country-tesla-priority
+          python -m unittest discover -s production/tests -p 'test_tesla_tariff_priority.py'
           python production/scripts/validate_browser_asset_graph.py dist/v9-global-preview
           python production/scripts/verify_candidate_manifest.py dist/v9-global-preview
       - name: Multi-country runtime smoke

@@ -7,6 +7,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+from tesla_tariff_priority import build_selected_catalogue
 
 def sha256(path):
     h=hashlib.sha256()
@@ -93,9 +94,23 @@ def main():
         mac_source=stable/"data/tesla_stations.json"
         if not mac_source.exists():
             raise SystemExit("Pinned Stable Mac Tesla catalogue missing")
-        copy_file(mac_source,out/"runtime/data/tesla_stations.json")
-        if (out/"data/tesla_stations.json").read_bytes()!=mac_source.read_bytes():
-            raise AssertionError("Control and V9 Tesla catalogues differ")
+        if tesla_cfg.get("tariffPolicy")=="mac-country-10-days":
+            suc_source=dl/tesla_cfg["sucPath"]
+            suc_meta=dl/tesla_cfg["sucMetadata"]
+            updates=production_root/"data/tesla_mac_country_updates.json"
+            if not suc_source.exists() or not suc_meta.exists() or not updates.exists():
+                raise SystemExit("Pinned Tesla tariff policy input missing")
+            report=out/"snapshot-inputs/TESLA/tariff-selection.json"
+            build_selected_catalogue(mac_source,suc_source,updates,cfg["teslaTariffAsOfDate"],
+                                     out/"runtime/data/tesla_stations.json",report)
+            copy_file(out/"runtime/data/tesla_stations.json",out/"data/tesla_stations.json")
+            copy_file(mac_source,out/"snapshot-inputs/TESLA/mac-stations.json")
+            copy_file(suc_meta,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
+            copy_file(updates,out/"snapshot-inputs/TESLA/mac-country-updates.json")
+        else:
+            copy_file(mac_source,out/"runtime/data/tesla_stations.json")
+            if (out/"data/tesla_stations.json").read_bytes()!=mac_source.read_bytes():
+                raise AssertionError("Control and V9 Tesla catalogues differ")
         comparison=production_root/"docs/tesla-mac-suc-comparison-2026-10-07.json"
         if comparison.exists(): copy_file(comparison,out/"snapshot-inputs/TESLA/mac-suc-comparison.json")
     # Netherlands: optionally replace the legacy Stable baseline with the
@@ -473,7 +488,7 @@ def main():
         "loaderExtensionInstall":"TCCV9ProductionBootstrap.install()"
       },
       "datasets":{
-        "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None},
+        "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/tariff-selection.json" if tesla_cfg.get("tariffPolicy")=="mac-country-10-days" else ("snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None)},
         "ES":{"kind":"static-tiles","manifest":"runtime/data/v9/spain-static/manifest.json","offers":"runtime/data/v9/spain-reve-offers/manifest.json","coverage":"complete"},
         "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
         "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","direct":"snapshot-inputs/CH/direct","coverage":"complete-with-fail-closed-residuals"},

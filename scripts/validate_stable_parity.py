@@ -15,6 +15,7 @@ def main():
     snap=pathlib.Path(sys.argv[2])/"runtime"
     allow_tesla_override="--allow-tesla-override" in sys.argv[3:]
     allow_mac_tesla_override="--allow-mac-tesla-override" in sys.argv[3:]
+    allow_country_tesla_priority="--allow-country-tesla-priority" in sys.argv[3:]
     allow_nl_override="--allow-nl-override" in sys.argv[3:]
     critical=[
       "data/tesla_stations.json",
@@ -31,7 +32,7 @@ def main():
       "assets/v9/browser-loaders.js",
       "assets/v9/browser-routing.js"
     ]
-    if allow_tesla_override or allow_mac_tesla_override:
+    if allow_tesla_override or allow_mac_tesla_override or allow_country_tesla_priority:
         critical=[rel for rel in critical if rel!="data/tesla_stations.json"]
         tesla=snap/"data/tesla_stations.json"
         assert tesla.exists() and tesla.stat().st_size>0, "Data Lab Tesla override missing/empty"
@@ -40,6 +41,11 @@ def main():
         runtime=snap/"data/tesla_stations.json"
         assert mac.exists() and runtime.exists(), "Mac Tesla catalogue missing"
         assert sha(mac)==sha(runtime), "Mac Tesla catalogue differs from pinned Stable"
+    if allow_country_tesla_priority:
+        root=pathlib.Path(sys.argv[2])
+        assert (root/"snapshot-inputs/TESLA/tariff-selection.json").exists(), "Tesla tariff selection report missing"
+        assert (root/"snapshot-inputs/TESLA/mac-country-updates.json").exists(), "Mac country dates missing"
+        assert (root/"snapshot-inputs/TESLA/suc-tracker-metadata.json").exists(), "SuC metadata missing"
     if allow_nl_override:
         critical=[rel for rel in critical if rel not in {
           "data/non_tesla_netherlands/manifest.json",
