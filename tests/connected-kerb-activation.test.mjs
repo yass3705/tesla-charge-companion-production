@@ -15,7 +15,9 @@ assert(source);
 const stations=adapter.normalizePayload({sources:[source]});
 const offers=stations.flatMap(s=>s.offers);
 assert.equal(stations.length,2069);
-assert.equal(offers.length,7999);
+// Current canonical reconciliation additionally rejects sockets E22001/E22002.
+assert.equal(offers.length,7997);
+for(const id of ['GB*CK0*E22001','GB*CK0*E22002'])assert(!offers.some(o=>o.evseIds.includes(id)));
 const profiles=new Map();
 for(const o of offers){
   assert.equal(o.currency,'GBP');assert.equal(o.pricing.timeZone,'UTC');
