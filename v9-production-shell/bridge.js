@@ -742,6 +742,7 @@
     if(!select)return;
     const field=select.closest('.full')||select.parentElement;
     field?.querySelector(':scope > label')?.remove();
+    select.parentElement?.querySelector(':scope > label')?.remove();
     const previousValues=select.multiple?[...select.selectedOptions].map(option=>text(option.value)).filter(Boolean):[];
     const options=new Map();
     for(const option of [...select.options]){
@@ -765,7 +766,7 @@
       if(!button){button=w.document.createElement('button');button.type='button';button.id=id;button.className='secondary';button.textContent=label;button.title=title;button.style.cssText='width:auto;margin:0;padding:10px 12px;white-space:nowrap';}
       return button;
     };
-    const group=select.closest('details.v9-filter-group'),displayLabel=[...(group?.querySelectorAll('label')||[])].find(label=>text(label.textContent).startsWith('Réseaux affichés'));
+    const group=select.closest('.v9-network-controls'),displayLabel=group?.querySelector('.v9-network-heading');
     let active=w.document.getElementById('v9ActiveNetworkFilter');
     if(!active){active=w.document.createElement('span');active.id='v9ActiveNetworkFilter';}
     if(displayLabel){displayLabel.textContent='Réseaux affichés — ';displayLabel.appendChild(active);}
@@ -876,6 +877,12 @@
     const captured=groups.map(group=>({group,nodes:group.ids.map(field).filter(Boolean)}));
     grid.innerHTML='';origin.classList.add('full');grid.appendChild(origin);
     for(const {group,nodes} of captured){
+      if(group.title==='Réseaux affichés'){
+        const section=w.document.createElement('section');section.className='full box v9-network-controls';
+        const heading=w.document.createElement('b');heading.className='v9-network-heading';heading.textContent=group.title;section.appendChild(heading);
+        for(const node of nodes)section.appendChild(node);
+        grid.appendChild(section);continue;
+      }
       const details=w.document.createElement('details');details.className='full box v9-filter-group';
       const summary=w.document.createElement('summary');summary.textContent=group.title;
       details.appendChild(summary);

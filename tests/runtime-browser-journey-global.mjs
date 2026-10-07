@@ -48,6 +48,8 @@ try{
   assert.equal(await page.locator('#v9AllNetworks').textContent(),'Tous les réseaux');
   assert.equal(await page.evaluate(()=>window.TCCV9ProductionShell.readInputs(window).operatorMode),'all','All networks are selected on first page load');
   assert.equal(await page.locator('#v9OperatorDropdown').count(),1,'operator dropdown is available');
+  assert.equal(await page.locator('#v9OperatorDropdown').isVisible(),true,'CPO multi-selection is visible without opening a submenu');
+  assert.equal(await page.locator('details.v9-filter-group').filter({has:page.locator('#v9OperatorDropdown')}).count(),0,'CPO selection has no collapsible submenu');
   assert.equal(await page.locator('#simPowerAc').count(),1,'AC checkbox is beside power range');
   assert.equal(await page.locator('#simPowerDc').count(),1,'DC checkbox is beside power range');
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
