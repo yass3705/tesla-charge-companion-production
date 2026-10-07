@@ -67,6 +67,13 @@ def main():
         copy_tree(pan_static,out/"runtime/data/v9/france-static")
     be_enabled=snapshot_date>="2026-10-07"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
+    if snapshot_date>="2026-10-06":
+        reg=load_json(registry)
+        fr_source=next(source for source in reg["sources"] if source.get("id")=="france-national")
+        fr_source["label"]="France PAN IRVE static validated and deduplicated"
+        fr_source["refresh"]="snapshot-pinned-data-lab-pan"
+        fr_source["sourceUrl"]=pan_manifest["sourceUrl"]
+        write_json(registry,reg)
     if be_enabled:
         subprocess.run([sys.executable,str(production_root/"scripts/build_belgium_nap_runtime.py"),str(dl),str(out/"runtime/data/v9")],check=True)
     else:
