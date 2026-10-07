@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import argparse, json, pathlib
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 def main():
     ap=argparse.ArgumentParser()
@@ -7,6 +9,8 @@ def main():
     ap.add_argument("--datalab-sha", required=True)
     ap.add_argument("--stable-sha")
     ap.add_argument("--use-stable-tesla-data", action="store_true")
+    ap.add_argument("--use-country-tesla-priority", action="store_true")
+    ap.add_argument("--as-of-date")
     ap.add_argument("--out", required=True)
     ap.add_argument("--snapshot-id", default=None)
     ap.add_argument("--use-datalab-tesla", action="store_true")
@@ -24,6 +28,8 @@ def main():
             raise SystemExit("invalid Stable SHA")
         obj["sources"]["stable"]["sha"]=stable_sha
     obj["sourceSelection"]["selectedDataLabCommit"]=sha
+    if args.use_country_tesla_priority and not args.use_stable_tesla_data:
+        raise SystemExit("Country Tesla priority requires the Stable Mac inventory")
     if args.use_datalab_tesla and args.use_stable_tesla_data:
         raise SystemExit("select exactly one Tesla source")
     if args.use_stable_tesla_data:
@@ -33,6 +39,13 @@ def main():
         tesla["primarySource"]="stable"
         tesla["path"]="data/tesla_stations.json"
         tesla.pop("metadata",None)
+        if args.use_country_tesla_priority:
+            as_of=args.as_of_date or datetime.now(ZoneInfo("Europe/Paris")).date().isoformat()
+            date.fromisoformat(as_of)
+            obj["teslaTariffAsOfDate"]=as_of
+            tesla["tariffPolicy"]="mac-country-10-days"
+            tesla["sucPath"]="data/suc-tracker/tesla_stations.json"
+            tesla["sucMetadata"]="data/suc-tracker/metadata.json"
     if args.use_datalab_tesla:
         tesla=next((d for d in obj.get("datasets",[]) if d.get("id")=="TESLA"),None)
         if not tesla:
@@ -52,7 +65,7 @@ def main():
     obj["sourceSelection"]["safeguards"]=list(dict.fromkeys(
       obj["sourceSelection"].get("safeguards",[])+[
         "Ephemeral refresh candidate only; no release or deployment." if not args.use_stable_tesla_data else "Preview deployment only; no production release.",
-        *(["Tesla Mac catalogue comes from the pinned Stable data/tesla_stations.json; SuC Tracker remains comparison evidence."] if args.use_stable_tesla_data else []),
+        *(["Tesla station inventory comes from pinned Stable Mac; country tariff age decides between Mac and pinned SuC Tracker." if args.use_country_tesla_priority else "Tesla Mac catalogue comes from the pinned Stable data/tesla_stations.json; SuC Tracker remains comparison evidence."] if args.use_stable_tesla_data else []),
         "All unsupported/unmatched tariffs remain fail closed.",
         *(["Tesla catalogue comes from the same pinned Data Lab SHA via SuC Tracker."] if args.use_datalab_tesla else []),
         *(["NL national runtime comes from the DOT-NL Data Lab snapshot; Tesla is excluded and unresolved tariffs remain fail-closed."] if args.use_datalab_nl else [])
