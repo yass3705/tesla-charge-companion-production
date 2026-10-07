@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "push" ]]; then
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "push" || "${{ github.event_name }}" == "pull_request" ]]; then
             STABLE_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-stable.git refs/heads/main | cut -f1)"
             DATALAB_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-data-lab.git refs/heads/main | cut -f1)"
             SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_ID}"
