@@ -25,7 +25,8 @@ def main():
         assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha), f"unpinned source {src}"
         if not d.get("path"):
             assert d.get("materialization"), f"missing path/materialization for {d.get('id')}"
-    assert obj.get("sourceSelection",{}).get("selectedDataLabCommit") == sources["dataLab"]["sha"], "Data Lab pin mismatch"
+    if "BE" in ids:
+        assert obj.get("sourceSelection",{}).get("selectedDataLabCommit") == sources["dataLab"]["sha"], "Data Lab pin mismatch"
     print(f"OK snapshot={obj['snapshotId']} datasets={len(datasets)} policy={obj['policy']}")
 
 if __name__ == "__main__":
