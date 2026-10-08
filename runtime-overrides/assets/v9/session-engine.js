@@ -170,6 +170,7 @@
     const targetCurrency=text(options.targetCurrency||session.targetCurrency||'EUR').toUpperCase();
     const fxRates=options.fxRates||session.fxRates||{};
     const effectiveSession=stationSession(station,session,options),km=recoveredKm(session),evaluations=[];
+    if(num(effectiveSession.powerKw)==null&&chargingPowerKw!=null)effectiveSession.powerKw=chargingPowerKw;
 
     for(const offer of offers){
       const postChargeMinutes=Math.max(0,num(effectiveSession.postChargeMinutes)??0);
