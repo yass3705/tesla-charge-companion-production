@@ -21,7 +21,7 @@ const entries=[
   rule('absent',{evseIds:['evse-missing']})
 ];
 const out=data.applyOfferRules(stations,entries);
-assert.deepEqual(out[0].offers.map(x=>x.id).sort(),['by-A','both-yes','generic']);
+assert.deepEqual(out[0].offers.map(x=>x.id).sort(),['both-yes','by-A','generic']);
 assert.deepEqual(out[1].offers.map(x=>x.id).sort(),['alias','by-B','generic']);
 const many=[...entries];
 for(let i=0;i<12000;i++)many.push(rule('other-'+i,{evseIds:['missing-'+i]}));
