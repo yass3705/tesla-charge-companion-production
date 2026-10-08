@@ -97,6 +97,29 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Verify fresh UK Ubitricity direct PAYG input before publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          node production/tests/uk-ubitricity-integration.test.mjs datalab/data/national/uk_ubitricity_v9.json.gz
+          python - <<'PY'
+          import gzip, json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          root = Path('datalab')
+          report = json.loads((root/'reports/uk/ubitricity-pcpr-validation-latest.json').read_text())
+          with gzip.open(root/'data/national/uk_ubitricity_v9.json.gz', 'rt') as fh:
+              payload = json.load(fh)
+          assert report['status'] == 'validated_runtime_input_ready', report['status']
+          assert report['collectedAt'] == payload['collectedAt']
+          assert datetime.fromisoformat(report['collectedAt']) >= datetime(2026, 10, 8, 10, 53, tzinfo=timezone.utc)
+          assert report['countries'] == {'GBR': report['locations']}
+          assert report['pricedConnectors'] >= 13620
+          assert report['pricedConnectors'] + report['unpricedConnectors'] == report['connectors']
+          assert report['unpricedConnectors'] >= 0
+          assert payload['sources'][0]['pricingScope'] == 'cpo_direct_payg_verified'
+          print('Validated UK Ubitricity input:', {k:report[k] for k in ('locations','connectors','pricedConnectors','unpricedConnectors')})
+          PY
       - name: Build and validate current global preview
         shell: bash
         run: |
@@ -120,6 +143,28 @@ jobs:
           python -m unittest discover -s production/tests -p 'test_tesla_tariff_priority.py'
           python production/scripts/validate_browser_asset_graph.py dist/v9-global-preview
           python production/scripts/verify_candidate_manifest.py dist/v9-global-preview
+      - name: Verify deployed V9 bundle contains exact UK Ubitricity input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import gzip, hashlib, json
+          from pathlib import Path
+          dist = Path('dist/v9-global-preview')
+          origin = Path('datalab/data/national/uk_ubitricity_v9.json.gz')
+          deployed = dist/'snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz'
+          assert deployed.exists(), 'Ubitricity feed absent from V9 bundle'
+          assert hashlib.sha256(origin.read_bytes()).digest() == hashlib.sha256(deployed.read_bytes()).digest(), 'Ubitricity feed differs from validated Data Lab source'
+          registry = json.loads((dist/'runtime/data/v9/source-registry.json').read_text())
+          source = next(s for s in registry['sources'] if s.get('id')=='uk-ubitricity-pcpr-payg')
+          assert source['active'] is True and source['optional'] is False
+          assert source['path']=='../snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz'
+          with gzip.open(deployed, 'rt') as fh: data=json.load(fh)
+          locs = data['sources'][0]['locations']
+          priced = sum(bool(c.get('validatedV9Offer')) for loc in locs for e in loc.get('evses',[]) for c in e.get('connectors',[]))
+          assert priced >= 13620 and len(locs)==12424
+          print(f'V9 Ubitricity ready: {len(locs)} locations / {priced} validated direct connector offers; exact source digest matched')
+          PY
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
