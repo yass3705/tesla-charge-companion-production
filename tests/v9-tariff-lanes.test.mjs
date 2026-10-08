@@ -79,4 +79,28 @@ const area=await engine.queryArea({countryCode:'FR'});
 assert.equal(area.stations.length,1);
 assert.deepEqual(area.stations[0].offers.map(o=>o.provider).sort(),['Electra','Electroverse']);
 assert.ok(area.diagnostics.errors.some(e=>e.sourceId==='direct-broken'));
+
+const safe=ui.consistentLaneEvaluation(evaluation,s,[]);
+assert.equal(safe.best.offerId,'d','ambiguous Electra must not be rankable');
+const onlyConflict={best:electraA,alternatives:[electraB],incomplete:[]};
+assert.equal(ui.consistentLaneEvaluation(onlyConflict,s,[]).best,null,'only ambiguous options must not produce a false best price');
+const fastnedSubscription={id:'fastned-gold',subscriptionId:'fastned-gold',operatorAliases:['Fastned'],provider:'Fastned Gold',countries:['FR']};
+const nearbyFastned={...station('near'),physicalOperator:{id:'fastned',name:'Fastned'}};
+assert.ok(ui.subscriptionOptionsForArea({stations:[nearbyFastned]},'FR',[fastnedSubscription]).some(x=>x.id==='fastned-gold'));
+assert.ok(!ui.subscriptionOptionsForArea({stations:[station('far')]},'FR',[fastnedSubscription]).some(x=>x.id==='fastned-gold'));
+const pricing=require('../runtime-overrides/assets/v9/pricing-engine.js');
+const priceAt=(rate)=>({scope:'allDay',start:'00:00',end:'24:00',pricePerKwh:rate});
+const overlap=pricing.evaluateOffer({id:'overlap',currency:'EUR',pricing:{type:'rules',rules:[priceAt(.4),priceAt(.55)]}},{startAt:'2026-10-08T14:00:00Z',energyKwh:10,durationMinutes:30});
+assert.equal(overlap.complete,false);
+assert.equal(overlap.reason,'ambiguous_overlapping_tariff_rules');
+const ambigSingle={...electroverse,total:null,comparable:false,result:overlap};
+assert.equal(ui.tariffLaneState({best:null,alternatives:[],incomplete:[ambigSingle]},s,'electroverse').status,'ambiguous');
+// Identical rule IDs from distinct tariff sources must never overwrite each other.
+const baseStation=station('collision');
+const collision=data.applyOfferRules([baseStation],[
+ {source:{id:'first',priority:{tariff:80}},rule:{id:'same',provider:'CPO',countries:['FR'],pricing:{pricePerKwh:.3},evseIds:['EVSE-collision']}},
+ {source:{id:'second',priority:{tariff:90}},rule:{id:'same',provider:'CPO',countries:['FR'],pricing:{pricePerKwh:.5},evseIds:['EVSE-collision']}}
+]);
+assert.equal(collision[0].offers.length,2,'two sources with same provider/ID must remain separately represented');
+
 console.log('OK V9: tariffs kept per EVSE/power; ambiguous independent lanes; CHF/EUR; subscriptions and overlay-failure isolation');
