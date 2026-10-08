@@ -27,6 +27,11 @@ on:
     paths:
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
       - "v9-production-shell/bridge.js"
+      - "runtime-overrides/assets/v9/pricing-engine.js"
+      - "runtime-overrides/assets/v9/session-engine.js"
+      - "scripts/build_electra_direct_offers.py"
+      - "tests/v9-congestion-soc80.test.mjs"
+      - "tests/runtime-browser-journey-global.mjs"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
       - "scripts/tesla_tariff_priority.py"
