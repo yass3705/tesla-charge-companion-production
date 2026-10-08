@@ -294,7 +294,7 @@ def main():
             elif source.get("id")=="belgium-nap-national" and any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
                 source["active"]=True
                 source["optional"]=False
-            elif source.get("id")=="netherlands-dotnl" and nl_cfg.get("primarySource")=="dataLab":
+            elif source.get("id") in ("netherlands-dotnl","netherlands-direct-offers") and nl_cfg.get("primarySource")=="dataLab":
                 source["active"]=False
         local=current_registry.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
         for identifier in ("netherlands-dotnl-national","belgium-nap-national"):
@@ -501,6 +501,18 @@ def main():
           str(electra_exact),
           str(fr_direct/"electra_exact_direct_offers.json")
         ],check=True)
+        reg=load_json(registry)
+        for source in reg.get("sources",[]):
+            if source.get("id")=="france-electra-direct-exact":
+                source["active"]=True
+                source["optional"]=False
+                break
+        else:
+            raise AssertionError("Electra exact direct registry source missing")
+        local=reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        if "france-electra-direct-exact" not in local:
+            local.append("france-electra-direct-exact")
+        write_json(registry,reg)
 
     # Italy validated direct overlays beside the compiled static baseline.
     it_dst=overlays/"IT/direct"
