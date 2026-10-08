@@ -103,10 +103,21 @@
     const specificity=rule=>Number(rule?.scope!=='allDay')+Number((rule?.daysOfWeek??rule?.days??[]).length>0)+Number(rule?.holidayOnly===true||rule?.excludeHolidays===true)+Number(rule?.validFromDate!=null||rule?.validThroughDate!=null)+Number(rule?.minDurationMinutes!=null||rule?.maxDurationMinutes!=null)+Number(rule?.minPowerKw!=null||rule?.maxPowerKw!=null);
     candidates.sort((a,b)=>specificity(b.rule)-specificity(a.rule));
     const specificPriced=candidates.some(candidate=>candidate.rule?.scope!=='allDay'&&candidate.status!=='no_match'&&tariffRuleHasPositivePrice(candidate.rule));
-    for(const candidate of candidates){
-      if(specificPriced&&zeroAllDayPlaceholder(candidate.rule))continue;
+    const candidatesInForce=candidates.filter(candidate=>!(specificPriced&&zeroAllDayPlaceholder(candidate.rule)));
+    for(const candidate of candidatesInForce){
       if(candidate.status==='unknown')return{rule:null,unknown:true,reason:'missing_rule_context'};
-      if(candidate.status==='match')return{rule:candidate.rule,unknown:false};
+      if(candidate.status!=='match')continue;
+      const samePriority=candidatesInForce.filter(row=>row.status==='match'&&specificity(row.rule)===specificity(candidate.rule));
+      const signature=rule=>JSON.stringify([
+        rule?.pricePerKwh,rule?.pricePerMinute,rule?.chargePerMinute,rule?.chargingTimePerMinuteEur,
+        rule?.connectedTimePerMinuteEur,rule?.idlePerMinute,rule?.connectionFee,
+        rule?.connectedTimeBlockMinutes,rule?.connectedTimeBlockEur,rule?.sessionFeeEur,
+        rule?.minimumSessionEur,rule?.ocpiDurationBands,rule?.powerBands,
+        rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur
+      ]);
+      if(new Set(samePriority.map(row=>signature(row.rule))).size>1)
+        return{rule:null,unknown:true,reason:'ambiguous_overlapping_tariff_rules'};
+      return{rule:candidate.rule,unknown:false};
     }
     return{rule:null,unknown:false};
   }
