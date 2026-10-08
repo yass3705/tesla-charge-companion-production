@@ -71,7 +71,7 @@
     entity._fieldRanks[family]=nextRank;
   }
 
-  function offerSemanticKey(offer,countryCode){return[text(offer?.id)||text(offer?.offerId)||'offer',text(offer?.kind)||'unknown',text(offer?.subscriptionId),operatorId(offer?.provider),text(countryCode).toUpperCase()].join('|');}
+  function offerSemanticKey(offer,countryCode){return[text(offer?.sourceId)||'source-unknown',text(offer?.id)||text(offer?.offerId)||'offer',text(offer?.kind)||'unknown',text(offer?.subscriptionId),operatorId(offer?.provider),text(countryCode).toUpperCase()].join('|');}
   function materializeOffer(offer,countryCode){
     const out=clone(offer)||{},country=text(countryCode).toUpperCase(),countries=(out.countries||[]).map(x=>text(x).toUpperCase());
     if(countries.length&&!countries.includes('*')&&!countries.includes(country))return null;
@@ -128,7 +128,7 @@
   function ruleToOffer(rule,station,source){
     const offer=materializeOffer({
       id:rule.id,provider:rule.provider,kind:rule.offerKind||'direct',subscriptionId:rule.subscriptionId||null,countries:rule.countries||[station.countryCode],currency:rule.currency||'EUR',
-      connectorKinds:clone(rule.connectorKinds)||[],operatorIds:clone(rule.operatorIds)||[],networkIds:clone(rule.networkIds)||[],networkAliases:clone(rule.networkAliases)||[],stationIds:clone(rule.stationIds)||[],evseIds:clone(rule.evseIds)||[],minPowerKw:rule.minPowerKw??null,maxPowerKw:rule.maxPowerKw??null,
+      connectorKinds:clone(rule.connectorKinds)||[],operatorIds:clone(rule.operatorIds)||[],networkIds:clone(rule.networkIds)||[],networkAliases:clone(rule.networkAliases)||[],stationIds:clone(rule.stationIds)||[],evseIds:clone(rule.evseIds)||[],connectorIds:clone(rule.connectorIds)||[],plugNames:clone(rule.plugNames)||[],minPowerKw:rule.minPowerKw??null,maxPowerKw:rule.maxPowerKw??null,
       pricing:clone(rule.pricing)||{},ratesByCountry:clone(rule.ratesByCountry)||null,validFrom:rule.validFrom||null,validThrough:rule.validThrough||null,validityBasis:rule.validityBasis||null,priority:number(rule.priority)??priorityFor(source,'tariff',rule),metadata:clone(rule.metadata)||null
     },station.countryCode);
     if(offer){offer.sourceId=source.id;offer.priority=number(offer.priority)??priorityFor(source,'tariff',rule);}return offer;
