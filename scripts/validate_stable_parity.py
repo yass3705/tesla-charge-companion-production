@@ -17,6 +17,7 @@ def main():
     allow_mac_tesla_override="--allow-mac-tesla-override" in sys.argv[3:]
     allow_country_tesla_priority="--allow-country-tesla-priority" in sys.argv[3:]
     allow_nl_override="--allow-nl-override" in sys.argv[3:]
+    allow_pricing_engine_override="--allow-pricing-engine-override" in sys.argv[3:]
     critical=[
       "data/tesla_stations.json",
       "data/v9/spain-static/manifest.json",
@@ -46,13 +47,21 @@ def main():
         assert (root/"snapshot-inputs/TESLA/tariff-selection.json").exists(), "Tesla tariff selection report missing"
         assert (root/"snapshot-inputs/TESLA/mac-country-updates.json").exists(), "Mac country dates missing"
         assert (root/"snapshot-inputs/TESLA/suc-tracker-metadata.json").exists(), "SuC metadata missing"
+    if allow_pricing_engine_override:
+        critical=[rel for rel in critical if rel!="assets/v9/pricing-engine.js"]
+        assert (snap/"assets/v9/pricing-engine.js").exists(), "V9 pricing engine missing"
     if allow_nl_override:
         critical=[rel for rel in critical if rel not in {
           "data/non_tesla_netherlands/manifest.json",
           "data/non_tesla_netherlands/all.json.gz"
         }]
-        nl_manifest=snap/"data/non_tesla_netherlands/manifest.json"
-        nl_all=snap/"data/non_tesla_netherlands/all.json.gz"
+        root=pathlib.Path(sys.argv[2])
+        if (root/"snapshot-inputs/NL/runtime/manifest.json").exists():
+            nl_manifest=root/"snapshot-inputs/NL/runtime/manifest.json"
+            nl_all=root/"snapshot-inputs/NL/runtime/all.json.gz"
+        else:
+            nl_manifest=snap/"data/non_tesla_netherlands/manifest.json"
+            nl_all=snap/"data/non_tesla_netherlands/all.json.gz"
         assert nl_manifest.exists() and nl_manifest.stat().st_size>0, "Data Lab NL override manifest missing/empty"
         assert nl_all.exists() and nl_all.stat().st_size>0, "Data Lab NL override runtime missing/empty"
     checked=0
