@@ -218,6 +218,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-attempt-${{ github.run_attempt }}
           path: dist/v9-global-preview
   deploy:
     if: github.event_name != 'pull_request'
@@ -230,3 +231,5 @@ jobs:
       - name: Deploy V9 global preview
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-attempt-${{ github.run_attempt }}
