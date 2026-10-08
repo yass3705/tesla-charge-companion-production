@@ -44,8 +44,8 @@
       if(!stations.length)return false;
       const scoped=[...(offer.stationIds||[]),...(offer.evseIds||[])].map(text).filter(Boolean);
       if(scoped.length)return scoped.some(id=>stationIds.has(id));
-      const operators=[...(offer.operatorIds||[]),...(offer.networkIds||[])].map(value=>text(value).toLowerCase()).filter(Boolean);
-      if(operators.length)return stations.some(st=>operators.includes(text(st.physicalOperator?.id||st.physicalOperator?.name).toLowerCase())||operators.includes(text(st.networkBrand).toLowerCase()));
+      const operators=[...(offer.operatorIds||[]),...(offer.operatorAliases||[]),...(offer.networkIds||[]),...(offer.networkAliases||[])].map(value=>text(value).toLowerCase()).filter(Boolean);
+      if(operators.length)return stations.some(st=>[text(st.physicalOperator?.id),text(st.physicalOperator?.name),text(st.networkBrand)].some(value=>operators.includes(value.toLowerCase())));
       return offer?.metadata?.countryWideVerified===true;
     });
     const offers=[...catalogueInRadius,...stations.flatMap(station=>station?.offers||[])];
@@ -463,6 +463,19 @@
     if(offerConnectorIds.length&&![...connectorIds||[]].some(id=>offerConnectorIds.includes(text(id))))return false;
     return true;
   }
+
+  // Never rank a contradictory tariff as though it were a verified best price.
+  // Keep its evidence in the alternatives so its own lane still says ambiguous.
+  function consistentLaneEvaluation(evaluation,station,selectedSubscriptions=[]){
+    if(!evaluation)return evaluation;
+    const all=[evaluation.best,...(evaluation.alternatives||[])].filter(Boolean);
+    const lanes=['direct',...(selectedSubscriptions||[]).map(id=>'subscription:'+text(id)),'electra','electroverse'];
+    const valid=lanes.map(lane=>tariffLaneState(evaluation,station,lane))
+      .filter(state=>state.status==='priced'&&state.item).map(state=>state.item)
+      .sort((a,b)=>Number(a.total)-Number(b.total));
+    const best=valid[0]||null;
+    return{...evaluation,best,alternatives:all.filter(item=>item!==best)};
+  }
   function variantsByPower(w,rows,session,selectedSubscriptions=[]){
     const planner=w.TCCV9SessionPlannerEngine,sessionEngine=w.TCCV9SessionEngine,scoreEngine=w.TCCV9StationScoreEngine;
     if(!planner?.planStation||!sessionEngine?.evaluateStation||!sessionEngine?.offerMatchesChargingKind||!scoreEngine?.scoreStation)throw new Error('per-power pricing engines unavailable');
@@ -489,7 +502,8 @@
         const scopedOffers=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,group.evseTokens,group.connectorIds));
         const variant={...station,evses,offers:scopedOffers},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
         const plan=planner.planStation(variant,session,{route:{byStationId:routeMap}});
-        const evaluation=sessionEngine.evaluateStation(variant,plan.effectiveSession,{selectedSubscriptions,targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}});
+        const rawEvaluation=sessionEngine.evaluateStation(variant,plan.effectiveSession,{selectedSubscriptions,targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}});
+        const evaluation=consistentLaneEvaluation(rawEvaluation,variant,selectedSubscriptions);
         const score=scoreEngine.scoreStation(variant,evaluation,plan.effectiveSession,{route:{byStationId:routeMap},plan});
         const line={kind:group.kind,powerKw:group.powerKw,count:group.evseKeys.size};
         variants.push({...row,station:variant,powerLine:line,evaluation,score,total:num(evaluation?.best?.total),costPerKm:num(evaluation?.best?.costPerRecoveredKm),recoveredKm:num(evaluation?.recoveredKm),displayKey:[text(station.name),line.kind,line.powerKw,group.offerIds.join(',')].join('|')});
@@ -1018,5 +1032,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{tariffLaneState,tariffGroupSignature,displayAmount,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
