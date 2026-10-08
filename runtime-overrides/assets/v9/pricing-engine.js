@@ -160,7 +160,12 @@
     if(includeOneTimeFees&&connectionFee!=null&&connectionFee!==0){components.connectionFee=money(connectionFee);total+=components.connectionFee;}
     const parkingRate=durationBandRate(rule,'PARKING_TIME',num(rule?.idlePerMinute),tariffDurationMinutes);
     const parkingMinutes=Math.max(0,num(postChargeMinutes)??0);
-    if(includeOneTimeFees&&parkingRate!=null&&parkingRate!==0&&parkingMinutes>0){components.parkingTime=money(parkingMinutes*parkingRate);total+=components.parkingTime;}
+    const parkingStep=num(rule?.parkingTimeStepSeconds);
+    const billedParking=parkingStep>0&&parkingMinutes>0?Math.ceil(parkingMinutes*60/parkingStep)*parkingStep/60:parkingMinutes;
+    if(includeOneTimeFees&&parkingRate!=null&&parkingRate!==0&&parkingMinutes>0){
+      components.parkingTime=money(billedParking*parkingRate);total+=components.parkingTime;
+      if(billedParking!==parkingMinutes)components.parkingTimeBilling={actualMinutes:parkingMinutes,billedMinutes:billedParking,stepSeconds:parkingStep};
+    }
     const freeMinutes=num(rule?.connectedTimeFreeMinutes),afterFree=num(rule?.connectedTimePerMinuteAfterFreeEur);
     if(freeMinutes!=null&&freeMinutes>=0&&afterFree!=null){
       const billableMinutes=Math.max(0,duration-freeMinutes),costEur=money(billableMinutes*afterFree);
@@ -283,13 +288,15 @@
   }
   function evaluateComponentGroups(pricing,session={},timeZone=null){
     const groups=Array.isArray(pricing?.componentGroups)?pricing.componentGroups:[];if(!groups.length)return{complete:false,reason:'missing_component_groups'};
-    let total=0;const components={componentGroups:[]};
+    let total=0,matchedGroups=0;const components={componentGroups:[]};
     for(const group of groups){
       const rules=Array.isArray(group?.rules)?group.rules:[];if(!rules.length)continue;
       const localPricing={...pricing,rules};const match=matchingRuleDetailed(localPricing,session.startAt,timeZone,session);if(match.unknown)return{complete:false,reason:match.reason,componentKind:group.kind||null};const rule=match.rule;
       if(!rule){components.componentGroups.push({kind:group.kind||null,matched:false,costEur:0});continue;}
+      matchedGroups++;
       const evaluated=evaluateRule(rule,session);total+=evaluated.totalEur;components.componentGroups.push({kind:group.kind||null,matched:true,costEur:evaluated.totalEur,components:evaluated.components,rule});
     }
+    if(matchedGroups===0)return{complete:false,reason:'no_matching_tariff_component',components};
     return{complete:true,totalEur:money(total),components};
   }
   function evaluateOffer(offer,session={}){

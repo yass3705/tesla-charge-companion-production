@@ -1,91 +1,190 @@
 #!/usr/bin/env python3
+"""Convert every exact Electra OCPI tariff without dropping component types.
+
+Each element is evaluated independently; only genuinely undecidable conditions
+remain non-comparable, with the source record and reason retained.
+"""
 import json
+import math
 import pathlib
 import sys
+from collections import Counter
 
-def rule_from_element(element):
-    components=element.get("priceComponents") or []
-    if len(components)!=1 or components[0].get("type")!="ENERGY":
+DAYS = {
+    "SUNDAY": 0, "MONDAY": 1, "TUESDAY": 2, "WEDNESDAY": 3,
+    "THURSDAY": 4, "FRIDAY": 5, "SATURDAY": 6,
+}
+
+def _numeric(value):
+    if value is None or value == "":
         return None
-    restrictions=element.get("restrictions") or {}
-    start=restrictions.get("startTime") or "00:00"
-    end=restrictions.get("endTime") or "24:00"
-    return {
-        "scope":"allDay" if start=="00:00" and end=="24:00" else "timeWindow",
-        "start":start,
-        "end":end,
-        "billing":"kwh",
-        "currency":"EUR",
-        "pricePerKwh":float(components[0].get("price") or 0),
-        "chargePerMinute":0,
-        "connectionFee":0,
-        "idlePerMinute":0,
-        "afterMinutesRate":0,
-        "afterMinutesThreshold":0,
-        "days":restrictions.get("dayOfWeek") or None,
-        "ocpiDurationBands":[]
+    try:
+        n = float(value)
+    except (ValueError, TypeError):
+        return None
+    return n if math.isfinite(n) and n >= 0 else None
+
+def _days(value):
+    if value is None:
+        return None
+    if not isinstance(value, list):
+        return None
+    result = []
+    for v in value:
+        key = str(v).upper()
+        if key in DAYS:
+            result.append(DAYS[key])
+        elif str(v).isdigit() and 0 <= int(v) <= 6:
+            result.append(int(v))
+        else:
+            return None
+    return sorted(set(result))
+
+def rule_from_element(element, *, currency="EUR"):
+    restrictions = element.get("restrictions") or {}
+    start = restrictions.get("startTime") or restrictions.get("start_time") or "00:00"
+    end = restrictions.get("endTime") or restrictions.get("end_time") or "24:00"
+    days_raw = restrictions.get("dayOfWeek", restrictions.get("day_of_week"))
+    days = _days(days_raw)
+    problems = []
+    if days_raw is not None and days is None:
+        problems.append("unknown_day_of_week")
+    rule = {
+        "scope": "allDay" if start == "00:00" and end == "24:00" else "timeWindow",
+        "start": start, "end": end, "billing": "mixed", "currency": currency,
+        "pricePerKwh": None, "chargePerMinute": None,
+        "connectionFee": None, "idlePerMinute": None,
+        "days": days, "ocpiDurationBands": [],
     }
+    for src, dest, factor in (
+        ("minDuration", "minDurationMinutes", 1/60),
+        ("maxDuration", "maxDurationMinutes", 1/60),
+        ("minPower", "minPowerKw", 1),
+        ("maxPower", "maxPowerKw", 1),
+    ):
+        raw = restrictions.get(src, restrictions.get(src[0].lower()+''.join('_'+c.lower() if c.isupper() else c for c in src[1:])))
+        if raw is not None:
+            number = _numeric(raw)
+            if number is None:
+                problems.append("invalid_restriction:"+src)
+            else:
+                rule[dest] = number * factor
+    for src, dest in (
+        ("startDate", "validFromDate"), ("endDate", "validThroughDate"),
+    ):
+        value = restrictions.get(src, restrictions.get(src[0].lower()+''.join('_'+c.lower() if c.isupper() else c for c in src[1:])))
+        if value is not None:
+            rule[dest] = str(value)[:10]
+    known = {"startTime","start_time","endTime","end_time","dayOfWeek","day_of_week","startDate","start_date","endDate","end_date","minDuration","min_duration","maxDuration","max_duration","minPower","min_power","maxPower","max_power"}
+    for name, value in restrictions.items():
+        if name not in known and value not in (None, "", [], {}):
+            problems.append("unsupported_restriction:"+name)
+    found = 0
+    for component in element.get("priceComponents", element.get("price_components", [])) or []:
+        kind = str(component.get("type") or "").upper()
+        price = _numeric(component.get("price"))
+        size = _numeric(component.get("stepSize", component.get("step_size")))
+        if price is None:
+            problems.append("invalid_component_price:"+kind)
+            continue
+        if kind == "ENERGY":
+            rule["pricePerKwh"] = (rule["pricePerKwh"] or 0) + price
+            if size and size > 0:
+                if rule.get("energyStepWh") not in (None,size):
+                    problems.append("conflicting_energy_rounding_steps")
+                rule["energyStepWh"] = size
+        elif kind == "TIME":
+            rule["chargePerMinute"] = (rule["chargePerMinute"] or 0) + price / 60
+            if size and size > 0:
+                if rule.get("chargingTimeStepSeconds") not in (None,size):
+                    problems.append("conflicting_time_rounding_steps")
+                rule["chargingTimeStepSeconds"] = size
+        elif kind == "FLAT":
+            rule["connectionFee"] = (rule["connectionFee"] or 0) + price
+        elif kind == "PARKING_TIME":
+            rule["idlePerMinute"] = (rule["idlePerMinute"] or 0) + price / 60
+            if size and size > 0:
+                if rule.get("parkingTimeStepSeconds") not in (None,size):
+                    problems.append("conflicting_parking_rounding_steps")
+                rule["parkingTimeStepSeconds"] = size
+        else:
+            problems.append("unsupported_component:"+kind)
+            continue
+        found += 1
+    if found == 0:
+        problems.append("no_supported_price_component")
+    return rule, sorted(set(problems))
 
 def main():
-    source=pathlib.Path(sys.argv[1])
-    output=pathlib.Path(sys.argv[2])
-    payload=json.loads(source.read_text(encoding="utf-8"))
-    pan_by_public={}
+    source = pathlib.Path(sys.argv[1])
+    output = pathlib.Path(sys.argv[2])
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    pan_by_public = {}
     for row in payload.get("panMatches") or []:
-        public_id=str(row.get("publicId") or "").strip()
-        pan_id=str(row.get("panStationId") or "").strip()
+        public_id = str(row.get("publicId") or "").strip()
+        pan_id = str(row.get("panStationId") or "").strip()
         if public_id and pan_id:
-            pan_by_public.setdefault(public_id,[]).append(pan_id)
-    offers=[]
-    skipped=0
+            pan_by_public.setdefault(public_id, []).append(pan_id)
+    offers, unresolved, skipped = [], [], 0
+    types = Counter()
     for entry in payload.get("stations") or []:
-        station=entry.get("station") or {}
-        public_id=str(station.get("id") or "").strip()
-        pan_ids=pan_by_public.get(public_id,[])
-        if not pan_ids or entry.get("status")!=200:
+        station = entry.get("station") or {}
+        public_id = str(station.get("id") or "").strip()
+        pan_ids = pan_by_public.get(public_id, [])
+        if entry.get("status") != 200:
+            unresolved.append({"stationId": public_id, "stationName": station.get("name"), "reason": "station_endpoint_unavailable"})
             continue
-        for tariff in (entry.get("location") or {}).get("chargeTariffs") or []:
-            elements=tariff.get("elements") or []
-            rules=[rule_from_element(e) for e in elements]
-            energy_rules=[r for r in rules if r]
-            unsupported_types=sorted({str(component.get("type") or "").upper() for element in elements for component in (element.get("priceComponents") or []) if str(component.get("type") or "").upper()!="ENERGY"})
-            if not energy_rules:
-                skipped+=1
-                continue
+        tariffs = (entry.get("location") or {}).get("chargeTariffs") or []
+        if not pan_ids and tariffs:
+            unresolved.append({"stationId": public_id, "stationName": station.get("name"), "reason": "national_identity_missing", "tariffCount":len(tariffs)})
+            continue
+        for tariff in tariffs:
+            tariff_id = str(tariff.get("chargeTariffId") or tariff.get("id") or "tariff")
+            currency = str(tariff.get("currency") or "EUR").upper()
+            elements = tariff.get("elements") or []
+            groups, problems = [], []
+            for i, element in enumerate(elements):
+                rule, warnings = rule_from_element(element, currency=currency)
+                groups.append({"kind": "ocpi-element:"+str(i), "rules": [rule]})
+                problems.extend(warnings)
+                for component in element.get("priceComponents", element.get("price_components", [])) or []:
+                    types[str(component.get("type") or "UNKNOWN").upper()] += 1
+            if not groups:
+                problems.append("tariff_without_elements")
+            problems = sorted(set(problems))
             for pan_id in pan_ids:
-                offers.append({
-                    "id":f"electra-direct-exact:{pan_id}:{tariff.get('chargeTariffId') or 'tariff'}",
-                    "provider":"Electra",
-                    "kind":"direct",
-                    "offerKind":"direct",
-                    "subscriptionId":None,
-                    "countries":["FR"],
-                    "currency":str(tariff.get("currency") or "EUR").upper(),
+                offer_id=f"electra-direct-exact:{pan_id}:{tariff_id}"
+                offer = {
+                    "id":offer_id,"provider":"Electra","kind":"direct","offerKind":"direct",
+                    "subscriptionId":None,"countries":["FR"],"currency":currency,
                     "stationIds":[pan_id,f"national:FR:{pan_id}",f"irve-station:{pan_id}"],
-                    "pricing":{"type":"rules","rules":energy_rules},
+                    "pricing":{"type":"component_groups","componentGroups":groups},
                     "priority":135,
                     "metadata":{
-                        "verified":True,
+                        "verified":not problems,
                         "identityMode":"exact_national_irve_station",
-                        "source":"Electra exact France snapshot",
-                        "publicLocationId":public_id,
-                        "panStationId":pan_id,
-                        "stationName":station.get("name"),
-                        "incompletePricingReason":("unsupported_components:" + ",".join(unsupported_types)) if unsupported_types else None,
-                        "excludedComponents":unsupported_types
+                        "source":"Electra exact France snapshot","publicLocationId":public_id,
+                        "panStationId":pan_id,"stationName":station.get("name"),
+                        "tariffId":tariff_id,
+                        "incompletePricingReason":";".join(problems) if problems else None,
+                        "unresolvedComponents":problems
                     }
-                })
+                }
+                offers.append(offer)
+                if problems:
+                    unresolved.append({"stationId":public_id, "panStationId":pan_id,"stationName":station.get("name"),"tariffId":tariff_id,"offerId":offer_id,"reason":";".join(problems)})
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text(json.dumps({
-        "schemaVersion":1,
+        "schemaVersion":2,
         "dataset":"electra-exact-france-direct-offers",
-        "generatedAt":payload.get("generatedAt"),
-        "country":"FR",
-        "offers":offers,
-        "directOffers":offers,
-        "stats":{"offers":len(offers),"skippedUnsupportedTariffs":skipped,"offersWithUnsupportedComponents":sum(1 for offer in offers if offer.get("metadata",{}).get("incompletePricingReason"))}
+        "generatedAt":payload.get("generatedAt"),"country":"FR",
+        "offers":offers,"directOffers":offers,
+        "stats":{"offers":len(offers),
+                 "skippedUnsupportedTariffs":skipped,
+                 "offersWithUnsupportedComponents":sum(bool(o.get("metadata",{}).get("incompletePricingReason")) for o in offers),
+                 "componentTypes":dict(types),"unresolvedSourceCases":len(unresolved)},
+        "unresolvedCases":unresolved
     },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    print(json.dumps({"offers":len(offers),"skippedUnsupportedTariffs":skipped}))
-
-if __name__=="__main__":
+    print(json.dumps({"offers":len(offers),"componentTypes":dict(types),"unresolvedCases":len(unresolved)}))
+if __name__ == "__main__":
     main()

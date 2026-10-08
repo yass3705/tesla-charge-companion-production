@@ -30,10 +30,40 @@
     return displayed;
   }
 
+  function connectorPricing(connector){
+    const price=num(connector?.pricePerKwhEur),tariffs=Array.isArray(connector?.tariffs)?connector.tariffs:[];
+    if(!tariffs.length){
+      return{pricing:price!=null&&price>=0?{type:'rules',rules:[{scope:'allDay',start:'00:00',end:'24:00',pricePerKwh:price}]}:{type:'component_groups',componentGroups:[]},
+        warnings:price!=null&&price>=0?[]:['no_connector_price']};
+    }
+    const signatures=new Map(),warnings=[];
+    for(const [index,tariff] of tariffs.entries()){
+      const groups=[];
+      for(const [cIndex,pc] of (tariff?.priceComponents||[]).entries()){
+        const type=text(pc?.priceDimension).toUpperCase(),value=num(pc?.price?.incl_vat);
+        const rule={scope:'allDay',start:'00:00',end:'24:00'};
+        if(value==null||value<0){warnings.push('invalid_price:'+index+':'+cIndex);continue;}
+        if(type==='ENERGY')rule.pricePerKwh=value;
+        else if(type==='TIME')rule.chargePerMinute=value/60;
+        else if(type==='FLAT')rule.connectionFee=value;
+        else if(type==='PARKING_TIME')rule.idlePerMinute=value/60;
+        else {warnings.push('unsupported_component:'+type);continue;}
+        if(Array.isArray(pc.conditions)&&pc.conditions.length)warnings.push('unresolved_conditions:'+index+':'+cIndex);
+        groups.push({kind:'atlante-component:'+cIndex,rules:[rule]});
+      }
+      if(!groups.length)warnings.push('tariff_without_calculable_components:'+index);
+      const signature=JSON.stringify(groups);
+      if(!signatures.has(signature))signatures.set(signature,groups);
+    }
+    if(signatures.size>1)warnings.push('multiple_distinct_tariff_signatures_for_connector');
+    const groups=[...signatures.values()][0]||[];
+    return{pricing:{type:'component_groups',componentGroups:groups},warnings:[...new Set(warnings)]};
+  }
+
   function connectorRule(connector,location,{sourceId='italy-atlante-r8',priority=135}={}){
-    const evseId=text(connector?.evseId),price=simpleEnergyPrice(connector);
+    const evseId=text(connector?.evseId),{pricing,warnings}=connectorPricing(connector);
     const k=kind(connector?.powerType||connector?.connectorType);
-    if(!evseId||price==null||!['AC','DC'].includes(k))return null;
+    if(!evseId||!['AC','DC'].includes(k))return null;
     if(text(location?.countryCode).toUpperCase()!=='IT')return null;
     if(text(location?.partyId).toUpperCase()!=='ATE')return null;
     if(text(location?.operatorName).toLowerCase()!=='atlante')return null;
@@ -45,11 +75,7 @@
       countries:['IT'],
       currency:'EUR',
       evseIds:evseVariants(evseId),
-      pricing:{type:'rules',rules:[{
-        scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',
-        pricePerKwh:price,chargePerMinute:0,connectionFee:0,idlePerMinute:0,
-        afterMinutesRate:0,afterMinutesThreshold:0,days:null,ocpiDurationBands:[]
-      }]},
+      pricing,
       priority,
       metadata:{
         verified:true,
@@ -63,7 +89,9 @@
         connectorKind:k,
         powerKw:num(connector?.powerKw),
         nativeStatus:text(connector?.status),
-        statusLastUpdated:text(connector?.statusLastUpdated)||null
+        statusLastUpdated:text(connector?.statusLastUpdated)||null,
+        incompletePricingReason:warnings.length?warnings.join(';'):null,
+        unresolvedComponents:warnings
       }
     };
   }
@@ -91,5 +119,5 @@
       }
     };
   }
-  return{simpleEnergyPrice,connectorRule,normalizePayload,evseVariants};
+  return{simpleEnergyPrice,connectorPricing,connectorRule,normalizePayload,evseVariants};
 });
