@@ -25,6 +25,7 @@ on:
   push:
     branches: [main]
     paths:
+      - "data/tesla_mac_country_updates.json"
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
       - "v9-production-shell/bridge.js"
       - "runtime-overrides/assets/v9/pricing-engine.js"
