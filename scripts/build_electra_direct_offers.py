@@ -7,6 +7,7 @@ remain non-comparable, with the source record and reason retained.
 import json
 import math
 import pathlib
+import re
 import sys
 from collections import Counter
 
@@ -40,7 +41,7 @@ def _days(value):
             return None
     return sorted(set(result))
 
-def rule_from_element(element, *, currency="EUR"):
+def rule_from_element(element, *, currency="EUR", tariff_description=None):
     restrictions = element.get("restrictions") or {}
     start = restrictions.get("startTime") or restrictions.get("start_time") or "00:00"
     end = restrictions.get("endTime") or restrictions.get("end_time") or "24:00"
@@ -75,7 +76,7 @@ def rule_from_element(element, *, currency="EUR"):
         value = restrictions.get(src, restrictions.get(src[0].lower()+''.join('_'+c.lower() if c.isupper() else c for c in src[1:])))
         if value is not None:
             rule[dest] = str(value)[:10]
-    known = {"startTime","start_time","endTime","end_time","dayOfWeek","day_of_week","startDate","start_date","endDate","end_date","minDuration","min_duration","maxDuration","max_duration","minPower","min_power","maxPower","max_power"}
+    known = {"startTime","start_time","endTime","end_time","dayOfWeek","day_of_week","startDate","start_date","endDate","end_date","minDuration","min_duration","maxDuration","max_duration","minPower","min_power","maxPower","max_power","minSoc","minSoC","minVehicleSoc","congestionStartSoc","congestionThresholdSoc","socThreshold"}
     for name, value in restrictions.items():
         if name not in known and value not in (None, "", [], {}):
             problems.append("unsupported_restriction:"+name)
@@ -107,6 +108,49 @@ def rule_from_element(element, *, currency="EUR"):
                 if rule.get("parkingTimeStepSeconds") not in (None,size):
                     problems.append("conflicting_parking_rounding_steps")
                 rule["parkingTimeStepSeconds"] = size
+        elif kind == "CONGESTION_TIME":
+            # Electra eMSP GraphQL publishes CONGESTION_TIME without a universal
+            # trigger description. The user-defined V9 default is 80% battery.
+            # Explicit source evidence always wins; unknown prose is not guessed.
+            candidates = (
+                component.get("congestionThresholdSoc"),
+                component.get("congestionStartSoc"),
+                component.get("minVehicleSoc"),
+                component.get("minSoc"),
+                restrictions.get("congestionThresholdSoc"),
+                restrictions.get("congestionStartSoc"),
+                restrictions.get("minVehicleSoc"),
+                restrictions.get("minSoc"),
+                restrictions.get("minSoC"),
+                element.get("congestionStartSoc"),
+            )
+            threshold = next((n for raw in candidates if (n := _numeric(raw)) is not None and n <= 100), None)
+            descriptions = [str(value) for value in (
+                component.get("description"), component.get("explanation"),
+                element.get("description"), element.get("explanation"),
+                tariff_description,
+            ) if value]
+            if threshold is None and descriptions:
+                found_soc = [
+                    float(match.group(1).replace(",", "."))
+                    for description in descriptions
+                    for match in re.finditer(r"(\d{1,3}(?:[.,]\d+)?)\s*%", description)
+                ]
+                if len(set(found_soc)) == 1 and 0 <= found_soc[0] <= 100:
+                    threshold = found_soc[0]
+                else:
+                    problems.append("congestion_policy_source_explanation_requires_review")
+            if threshold is None:
+                threshold = 80
+            rule["congestionStartSoc"] = threshold
+            rule["congestionThresholdSource"] = (
+                "official" if any(x is not None for x in candidates) or descriptions and "congestion_policy_source_explanation_requires_review" not in problems else "default_soc80"
+            )
+            rule["congestionTimePerMinute"] = (rule.get("congestionTimePerMinute") or 0) + price / 60
+            if size and size > 0:
+                if rule.get("congestionTimeStepSeconds") not in (None, size):
+                    problems.append("conflicting_congestion_rounding_steps")
+                rule["congestionTimeStepSeconds"] = size
         else:
             problems.append("unsupported_component:"+kind)
             continue
@@ -144,7 +188,7 @@ def main():
             elements = tariff.get("elements") or []
             groups, problems = [], []
             for i, element in enumerate(elements):
-                rule, warnings = rule_from_element(element, currency=currency)
+                rule, warnings = rule_from_element(element, currency=currency, tariff_description=tariff.get("description") or tariff.get("explanation"))
                 groups.append({"kind": "ocpi-element:"+str(i), "rules": [rule]})
                 problems.extend(warnings)
                 for component in element.get("priceComponents", element.get("price_components", [])) or []:

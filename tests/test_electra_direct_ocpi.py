@@ -30,6 +30,27 @@ class ElectraOCPI(unittest.TestCase):
         self.assertEqual(rule["energyStepWh"],250)
         self.assertEqual(rule["parkingTimeStepSeconds"],300)
 
+    def test_congestion_default_and_source_precedence(self):
+        rule, errors=rule_from_element({
+            "priceComponents":[{"type":"ENERGY","price":.49},{"type":"CONGESTION_TIME","price":9,"stepSize":300}]
+        })
+        self.assertEqual(errors,[])
+        self.assertEqual(rule["congestionStartSoc"],80)
+        self.assertEqual(rule["congestionThresholdSource"],"default_soc80")
+        self.assertAlmostEqual(rule["congestionTimePerMinute"],.15)
+        self.assertEqual(rule["congestionTimeStepSeconds"],300)
+        override, errors=rule_from_element({
+            "priceComponents":[{"type":"CONGESTION_TIME","price":6,"description":"After 90% battery"}]
+        })
+        self.assertEqual(errors,[])
+        self.assertEqual(override["congestionStartSoc"],90)
+        self.assertEqual(override["congestionThresholdSource"],"official")
+        unknown, errors=rule_from_element({
+            "priceComponents":[{"type":"CONGESTION_TIME","price":9,"description":"After some grace time"}]
+        })
+        self.assertIn("congestion_policy_source_explanation_requires_review",errors)
+        self.assertEqual(unknown["congestionStartSoc"],80)
+
     def test_no_tariff_exclusion_and_audit(self):
         payload={
           "generatedAt":"2026-10-08T00:00:00Z",

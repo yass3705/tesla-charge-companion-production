@@ -25,6 +25,7 @@
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const V7_DC_POINTS=[[0,175],[10,175],[20,170],[30,160],[40,145],[50,125],[60,105],[70,85],[80,60],[85,42],[90,28],[95,16],[98,10],[100,6]];
   const SUBSCRIPTION_KEY='tccV9SelectedSubscriptionsV1';
+  const congestionSelections=new Map(); // toggled independently per EVSE and offer
   // France prices and Electra-only discounts: https://www.go-electra.com/fr/electra-plus/
   const ELECTRA_PLUS_PLANS=[
     {id:'electra-plus-essential',label:'Electra+ Essentiel',provider:'Electra',monthlyFeeEur:1.99,discountPerKwhEur:0.10},
@@ -182,7 +183,7 @@
   function formatMinutes(value){const n=num(value);if(n==null)return'—';const total=Math.max(0,Math.round(n)),h=Math.floor(total/60),m=total%60;return h?h+' h '+String(m).padStart(2,'0')+' min':m+' min';}
   function formatRate(value,currency,unit){const n=num(value);if(n==null)return null;return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:3})+' '+text(currency||'EUR').toUpperCase()+'/'+unit;}
   function tariffRateLabels(offer){
-    const pricing=offer?.pricing||{},rules=Array.isArray(pricing.rules)?pricing.rules:[],labels=[],seen=new Set();
+    const pricing=offer?.pricing||{},rules=[...(Array.isArray(pricing.rules)?pricing.rules:[]),...(pricing.componentGroups||[]).flatMap(group=>group.rules||[])],labels=[],seen=new Set();
     if(pricing.type==='electroverse_restrictions'){
       const rates=pricing.fallbackRates||{},currency=pricing.currency||offer?.currency||'EUR';
       const add=(value,unit)=>{const label=formatRate(value,currency,unit);if(label&&!labels.includes(label))labels.push(label);};
@@ -223,6 +224,7 @@
       add(rule?.chargePerMinute??rule?.chargingTimePerMinuteEur,'min',currency,' charge'+window);
       add(rule?.connectedTimePerMinuteEur,'min',currency,' connecté'+window);
       add(rule?.idlePerMinute,'min',currency,' après charge'+window);
+      add(rule?.congestionTimePerMinute,'min congestion',currency,' dès '+(num(rule?.congestionStartSoc)??80)+' %'+window);
     }
     add(pricing.pricePerKwh,'kWh',pricing.currency||offer?.currency);
     add(pricing.pricePerMinute,'min',pricing.currency||offer?.currency,' connecté');
@@ -409,6 +411,50 @@
     if(priced)return{status:'priced',item:priced,offers};
     return{status:'unresolved',item:null,offers};
   }
+
+  function congestionLaneKey(station,evaluation,category){
+    const evseIds=(station?.evses||[]).flatMap(evse=>[text(evse.id),...(evse.connectors||[]).map(c=>text(c.id))]).filter(Boolean).sort();
+    return JSON.stringify([text(station?.id||station?.canonicalId||station?.stationId),evseIds,text(evaluation?.chargingConnectorId),text(category)]);
+  }
+  function congestionAdjustedTotal(item,key){
+    if(!item)return null;
+    if(item.congestion?.available&&congestionSelections.get(key)===false)return num(item.congestion.totalWithoutCongestion);
+    return num(item.total);
+  }
+  function bindCongestionToggles(w){
+    if(w.__TCC_V9_CONGESTION_TOGGLE_BOUND__)return;
+    w.__TCC_V9_CONGESTION_TOGGLE_BOUND__=true;
+    w.document.addEventListener('click',event=>{
+      const button=event.target?.closest?.('.v9-congestion-toggle');if(!button)return;
+      const key=button.dataset.v9CongestionKey;
+      if(!key)return;
+      const currentlyIncluded=congestionSelections.get(key)!==false,newIncluded=!currentlyIncluded;
+      congestionSelections.set(key,newIncluded);
+      for(const row of w.document.querySelectorAll('.v9-tariff-row')){
+        if(row.dataset.v9CongestionKey!==key)continue;
+        row.dataset.v9EffectiveTotal=newIncluded?row.dataset.v9IncludedTotal:row.dataset.v9ExcludedTotal;
+        const amount=row.querySelector('.v9-lane-amount');
+        if(amount)amount.textContent=newIncluded?row.dataset.v9IncludedAmount:row.dataset.v9ExcludedAmount;
+        const toggle=row.querySelector('.v9-congestion-toggle');
+        if(toggle){toggle.setAttribute('aria-pressed',String(newIncluded));toggle.textContent=newIncluded?'Congestion incluse':'Congestion exclue';}
+      }
+      for(const host of w.document.querySelectorAll('.v9-tariffs')){
+        const priced=[...host.querySelectorAll('.v9-tariff-row[data-v9-effective-total]')]
+          .filter(el=>num(el.dataset.v9EffectiveTotal)!=null)
+          .sort((a,b)=>num(a.dataset.v9EffectiveTotal)-num(b.dataset.v9EffectiveTotal));
+        const best=priced[0]||null;
+        for(const row of host.querySelectorAll('.v9-tariff-row')){
+          const selected=row===best;
+          row.classList.toggle('v9-best-tariff',selected);
+          row.style.borderColor=selected?'#fff':'#343a42';
+          row.style.boxShadow=selected?'0 0 0 2px #fff':'none';
+          row.style.fontWeight=selected?'800':'normal';
+          const heading=row.querySelector('.v9-lane-heading');
+          if(heading)heading.textContent=row.dataset.v9LaneLabel+(selected?' · MEILLEUR TARIF':'');
+        }
+      }
+    });
+  }
   function renderTariffs(evaluation,station,fxRates={},selectedSubscriptionIds=[]){
     if(isTeslaStation(station)){
       const item=[evaluation?.best,...(evaluation?.alternatives||[])].filter(row=>row&&num(row.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0];
@@ -425,19 +471,27 @@
     ];
     const states=new Map(categories.map(category=>[category.id,tariffLaneState(evaluation,station,category.id)]));
     const bestId=categories.filter(category=>states.get(category.id)?.status==='priced')
-      .sort((a,b)=>num(states.get(a.id).item.total)-num(states.get(b.id).item.total))[0]?.id||null;
+      .sort((a,b)=>congestionAdjustedTotal(states.get(a.id).item,congestionLaneKey(station,evaluation,a.id))-congestionAdjustedTotal(states.get(b.id).item,congestionLaneKey(station,evaluation,b.id)))[0]?.id||null;
     return'<div class="v9-tariffs" role="list" aria-label="Tarifs indépendants par borne et puissance" style="display:grid;gap:6px;margin-top:8px">'+categories.map(category=>{
-      const state=states.get(category.id),item=state.item,best=category.id===bestId;
+      const state=states.get(category.id),item=state.item,best=category.id===bestId,key=congestionLaneKey(station,evaluation,category.id);
+      const hasCongestion=state.status==='priced'&&item?.congestion?.available&&num(item?.congestion?.totalWithoutCongestion)!=null;
+      const including=congestionSelections.get(key)!==false;
+      const total=hasCongestion&&!including?item.congestion.totalWithoutCongestion:item?.total;
+      const displayItem=hasCongestion&&!including?{...item,total,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}:item;
       const amount=state.status==='ambiguous'?'Tarif ambigu à vérifier auprès de l’opérateur'
         :state.status==='unresolved'?'Tarif à vérifier auprès de l’opérateur'
-        :state.status==='priced'?displayAmount(item,fxRates):'Tarif non disponible';
+        :state.status==='priced'?displayAmount(displayItem,fxRates):'Tarif non disponible';
+      const congestionAttr=hasCongestion?' data-v9-congestion-key="'+esc(key)+'" data-v9-included-total="'+esc(item.total)+'" data-v9-excluded-total="'+esc(item.congestion.totalWithoutCongestion)+'" data-v9-included-amount="'+esc(displayAmount(item,fxRates))+'" data-v9-excluded-amount="'+esc(displayAmount({...item,total:item.congestion.totalWithoutCongestion,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}},fxRates))+'"':'';
+      const totalAttr=state.status==='priced'&&num(total)!=null?' data-v9-effective-total="'+esc(total)+'"':'';
       const names=[...new Set(state.offers.map(offer=>text(offer.provider)).filter(Boolean))];
       const detail=item&&station?.offers?.find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
       const rateLabels=detail?tariffRateLabels(detail):[];
       const label=names.join(', ')+(state.status==='priced'&&rateLabels.length?' · '+rateLabels.join(' · '):'');
-      return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
-        '<strong style="font-size:14px;line-height:1.3">'+esc(category.label)+(best?' · MEILLEUR TARIF':'')+'</strong>'+
-        '<span style="font-size:15px;line-height:1.3;text-align:right">'+esc(amount)+'</span>'+
+      return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
+        '<strong class="v9-lane-heading" style="font-size:14px;line-height:1.3">'+esc(category.label)+(best?' · MEILLEUR TARIF':'')+'</strong>'+
+        '<span style="font-size:15px;line-height:1.3;text-align:right"><span class="v9-lane-amount">'+esc(amount)+'</span></span>'+
+        (hasCongestion?'<button type="button" class="v9-congestion-toggle" data-v9-congestion-key="'+esc(key)+'" aria-pressed="'+String(including)+'" title="Basculer les frais de congestion pour cette offre seulement" style="grid-column:1/-1;justify-self:end;background:#fff;color:#15171b;border:1px solid #555;border-radius:6px;padding:4px 8px;min-height:32px;font-size:12px;width:auto;cursor:pointer">'+(including?'Congestion incluse':'Congestion exclue')+'</button>':'')+
+        (hasCongestion?'<span style="grid-column:1/-1;font-size:11px;line-height:1.3">À partir de '+esc(item.congestion.thresholdSoc)+' % de batterie'+(item.congestion.thresholdSource==='default_soc80'?' (hypothèse V9)':' (source)')+' · '+esc(num(item.congestion.minutes)?.toFixed(1)||'—')+' min au-delà du seuil</span>':'')+
         (label?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(label)+(category.subscription?' · abonnement':'')+'</span>':'')+
       '</div>';
     }).join('')+'</div>';
@@ -1020,6 +1074,7 @@
     installPowerTypeFilter(w);
     installRankingOption(w);
     installProgressiveSearchForm(w);
+    bindCongestionToggles(w);
     installOperatorMultiSelect(w);
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
@@ -1038,5 +1093,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
