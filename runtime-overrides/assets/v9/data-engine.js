@@ -134,9 +134,30 @@
     if(offer){offer.sourceId=source.id;offer.priority=number(offer.priority)??priorityFor(source,'tariff',rule);}return offer;
   }
   function applyOfferRules(stations,ruleItems){
+    const rules=ruleItems||[],index=new Map(),generic=[];
+    rules.forEach((entry,i)=>{
+      const ids=uniq([...(entry.rule?.stationIds||[]),...(entry.rule?.evseIds||[])].map(text));
+      if(!ids.length)generic.push(i);
+      for(const id of ids){
+        if(!index.has(id))index.set(id,[]);
+        index.get(id).push(i);
+      }
+    });
     return(stations||[]).map(station=>{
       const out={...station,offers:(station.offers||[]).map(clone)},ranks=new Map(out.offers.map(o=>[offerSemanticKey(o,out.countryCode),{score:number(o.priority)??0,sourceId:text(o.sourceId)}]));
-      for(const{rule,source}of ruleItems||[]){if(!ruleMatchesStation(rule,out))continue;const offer=ruleToOffer(rule,out,source);if(!offer)continue;const key=offerSemanticKey(offer,out.countryCode),next={score:number(offer.priority)??priorityFor(source,'tariff',rule),sourceId:text(source.id)},current=ranks.get(key);if(current&&!rankWins(next,current))continue;const i=out.offers.findIndex(o=>offerSemanticKey(o,out.countryCode)===key);if(i>=0)out.offers[i]=offer;else out.offers.push(offer);ranks.set(key,next);}
+      const matching=new Set(generic);
+      for(const token of stationIdentityTokens(out))for(const id of index.get(token)||[])matching.add(id);
+      for(const id of [...matching].sort((a,b)=>a-b)){
+        const {rule,source}=rules[id];
+        if(!ruleMatchesStation(rule,out))continue;
+        const offer=ruleToOffer(rule,out,source);
+        if(!offer)continue;
+        const key=offerSemanticKey(offer,out.countryCode),next={score:number(offer.priority)??priorityFor(source,'tariff',rule),sourceId:text(source.id)},current=ranks.get(key);
+        if(current&&!rankWins(next,current))continue;
+        const pos=out.offers.findIndex(o=>offerSemanticKey(o,out.countryCode)===key);
+        if(pos>=0)out.offers[pos]=offer;else out.offers.push(offer);
+        ranks.set(key,next);
+      }
       out.offers.sort((a,b)=>offerSemanticKey(a,out.countryCode).localeCompare(offerSemanticKey(b,out.countryCode)));return out;
     });
   }
