@@ -444,6 +444,7 @@ def main():
               "active":True,"optional":False,"refresh":"immutable-production-snapshot",
               "policy":"All compiled per-EVSE Electroverse tariffs are exposed, including heterogeneous connector prices, duration bands, time windows, parking and connection fees. Pricing complexity never excludes an offer; unresolved identity conflicts remain separately fail-closed."
             })
+            src.pop("path",None)  # Old R9 flattened single-file path must not survive the R14 sharded source.
             break
     else:
         raise AssertionError("france-electroverse-r8 registry source missing")
