@@ -21,6 +21,8 @@ const switzerlandAvia=require(path.join(runtime,'assets/v9/adapters/switzerland-
 const italyIonityExact=require(path.join(runtime,'assets/v9/adapters/italy-ionity-exact.js'));
 const franceIonityExact=require(path.join(runtime,'assets/v9/adapters/france-ionity-exact.js'));
 const atlanteItalyExact=require(path.join(runtime,'assets/v9/adapters/atlante-italy-exact.js'));
+const netherlandsDotnl=require(path.join(runtime,'assets/v9/adapters/netherlands-dotnl.js'));
+const belgiumNap=require(path.join(runtime,'assets/v9/adapters/belgium-nap.js'));
 const extension=require(path.join(runtime,'assets/v9/production-loader-extension.js'));
 
 function fileFetch(baseRoot){
@@ -44,13 +46,13 @@ const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.h
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact,netherlandsDotnl,belgiumNap}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
   registry:subRegistry,
   basePath:pathToFileURL(runtime+path.sep).href,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations},
+  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,netherlandsDotnl,belgiumNap},
   fetchImpl:fileFetch(runtime)
 });
 
