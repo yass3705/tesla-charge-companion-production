@@ -6,6 +6,13 @@ on:
       - "v9-production-shell/bridge.js"
       - "tests/v9-shell-grouping.test.mjs"
       - "tests/v9-tariff-lanes.test.mjs"
+      - "tests/v9-ocpi-component-coverage.test.mjs"
+      - "tests/test_electra_direct_ocpi.py"
+      - "scripts/build_electra_direct_offers.py"
+      - "runtime-overrides/assets/v9/pricing-engine.js"
+      - "runtime-overrides/assets/v9/session-engine.js"
+      - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
+      - "runtime-overrides/assets/v9/adapters/atlante-italy-exact.js"
       - "tests/runtime-browser-journey-global.mjs"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
@@ -176,6 +183,8 @@ jobs:
         run: |
           node production/tests/v9-shell-grouping.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
+          node production/tests/v9-ocpi-component-coverage.test.mjs
+          python -m unittest discover -s production/tests -p "test_electra_direct_ocpi.py"
           node production/tests/offer-identity-index.test.mjs dist/v9-global-preview
           node production/tests/runtime-e2e-smoke.mjs dist/v9-global-preview
           node production/tests/national-snapshot-smoke.mjs dist/v9-global-preview
