@@ -81,12 +81,12 @@
     return true;
   }
   function tariffRuleHasPositivePrice(rule){
-    const fields=['pricePerKwh','pricePerMinute','chargePerMinute','chargingTimePerMinuteEur','connectedTimePerMinuteEur','idlePerMinute','connectionFee','connectedTimeBlockEur','connectedTimeComponentEur','sessionFeeEur','minimumSessionEur'];
+    const fields=['pricePerKwh','pricePerMinute','chargePerMinute','chargingTimePerMinuteEur','connectedTimePerMinuteEur','idlePerMinute','connectionFee','connectedTimeBlockEur','connectedTimeComponentEur','sessionFeeEur','minimumSessionEur','congestionTimePerMinute'];
     return fields.some(key=>(num(rule?.[key])??0)>0)||(Array.isArray(rule?.ocpiDurationBands)&&rule.ocpiDurationBands.some(b=>(num(b?.[3])??0)>0));
   }
   function zeroAllDayPlaceholder(rule){
     if(rule?.scope!=='allDay')return false;
-    const fields=['pricePerKwh','pricePerMinute','chargePerMinute','chargingTimePerMinuteEur','connectedTimePerMinuteEur','idlePerMinute','connectionFee','connectedTimeBlockEur','connectedTimeComponentEur','sessionFeeEur','minimumSessionEur'];
+    const fields=['pricePerKwh','pricePerMinute','chargePerMinute','chargingTimePerMinuteEur','connectedTimePerMinuteEur','idlePerMinute','connectionFee','connectedTimeBlockEur','connectedTimeComponentEur','sessionFeeEur','minimumSessionEur','congestionTimePerMinute'];
     const values=fields.map(key=>num(rule?.[key])).filter(value=>value!=null);
     return values.length>0&&values.every(value=>value===0)&&!tariffRuleHasPositivePrice(rule)&&
       !(Array.isArray(rule?.ocpiDurationBands)&&rule.ocpiDurationBands.some(b=>(num(b?.[3])??0)!==0));
@@ -113,6 +113,7 @@
         rule?.connectedTimePerMinuteEur,rule?.idlePerMinute,rule?.connectionFee,
         rule?.connectedTimeBlockMinutes,rule?.connectedTimeBlockEur,rule?.sessionFeeEur,
         rule?.minimumSessionEur,rule?.ocpiDurationBands,rule?.powerBands,
+        rule?.congestionTimePerMinute,rule?.congestionStartSoc,rule?.congestionTimeStepSeconds,
         rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur
       ]);
       if(new Set(samePriority.map(row=>signature(row.rule))).size>1)
