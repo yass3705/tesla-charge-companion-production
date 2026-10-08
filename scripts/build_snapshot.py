@@ -191,6 +191,8 @@ def main():
       "fallback":"control/index.html",
       "notes":"Production-owned V9 shell. Root enters V9 directly; pinned V7.3 control is local fallback only."
     })
+    if not any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
+        shell_cfg["engineScopeCountries"].remove("BE")
     write_json(out/"v9-production-shell/shell-config.json",shell_cfg)
 
     root_index="""<!doctype html>
@@ -634,6 +636,11 @@ def main():
         "BE":{"kind":"national-nap","manifest":"snapshot-inputs/BE/manifest.json","pages":"snapshot-inputs/BE/pages","coverage":"partial-selected-cpo"}
       }
     }
+    if not any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
+        contract["deployment"]["engineScopeCountries"].remove("BE")
+        contract["datasets"].pop("BE")
+    if nl_cfg.get("primarySource")!="dataLab":
+        contract["datasets"]["NL"]={"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"}
     write_json(out/"runtime-contract.json",contract)
 
     files=[]
