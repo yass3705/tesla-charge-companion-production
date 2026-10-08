@@ -15,7 +15,7 @@ const components=[
  {type:'FLAT',price:1.2},
  {type:'PARKING_TIME',price:1.2,step_size:300}
 ];
-const ukPricing=uk.tariffPricing({currency:'GBP',elements:[{price_components:components}]});
+const ukPricing=uk.tariffPricing({currency:'GBP',elements:[{price_components:components.slice(0,3)},{price_components:[components[3]]}]});
 assert.equal(ukPricing.type,'component_groups');
 assert.equal(ukPricing.incompletePricingReason,undefined);
 const sample={id:'sample',currency:'GBP',pricing:ukPricing};
