@@ -153,6 +153,52 @@ def build_registry(path):
       "policy":"Exact EVSE ID only. CHF/kWh incl. VAT only; time-based or unsupported tariff semantics fail closed."
     })
 
+    upsert(sources,{
+      "id":"france-electra-direct-exact",
+      "label":"France Electra exact direct station tariffs",
+      "adapter":"direct-offer-json",
+      "path":"../snapshot-inputs/FR/direct/electra_exact_direct_offers.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":135},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Exact national IRVE station identity only. Only fully supported ENERGY tariff components are published; congestion-time tariffs remain fail-closed."
+    })
+
+    upsert(sources,{
+      "id":"netherlands-dotnl-national",
+      "label":"Netherlands DOT-NL national non-Tesla runtime",
+      "adapter":"netherlands-dotnl-v1",
+      "root":"../snapshot-inputs/NL/runtime/",
+      "manifest":"../snapshot-inputs/NL/runtime/manifest.json",
+      "countries":["NL"],
+      "capabilities":["inventory","connectors","access","status","tariff"],
+      "priority":{"identity":60,"connectors":65,"access":60,"status":55,"tariff":75},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "excludeOperatorIds":["tesla"],
+      "policy":"DOT-NL compiled national runtime; unsupported or non-direct tariff configurations remain fail-closed."
+    })
+
+    upsert(sources,{
+      "id":"belgium-nap-national",
+      "label":"Belgium Eco-Movement NAP selected-CPO national baseline",
+      "adapter":"belgium-nap-v1",
+      "pageRoot":"../snapshot-inputs/BE/pages/",
+      "manifest":"../snapshot-inputs/BE/manifest.json",
+      "countries":["BE"],
+      "capabilities":["inventory","connectors","access","status","tariff"],
+      "priority":{"identity":60,"connectors":65,"access":60,"status":55,"tariff":80},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "excludeOperatorIds":["tesla"],
+      "policy":"Belgium NAP selected-CPO baseline with exact NAP tariff records; source-limited operators and unresolved prices remain fail-closed."
+    })
+
     # Convert source-registry entries that already have exact snapshot-local
     # equivalents. More complex EVGO/Kilowatt multi-file profiles remain
     # explicitly external until their immutable bundle is complete.
@@ -185,6 +231,11 @@ def build_registry(path):
             src["optional"]=True
             src["refresh"]="immutable-production-snapshot"
             src["policy"]="Use the pinned r8 Atlante France exact-EVSE direct snapshot; unmatched EVSEs remain fail-closed."
+
+    # Tesla stations are kept in the dedicated Tesla catalogue only.
+    for src in sources:
+        if src.get("id") in {"france-national","spain-reve","italy-pun","switzerland-national","germany-production-snapshot","uk-production-open-feeds","netherlands-dotnl-national","belgium-nap-national"}:
+            src["excludeOperatorIds"]=["tesla"]
 
     obj["productionIntegration"]={
       "schemaVersion":1,
