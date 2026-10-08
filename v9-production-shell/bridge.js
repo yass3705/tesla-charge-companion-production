@@ -242,7 +242,7 @@
         if(!seen.has(label)){seen.add(label);out.push(label);}
       }
     }
-    return out.slice(0,6);
+    return out;
   }
   function evaluatedBaseTariffs(row){
     const station=row?.station||{},item=row?.evaluation?.best,labels=[];
@@ -326,7 +326,7 @@
       const row=points[index];if(!row||!selected)return;
       const st=row.station,price=num(row.costPerKm);
       selected.style.display='block';
-      selected.innerHTML='<b>'+esc(st.name||'Station')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+' · '+esc(row.powerLine?.kind||'')+' '+esc(row.powerLine?.powerKw||'')+' kW</div>'+renderTariffs(row.evaluation,st,area?.displayFxRates)+'<div class="small" style="margin-top:6px">'+(price==null?'Prix/km non disponible':esc(price.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' '+text(row.evaluation?.best?.targetCurrency||'EUR')+'/km'))+'</div><button type="button" class="secondary v9-map-open-row" style="width:auto;margin-top:8px">Voir la fiche dans la liste</button>';
+      selected.innerHTML='<b>'+esc(st.name||'Station')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+' · '+esc(row.powerLine?.kind||'')+' '+esc(row.powerLine?.powerKw||'')+' kW</div>'+renderTariffs(row.evaluation,st,area?.displayFxRates,area?.selectedSubscriptions||[])+'<div class="small" style="margin-top:6px">'+(price==null?'Prix/km non disponible':esc(price.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' '+text(row.evaluation?.best?.targetCurrency||'EUR')+'/km'))+'</div><button type="button" class="secondary v9-map-open-row" style="width:auto;margin-top:8px">Voir la fiche dans la liste</button>';
       selected.querySelector('.v9-map-open-row')?.addEventListener('click',()=>{setMode('list');const card=[...(results?.querySelectorAll('.v9-result-card')||[])].find(item=>text(item.dataset.v9StationId)===text(st.id));card?.scrollIntoView?.({behavior:'smooth',block:'center'});});
       for(const marker of markers.querySelectorAll('.v9-map-marker'))marker.style.outline=marker.dataset.indices.split(',').includes(String(index))?'3px solid #fff':'none';
     };
@@ -359,39 +359,69 @@
     if(provider.includes('electra')||offerId.includes('electra'))return'electra';
     return null;
   }
+
   function displayAmount(item,fxRates={}){
-    const target=text(item?.targetCurrency||'EUR').toUpperCase(),native=text(item?.currency||target).toUpperCase(),nativeTotal=num(item?.result?.totalEur),total=num(item?.total);
-    if(total==null)return'Prix non disponible';
-    if(native!==target&&nativeTotal!=null)return formatCurrencyAmount(nativeTotal,native)+' (≈ '+formatCurrencyAmount(total,target)+')';
-    const primary=formatCurrencyAmount(total,target),rate=num(fxRates?.[target]);
-    return target!=='EUR'&&rate>0?primary+' (≈ '+formatCurrencyAmount(total/rate,'EUR')+')':primary;
+    const local=text(item?.targetCurrency||'EUR').toUpperCase(),amount=num(item?.total);
+    if(amount==null)return'Tarif non disponible';
+    const primary=formatCurrencyAmount(amount,local);
+    if(local==='EUR')return primary;
+    const rate=num(fxRates?.[local]),sourceCurrency=text(item?.currency).toUpperCase();
+    const euro=rate>0?amount/rate:sourceCurrency==='EUR'?num(item?.result?.totalEur):null;
+    return primary+(euro==null?' (conversion en € non disponible)':' (≈ '+formatCurrencyAmount(euro,'EUR')+')');
   }
-  function renderTariffs(evaluation,station,fxRates={}){
+  // A lane is evaluated independently. Distinct tariffs for a single EVSE/power
+  // are not ranked against each other: their evidence is marked ambiguous.
+  function tariffLaneState(evaluation,station,category){
+    const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])]
+      .filter(item=>item&&offerPriceCategory(item)===category);
+    if(!offers.length)return{status:'missing',item:null,offers:[]};
+    const sourceOffers=station?.offers||[];
+    const descriptions=new Set();
+    for(const item of offers){
+      const source=sourceOffers.find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
+      const unresolved=item.comparable===false||num(item.total)==null;
+      const signature=JSON.stringify({
+        currency:text(item.currency),total:unresolved?null:Math.round(Number(item.total)*1e6)/1e6,
+        pricing:source?.pricing||item.result?.matchedRule||null,
+        reason:unresolved?text(item.result?.reason||item.incompletePricingReason||'unresolved'):null
+      });
+      descriptions.add(signature);
+    }
+    if(descriptions.size>1)return{status:'ambiguous',item:null,offers};
+    const priced=offers.find(item=>item.comparable!==false&&num(item.total)!=null);
+    if(priced)return{status:'priced',item:priced,offers};
+    return{status:'unresolved',item:null,offers};
+  }
+  function renderTariffs(evaluation,station,fxRates={},selectedSubscriptionIds=[]){
     if(isTeslaStation(station)){
       const item=[evaluation?.best,...(evaluation?.alternatives||[])].filter(row=>row&&num(row.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0];
-      return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(displayAmount(item,fxRates))+'</div>':'<div class="v9-tesla-price">Prix Tesla non disponible</div>';
+      return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(displayAmount(item,fxRates))+'</div>':'<div class="v9-tesla-price">Tarif non disponible</div>';
     }
-    const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
-    const subscriptions=[...new Map(offers.filter(item=>text(item.subscriptionId)).map(item=>[text(item.subscriptionId),{id:'subscription:'+text(item.subscriptionId),label:text(item.provider)||text(item.subscriptionId),color:'#f5d6a1'}])).values()];
+    const evaluated=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
+    const subs=[...new Set((selectedSubscriptionIds||[]).map(text).filter(Boolean))];
+    const subscriptionNames=new Map(evaluated.filter(item=>text(item.subscriptionId)).map(item=>[text(item.subscriptionId),text(item.provider)||text(item.subscriptionId)]));
     const categories=[
       {id:'direct',label:'Direct',color:'#f4a64a'},
-      ...subscriptions,
+      ...subs.map(id=>({id:'subscription:'+id,label:subscriptionNames.get(id)||id,color:'#f5d6a1',subscription:true})),
       {id:'electra',label:'Electra',color:'#a8e8d4'},
       {id:'electroverse',label:'Electroverse',color:'#c9b3f4'}
     ];
-    const picked=Object.fromEntries(categories.map(category=>[category.id,offers.filter(item=>offerPriceCategory(item)===category.id&&num(item.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0]||null]));
-    const bestId=categories.map(category=>({id:category.id,total:num(picked[category.id]?.total)})).filter(item=>item.total!=null).sort((a,b)=>a.total-b.total)[0]?.id||null;
-    return'<div class="v9-tariffs" aria-label="Comparaison des tarifs directs, abonnements et plateformes" style="display:grid;gap:6px;margin-top:8px">'+categories.map(category=>{
-      const item=picked[category.id],best=category.id===bestId;
-      let amount='Prix non disponible',provider=category.id==='electroverse'&&!offers.some(offer=>offerPriceCategory(offer)==='electroverse')?'Aucune correspondance Electroverse vérifiée pour cette station':'';
-      if(item){
-        amount=displayAmount(item,fxRates);
-        provider=text(item.provider)||(text(item.subscriptionId)?'Abonnement sélectionné':'');
-      }
+    const states=new Map(categories.map(category=>[category.id,tariffLaneState(evaluation,station,category.id)]));
+    const bestId=categories.filter(category=>states.get(category.id)?.status==='priced')
+      .sort((a,b)=>num(states.get(a.id).item.total)-num(states.get(b.id).item.total))[0]?.id||null;
+    return'<div class="v9-tariffs" role="list" aria-label="Tarifs indépendants par borne et puissance" style="display:grid;gap:6px;margin-top:8px">'+categories.map(category=>{
+      const state=states.get(category.id),item=state.item,best=category.id===bestId;
+      const amount=state.status==='ambiguous'?'Tarif ambigu à vérifier auprès de l’opérateur'
+        :state.status==='unresolved'?'Tarif à vérifier auprès de l’opérateur'
+        :state.status==='priced'?displayAmount(item,fxRates):'Tarif non disponible';
+      const names=[...new Set(state.offers.map(offer=>text(offer.provider)).filter(Boolean))];
+      const detail=item&&station?.offers?.find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
+      const rateLabels=detail?tariffRateLabels(detail):[];
+      const label=names.join(', ')+(state.status==='priced'&&rateLabels.length?' · '+rateLabels.join(' · '):'');
       return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
         '<strong style="font-size:14px;line-height:1.3">'+esc(category.label)+(best?' · MEILLEUR TARIF':'')+'</strong>'+
         '<span style="font-size:15px;line-height:1.3;text-align:right">'+esc(amount)+'</span>'+
-        (provider?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(provider)+(text(item?.subscriptionId)?' · abonnement':'')+'</span>':'')+
+        (label?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(label)+(category.subscription?' · abonnement':'')+'</span>':'')+
       '</div>';
     }).join('')+'</div>';
   }
@@ -525,11 +555,25 @@
     const bestKey=best&&[text(best.provider),text(best.kind),text(best.subscriptionId),Number.isFinite(best.total)?Number(best.total).toFixed(6):text(best.result?.reason)].join('|');
     return{...(selected||{}),best,alternatives:values.filter(offer=>offer.comparable&&[text(offer.provider),text(offer.kind),text(offer.subscriptionId),Number.isFinite(offer.total)?Number(offer.total).toFixed(6):text(offer.result?.reason)].join('|')!==bestKey),incomplete:values.filter(offer=>!offer.comparable)};
   }
+
+  function tariffGroupSignature(row){
+    if(isTeslaStation(row?.station))return'tesla-identity';
+    const evaluation=row?.evaluation;
+    if(!evaluation)return'non-disponible';
+    const entries=[evaluation.best,...(evaluation.alternatives||[]),...(evaluation.incomplete||[])].filter(Boolean);
+    if(!entries.length)return'non-disponible';
+    return entries.map(item=>{
+      const source=(row.station?.offers||[]).find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
+      return JSON.stringify([offerPriceCategory(item),text(item.provider),text(item.subscriptionId),num(item.total),
+        item.comparable===false?text(item.result?.reason||item.incompletePricingReason):'',
+        source?.pricing||item.result?.matchedRule||null]);
+    }).sort().join('||');
+  }
   function groupRows(rows,context){
     const groups=new Map();
     for(const row of rows||[]){
       for(const [power,ids] of powerBuckets(row.station)){
-        const key=siteKey(row.station,power)+'|'+connectorKind((row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).find(connector=>floorPower(connector.powerKw)===power)||{}),selectedConnector=text(row.evaluation?.chargingConnectorId);
+        const key=siteKey(row.station,power)+'|'+connectorKind((row.station?.evses||[]).flatMap(evse=>evse.connectors||[]).find(connector=>floorPower(connector.powerKw)===power)||{})+'|'+tariffGroupSignature(row),selectedConnector=text(row.evaluation?.chargingConnectorId);
         const matchingConnector=selectedConnector&&(row.station?.evses||[]).some(evse=>(evse.connectors||[]).some(connector=>text(connector.id)===selectedConnector&&floorPower(connector.powerKw)===power));
         const scoped=context?evaluatePower(row,power,context):null;
         const evaluated=matchingConnector||(!selectedConnector&&power===floorPower(maxPower(row.station)));
@@ -578,7 +622,7 @@
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input,countryCode);session.fxRates=engine.__tccFxRates||{};
     const selected=selectedSubscriptions(w);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
-    const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),grouped=groupRows(eligible).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
+    area.selectedSubscriptions=selected;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),grouped=groupRows(eligible).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
     const d=w.document;
@@ -963,5 +1007,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{tariffLaneState,tariffGroupSignature,displayAmount,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
