@@ -3,8 +3,8 @@ import json
 import pathlib
 import sys
 
-EXPECTED = {"TESLA","ES","NL","CH","MA","FR","IT","DE","UK"}
-ALLOWED = {"current","complete","complete-with-fail-closed-residuals","partial"}
+EXPECTED = {"TESLA","ES","NL","CH","MA","FR","IT","DE","UK","BE"}
+ALLOWED = {"current","complete","complete-with-fail-closed-residuals","partial","partial-fail-closed","partial-selected-cpo"}
 
 def main():
     path = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "config/snapshots/2026-09-30.json")
@@ -14,7 +14,8 @@ def main():
     datasets = obj.get("datasets", [])
     ids = [d.get("id") for d in datasets]
     assert len(ids) == len(set(ids)), "duplicate dataset ids"
-    assert set(ids) == EXPECTED, f"scope mismatch: {set(ids) ^ EXPECTED}"
+    expected = EXPECTED if "BE" in ids else EXPECTED - {"BE"}  # Preserve validation of historical R9.
+    assert set(ids) == expected, f"scope mismatch: {set(ids) ^ expected}"
     sources = obj.get("sources", {})
     for d in datasets:
         assert d.get("coverage") in ALLOWED, f"bad coverage for {d.get('id')}"
@@ -24,6 +25,8 @@ def main():
         assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha), f"unpinned source {src}"
         if not d.get("path"):
             assert d.get("materialization"), f"missing path/materialization for {d.get('id')}"
+    if "BE" in ids:
+        assert obj.get("sourceSelection",{}).get("selectedDataLabCommit") == sources["dataLab"]["sha"], "Data Lab pin mismatch"
     print(f"OK snapshot={obj['snapshotId']} datasets={len(datasets)} policy={obj['policy']}")
 
 if __name__ == "__main__":

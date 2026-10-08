@@ -52,13 +52,15 @@
     const itIonity=adapters?.italyIonityExact||root?.TCCV9Adapters?.italyIonityExact;
     const frIonity=adapters?.franceIonityExact||root?.TCCV9Adapters?.franceIonityExact;
     const itAtlante=adapters?.atlanteItalyExact||root?.TCCV9Adapters?.atlanteItalyExact;
+    const nl=adapters?.netherlandsDotnl||root?.TCCV9Adapters?.netherlandsDotnl;
+    const be=adapters?.belgiumNap||root?.TCCV9Adapters?.belgiumNap;
     const original=target.createRegistryLoaders.bind(target);
     target.createRegistryLoaders=function(opts={}){
       const registry=opts.registry||{sources:[]};
       const basePath=opts.basePath??'..';
       const dataCache=new Map();
       const baseRegistry={...registry,sources:(registry.sources||[]).filter(s=>{
-        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1','atlante-italy-exact-v1'].includes(s.adapter))return false;
+        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1','atlante-italy-exact-v1','netherlands-dotnl-v1','belgium-nap-v1'].includes(s.adapter))return false;
         if(s.adapter==='morocco-public-v1'&&['evgo-production-local','kilowatt-native-local'].includes(s.profile))return false;
         return true;
       })};
@@ -118,6 +120,25 @@
             await fetchJsonMaybeGzip(join(basePath,source.path),opts.fetchImpl),
             source
           );
+        }else if(source.adapter==='netherlands-dotnl-v1'){
+          if(!nl?.normalizeRow)throw new Error('Netherlands DOT-NL adapter missing');
+          loaders[source.id]=async query=>{
+            const manifest=await memoizedJson(join(basePath,source.manifest),opts.fetchImpl,dataCache);
+            const b=queryBounds(query);
+            const tiles=(manifest.tiles||[]).filter(t=>tileIntersects(t,b));
+            const parts=await Promise.all(tiles.map(t=>fetchJsonMaybeGzip(join(basePath,source.root+t.file),opts.fetchImpl)));
+            const rows=parts.flatMap(x=>Array.isArray(x)?x:(x?.rows||x?.stations||[]));
+            return rows.map(row=>nl.normalizeRow(row,{sourceId:source.id})).filter(Boolean);
+          };
+        }else if(source.adapter==='belgium-nap-v1'){
+          if(!be?.normalizeLocation)throw new Error('Belgium NAP adapter missing');
+          loaders[source.id]=async query=>{
+            const manifest=await memoizedJson(join(basePath,source.manifest),opts.fetchImpl,dataCache);
+            const b=queryBounds(query),pages=manifest.pages||[];
+            const parts=await Promise.all(pages.map(p=>fetchJsonMaybeGzip(join(basePath,source.pageRoot+p.canonicalPath.split('/').pop()),opts.fetchImpl)));
+            const rows=parts.flatMap(x=>x?.locations||[]).filter(row=>!b||pointInBounds(row?.latitude,row?.longitude,b));
+            return rows.map(row=>be.normalizeLocation(row,{sourceId:source.id})).filter(Boolean);
+          };
         }else if(source.adapter==='morocco-public-v1'&&source.profile==='kilowatt-native-local'){
           if(!ma?.normalizeKilowattNativeDataset||!ma?.kilowattNativeFreshness)throw new Error('Morocco Kilowatt adapter missing');
           loaders[source.id]=async()=>{

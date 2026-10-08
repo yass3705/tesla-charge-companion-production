@@ -4,7 +4,7 @@ import json
 import pathlib
 import sys
 
-EXPECTED={"TESLA","ES","NL","CH","MA","FR","IT","DE","UK"}
+EXPECTED={"TESLA","ES","NL","CH","MA","FR","IT","DE","UK","BE"}
 
 def load(path):
     return json.loads(path.read_text(encoding="utf-8"))
@@ -26,13 +26,14 @@ def main():
     if len(sys.argv)>2:
         assert manifest["snapshotId"]==sys.argv[2], (manifest["snapshotId"],sys.argv[2])
     assert manifest["policy"]=="fail-closed"
-    assert set(contract["datasets"])==EXPECTED
+    full_scope="BE" in {d.get("id") for d in manifest.get("datasets",[])}
+    assert set(contract["datasets"])==(EXPECTED if full_scope else EXPECTED-{"BE"})
     deployment=contract.get("deployment") or {}
     assert deployment.get("rootIndex")=="index.html", deployment
     assert deployment.get("shell")=="v9-production-shell/index.html", deployment
     assert deployment.get("controlFallback")=="control/index.html", deployment
     assert deployment.get("runtimeBase")=="runtime", deployment
-    assert set(deployment.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}, deployment
+    assert set(deployment.get("engineScopeCountries") or [])==({"FR","NL","IT","ES","CH","DE","GB","MA","BE"} if full_scope else {"FR","NL","IT","ES","CH","DE","GB","MA"}), deployment
     for rel in ("index.html","control/index.html","v9-production-shell/index.html","v9-production-shell/shell-config.json","assets/app.js","assets/update.js"):
         assert (root/rel).exists(), f"missing deployable file {rel}"
     root_index=(root/"index.html").read_text(encoding="utf-8")
@@ -44,6 +45,8 @@ def main():
     shell_index=(root/"v9-production-shell/index.html").read_text(encoding="utf-8")
     for needle in (
         "assets/v9/adapters/germany-national.js",
+        "assets/v9/adapters/netherlands-dotnl.js",
+        "assets/v9/adapters/belgium-nap.js",
         "assets/v9/adapters/uk-open-feeds.js",
         "assets/v9/adapters/switzerland-avia.js",
         "assets/v9/adapters/italy-ionity-exact.js",
@@ -58,7 +61,7 @@ def main():
     assert shell_cfg.get("runtimeBase")=="runtime", shell_cfg
     assert shell_cfg.get("controlIndex")=="../control/index.html", shell_cfg
     assert shell_cfg.get("snapshotId")==manifest["snapshotId"], shell_cfg
-    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA"}, shell_cfg
+    assert set(shell_cfg.get("engineScopeCountries") or [])==({"FR","NL","IT","ES","CH","DE","GB","MA","BE"} if full_scope else {"FR","NL","IT","ES","CH","DE","GB","MA"}), shell_cfg
 
     runtime_integration=contract.get("runtimeIntegration") or {}
     registry_rel=runtime_integration.get("registry")
@@ -67,6 +70,13 @@ def main():
         assert (root/rel).exists(), f"missing runtime integration script {rel}"
     registry=load(root/registry_rel)
     sources={x.get("id"):x for x in registry.get("sources",[]) if isinstance(x,dict)}
+    if full_scope:
+        # Require current national coverage from the exact snapshot-local bases.
+        for identifier,path in (("netherlands-dotnl-national","snapshot-inputs/NL/runtime/manifest.json"),("belgium-nap-national","snapshot-inputs/BE/manifest.json")):
+            src=sources.get(identifier) or {}
+            assert src.get("active") is True and src.get("optional") is False, {identifier:src}
+            assert (root/path).exists(), f"missing current national base {path}"
+        assert (root/"snapshot-inputs/FR/platforms/electroverse/manifest.json").exists()
     de_src=sources.get("germany-production-snapshot") or {}
     uk_src=sources.get("uk-production-open-feeds") or {}
     assert de_src.get("adapter")=="germany-national-v1" and de_src.get("path")=="../snapshot-inputs/DE/all.json.gz", de_src
@@ -116,17 +126,39 @@ def main():
     assert atlante_fr.get("active") is True, atlante_fr
     assert (root/"snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz").exists()
     electroverse_fr=sources.get("france-electroverse-r8") or {}
-    assert electroverse_fr.get("adapter")=="direct-offer-json", electroverse_fr
-    assert electroverse_fr.get("path")=="../snapshot-inputs/FR/platforms/electroverse-runtime-offers.json", electroverse_fr
+    assert electroverse_fr.get("adapter")=="direct-offer-sharded-v1", electroverse_fr
+    assert electroverse_fr.get("root")=="../snapshot-inputs/FR/platforms/electroverse/", electroverse_fr
+    assert electroverse_fr.get("manifest")=="../snapshot-inputs/FR/platforms/electroverse/manifest.json", electroverse_fr
     assert electroverse_fr.get("optional") is False and electroverse_fr.get("active") is True, electroverse_fr
-    ev_runtime=root/"snapshot-inputs/FR/platforms/electroverse-runtime-offers.json"
-    assert ev_runtime.exists(), ev_runtime
-    ev_payload=load(ev_runtime)
-    ev_meta=ev_payload.get("metadata") or {}
-    assert len(ev_payload.get("emspOffers") or [])>=1000, ev_meta
-    assert ev_meta.get("publishedStationOffers")==len(ev_payload.get("emspOffers") or []), ev_meta
-    assert (ev_payload.get("policy") or {}).get("complexPricingFailClosed") is True, ev_payload.get("policy")
-    assert (ev_payload.get("policy") or {}).get("heterogeneousConnectorPricingFailClosed") is True, ev_payload.get("policy")
+    ev_manifest_path=root/"snapshot-inputs/FR/platforms/electroverse/manifest.json"
+    assert ev_manifest_path.exists(), ev_manifest_path
+    ev_manifest=load(ev_manifest_path)
+    ev_stats=ev_manifest.get("stats") or {}
+    assert int(ev_stats.get("publishedOffers") or 0)>=5000, ev_stats
+    assert int(ev_manifest.get("tileCount") or 0)==len(ev_manifest.get("tiles") or []), ev_manifest.get("tileCount")
+    assert ev_manifest.get("policy",{}).get("evseLevelPricing") is True, ev_manifest.get("policy")
+    assert ev_manifest.get("policy",{}).get("stationLevelFlattening") is False, ev_manifest.get("policy")
+    # Overlay conservation: compiled tiles enrich the national identity hub;
+    # complete source inventories must remain present and independently countable.
+    ev_source_root=root/"snapshot-inputs/FR/platforms/electroverse-source"
+    assert (ev_source_root/"tariff_cache/manifest.json").exists(), "Electroverse source cache missing"
+    assert (ev_source_root/"irve_location_mapping.json").exists(), "Electroverse source mapping missing"
+    ev_cache=load(ev_source_root/"tariff_cache/manifest.json")
+    assert int(ev_cache.get("totalStations") or ev_cache.get("stationCount") or 0)>0, ev_cache
+    electra_src=sources.get("france-electra-platform") or {}
+    assert electra_src.get("active") is True and electra_src.get("optional") is False, electra_src
+    electra_root=root/"snapshot-inputs/FR/platforms/electra"
+    electra_manifest=load(electra_root/"manifest.json")
+    source_archive=electra_manifest.get("sourceArchive") or {}
+    assert source_archive.get("file")=="source-locations.json.gz", source_archive
+    electra_source_path=electra_root/source_archive["file"]
+    assert electra_source_path.exists(), electra_source_path
+    with gzip.open(electra_source_path,"rt",encoding="utf-8") as f:
+        electra_source=json.load(f)
+    assert len(electra_source.get("locations") or [])==int(source_archive.get("locationCount") or -1), source_archive
+    assert int(source_archive.get("evseCount") or 0)>0, source_archive
+    assert (electra_root/"source-policy.json").exists()
+
     avia_ch=sources.get("switzerland-avia-r8") or {}
     assert avia_ch.get("adapter")=="switzerland-avia-v1", avia_ch
     assert avia_ch.get("path")=="../snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json", avia_ch

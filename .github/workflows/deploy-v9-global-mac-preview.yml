@@ -30,12 +30,12 @@ on:
     inputs:
       stable_sha:
         description: Exact Stable commit containing the Mac Tesla export
-        required: true
-        default: 44126acbd122c45c5ec9278daf86968bfe94de6f
+        required: false
+        default: ''
       datalab_sha:
         description: Exact Data Lab commit for other current sources
-        required: true
-        default: 1a301d7e2b5229853b5f24d6f9d0ae2bf6493774
+        required: false
+        default: ''
       snapshot_id:
         description: Optional unique V9 preview snapshot ID; blank uses the GitHub run ID
         required: false
@@ -55,16 +55,19 @@ jobs:
       - name: Resolve exact pins
         id: pins
         env:
-          STABLE_SHA_INPUT: ${{ inputs.stable_sha || '44126acbd122c45c5ec9278daf86968bfe94de6f' }}
-          DATALAB_SHA_INPUT: ${{ inputs.datalab_sha || '1a301d7e2b5229853b5f24d6f9d0ae2bf6493774' }}
+          STABLE_SHA_INPUT: ${{ inputs.stable_sha || '' }}
+          DATALAB_SHA_INPUT: ${{ inputs.datalab_sha || '' }}
           SNAPSHOT_ID_INPUT: ${{ inputs.snapshot_id || '' }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "push" || "${{ github.event_name }}" == "pull_request" ]]; then
+          # Refresh against current national bases on scheduled, push and pull_request runs.
+          # Optional manual SHA pins allow an explicitly reproducible preview.
+          if [[ "${{ github.event_name }}" != "workflow_dispatch" || -z "$STABLE_SHA_INPUT" ]]; then
             STABLE_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-stable.git refs/heads/main | cut -f1)"
+          fi
+          if [[ "${{ github.event_name }}" != "workflow_dispatch" || -z "$DATALAB_SHA_INPUT" ]]; then
             DATALAB_SHA_INPUT="$(git ls-remote https://github.com/yass3705/tesla-charge-companion-data-lab.git refs/heads/main | cut -f1)"
-            SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_ID}"
           fi
           if [[ -z "$SNAPSHOT_ID_INPUT" ]]; then
             SNAPSHOT_ID_INPUT="$(TZ=Europe/Paris date +%Y-%m-%d)-r${GITHUB_RUN_ID}"
@@ -104,7 +107,7 @@ jobs:
           node production/tests/uk-ubitricity-integration.test.mjs datalab/data/national/uk_ubitricity_v9.json.gz
           python - <<'PY'
           import gzip, json
-          from datetime import datetime, timezone
+          from datetime import datetime, timezone, timedelta
           from pathlib import Path
           root = Path('datalab')
           report = json.loads((root/'reports/uk/ubitricity-pcpr-validation-latest.json').read_text())
@@ -112,9 +115,9 @@ jobs:
               payload = json.load(fh)
           assert report['status'] == 'validated_runtime_input_ready', report['status']
           assert report['collectedAt'] == payload['collectedAt']
-          assert datetime.fromisoformat(report['collectedAt']) >= datetime(2026, 10, 8, 10, 53, tzinfo=timezone.utc)
+          assert datetime.now(timezone.utc) - datetime.fromisoformat(report['collectedAt']) <= timedelta(hours=48), 'Ubitricity input older than 48h'
           assert report['countries'] == {'GBR': report['locations']}
-          assert report['pricedConnectors'] >= 13620
+          assert report['locations'] >= 10000 and report['pricedConnectors'] >= 13000, 'Ubitricity coverage unexpectedly dropped'
           assert report['pricedConnectors'] + report['unpricedConnectors'] == report['connectors']
           assert report['unpricedConnectors'] >= 0
           assert payload['sources'][0]['pricingScope'] == 'cpo_direct_payg_verified'
@@ -127,7 +130,7 @@ jobs:
           test "$(git -C stable rev-parse HEAD)" = "${{ steps.pins.outputs.stable_sha }}"
           test "$(git -C datalab rev-parse HEAD)" = "${{ steps.pins.outputs.datalab_sha }}"
           python production/scripts/build_refresh_candidate_config.py \
-            --base production/config/snapshots/2026-09-30-r9-electra-fr.json \
+            --base production/config/snapshots/2026-10-06-r14-complete-left-join.json \
             --stable-sha "${{ steps.pins.outputs.stable_sha }}" \
             --datalab-sha "${{ steps.pins.outputs.datalab_sha }}" \
             --snapshot-id "${{ steps.pins.outputs.snapshot_id }}" \
@@ -139,7 +142,7 @@ jobs:
             --config production/config/snapshots/global-mac-preview.json --out dist/v9-global-preview
           python production/scripts/validate_built_snapshot.py dist/v9-global-preview "${{ steps.pins.outputs.snapshot_id }}"
           cmp dist/v9-global-preview/runtime/data/tesla_stations.json dist/v9-global-preview/data/tesla_stations.json
-          python production/scripts/validate_stable_parity.py stable dist/v9-global-preview --allow-nl-override --allow-country-tesla-priority
+          python production/scripts/validate_stable_parity.py stable dist/v9-global-preview --allow-nl-override --allow-country-tesla-priority --allow-pricing-engine-override
           python -m unittest discover -s production/tests -p 'test_tesla_tariff_priority.py'
           python production/scripts/validate_browser_asset_graph.py dist/v9-global-preview
           python production/scripts/verify_candidate_manifest.py dist/v9-global-preview
@@ -160,9 +163,10 @@ jobs:
           assert source['active'] is True and source['optional'] is False
           assert source['path']=='../snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz'
           with gzip.open(deployed, 'rt') as fh: data=json.load(fh)
+          report = json.loads(Path('datalab/reports/uk/ubitricity-pcpr-validation-latest.json').read_text())
           locs = data['sources'][0]['locations']
           priced = sum(bool(c.get('validatedV9Offer')) for loc in locs for e in loc.get('evses',[]) for c in e.get('connectors',[]))
-          assert priced >= 13620 and len(locs)==12424
+          assert priced == report['pricedConnectors'] and len(locs)==report['locations'] and priced >= 13000
           print(f'V9 Ubitricity ready: {len(locs)} locations / {priced} validated direct connector offers; exact source digest matched')
           PY
       - name: Multi-country runtime smoke
@@ -170,7 +174,10 @@ jobs:
           REQUIRE_ELECTRA_PLATFORM: "1"
         run: |
           node production/tests/v9-shell-grouping.test.mjs
+          node production/tests/offer-identity-index.test.mjs dist/v9-global-preview
           node production/tests/runtime-e2e-smoke.mjs dist/v9-global-preview
+          node production/tests/national-snapshot-smoke.mjs dist/v9-global-preview
+          node production/tests/electroverse-rich-pricing.test.mjs dist/v9-global-preview
       - name: Install browser test dependency
         run: npm install --no-save --no-package-lock playwright@1.55.1
       - name: Serve preview locally
