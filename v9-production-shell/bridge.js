@@ -38,7 +38,17 @@
   function subscriptionLabel(row){const provider=text(row?.provider),label=text(row?.label),id=text(row?.id);if(label&&label!==id)return label;if(provider&&provider!==id)return provider;return id;}
   function subscriptionOptionsForArea(area,countryCode,catalogue=[]){
     const options=new Map(),country=text(countryCode).toUpperCase();
-    const offers=[...(catalogue||[]),...(area?.stations||[]).flatMap(station=>station?.offers||[])];
+    const stations=area?.stations||[];
+    const stationIds=new Set(stations.flatMap(st=>[text(st.id),...(st.aliases||[]),...(st.evses||[]).flatMap(evse=>[text(evse.id),...(evse.aliases||[]),...(evse.pdcIds||[])])]).filter(Boolean));
+    const catalogueInRadius=(catalogue||[]).filter(offer=>{
+      if(!stations.length)return false;
+      const scoped=[...(offer.stationIds||[]),...(offer.evseIds||[])].map(text).filter(Boolean);
+      if(scoped.length)return scoped.some(id=>stationIds.has(id));
+      const operators=[...(offer.operatorIds||[]),...(offer.networkIds||[])].map(value=>text(value).toLowerCase()).filter(Boolean);
+      if(operators.length)return stations.some(st=>operators.includes(text(st.physicalOperator?.id||st.physicalOperator?.name).toLowerCase())||operators.includes(text(st.networkBrand).toLowerCase()));
+      return offer?.metadata?.countryWideVerified===true;
+    });
+    const offers=[...catalogueInRadius,...stations.flatMap(station=>station?.offers||[])];
     for(const offer of offers){
       const id=text(offer?.subscriptionId);if(!id)continue;
       const countries=(offer?.countries||[]).map(value=>text(value).toUpperCase());
@@ -48,7 +58,8 @@
       const monthlyFeeEur=feeCurrent?num(offer?.monthlyFeeEur??metadata.monthlyFeeEur):null,annualFeeEur=num(offer?.annualFeeEur??metadata.annualFeeEur);
       if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur,annualFeeEur,feeNote:feeCurrent?'':'Mensualité à vérifier après promotion'});
     }
-    if(country==='FR')for(const plan of ELECTRA_PLUS_PLANS){
+    const localElectra=stations.some(st=>/electra/i.test(text(st.physicalOperator?.id)+' '+text(st.physicalOperator?.name)));
+    if(country==='FR'&&localElectra)for(const plan of ELECTRA_PLUS_PLANS){
       if(!options.has(plan.id))options.set(plan.id,{...plan,countries:['FR'],coverageNote:'Remise sur les bornes Electra. Le prix de la session exige un tarif direct vérifié pour la borne.'});
     }
     return [...options.values()].sort((a,b)=>subscriptionLabel(a).localeCompare(subscriptionLabel(b),'fr'));
@@ -621,7 +632,7 @@
     if(scope.length&&!scope.includes(countryCode))throw new Error(`country outside V9 shell scope: ${countryCode}`);
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input,countryCode);session.fxRates=engine.__tccFxRates||{};
     const selected=selectedSubscriptions(w);
-    const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
+    const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:0,sortBy:'finalCost'});
     area.selectedSubscriptions=selected;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),grouped=groupRows(eligible).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
