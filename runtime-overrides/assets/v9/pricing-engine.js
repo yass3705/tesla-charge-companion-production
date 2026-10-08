@@ -140,7 +140,52 @@
     const matching=bands.filter(b=>String(b?.[0]||'').toUpperCase()===dimension&&seconds>=(num(b?.[1])??0)&&(b?.[2]==null||seconds<(num(b[2])??Infinity)));
     return matching.length===1?(num(matching[0][3])??fallback):fallback;
   }
-  function evaluateRule(rule,{energyKwh=0,durationMinutes=0,chargingMinutes=null,tariffDurationMinutes=durationMinutes,postChargeMinutes=0,includeOneTimeFees=true}={}){
+
+  // An explicit source threshold takes precedence. Otherwise congestion starts at 80% SOC.
+  function congestionBillableMinutes(session={},thresholdSoc=80){
+    const threshold=num(thresholdSoc)??80,timeline=Array.isArray(session.chargeTimeline)?session.chargeTimeline:[];
+    let above=0,firstSoc=num(session.arrivalSoc??session.startSoc),lastSoc=num(session.targetSoc);
+    const offset=num(session.congestionSegmentOffsetMinutes),slice=num(session.congestionSegmentDurationMinutes);
+    if(timeline.length){
+      for(const step of timeline){
+        const start=num(step?.startSoc),end=num(step?.endSoc),duration=num(step?.durationMinutes),startAt=num(step?.offsetMinutes);
+        if(start==null||end==null||duration==null||startAt==null)return{complete:false,reason:'congestion_soc_timeline_incomplete'};
+        if(end<=threshold||duration<=0)continue;
+        const thresholdAt=start>=threshold?startAt:end>start?startAt+duration*(threshold-start)/(end-start):startAt;
+        const rangeStart=offset==null?thresholdAt:Math.max(thresholdAt,offset);
+        const rangeEnd=slice==null?startAt+duration:Math.min(startAt+duration,offset+slice);
+        above+=Math.max(0,rangeEnd-rangeStart);
+      }
+      if(lastSoc==null)lastSoc=num(timeline[timeline.length-1]?.endSoc);
+    }else{
+      const charging=num(session.chargingMinutes);
+      if(firstSoc==null||lastSoc==null||charging==null)return{complete:false,reason:'congestion_soc_unavailable'};
+      const thresholdAt=firstSoc>=threshold?0:lastSoc>threshold&&lastSoc>firstSoc?charging*(threshold-firstSoc)/(lastSoc-firstSoc):charging;
+      const rangeStart=offset==null?thresholdAt:Math.max(thresholdAt,offset);
+      const rangeEnd=slice==null?charging:Math.min(charging,offset+slice);
+      above+=Math.max(0,rangeEnd-rangeStart);
+    }
+    if(lastSoc==null)return{complete:false,reason:'congestion_final_soc_unavailable'};
+    const totalDuration=num(session.durationMinutes);
+    const isFinal=offset==null||slice==null||totalDuration==null||offset+slice>=totalDuration-1e-6;
+    const parking=lastSoc>=threshold&&isFinal?Math.max(0,num(session.postChargeMinutes)??0):0;
+    return{complete:true,minutes:above+parking,chargingMinutes:above,postChargeMinutes:parking,thresholdSoc:threshold};
+  }
+  function congestionFee(rule,session={}){
+    const rate=num(rule?.congestionTimePerMinute);
+    if(rate==null)return{complete:true,charged:false,totalEur:0};
+    if(session.includeCongestionFees===false)return{complete:true,charged:true,totalEur:0,included:false,thresholdSoc:num(rule?.congestionStartSoc)??80};
+    const span=congestionBillableMinutes(session,num(rule?.congestionStartSoc)??80);
+    if(!span.complete)return{...span,charged:true};
+    const step=num(rule?.congestionTimeStepSeconds);
+    const billed=step>0&&span.minutes>0?Math.ceil(span.minutes*60/step)*step/60:span.minutes;
+    return{complete:true,charged:true,ratePerMinute:rate,thresholdSoc:span.thresholdSoc,
+      actualMinutes:span.minutes,billableMinutes:billed,chargingMinutes:span.chargingMinutes,
+      postChargeMinutes:span.postChargeMinutes,stepSeconds:step??null,
+      included:true,totalEur:money(billed*rate)};
+  }
+  function evaluateRule(rule,session={}){
+    const {energyKwh=0,durationMinutes=0,chargingMinutes=null,tariffDurationMinutes=durationMinutes,postChargeMinutes=0,includeOneTimeFees=true}=session;
     const energy=Math.max(0,num(energyKwh)??0),duration=Math.max(0,num(durationMinutes)??0),charging=Math.max(0,Math.min(duration,num(chargingMinutes)??duration)),components={};let total=0;
     const perKwh=durationBandRate(rule,'ENERGY',num(rule?.pricePerKwh),tariffDurationMinutes);
     if(perKwh!=null){
@@ -178,6 +223,11 @@
     }
     const fixed=num(rule?.connectedTimeComponentEur);if(includeOneTimeFees&&fixed!=null&&fixed!==0){components.connectedTimeComponent=money(fixed);total+=components.connectedTimeComponent;}
     const sessionFee=num(rule?.sessionFeeEur);if(includeOneTimeFees&&sessionFee!=null&&sessionFee!==0){components.sessionFee=money(sessionFee);total+=components.sessionFee;}
+    if(num(rule?.congestionTimePerMinute)!=null){
+      const congestion=congestionFee(rule,session);
+      if(congestion.complete===false)return{complete:false,reason:congestion.reason,components};
+      components.congestionTime=congestion;total+=congestion.totalEur;
+    }
     const minimum=num(rule?.minimumSessionEur);if(minimum!=null&&total<minimum){components.minimumSession={minimumEur:minimum,preMinimumTotalEur:money(total),topUpEur:money(minimum-total)};total=minimum;}
     return{totalEur:money(total),components};
   }
@@ -203,7 +253,8 @@
     if(duration<=0){
       const rule=matchingRule(pricing,session.startAt,timeZone,session);if(!rule)return{complete:false,reason:'no_matching_time_rule'};
       if(!segmentableRule(rule))return{complete:false,reason:'tariff_window_crossing_unsupported_components'};
-      const evaluated=evaluateRule(rule,{energyKwh:energy,durationMinutes:0,tariffDurationMinutes:duration,postChargeMinutes:session.postChargeMinutes});
+      const evaluated=evaluateRule(rule,{...session,energyKwh:energy,durationMinutes:0,tariffDurationMinutes:duration,postChargeMinutes:session.postChargeMinutes});
+      if(evaluated.complete===false)return evaluated;
       return{complete:true,totalEur:evaluated.totalEur,components:{segmentedPricing:{segments:[{startAt:new Date(session.startAt).toISOString(),durationMinutes:0,energyKwh:energy,totalEur:evaluated.totalEur,rule}]}}};
     }
     let elapsed=0,total=0;const segments=[];
@@ -215,7 +266,8 @@
       if(!Number.isFinite(boundary))boundary=duration-elapsed;
       const slice=Math.min(duration-elapsed,Math.max(boundary,1e-6));
       const chargeOverlap=Math.max(0,Math.min(charging,elapsed+slice)-elapsed),segmentEnergy=charging>0?energy*(chargeOverlap/charging):0;
-      const isLast=elapsed+slice>=duration-1e-9;const evaluated=evaluateRule(rule,{energyKwh:segmentEnergy,durationMinutes:slice,chargingMinutes:chargeOverlap,tariffDurationMinutes:duration,postChargeMinutes:isLast?(session.postChargeMinutes||0):0,includeOneTimeFees:elapsed===0});
+      const isLast=elapsed+slice>=duration-1e-9;const evaluated=evaluateRule(rule,{...session,energyKwh:segmentEnergy,durationMinutes:slice,chargingMinutes:chargeOverlap,tariffDurationMinutes:duration,postChargeMinutes:isLast?(session.postChargeMinutes||0):0,includeOneTimeFees:elapsed===0,congestionSegmentOffsetMinutes:elapsed,congestionSegmentDurationMinutes:slice});
+       if(evaluated.complete===false)return evaluated;
       total+=evaluated.totalEur;
       segments.push({startAt:at.toISOString(),durationMinutes:money(slice),chargingMinutes:money(chargeOverlap),energyKwh:money(segmentEnergy),totalEur:evaluated.totalEur,components:evaluated.components,rule});
       elapsed+=slice;
@@ -294,7 +346,7 @@
       const localPricing={...pricing,rules};const match=matchingRuleDetailed(localPricing,session.startAt,timeZone,session);if(match.unknown)return{complete:false,reason:match.reason,componentKind:group.kind||null};const rule=match.rule;
       if(!rule){components.componentGroups.push({kind:group.kind||null,matched:false,costEur:0});continue;}
       matchedGroups++;
-      const evaluated=evaluateRule(rule,session);total+=evaluated.totalEur;components.componentGroups.push({kind:group.kind||null,matched:true,costEur:evaluated.totalEur,components:evaluated.components,rule});
+      const evaluated=evaluateRule(rule,session);if(evaluated.complete===false)return{...evaluated,componentKind:group.kind||null};total+=evaluated.totalEur;components.componentGroups.push({kind:group.kind||null,matched:true,costEur:evaluated.totalEur,components:evaluated.components,rule});
     }
     if(matchedGroups===0)return{complete:false,reason:'no_matching_tariff_component',components};
     return{complete:true,totalEur:money(total),components};
@@ -320,6 +372,7 @@
     if(boundary!=null&&Number.isFinite(boundary)&&duration>boundary+1e-9){
       base=evaluateSegmentedRules(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone,boundaryMinutes:boundary};segmented=true;
     }else base=evaluateRule(rule,{...session,tariffDurationMinutes:duration});
+    if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone};
     const longFee=pricing.longConnectionFee;let longConnection=null,total=base.totalEur;
     if(longFee&&duration>(num(longFee.thresholdMinutes)??Infinity)){
       const rate=num(longFee.eurPerHourAfterThreshold);if(rate!=null){const excess=duration-Number(longFee.thresholdMinutes);longConnection={complete:false,reason:'hourly_rounding_unspecified',excessMinutes:excess,rateEurPerHour:rate};}
@@ -332,5 +385,5 @@
     const finalized=applyMinimumTotal(pricing,total,components);
     return{complete:!longConnection,totalEur:finalized.totalEur,components:finalized.components,longConnection,offerId:offer?.id||null,currency:offer?.currency||'EUR',matchedRule:rule,segmented,timeZone};
   }
-  return{evaluateOffer,evaluateRule,evaluateSegmentedRules,evaluateComponentGroups,segmentableRule,ruleThresholdStatus,ruleThresholdMatches,matchingRuleDetailed,evaluateConditionalSessionFees,evaluatePostChargeFee,postChargeBillableMinutes,exemptWindowContains,matchingRule,ruleContains,ruleDayMatches,localDateParts,isHoliday,italianHolidayKeys,minuteOfDay,minutesUntilRuleBoundary,applyMinimumTotal};
+  return{congestionBillableMinutes,congestionFee,evaluateOffer,evaluateRule,evaluateSegmentedRules,evaluateComponentGroups,segmentableRule,ruleThresholdStatus,ruleThresholdMatches,matchingRuleDetailed,evaluateConditionalSessionFees,evaluatePostChargeFee,postChargeBillableMinutes,exemptWindowContains,matchingRule,ruleContains,ruleDayMatches,localDateParts,isHoliday,italianHolidayKeys,minuteOfDay,minutesUntilRuleBoundary,applyMinimumTotal};
 });
