@@ -125,7 +125,7 @@ def main():
         nl_src=dl/nl_path
         if not nl_src.exists():
             raise SystemExit(f"Pinned Data Lab NL source missing: {nl_path}")
-        copy_tree(nl_src,out/"runtime/data/non_tesla_netherlands")
+        # DOT-NL is loaded from snapshot-inputs by the dedicated adapter; avoid duplicate inventory.
 
     for name in ("manifest.webmanifest","app-version.json","service-worker.js"):
         src=stable/name
@@ -172,7 +172,7 @@ def main():
         dependency_anchor,
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/map-price-engine.js',"
-        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
+        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/netherlands-dotnl.js','assets/v9/adapters/belgium-nap.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
     )
     for required in ("v9-production-shell/bridge.js","assets/v9/production-bootstrap.js","assets/v9/production-loader-extension.js"):
@@ -187,7 +187,7 @@ def main():
       "runtimeBase":"runtime",
       "snapshotId":cfg["snapshotId"],
       "observedCandidateSha":cfg["sources"]["stable"]["sha"],
-      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"],
+      "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA","BE"],
       "fallback":"control/index.html",
       "notes":"Production-owned V9 shell. Root enters V9 directly; pinned V7.3 control is local fallback only."
     })
@@ -234,6 +234,73 @@ def main():
         if src.exists(): copy_file(src,dst)
 
     national=dl/"data/national"
+
+    # Netherlands DOT-NL compiled national runtime. Keep it as a normal
+    # country dataset; Tesla rows are excluded by the registry rule.
+    nl_src=dl/"data/national/netherlands_dotnl/runtime"
+    if nl_cfg.get("primarySource")=="dataLab":
+        if not nl_src.exists():
+            raise SystemExit("Current DOT-NL national base missing")
+        copy_tree(nl_src,overlays/"NL/runtime")
+        nl_manifest=load_json(overlays/"NL/runtime/manifest.json")
+        write_json(overlays/"NL/manifest.json",{
+          "schemaVersion":1,
+          "country":"NL",
+          "coverage":"partial-fail-closed",
+          "primaryFile":"runtime/all.json.gz",
+          "stationCount":nl_manifest.get("stationCount"),
+          "configurationCount":nl_manifest.get("configurationCount"),
+          "pricedConfigurationCount":nl_manifest.get("pricedConfigurationCount"),
+          "tileCount":nl_manifest.get("tileCount"),
+          "policy":"DOT-NL compiled runtime; unsupported and non-direct tariff configurations remain fail-closed.",
+          "sourceManifest":"runtime/manifest.json"
+        })
+
+    # Belgium Eco-Movement NAP selected-CPO pages. The source manifest keeps
+    # the complete first-pass inventory and the runtime adapter normalizes each
+    # page on demand; unresolved operator tariffs stay fail-closed.
+    be_manifest_src=dl/"data/belgium/nap-belgium-manifest.json"
+    be=overlays/"BE"
+    if any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
+        if not be_manifest_src.exists():
+            raise SystemExit("Current Belgium NAP baseline missing")
+        copy_file(be_manifest_src,be/"manifest.json")
+        for page in sorted((dl/"data/belgium/pages").glob("nap-belgium-*.json.gz")):
+            copy_file(page,be/"pages"/page.name)
+        be_progress=dl/"docs/belgium-cpo-progress-2026-09.json"
+        be_gap=dl/"reports/belgium/belgium-final-gap-reconciliation-2026-09-28.json"
+        if be_progress.exists(): copy_file(be_progress,be/"cpo-ledger.json")
+        if be_gap.exists(): copy_file(be_gap,be/"gap-reconciliation.json")
+        be_meta=load_json(be_progress) if be_progress.exists() else {}
+        write_json(be/"runtime-manifest.json",{
+          "schemaVersion":1,
+          "country":"BE",
+          "coverage":"partial-selected-cpo",
+          "primaryFile":"manifest.json",
+          "locations":(be_meta.get("firstPass") or {}).get("locations"),
+          "evses":(be_meta.get("firstPass") or {}).get("evses"),
+          "operatorsSeen":(be_meta.get("firstPass") or {}).get("operatorsSeen"),
+          "cpoStatusCounts":be_meta.get("counts"),
+          "policy":"Eco-Movement selected-CPO NAP baseline with exact tariff records; missing operators and unresolved prices remain fail-closed."
+        })
+
+    # Activate the up-to-date national baselines and suppress historic NL inventory.
+    if nl_cfg.get("primarySource")=="dataLab" or any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
+        current_registry=load_json(registry)
+        for source in current_registry.get("sources",[]):
+            if source.get("id")=="netherlands-dotnl-national" and nl_cfg.get("primarySource")=="dataLab":
+                source["active"]=True
+                source["optional"]=False
+            elif source.get("id")=="belgium-nap-national" and any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
+                source["active"]=True
+                source["optional"]=False
+            elif source.get("id")=="netherlands-dotnl" and nl_cfg.get("primarySource")=="dataLab":
+                source["active"]=False
+        local=current_registry.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        for identifier in ("netherlands-dotnl-national","belgium-nap-national"):
+            if next((a for a in current_registry.get("sources",[]) if a.get("id")==identifier and a.get("active")),None) and identifier not in local:
+                local.append(identifier)
+        write_json(registry,current_registry)
 
     # UK: do NOT use inventory/united_kingdom.json (Tesla inventory).
     # The non-Tesla baseline is the validated open-feed aggregate plus exact
@@ -339,16 +406,49 @@ def main():
     ev_delta=dl/"reports/electroverse/daily-delta.json"
     if ev_inventory.exists(): copy_file(ev_inventory,overlays/"FR/platforms/electroverse-france-current.json")
     if ev_delta.exists(): copy_file(ev_delta,overlays/"FR/platforms/electroverse-daily-delta.json")
-    ev_cache=dl/"data/electroverse/tariff_cache"
-    ev_manifest=ev_cache/"manifest.json"
-    if ev_manifest.exists():
-        subprocess.run([
-          sys.executable,
-          str(production_root/"scripts/build_electroverse_runtime_offers.py"),
-          "--cache-dir",str(ev_cache),
-          "--manifest",str(ev_manifest),
-          "--out",str(overlays/"FR/platforms/electroverse-runtime-offers.json")
-        ],check=True)
+    # Electroverse tariffs are compiled at EVSE granularity in Data Lab.
+    # Consume those rich rule payloads directly; the legacy station flattener
+    # discarded complex and heterogeneous tariffs and is intentionally bypassed.
+    evse_overlay=dl/"data/platforms/electroverse/france-evse"
+    evse_manifest=evse_overlay/"manifest.json"
+    if not evse_manifest.exists():
+        raise SystemExit("Pinned Electroverse EVSE tariff overlay is missing; refusing legacy complex-tariff exclusions")
+    evse_meta=load_json(evse_manifest)
+    evse_stats=evse_meta.get("stats") or {}
+    if int(evse_stats.get("publishedOffers") or 0)<5000:
+        raise SystemExit("Pinned Electroverse EVSE overlay has incomplete tariff coverage")
+    copy_tree(evse_overlay,overlays/"FR/platforms/electroverse")
+    # Preserve the complete Electroverse source cache and mapping inputs. The
+    # compiled EVSE tariff tiles are an enrichment; they must never become the
+    # only representation of the overlay.
+    ev_source=dl/"data/electroverse/tariff_cache"
+    ev_mapping=dl/"data/electroverse/irve_location_mapping.json"
+    if ev_source.exists(): copy_tree(ev_source,overlays/"FR/platforms/electroverse-source/tariff_cache")
+    if ev_mapping.exists(): copy_file(ev_mapping,overlays/"FR/platforms/electroverse-source/irve_location_mapping.json")
+    write_json(overlays/"FR/platforms/electroverse-source/README.json",{
+      "dataset":"Electroverse France complete source overlay",
+      "policy":"Source rows are conserved; compiled tariff tiles are a LEFT JOIN enrichment only.",
+      "cacheManifest":"tariff_cache/manifest.json",
+      "mapping":"irve_location_mapping.json"
+    })
+    reg=load_json(registry)
+    for src in reg.get("sources",[]):
+        if src.get("id")=="france-electroverse-r8":
+            src.update({
+              "adapter":"direct-offer-sharded-v1",
+              "root":"../snapshot-inputs/FR/platforms/electroverse/",
+              "manifest":"../snapshot-inputs/FR/platforms/electroverse/manifest.json",
+              "label":"France pinned Electroverse exact EVSE tariffs (all supported pricing components)",
+              "active":True,"optional":False,"refresh":"immutable-production-snapshot",
+              "policy":"All compiled per-EVSE Electroverse tariffs are exposed, including heterogeneous connector prices, duration bands, time windows, parking and connection fees. Pricing complexity never excludes an offer; unresolved identity conflicts remain separately fail-closed."
+            })
+            break
+    else:
+        raise AssertionError("france-electroverse-r8 registry source missing")
+    prod=reg.setdefault("productionIntegration",{})
+    local=prod.setdefault("snapshotLocalSources",[])
+    if "france-electroverse-r8" not in local: local.append("france-electroverse-r8")
+    write_json(registry,reg)
 
     # Electra eMSP aggregate overlay is independent from Electroverse and
     # attaches only through exact national France EVSE/PDC identities.
@@ -357,15 +457,21 @@ def main():
     if electra_manifest.exists():
         em=load_json(electra_manifest)
         assert em.get("policy",{}).get("nationalFranceIsIdentityHub") is True
-        ep=em.get("policy",{})
-        if ep.get("exactNationalEvseOnly") is not True:
-            assert set(ep.get("acceptedIdentityModes") or []) == {
-                "exact_national_irve_evse", "curated_irve_location"
-            }
-            assert ep.get("curatedMatchRequiresValidatedDistanceNameAddressPowerAndConnectorEvidence") is True
+        em_policy=em.get("policy",{})
+        exact_only=em_policy.get("exactNationalEvseOnly") is True
+        accepted=set(em_policy.get("acceptedIdentityModes") or [])
+        curated_ok=("curated_irve_location" in accepted and em_policy.get("curatedMatchRequiresValidatedDistanceNameAddressPowerAndConnectorEvidence") is True)
+        assert exact_only or curated_ok
         assert em.get("policy",{}).get("electroverseDependency") is False
         assert int((em.get("stats") or {}).get("publishedOffers") or 0) > 0
         copy_tree(electra_platform,overlays/"FR/platforms/electra")
+        if (electra_platform/"source-locations.json.gz").exists():
+            copy_file(electra_platform/"source-locations.json.gz",overlays/"FR/platforms/electra/source-locations.json.gz")
+        write_json(overlays/"FR/platforms/electra/source-policy.json",{
+          "dataset":"Electra France complete source overlay",
+          "policy":"All compatible source locations and EVSEs are retained; compiled tiles are LEFT JOIN tariff enrichments.",
+          "sourceArchive":"source-locations.json.gz"
+        })
         reg=load_json(registry)
         for src in reg.get("sources",[]):
             if src.get("id")=="france-electra-platform":
@@ -381,6 +487,20 @@ def main():
         if "france-electra-platform" not in local:
             local.append("france-electra-platform")
         write_json(registry,reg)
+
+    # Electra exact direct tariffs: the national snapshot remains the
+    # identity hub, while only station-level tariffs with fully supported
+    # ENERGY components are published. Unsupported congestion components stay
+    # fail-closed rather than being approximated.
+    electra_exact=dl/"data/operator_direct/electra_exact_france.json"
+    if electra_exact.exists():
+        copy_file(electra_exact,fr_direct/"electra_exact_france.json")
+        subprocess.run([
+          sys.executable,
+          str(production_root/"scripts/build_electra_direct_offers.py"),
+          str(electra_exact),
+          str(fr_direct/"electra_exact_direct_offers.json")
+        ],check=True)
 
     # Italy validated direct overlays beside the compiled static baseline.
     it_dst=overlays/"IT/direct"
@@ -470,12 +590,14 @@ def main():
         "shellConfig":"v9-production-shell/shell-config.json",
         "controlFallback":"control/index.html",
         "runtimeBase":"runtime",
-        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA"]
+        "engineScopeCountries":["FR","NL","IT","ES","CH","DE","GB","MA","BE"]
       },
       "runtimeIntegration":{
         "registry":"runtime/data/v9/source-registry.json",
         "scripts":[
           "runtime/assets/v9/adapters/germany-national.js",
+          "runtime/assets/v9/adapters/netherlands-dotnl.js",
+          "runtime/assets/v9/adapters/belgium-nap.js",
           "runtime/assets/v9/adapters/uk-open-feeds.js",
           "runtime/assets/v9/adapters/switzerland-avia.js",
           "runtime/assets/v9/adapters/italy-ionity-exact.js",
@@ -490,13 +612,14 @@ def main():
       "datasets":{
         "TESLA":{"kind":"tesla","entry":"runtime/data/tesla_stations.json","coverage":"current","primarySource":tesla_cfg.get("primarySource","stable"),"sourceMetadata":"snapshot-inputs/TESLA/tariff-selection.json" if tesla_cfg.get("tariffPolicy")=="mac-country-10-days" else ("snapshot-inputs/TESLA/suc-tracker-metadata.json" if tesla_cfg.get("primarySource")=="dataLab" else None)},
         "ES":{"kind":"static-tiles","manifest":"runtime/data/v9/spain-static/manifest.json","offers":"runtime/data/v9/spain-reve-offers/manifest.json","coverage":"complete"},
-        "NL":{"kind":"static-tiles","manifest":"runtime/data/non_tesla_netherlands/manifest.json","coverage":"complete"},
+        "NL":{"kind":"national-compact","manifest":"snapshot-inputs/NL/runtime/manifest.json","all":"snapshot-inputs/NL/runtime/all.json.gz","coverage":"complete-with-fail-closed-residuals"},
         "CH":{"kind":"canonical-overlay","manifest":"runtime/data/v9/switzerland-static/manifest.json","canonical":"snapshot-inputs/CH/switzerland_public_charging_v9.json","direct":"snapshot-inputs/CH/direct","coverage":"complete-with-fail-closed-residuals"},
         "MA":{"kind":"cpo-consolidated","manifest":"snapshot-inputs/MA/manifest.json","coverage":"partial"},
         "FR":{"kind":"canonical-overlay","manifest":"runtime/data/v9/france-static/manifest.json","canonical":"snapshot-inputs/FR/france_public_charging_canonical.json","direct":"snapshot-inputs/FR/direct","platforms":"snapshot-inputs/FR/platforms","identityHub":"national France station/EVSE baseline","coverage":"partial"},
         "IT":{"kind":"static-tiles","manifest":"runtime/data/v9/italy-static/manifest.json","offers":"runtime/data/v9/italy-offers.json","direct":"snapshot-inputs/IT/direct","coverage":"partial"},
         "DE":{"kind":"national-baseline","manifest":"snapshot-inputs/DE/manifest.json","all":"snapshot-inputs/DE/all.json.gz","direct":"snapshot-inputs/DE/direct","coverage":"partial"},
-        "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"}
+        "UK":{"kind":"validated-open-feeds","manifest":"snapshot-inputs/UK/manifest.json","all":"snapshot-inputs/UK/all.json.gz","coverage":"partial"},
+        "BE":{"kind":"national-nap","manifest":"snapshot-inputs/BE/manifest.json","pages":"snapshot-inputs/BE/pages","coverage":"partial-selected-cpo"}
       }
     }
     write_json(out/"runtime-contract.json",contract)
