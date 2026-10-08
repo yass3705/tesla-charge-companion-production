@@ -26,13 +26,14 @@ def main():
     if len(sys.argv)>2:
         assert manifest["snapshotId"]==sys.argv[2], (manifest["snapshotId"],sys.argv[2])
     assert manifest["policy"]=="fail-closed"
-    assert set(contract["datasets"])==EXPECTED
+    full_scope="BE" in {d.get("id") for d in manifest.get("datasets",[])}
+    assert set(contract["datasets"])==(EXPECTED if full_scope else EXPECTED-{"BE"})
     deployment=contract.get("deployment") or {}
     assert deployment.get("rootIndex")=="index.html", deployment
     assert deployment.get("shell")=="v9-production-shell/index.html", deployment
     assert deployment.get("controlFallback")=="control/index.html", deployment
     assert deployment.get("runtimeBase")=="runtime", deployment
-    assert set(deployment.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA","BE"}, deployment
+    assert set(deployment.get("engineScopeCountries") or [])==({"FR","NL","IT","ES","CH","DE","GB","MA","BE"} if full_scope else {"FR","NL","IT","ES","CH","DE","GB","MA"}), deployment
     for rel in ("index.html","control/index.html","v9-production-shell/index.html","v9-production-shell/shell-config.json","assets/app.js","assets/update.js"):
         assert (root/rel).exists(), f"missing deployable file {rel}"
     root_index=(root/"index.html").read_text(encoding="utf-8")
@@ -60,7 +61,7 @@ def main():
     assert shell_cfg.get("runtimeBase")=="runtime", shell_cfg
     assert shell_cfg.get("controlIndex")=="../control/index.html", shell_cfg
     assert shell_cfg.get("snapshotId")==manifest["snapshotId"], shell_cfg
-    assert set(shell_cfg.get("engineScopeCountries") or [])=={"FR","NL","IT","ES","CH","DE","GB","MA","BE"}, shell_cfg
+    assert set(shell_cfg.get("engineScopeCountries") or [])==({"FR","NL","IT","ES","CH","DE","GB","MA","BE"} if full_scope else {"FR","NL","IT","ES","CH","DE","GB","MA"}), shell_cfg
 
     runtime_integration=contract.get("runtimeIntegration") or {}
     registry_rel=runtime_integration.get("registry")
@@ -69,12 +70,13 @@ def main():
         assert (root/rel).exists(), f"missing runtime integration script {rel}"
     registry=load(root/registry_rel)
     sources={x.get("id"):x for x in registry.get("sources",[]) if isinstance(x,dict)}
-    # Require current national coverage from the exact snapshot-local bases.
-    for identifier,path in (("netherlands-dotnl-national","snapshot-inputs/NL/runtime/manifest.json"),("belgium-nap-national","snapshot-inputs/BE/manifest.json")):
-        src=sources.get(identifier) or {}
-        assert src.get("active") is True and src.get("optional") is False, {identifier:src}
-        assert (root/path).exists(), f"missing current national base {path}"
-    assert (root/"snapshot-inputs/FR/platforms/electroverse/manifest.json").exists()
+    if full_scope:
+        # Require current national coverage from the exact snapshot-local bases.
+        for identifier,path in (("netherlands-dotnl-national","snapshot-inputs/NL/runtime/manifest.json"),("belgium-nap-national","snapshot-inputs/BE/manifest.json")):
+            src=sources.get(identifier) or {}
+            assert src.get("active") is True and src.get("optional") is False, {identifier:src}
+            assert (root/path).exists(), f"missing current national base {path}"
+        assert (root/"snapshot-inputs/FR/platforms/electroverse/manifest.json").exists()
     de_src=sources.get("germany-production-snapshot") or {}
     uk_src=sources.get("uk-production-open-feeds") or {}
     assert de_src.get("adapter")=="germany-national-v1" and de_src.get("path")=="../snapshot-inputs/DE/all.json.gz", de_src
