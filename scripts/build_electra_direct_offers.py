@@ -134,7 +134,7 @@ def rule_from_element(element, *, currency="EUR", tariff_description=None):
                 found_soc = [
                     float(match.group(1).replace(",", "."))
                     for description in descriptions
-                    for match in re.finditer(r"(\\d{1,3}(?:[.,]\\d+)?)\\s*%", description)
+                    for match in re.finditer(r"(\d{1,3}(?:[.,]\d+)?)\s*%", description)
                 ]
                 if len(set(found_soc)) == 1 and 0 <= found_soc[0] <= 100:
                     threshold = found_soc[0]
