@@ -188,7 +188,7 @@
       settled.forEach((entry,index)=>{
         const source=applicable[index];if(entry.status==='rejected'){
           const failure={sourceId:source.id,message:text(entry.reason?.message||entry.reason)};
-          diagnostics.errors.push(failure);diagnostics.sources[source.id]={loaded:false,stationCount:0,offerRuleCount:0};if(source.optional!==true)requiredFailures.push(failure);return;
+          diagnostics.errors.push(failure);diagnostics.sources[source.id]={loaded:false,stationCount:0,offerRuleCount:0};if(source.optional!==true&&((source.capabilities||[]).includes('inventory')||(source.capabilities||[]).includes('connectors')))requiredFailures.push(failure);return;
         }
         const{fragments,offerRules,skipped}=entry.value;
         // National inventories are physical baselines only. Tesla is loaded from
@@ -202,8 +202,9 @@
         diagnostics.sources[source.id]={loaded:!skipped,stationCount:keptFragments.length,sourceRows:fragments.length,excludedRows:fragments.length-keptFragments.length,offerRuleCount:offerRules.length,skipped:skipped||null};
         for(const fragment of keptFragments)items.push({source,fragment});for(const rule of offerRules)ruleItems.push({source,rule});
       });
+      // A tariff-only overlay failure must never suppress the other independent lanes.
       if(requiredFailures.length){
-        const error=new Error(`required data source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
+        const error=new Error(`required physical inventory source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
         error.code='TCC_V9_REQUIRED_SOURCE_FAILED';error.failures=requiredFailures;error.diagnostics=diagnostics;throw error;
       }
       const resolved=resolveEntities(items),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
