@@ -31,7 +31,7 @@ const unavailable=engine.evaluateOffer(offer,{energyKwh:10,durationMinutes:30});
 assert.equal(unavailable.complete,false);
 assert.equal(unavailable.reason,'congestion_soc_unavailable');
 close(engine.evaluateOffer(offer,{energyKwh:10,durationMinutes:30,includeCongestionFees:false}).totalEur,4);
-const station={id:'FR-Electra-1',countryCode:'FR',name:'Electra test',physicalOperator:{name:'Electra'},evses:[{id:'EVSE-1',connectors:[{id:'CCS-1',kind:'DC',powerKw:150}]}],offers:[offer,{id:'evr',kind:'roaming',provider:'Electroverse',currency:'EUR',pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:.5}]}}]};
+const station={id:'FR-Electra-1',countryCode:'FR',name:'Electra test',physicalOperator:{name:'Electra'},evses:[{id:'EVSE-1',connectors:[{id:'CCS-1',kind:'DC',powerKw:150}]}],offers:[offer,{id:'evr',kind:'roaming',provider:'Electroverse',currency:'EUR',pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:.9}]}}]};
 const quote=stationEngine.evaluateStation(station,session);
 assert.equal(quote.best.offerId,'electra-direct:1');
 close(quote.best.congestion.totalWithoutCongestion,4);
