@@ -4,7 +4,9 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea } = require('../v9-production-shell/bridge.js');
 
-const francePlans=subscriptionOptionsForArea({stations:[]},'FR');
+const emptyFrancePlans=subscriptionOptionsForArea({stations:[]},'FR');
+assert.equal(emptyFrancePlans.length,0,'no subscription can be claimed to be available without a station in radius');
+const francePlans=subscriptionOptionsForArea({stations:[{physicalOperator:{id:'electra',name:'Electra'},offers:[]}]},'FR');
 assert.deepEqual(francePlans.filter(row=>row.id.startsWith('electra-plus-')).map(row=>[row.id,row.monthlyFeeEur]),
   [['electra-plus-essential',1.99],['electra-plus-smart',4.99]]);
 assert.equal(subscriptionOptionsForArea({stations:[]},'CH').some(row=>row.id.startsWith('electra-plus-')),false);

@@ -71,7 +71,7 @@
     entity._fieldRanks[family]=nextRank;
   }
 
-  function offerSemanticKey(offer,countryCode){return[text(offer?.id)||text(offer?.offerId)||'offer',text(offer?.kind)||'unknown',text(offer?.subscriptionId),operatorId(offer?.provider),text(countryCode).toUpperCase()].join('|');}
+  function offerSemanticKey(offer,countryCode){return[text(offer?.sourceId)||'source-unknown',text(offer?.id)||text(offer?.offerId)||'offer',text(offer?.kind)||'unknown',text(offer?.subscriptionId),operatorId(offer?.provider),text(countryCode).toUpperCase()].join('|');}
   function materializeOffer(offer,countryCode){
     const out=clone(offer)||{},country=text(countryCode).toUpperCase(),countries=(out.countries||[]).map(x=>text(x).toUpperCase());
     if(countries.length&&!countries.includes('*')&&!countries.includes(country))return null;
@@ -128,7 +128,7 @@
   function ruleToOffer(rule,station,source){
     const offer=materializeOffer({
       id:rule.id,provider:rule.provider,kind:rule.offerKind||'direct',subscriptionId:rule.subscriptionId||null,countries:rule.countries||[station.countryCode],currency:rule.currency||'EUR',
-      connectorKinds:clone(rule.connectorKinds)||[],operatorIds:clone(rule.operatorIds)||[],networkIds:clone(rule.networkIds)||[],networkAliases:clone(rule.networkAliases)||[],stationIds:clone(rule.stationIds)||[],evseIds:clone(rule.evseIds)||[],minPowerKw:rule.minPowerKw??null,maxPowerKw:rule.maxPowerKw??null,
+      connectorKinds:clone(rule.connectorKinds)||[],operatorIds:clone(rule.operatorIds)||[],networkIds:clone(rule.networkIds)||[],networkAliases:clone(rule.networkAliases)||[],stationIds:clone(rule.stationIds)||[],evseIds:clone(rule.evseIds)||[],connectorIds:clone(rule.connectorIds)||[],plugNames:clone(rule.plugNames)||[],minPowerKw:rule.minPowerKw??null,maxPowerKw:rule.maxPowerKw??null,
       pricing:clone(rule.pricing)||{},ratesByCountry:clone(rule.ratesByCountry)||null,validFrom:rule.validFrom||null,validThrough:rule.validThrough||null,validityBasis:rule.validityBasis||null,priority:number(rule.priority)??priorityFor(source,'tariff',rule),metadata:clone(rule.metadata)||null
     },station.countryCode);
     if(offer){offer.sourceId=source.id;offer.priority=number(offer.priority)??priorityFor(source,'tariff',rule);}return offer;
@@ -188,7 +188,7 @@
       settled.forEach((entry,index)=>{
         const source=applicable[index];if(entry.status==='rejected'){
           const failure={sourceId:source.id,message:text(entry.reason?.message||entry.reason)};
-          diagnostics.errors.push(failure);diagnostics.sources[source.id]={loaded:false,stationCount:0,offerRuleCount:0};if(source.optional!==true)requiredFailures.push(failure);return;
+          diagnostics.errors.push(failure);diagnostics.sources[source.id]={loaded:false,stationCount:0,offerRuleCount:0};if(source.optional!==true&&((source.capabilities||[]).includes('inventory')||(source.capabilities||[]).includes('connectors')))requiredFailures.push(failure);return;
         }
         const{fragments,offerRules,skipped}=entry.value;
         // National inventories are physical baselines only. Tesla is loaded from
@@ -202,14 +202,18 @@
         diagnostics.sources[source.id]={loaded:!skipped,stationCount:keptFragments.length,sourceRows:fragments.length,excludedRows:fragments.length-keptFragments.length,offerRuleCount:offerRules.length,skipped:skipped||null};
         for(const fragment of keptFragments)items.push({source,fragment});for(const rule of offerRules)ruleItems.push({source,rule});
       });
-      if(requiredFailures.length){
-        const error=new Error(`required data source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
+      // A tariff-only overlay failure must never suppress the other independent lanes.
+      // Keep any valid physical records from independent sources visible.
+      // A full outage is still explicit; partial failures stay in diagnostics.
+      if(requiredFailures.length&&!items.length){
+        const error=new Error(`required physical inventory source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
         error.code='TCC_V9_REQUIRED_SOURCE_FAILED';error.failures=requiredFailures;error.diagnostics=diagnostics;throw error;
       }
       const resolved=resolveEntities(items),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
       const stationLimit=Math.floor(number(query.stationLimit)||0),preselected=selectRoutingCandidates(baseFiltered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2}),selected=stationLimit>0&&baseFiltered.length>stationLimit?preselected.slice(0,stationLimit):baseFiltered;
+      const availableOperators=deriveOperators(baseFiltered),subscriptionOfferPool=baseFiltered.flatMap(st=>(st.offers||[]).filter(offer=>text(offer?.subscriptionId))); // unbounded subscription census before result cap
       const filtered=applyOfferRules(selected,ruleItems),operators=deriveOperators(filtered),routingCandidates=selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
-      return{query:clone(query),stations:filtered,operators,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationLimit,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
+      return{query:clone(query),stations:filtered,operators,availableOperators,subscriptionOfferPool,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationLimit,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
     }
     api={queryArea,registerLoader,deriveOperators,eligibleOffers,selectRoutingCandidates,sources:()=>clone(sources)};return api;
   }

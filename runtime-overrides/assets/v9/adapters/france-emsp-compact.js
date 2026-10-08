@@ -42,13 +42,14 @@
     for(const [key,signatures] of seen)if(signatures.size>1)ambiguousPdcs.add(key);
     const rules=[];
     for(const c of candidates){
-      const safePdcs=c.pdcIds.filter(id=>!ambiguousPdcs.has(`${c.provider}|${id}`));if(!safePdcs.length)continue;
+      const safePdcs=c.pdcIds; // Preserve every tariff candidate; conflicts are surfaced, never silently suppressed.
+      const ambiguousIds=safePdcs.filter(id=>ambiguousPdcs.has(c.provider+'|'+id));
       const provider=c.provider==='electroverse'?'Electroverse':'Electra';
       rules.push({
         id:`fr-emsp:${c.provider}:${c.stationId}:${c.configId||c.index}`,
         provider,offerKind:'roaming',subscriptionId:null,countries:['FR'],currency:text(c.pricingRows?.[0]?.[4]||'EUR').toUpperCase(),
         evseIds:safePdcs,connectorKinds:['AC','DC'].includes(c.kind)?[c.kind]:[],pricing:pricingFromRows(c.pricingRows),priority:Number(source?.priority?.tariff||80),
-        metadata:{legacyDataset:'france-non-tesla-runtime',sourceStationId:c.stationId,sourceConfigId:c.configId,sourceLabel:c.label,verified:true,identityMode:'exact_irve_pdc',ambiguousPdcsSuppressed:c.pdcIds.length-safePdcs.length,stalls:c.stalls,powerKw:c.powerKw}
+        metadata:{legacyDataset:'france-non-tesla-runtime',sourceStationId:c.stationId,sourceConfigId:c.configId,sourceLabel:c.label,verified:true,identityMode:'exact_irve_pdc',ambiguousPdcIds:ambiguousIds,tariffAmbiguous:ambiguousIds.length>0,stalls:c.stalls,powerKw:c.powerKw}
       });
     }
     return rules;

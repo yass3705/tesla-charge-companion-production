@@ -113,7 +113,7 @@ try{
   await page.evaluate(()=>window.TCCV9ProductionShell.renderSubscriptionSelector({
     document:window.document,localStorage:window.localStorage,
     setTimeout:window.setTimeout.bind(window),clearTimeout:window.clearTimeout.bind(window),compare:()=>{}
-  },window.TCCV9ProductionShell.subscriptionOptionsForArea({stations:[]},'FR'),'FR',[]));
+  },window.TCCV9ProductionShell.subscriptionOptionsForArea({stations:[{physicalOperator:{id:'electra',name:'Electra'},offers:[]}]},'FR'),'FR',[]));
   await page.locator('#v9SubscriptionChoices input[value="electra-plus-essential"]').check();
   await page.locator('#v9SubscriptionChoices input[value="electra-plus-smart"]').check();
   assert.equal(await page.locator('#v9SubscriptionChoices input[value="electra-plus-essential"]').isChecked(),false,'Electra+ plans are mutually exclusive');
