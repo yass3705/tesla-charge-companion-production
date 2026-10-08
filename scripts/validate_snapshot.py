@@ -3,8 +3,8 @@ import json
 import pathlib
 import sys
 
-EXPECTED = {"TESLA","ES","NL","CH","MA","FR","IT","DE","UK"}
-ALLOWED = {"current","complete","complete-with-fail-closed-residuals","partial"}
+EXPECTED = {"TESLA","ES","NL","CH","MA","FR","IT","DE","UK","BE"}
+ALLOWED = {"current","complete","complete-with-fail-closed-residuals","partial","partial-fail-closed","partial-selected-cpo"}
 
 def main():
     path = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "config/snapshots/2026-09-30.json")
@@ -24,6 +24,7 @@ def main():
         assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha), f"unpinned source {src}"
         if not d.get("path"):
             assert d.get("materialization"), f"missing path/materialization for {d.get('id')}"
+    assert obj.get("sourceSelection",{}).get("selectedDataLabCommit") == sources["dataLab"]["sha"], "Data Lab pin mismatch"
     print(f"OK snapshot={obj['snapshotId']} datasets={len(datasets)} policy={obj['policy']}")
 
 if __name__ == "__main__":
