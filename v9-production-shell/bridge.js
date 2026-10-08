@@ -387,8 +387,12 @@
       .filter(item=>item&&offerPriceCategory(item)===category);
     if(!offers.length)return{status:'missing',item:null,offers:[]};
     const sourceOffers=station?.offers||[];
-    if(offers.some(item=>/ambig/i.test(text(item.result?.reason))||sourceOffers.some(offer=>text(offer?.id||offer?.offerId)===text(item.offerId)&&offer?.metadata?.tariffAmbiguous===true)))
-      return{status:'ambiguous',item:null,offers};
+    const localEvseIds=new Set((station?.evses||[]).flatMap(evse=>[text(evse.id),text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)]).filter(Boolean));
+    if(offers.some(item=>/ambig/i.test(text(item.result?.reason))||sourceOffers.some(offer=>{
+      if(text(offer?.id||offer?.offerId)!==text(item.offerId)||offer?.metadata?.tariffAmbiguous!==true)return false;
+      const conflicted=offer.metadata.ambiguousPdcIds;
+      return !Array.isArray(conflicted)||conflicted.some(id=>localEvseIds.has(text(id)));
+    })))return{status:'ambiguous',item:null,offers};
     const descriptions=new Set();
     for(const item of offers){
       const source=sourceOffers.find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
