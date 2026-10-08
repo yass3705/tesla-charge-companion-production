@@ -203,7 +203,9 @@
         for(const fragment of keptFragments)items.push({source,fragment});for(const rule of offerRules)ruleItems.push({source,rule});
       });
       // A tariff-only overlay failure must never suppress the other independent lanes.
-      if(requiredFailures.length){
+      // Keep any valid physical records from independent sources visible.
+      // A full outage is still explicit; partial failures stay in diagnostics.
+      if(requiredFailures.length&&!items.length){
         const error=new Error(`required physical inventory source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
         error.code='TCC_V9_REQUIRED_SOURCE_FAILED';error.failures=requiredFailures;error.diagnostics=diagnostics;throw error;
       }
