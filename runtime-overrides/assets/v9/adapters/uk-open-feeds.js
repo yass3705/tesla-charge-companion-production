@@ -54,6 +54,10 @@
       if(!found)unresolved.push('element_without_recognized_component:'+index);
       groups.push({kind:'ocpi-element:'+index,rules:[rule]});
     }
+    // Keep the existing single-element OCPI contract for MFG and other consumers.
+    // Multiple elements are additive component groups (not competing alternatives).
+    if(groups.length===1&&!Object.keys(t.elements[0]?.restrictions||{}).length&&!unresolved.length)
+      return{type:'rules',rules:groups[0].rules,timeZone:'Europe/London'};
     return{type:'component_groups',componentGroups:groups,
       ...(unresolved.length?{incompletePricingReason:[...new Set(unresolved)].join(';')}:{}),
       timeZone:'Europe/London'};
