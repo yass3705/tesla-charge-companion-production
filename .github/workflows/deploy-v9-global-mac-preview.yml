@@ -174,6 +174,7 @@ jobs:
           REQUIRE_ELECTRA_PLATFORM: "1"
         run: |
           node production/tests/v9-shell-grouping.test.mjs
+          node production/tests/offer-identity-index.test.mjs dist/v9-global-preview
           node production/tests/runtime-e2e-smoke.mjs dist/v9-global-preview
           node production/tests/national-snapshot-smoke.mjs dist/v9-global-preview
           node production/tests/electroverse-rich-pricing.test.mjs dist/v9-global-preview
