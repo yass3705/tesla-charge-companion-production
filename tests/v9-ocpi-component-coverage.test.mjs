@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import path from 'node:path';
 const require=createRequire(import.meta.url);
 const pricing=require('../runtime-overrides/assets/v9/pricing-engine.js');
 const uk=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
 const atlante=require('../runtime-overrides/assets/v9/adapters/atlante-italy-exact.js');
-const session=require('../runtime-overrides/assets/v9/session-engine.js');
+const snapshotRoot=path.resolve(process.argv[2]||'dist/v9-global-preview');
+const session=require(path.join(snapshotRoot,'runtime/assets/v9/session-engine.js'));
+
 
 const components=[
  {type:'ENERGY',price:0.4,step_size:250},
