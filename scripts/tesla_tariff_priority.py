@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Select Tesla tariffs using country-specific Mac dates and a pinned SuC catalogue."""
+"""Select Tesla tariffs by Mac freshness and strictly newer station-level SuC observations."""
 
 import copy
 import json
-from datetime import date
+from datetime import date, datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
@@ -12,6 +13,34 @@ def _date(value):
     if not isinstance(value, str) or len(value) != 10:
         raise ValueError(f"Invalid country update date: {value!r}")
     return date.fromisoformat(value)
+
+
+def _observation_date(value):
+    """Use the station's observed date, never the catalogue download/check date."""
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        if len(value) == 10:
+            return date.fromisoformat(value)
+        observed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if observed.tzinfo is None:
+            return None  # An unzoned timestamp cannot prove chronological freshness.
+        return observed.astimezone(ZoneInfo("Europe/Paris")).date()
+    except ValueError:
+        return None
+
+
+def _suc_date(row):
+    if not row:
+        return None
+    # Last successful per-station observation; neither file generation nor download
+    # proves that a particular station's tariff has been freshly observed.
+    return _observation_date(row.get("sourceObservedAt") or
+                             (row.get("sucTracker") or {}).get("lastSuccessfulAt"))
+
+
+def _mac_date(row, country_updated):
+    return country_updated or _observation_date(row.get("sourceObservedAt") or row.get("lastUpdated"))
 
 
 def _stations(rows, label):
@@ -57,15 +86,31 @@ def select_tariffs(mac_rows, suc_rows, country_updates, as_of_date):
             age = (today - updated).days if updated else None
             if age is not None and age < 0:
                 raise ValueError(f"Future Mac update date for {code}")
-            preferred = "Mac" if code == "MA" or (age is not None and age < 10) else "SuC Tracker"
+            preferred = "Mac" if code == "MA" or (age is not None and age < 10) else "newer SuC Tracker only"
             decisions[code] = {"macUpdatedOn": updated.isoformat() if updated else None,
                                "ageCalendarDays": age, "preferredTariffSource": preferred,
                                "stations": 0, "macTariffs": 0, "sucTariffs": 0,
-                               "missingSucFallbacks": 0}
+                               "missingSucFallbacks": 0,
+                               "olderOrEqualSucFallbacks": 0,
+                               "unknownSucDateFallbacks": 0,
+                               "unknownMacDateFallbacks": 0,
+                               "recentMacTariffs": 0}
         decision = decisions[code]
+        updated = _date(decision["macUpdatedOn"]) if decision["macUpdatedOn"] else None
+        age = decision["ageCalendarDays"]
         decision["stations"] += 1
-        if decision["preferredTariffSource"] == "Mac":
+        if code == "MA" or (age is not None and age < 10):
             decision["macTariffs"] += 1
+            decision["recentMacTariffs"] += 1
+            continue
+        mac_updated = _mac_date(row, updated)
+        if mac_updated is None:
+            decision["macTariffs"] += 1
+            decision["unknownMacDateFallbacks"] += 1
+            continue
+        if (today - mac_updated).days < 10:
+            decision["macTariffs"] += 1
+            decision["recentMacTariffs"] += 1
             continue
         match = suc.get(_tesla_key(row))
         price = match.get("pricing") if match and match.get("countryCode") == code else None
@@ -73,12 +118,21 @@ def select_tariffs(mac_rows, suc_rows, country_updates, as_of_date):
             decision["macTariffs"] += 1
             decision["missingSucFallbacks"] += 1
             continue
+        observed = _suc_date(match)
+        if observed is None or observed > today:
+            decision["macTariffs"] += 1
+            decision["unknownSucDateFallbacks"] += 1
+            continue
+        if observed <= mac_updated:
+            decision["macTariffs"] += 1
+            decision["olderOrEqualSucFallbacks"] += 1
+            continue
         row["pricing"] = copy.deepcopy(price)
         for cfg in row.get("chargingConfigurations") or []:
             cfg["pricing"] = copy.deepcopy(price)
         decision["sucTariffs"] += 1
     report = {"schemaVersion": 1, "asOfDate": as_of_date,
-              "policy": "MA always Mac; elsewhere Mac for age 0-9 calendar days, SuC from day 10",
+              "policy": "MA always Mac; else Mac for age 0-9 calendar days. From day 10 SuC only when matched station observation is strictly newer than Mac; otherwise Mac.",
               "countries": decisions}
     return selected, report
 
