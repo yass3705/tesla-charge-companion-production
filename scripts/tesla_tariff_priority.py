@@ -96,6 +96,8 @@ def select_tariffs(mac_rows, suc_rows, country_updates, as_of_date):
                                "unknownMacDateFallbacks": 0,
                                "recentMacTariffs": 0}
         decision = decisions[code]
+        updated = _date(decision["macUpdatedOn"]) if decision["macUpdatedOn"] else None
+        age = decision["ageCalendarDays"]
         decision["stations"] += 1
         if code == "MA" or (age is not None and age < 10):
             decision["macTariffs"] += 1
