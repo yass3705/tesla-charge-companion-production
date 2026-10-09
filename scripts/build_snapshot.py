@@ -338,6 +338,49 @@ def main():
         ubi_registry["optional"]=False
         current_registry["productionIntegration"]["snapshotLocalSources"].append("uk-ubitricity-pcpr-payg")
         write_json(registry,current_registry)
+    # Gridserve: only activate the exact, independently audited public subset.
+    # Never expose the raw PCPR locations (which include depots, testing and retired sites).
+    grid_data=uk/"sources/uk_gridserve_v9.json.gz"
+    grid_report=dl/"reports/uk/gridserve-v9-integration-latest.json"
+    if grid_data.exists() and grid_report.exists():
+        with gzip.open(grid_data,"rt",encoding="utf-8") as f: grid_payload=json.load(f)
+        verified=load_json(grid_report)
+        sources=grid_payload.get("sources") or []
+        if len(sources)!=1 or sources[0].get("id")!="gridserve-pcpr-direct":
+            raise AssertionError("Gridserve runtime source identity mismatch")
+        if verified.get("status")!="validated_public_connector_exact" or verified.get("validatedForV9") is not True:
+            raise AssertionError("Gridserve public-only validation missing")
+        if grid_payload.get("collectedAt")!=verified.get("collectedAt"):
+            raise AssertionError("Gridserve public-only dataset / audit timestamp mismatch")
+        grid_locs=sources[0].get("locations") or []
+        grid_tariffs={str(t.get("id")):t for t in sources[0].get("tariffs") or []}
+        if len(grid_locs)!=verified.get("publicLocations") or len(grid_tariffs)!=verified.get("distinctExactTariffIds"):
+            raise AssertionError("Gridserve public location / tariff coverage mismatch")
+        public_connectors=priced=0
+        for loc in grid_locs:
+            if loc.get("publish") is not True or str(loc.get("country_code"))!="GB":
+                raise AssertionError("Unpublished / non-GB Gridserve site in V9")
+            for evse in loc.get("evses") or []:
+                if str(evse.get("status")).upper()=="REMOVED":
+                    raise AssertionError("Retired Gridserve EVSE in V9")
+                for conn in evse.get("connectors") or []:
+                    public_connectors+=1
+                    tids=conn.get("tariff_ids") or []
+                    if any(str(tid) not in grid_tariffs for tid in tids):
+                        raise AssertionError("Gridserve connector with unresolved tariff")
+                    priced+=bool(tids)
+        if (len(grid_locs)<100 or public_connectors!=verified.get("publicConnectors")
+            or priced!=verified.get("exactPricedConnectors")
+            or public_connectors!=priced+verified.get("unpricedPublicConnectors",0)
+            or verified.get("publicUnmappedTariffReferences")):
+            raise AssertionError("Gridserve public-only exact connector integrity regression")
+        current_registry=load_json(registry)
+        grid_source=next(s for s in current_registry["sources"] if s.get("id")=="uk-gridserve-pcpr-direct")
+        grid_source["active"]=True
+        grid_source["optional"]=False
+        local=current_registry["productionIntegration"].setdefault("snapshotLocalSources",[])
+        if "uk-gridserve-pcpr-direct" not in local:local.append("uk-gridserve-pcpr-direct")
+        write_json(registry,current_registry)
     copy_file(dl/"docs/uk-cpo-progress-2026-09.json", uk/"cpo-ledger.json")
     uk_ledger=load_json(dl/"docs/uk-cpo-progress-2026-09.json")
     uk_rows=uk_ledger.get("cpos") or []
