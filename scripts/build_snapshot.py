@@ -431,6 +431,69 @@ def main():
         local=reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
         if entry["id"] not in local:local.append(entry["id"])
         write_json(registry,reg)
+    # Blink: require independent Data Lab report and strict public exact connector
+    # integrity; fail closed on missing tariff, wrong CPO or wrong VAT basis.
+    blink_data=uk/"sources/uk_blink_pcpr_v9.json.gz"
+    blink_report=dl/"reports/uk/blink-pcpr-validation-latest.json"
+    if blink_data.exists() and blink_report.exists():
+        with gzip.open(blink_data,"rt",encoding="utf-8") as f:
+            blink_payload=json.load(f)
+        audited=load_json(blink_report)
+        blink_sources=blink_payload.get("sources") or []
+        if (len(blink_sources)!=1 or blink_sources[0].get("id")!="blink-uk-pcpr-direct"
+            or blink_payload.get("country")!="GB"
+            or blink_payload.get("collectedAt")!=audited.get("collectedAt")
+            or audited.get("status")!="validated_public_exact_connector"
+            or audited.get("validatedForV9") is not True
+            or audited.get("provider")!="Blink Charging"):
+            raise AssertionError("Blink PCPR independently audited source mismatch")
+        blink_source=blink_sources[0]
+        blink_locations=blink_source.get("locations") or []
+        blink_tariffs=blink_source.get("tariffs") or []
+        blink_tariff_ids=[str(t.get("id") or "") for t in blink_tariffs]
+        blink_by_id={str(t.get("id")):t for t in blink_tariffs}
+        if (not blink_locations or len(blink_locations)!=audited.get("publicLocations")
+            or not blink_tariffs or len(blink_tariffs)!=audited.get("distinctTariffs")
+            or not all(blink_tariff_ids) or len(set(blink_tariff_ids))!=len(blink_tariff_ids)
+            or any(t.get("currency")!="GBP" or t.get("tccPriceBasis")!="GBP_including_public_UK_VAT"
+                   for t in blink_tariffs)):
+            raise AssertionError("Blink UK tariff or source coverage regression")
+        blink_connector_count=blink_priced=0
+        blink_seen=set()
+        for loc in blink_locations:
+            op=(loc.get("operator") or {}).get("name","")
+            if (loc.get("publish") is not True or loc.get("country_code")!="GB"
+                or "blink" not in op.lower()):
+                raise AssertionError("Blink non-public or cross-CPO inventory")
+            for evse in loc.get("evses") or []:
+                if str(evse.get("status") or "").upper()=="REMOVED":
+                    raise AssertionError("Blink removed EVSE leaked into V9")
+                for conn in evse.get("connectors") or []:
+                    ck=(loc.get("id"),evse.get("evse_id") or evse.get("uid"),conn.get("id"))
+                    if ck in blink_seen or not all(ck):
+                        raise AssertionError("Duplicate or missing Blink connector key")
+                    blink_seen.add(ck)
+                    blink_connector_count+=1
+                    tids=[str(t) for t in conn.get("tariff_ids") or []]
+                    if any(t not in blink_by_id
+                           or blink_by_id[t].get("party_id")!=loc.get("party_id")
+                           for t in tids):
+                        raise AssertionError("Blink unresolved/cross-CPO connector tariff")
+                    blink_priced+=bool(tids)
+        if (blink_connector_count!=audited.get("publicConnectors")
+            or blink_priced!=audited.get("exactPricedConnectors")
+            or blink_connector_count-blink_priced!=audited.get("unpricedPublicConnectors")
+            or blink_priced==0):
+            raise AssertionError("Blink audited connector price counts mismatch")
+        reg=load_json(registry)
+        entry=next((s for s in reg.get("sources",[]) if s.get("id")=="uk-blink-pcpr-direct"),None)
+        if entry is None:
+            raise AssertionError("Missing Blink V9 registry entry")
+        entry["active"]=True
+        entry["optional"]=False
+        local=reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        if entry["id"] not in local:local.append(entry["id"])
+        write_json(registry,reg)
     copy_file(dl/"docs/uk-cpo-progress-2026-09.json", uk/"cpo-ledger.json")
     uk_ledger=load_json(dl/"docs/uk-cpo-progress-2026-09.json")
     uk_rows=uk_ledger.get("cpos") or []
