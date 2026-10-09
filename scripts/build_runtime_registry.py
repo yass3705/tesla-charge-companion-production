@@ -60,6 +60,19 @@ def build_registry(path):
       "policy":"Tariffs join only by exact connector tariff_ids to same-source tariff.id; unsupported tariff semantics fail closed."
     })
     upsert(sources,{
+      "id":"uk-gridserve-pcpr-direct",
+      "label":"UK GRIDSERVE public-only exact connector direct tariffs",
+      "adapter":"uk-open-feeds-v1",
+      "path":"../snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz",
+      "countries":["GB"],
+      "capabilities":["inventory","connectors","access","tariff"],
+      "priority":{"identity":85,"connectors":85,"access":70,"status":0,"tariff":140},
+      "refresh":"daily-PCPR-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Only published public Gridserve OCPI stations. Exact tariff_ids bound per connector; private/depot/testing/removed locations excluded. Unknown tariff references fail closed."
+    })
+    upsert(sources,{
       "id":"uk-ubitricity-pcpr-payg",
       "label":"UK Ubitricity authenticated PCPR with exact public PAYG verification",
       "adapter":"uk-open-feeds-v1",
