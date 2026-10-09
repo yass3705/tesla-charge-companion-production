@@ -79,12 +79,17 @@
       const connectors=[];
       for(const c of rawEvse.connectors||[]){
         const cid=text(c.id)||eid+':connector';
-        connectors.push({id:cid,kind:connectorKind(c),powerKw:powerKw(c)});
+        const connectorOut={id:cid,kind:connectorKind(c),powerKw:powerKw(c)};
+        connectors.push(connectorOut);
         const verified=validatedUbitricityOffer(c.validatedV9Offer,loc,eid,cid,source);
         if(verified)offers.push(verified);
         for(const tid of uniq(c.tariff_ids||[])){
           const tariff=tariffMap.get(tid),pricing=tariffPricing(tariff);if(!pricing)continue;
-          offers.push({id:sourceId+':'+stationKey+':'+eid+':'+cid+':'+tid,provider:text(loc?.operator?.name||source?.name||party),kind:'direct',subscriptionId:null,countries:['GB'],currency:text(tariff.currency||'GBP').toUpperCase(),evseIds:[eid],pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null,incompletePricingReason:pricing.incompletePricingReason||null}});
+          const gridserveExact=source?.id==='gridserve-pcpr-direct';
+          const nextOffer={id:sourceId+':'+stationKey+':'+eid+':'+cid+':'+tid,provider:text(loc?.operator?.name||source?.name||party),kind:'direct',subscriptionId:null,countries:['GB'],currency:text(tariff.currency||'GBP').toUpperCase(),evseIds:[eid],
+            ...(gridserveExact?{connectorIds:[cid],stationIds:[text(loc.id)]}:{}),pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null,connectorId:cid,incompletePricingReason:pricing.incompletePricingReason||null}};
+          offers.push(nextOffer);
+          if(gridserveExact){connectorOut.offers=connectorOut.offers||[];connectorOut.offers.push(nextOffer);}
         }
       }
       evses.push({id:eid,aliases:uniq([eid,rawEvse.uid,rawEvse.physical_reference]),connectors,status:status(rawEvse.status)});
