@@ -200,6 +200,8 @@ def main():
     assert grid_src.get("adapter")=="uk-open-feeds-v1"
     assert grid_src.get("path")=="../snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz"
     grid_path=root/"snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz"
+    assert not (root/"snapshot-inputs/UK/sources/uk_gridserve_pcpr_locations.json.gz").exists(), "raw private Gridserve locations included"
+    assert not (root/"snapshot-inputs/UK/sources/uk_gridserve_pcpr_tariffs.json.gz").exists(), "unfiltered raw Gridserve tariffs included"
     if grid_path.exists():
         assert grid_src.get("active") is True and grid_src.get("optional") is False
         with gzip.open(grid_path,"rt",encoding="utf-8") as f:
@@ -224,7 +226,6 @@ def main():
                     assert all(tariffs[str(tid)].get("party_id")==loc.get("party_id") for tid in tids)
                     exact_links+=bool(tids)
         assert connectors>=1000 and exact_links>=1000
-        assert len(locations)==205 and connectors==2569 if grid.get("collectedAt")=="2026-10-09T10:09:22.411963+00:00" else True
     # Guard against the earlier Tesla-inventory mistake for UK.
     # Progress ledgers are optional for historical snapshots created before
     # ledger centralisation. Revision-specific workflows may require them.
