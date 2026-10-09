@@ -113,7 +113,7 @@
         rule?.connectedTimePerMinuteEur,rule?.idlePerMinute,rule?.connectionFee,
         rule?.connectedTimeBlockMinutes,rule?.connectedTimeBlockEur,rule?.sessionFeeEur,
         rule?.minimumSessionEur,rule?.ocpiDurationBands,rule?.powerBands,
-        rule?.congestionTimePerMinute,rule?.congestionStartSoc,rule?.congestionTimeStepSeconds,
+        rule?.congestionTimePerMinute,rule?.congestionStartSoc,rule?.congestionTimeStepSeconds,rule?.ocpiCongestionDurationBands,
         rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur
       ]);
       if(new Set(samePriority.map(row=>signature(row.rule))).size>1)
@@ -145,7 +145,7 @@
   // An explicit source threshold takes precedence. Otherwise congestion starts at 80% SOC.
   function congestionBillableMinutes(session={},thresholdSoc=80){
     const threshold=num(thresholdSoc)??80,timeline=Array.isArray(session.chargeTimeline)?session.chargeTimeline:[];
-    let above=0,firstSoc=num(session.arrivalSoc??session.startSoc),lastSoc=num(session.targetSoc);
+    let above=0;const intervals=[];let firstSoc=num(session.arrivalSoc??session.startSoc),lastSoc=num(session.targetSoc);
     const offset=num(session.congestionSegmentOffsetMinutes),slice=num(session.congestionSegmentDurationMinutes);
     if(timeline.length){
       for(const step of timeline){
@@ -155,7 +155,7 @@
         const thresholdAt=start>=threshold?startAt:end>start?startAt+duration*(threshold-start)/(end-start):startAt;
         const rangeStart=offset==null?thresholdAt:Math.max(thresholdAt,offset);
         const rangeEnd=slice==null?startAt+duration:Math.min(startAt+duration,offset+slice);
-        above+=Math.max(0,rangeEnd-rangeStart);
+        if(rangeEnd>rangeStart){above+=rangeEnd-rangeStart;intervals.push([rangeStart,rangeEnd]);}
       }
       if(lastSoc==null)lastSoc=num(timeline[timeline.length-1]?.endSoc);
     }else{
@@ -164,26 +164,56 @@
       const thresholdAt=firstSoc>=threshold?0:lastSoc>threshold&&lastSoc>firstSoc?charging*(threshold-firstSoc)/(lastSoc-firstSoc):charging;
       const rangeStart=offset==null?thresholdAt:Math.max(thresholdAt,offset);
       const rangeEnd=slice==null?charging:Math.min(charging,offset+slice);
-      above+=Math.max(0,rangeEnd-rangeStart);
+      if(rangeEnd>rangeStart){above+=rangeEnd-rangeStart;intervals.push([rangeStart,rangeEnd]);}
     }
     if(lastSoc==null)return{complete:false,reason:'congestion_final_soc_unavailable'};
     const totalDuration=num(session.durationMinutes);
     const isFinal=offset==null||slice==null||totalDuration==null||offset+slice>=totalDuration-1e-6;
     const parking=lastSoc>=threshold&&isFinal?Math.max(0,num(session.postChargeMinutes)??0):0;
-    return{complete:true,minutes:above+parking,chargingMinutes:above,postChargeMinutes:parking,thresholdSoc:threshold};
+    if(parking>0){const start=num(session.chargingMinutes)??0;intervals.push([start,start+parking]);}
+    return{complete:true,minutes:above+parking,chargingMinutes:above,postChargeMinutes:parking,thresholdSoc:threshold,intervals};
   }
   function congestionFee(rule,session={}){
-    const rate=num(rule?.congestionTimePerMinute);
-    if(rate==null)return{complete:true,charged:false,totalEur:0};
-    if(session.includeCongestionFees===false)return{complete:true,charged:true,totalEur:0,included:false,thresholdSoc:num(rule?.congestionStartSoc)??80};
+    const rate=num(rule?.congestionTimePerMinute)??0;
+    const bands=Array.isArray(rule?.ocpiCongestionDurationBands)?rule.ocpiCongestionDurationBands:[];
+    const hasFee=rate>0||bands.some(b=>Array.isArray(b)&&(num(b[2])??0)>0);
+    if(!hasFee)return{complete:true,charged:false,totalEur:0};
+    if(session.includeCongestionFees===false||session.includeCongestion===false)
+      return{complete:true,charged:true,totalEur:0,included:false,thresholdSoc:num(rule?.congestionStartSoc)??80};
     const span=congestionBillableMinutes(session,num(rule?.congestionStartSoc)??80);
     if(!span.complete)return{...span,charged:true};
+    if(bands.some(b=>!Array.isArray(b)||b.length<3||(num(b[0])??-1)<0||
+      (b[1]!=null&&(num(b[1])??-1)<=b[0])||(num(b[2])??-1)<0))
+      return{complete:false,charged:true,reason:'invalid_congestion_duration_band'};
+    const rateAt=elapsedSeconds=>{
+      const matching=bands.filter(b=>elapsedSeconds+1e-9>=Number(b[0])&&
+        (b[1]==null||elapsedSeconds<Number(b[1])-1e-9));
+      if(matching.length>1)return null; // genuinely overlapping price bands
+      return matching.length?Number(matching[0][2]):rate;
+    };
+    let cost=0;
+    for(const [start,end] of span.intervals||[]){
+      const points=[start,end];
+      for(const band of bands)for(const raw of [band[0],band[1]]){
+        if(raw==null)continue;
+        const boundary=Number(raw)/60;
+        if(boundary>start+1e-9&&boundary<end-1e-9)points.push(boundary);
+      }
+      points.sort((a,b)=>a-b);
+      for(let i=0;i<points.length-1;i++){
+        const a=points[i],b=points[i+1],resolved=rateAt((a+b)*30);
+        if(resolved==null)return{complete:false,charged:true,reason:'ambiguous_overlapping_congestion_bands'};
+        cost+=(b-a)*resolved;
+      }
+    }
     const step=num(rule?.congestionTimeStepSeconds);
+    if(step>0&&bands.length>0)return{complete:false,charged:true,reason:'congestion_band_rounding_unspecified'};
     const billed=step>0&&span.minutes>0?Math.ceil(span.minutes*60/step)*step/60:span.minutes;
+    if(!bands.length)cost=billed*rate;
     return{complete:true,charged:true,ratePerMinute:rate,thresholdSoc:span.thresholdSoc,
       actualMinutes:span.minutes,billableMinutes:billed,chargingMinutes:span.chargingMinutes,
       postChargeMinutes:span.postChargeMinutes,stepSeconds:step??null,
-      included:true,totalEur:money(billed*rate)};
+      durationBands:bands.length, included:true,totalEur:money(cost)};
   }
   function evaluateRule(rule,session={}){
     const {energyKwh=0,durationMinutes=0,chargingMinutes=null,tariffDurationMinutes=durationMinutes,postChargeMinutes=0,includeOneTimeFees=true}=session;
@@ -224,7 +254,7 @@
     }
     const fixed=num(rule?.connectedTimeComponentEur);if(includeOneTimeFees&&fixed!=null&&fixed!==0){components.connectedTimeComponent=money(fixed);total+=components.connectedTimeComponent;}
     const sessionFee=num(rule?.sessionFeeEur);if(includeOneTimeFees&&sessionFee!=null&&sessionFee!==0){components.sessionFee=money(sessionFee);total+=components.sessionFee;}
-    if(num(rule?.congestionTimePerMinute)!=null){
+    if((num(rule?.congestionTimePerMinute)??0)>0||(rule?.ocpiCongestionDurationBands||[]).some(b=>(num(b?.[2])??0)>0)){
       const congestion=congestionFee(rule,session);
       if(congestion.complete===false)return{complete:false,reason:congestion.reason,components};
       components.congestionTime=congestion;total+=congestion.totalEur;
