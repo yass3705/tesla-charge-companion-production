@@ -85,21 +85,19 @@ def build_registry(path):
       "optional":True,
       "policy":"Only connector-bound offers verified against the same Ubitricity public PAYG tariff are rankable. Rejected tariffs stay unpriced."
     })
-    # PCPR feed attributed to ChargePoint CMS, but not to verified physical CPOs.
-    # Only public station/EVSE inventory is activated. Connector tariff IDs
-    # remain source evidence, NOT user-facing direct PAYG offers.
+    # CPO-direct PCPR offer source; exact connector and GBP/VAT-aware only.
     upsert(sources,{
-      "id":"uk-eco-movement-pcpr-cms-unverified",
-      "label":"UK Eco-Movement PCPR ChargePoint CMS public inventory; physical CPO unverified",
+      "id":"uk-eco-movement-pcpr-cpo-direct",
+      "label":"UK ChargePoint PCPR CPO exact per-connector direct tariffs",
       "adapter":"uk-open-feeds-v1",
       "path":"../snapshot-inputs/UK/sources/uk_eco_movement_pcpr_v9.json.gz",
       "countries":["GB"],
-      "capabilities":["inventory","connectors","access"],
-      "priority":{"identity":55,"connectors":60,"access":50,"status":0,"tariff":0},
-      "refresh":"immutable-production-snapshot",
+      "capabilities":["inventory","connectors","access","tariff"],
+      "priority":{"identity":55,"connectors":70,"access":50,"status":0,"tariff":130},
+      "refresh":"daily-PCPR-snapshot",
       "active":False,
       "optional":True,
-      "policy":"Only public UK inventory with operator clearly marked unverified. Raw PCPR connector tariffs are withheld from comparison until genuine CPO, ad-hoc price channel and VAT are verified. No interpolation."
+      "policy":"Use ChargePoint as declared CPO; exact connector tariff IDs, prices with UK public VAT included. Unresolved/non-GBP or restricted records remain unpriced. No eMSP tariff."
     })
     upsert(sources,{
       "id":"france-electra-platform",
