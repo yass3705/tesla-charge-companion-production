@@ -57,7 +57,7 @@ close(banded.totalEur,12); // 10 minutes above 80% while charging + 10 minutes i
 close(engine.evaluateOffer(bandedOffer,{...session,includeCongestionFees:false}).totalEur,4);
 const earlyEnd={...session,targetSoc:79,chargeTimeline:[{offsetMinutes:0,durationMinutes:20,startSoc:70,endSoc:79}]};
 close(engine.evaluateOffer(bandedOffer,earlyEnd).totalEur,4);
-const overlapping={...bandedRule,ocpiCongestionDurationBands:[[0,600,.2],[300,1200,.4]]};
+const overlapping={...bandedRule,ocpiCongestionDurationBands:[[0,1200,.2],[300,1800,.4]]};
 const unclear=engine.evaluateOffer({...offer,pricing:{type:'component_groups',componentGroups:[{rules:[overlapping]}]}},session);
 assert.equal(unclear.complete,false);
 assert.equal(unclear.reason,'ambiguous_overlapping_congestion_bands');
