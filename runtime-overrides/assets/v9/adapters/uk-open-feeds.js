@@ -118,7 +118,7 @@
           const tariff=tariffMap.get(tid),pricing=source?.id==='eco-movement-pcpr-cpo-direct'?pcprDirectPricing(tariff):tariffPricing(tariff);if(!pricing)continue;
           const connectorExact=['gridserve-pcpr-direct','eco-movement-pcpr-cpo-direct'].includes(source?.id);
           const nextOffer={id:sourceId+':'+stationKey+':'+eid+':'+cid+':'+tid,provider:text(loc?.operator?.name||source?.name||party),kind:'direct',subscriptionId:null,countries:['GB'],currency:text(tariff.currency||'GBP').toUpperCase(),evseIds:[eid],
-            ...(connectorExact?{connectorIds:[cid],stationIds:[text(loc.id)]}:{}),pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null,connectorId:cid,priceBasis:tariff?.tccPriceBasis||null,pricingScope:source?.pricingScope||null,incompletePricingReason:pricing.incompletePricingReason||null}};
+            ...(connectorExact?{connectorIds:[cid],stationIds:[text(loc.id)]}:{}),pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null,connectorId:cid,priceBasis:tariff?.tccPriceBasis||null,pricingScope:source?.pricingScope||null,timeZone:'Europe/London',incompletePricingReason:pricing.incompletePricingReason||null}};
           offers.push(nextOffer);
           if(connectorExact){connectorOut.offers=connectorOut.offers||[];connectorOut.offers.push(nextOffer);}
         }
