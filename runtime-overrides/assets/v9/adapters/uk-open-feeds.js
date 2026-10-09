@@ -62,6 +62,37 @@
       ...(unresolved.length?{incompletePricingReason:[...new Set(unresolved)].join(';')}:{}),
       timeZone:'Europe/London'};
   }
+  function pcprDirectPricing(t){
+    if(t?.tccPriceBasis!=='GBP_including_public_UK_VAT'||t.currency!=='GBP')return null;
+    const dims={},keys={ENERGY:'pricePerKwh',TIME:'chargePerMinute',PARKING_TIME:'idlePerMinute',FLAT:'connectionFee'};
+    const weekdays={SUNDAY:0,MONDAY:1,TUESDAY:2,WEDNESDAY:3,THURSDAY:4,FRIDAY:5,SATURDAY:6};
+    for(const el of t.elements||[]){
+      const r=el.restrictions||{};
+      if(Object.keys(r).some(k=>!['start_time','end_time','day_of_week','min_duration','max_duration','min_power','max_power','start_date','end_date'].includes(k)))return null;
+      for(const pc of el.price_components||[]){
+        const kind=text(pc.type).toUpperCase(),key=keys[kind],v=num(pc.price),step=num(pc.step_size);
+        if(!key||v==null||v<0||step==null||step<=0)return null;
+        const rule={scope:'timeWindow',start:r.start_time||'00:00',end:r.end_time||'24:00',currency:'GBP'};
+        if(r.day_of_week!=null){
+          if(!Array.isArray(r.day_of_week))return null;
+          rule.daysOfWeek=r.day_of_week.map(x=>typeof x==='number'?(x===7?0:x):weekdays[text(x).toUpperCase()]);
+          if(rule.daysOfWeek.some(x=>!Number.isInteger(x)||x<0||x>6))return null;
+        }
+        for(const [from,to,factor] of [['min_duration','minDurationMinutes',60],['max_duration','maxDurationMinutes',60],['min_power','minPowerKw',1],['max_power','maxPowerKw',1]]){
+          if(r[from]!=null)rule[to]=num(r[from])/factor;
+        }
+        if(r.start_date)rule.validFromDate=text(r.start_date).slice(0,10);
+        if(r.end_date)rule.validThroughDate=text(r.end_date).slice(0,10);
+        rule[key]=kind==='TIME'||kind==='PARKING_TIME'?v/60:v;
+        if(kind==='ENERGY')rule.energyStepWh=step;
+        if(kind==='TIME')rule.chargingTimeStepSeconds=step;
+        if(kind==='PARKING_TIME')rule.parkingTimeStepSeconds=step;
+        (dims[kind] ||= []).push(rule);
+      }
+    }
+    const groups=Object.entries(dims).map(([kind,rules])=>({kind:'OCPI_'+kind,rules}));
+    return groups.length?{type:'component_groups',componentGroups:groups,timeZone:'Europe/London',taxIncluded:true}:null;
+  }
   function validatedUbitricityOffer(offer,loc,eid,cid,source){
     if(source?.id!=='ubitricity-pcpr-payg'||!offer||offer.kind!=='direct'||offer.provider!=='Ubitricity'||offer.currency!=='GBP')return null;
     if(!offer.stationIds?.includes(String(loc.id))||!offer.evseIds?.includes(eid)||text(offer.metadata?.connectorId)!==cid)return null;
