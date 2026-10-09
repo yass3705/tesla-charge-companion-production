@@ -45,4 +45,25 @@ assert.match(markup,/hypothèse V9/);
 assert.match(markup,/Electroverse/);
 assert.equal((markup.match(/v9-congestion-toggle/g)||[]).length,1,'congestion toggle must not affect other tariff lanes');
 assert.ok(shell.congestionLaneKey(station,quote,'direct')!==shell.congestionLaneKey(station,quote,'electroverse'));
+
+// Electra eMSP source duration bands are seconds; charging above SOC80 and
+// elapsed-session minDuration/maxDuration must both match before billing.
+const bandedRule={...rule,congestionTimeStepSeconds:null,congestionTimePerMinute:0,
+  ocpiCongestionDurationBands:[[0,300,0],[300,7800,0.4]]};
+const bandedOffer={...offer,pricing:{type:'component_groups',componentGroups:[{kind:'ENERGY+CONGESTION_TIME',rules:[bandedRule]}]}};
+const banded=engine.evaluateOffer(bandedOffer,session);
+assert.equal(banded.complete,true,banded.reason);
+close(banded.totalEur,12); // 10 minutes above 80% while charging + 10 minutes idle
+close(engine.evaluateOffer(bandedOffer,{...session,includeCongestionFees:false}).totalEur,4);
+const earlyEnd={...session,targetSoc:79,chargeTimeline:[{offsetMinutes:0,durationMinutes:20,startSoc:70,endSoc:79}]};
+close(engine.evaluateOffer(bandedOffer,earlyEnd).totalEur,4);
+const overlapping={...bandedRule,ocpiCongestionDurationBands:[[0,600,.2],[300,1200,.4]]};
+const unclear=engine.evaluateOffer({...offer,pricing:{type:'component_groups',componentGroups:[{rules:[overlapping]}]}},session);
+assert.equal(unclear.complete,false);
+assert.equal(unclear.reason,'ambiguous_overlapping_congestion_bands');
+const zeroCongestion={...rule,congestionTimePerMinute:0,ocpiCongestionDurationBands:[]};
+const plain=engine.evaluateOffer({...offer,pricing:{type:'rules',rules:[zeroCongestion]}},{energyKwh:10,durationMinutes:30});
+assert.equal(plain.complete,true,'zero-fee tariffs do not require a SOC timeline');
+close(plain.totalEur,4);
+
 console.log('V9 congestion SOC80/toggle/independent lanes: pass');
