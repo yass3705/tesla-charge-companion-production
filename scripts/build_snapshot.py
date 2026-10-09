@@ -59,6 +59,13 @@ def main():
         for src in overrides.rglob("*"):
             if src.is_file():
                 copy_file(src,out/"runtime"/src.relative_to(overrides))
+    # Apply the scoped OCPI 2.2.1 first-match/segmentation fix to the
+    # immutable compiled pricing runtime; other tariffs retain their rules.
+    subprocess.run([
+        sys.executable,
+        str(production_root/"scripts/patch_ocpi_pcpr_pricing.py"),
+        str(out/"runtime/assets/v9/pricing-engine.js")
+    ],check=True)
     registry=out/"runtime/data/v9/source-registry.json"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
 
