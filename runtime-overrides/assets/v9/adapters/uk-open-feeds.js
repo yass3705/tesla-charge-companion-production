@@ -115,12 +115,12 @@
         const verified=validatedUbitricityOffer(c.validatedV9Offer,loc,eid,cid,source);
         if(verified)offers.push(verified);
         for(const tid of uniq(c.tariff_ids||[])){
-          const tariff=tariffMap.get(tid),pricing=tariffPricing(tariff);if(!pricing)continue;
-          const gridserveExact=source?.id==='gridserve-pcpr-direct';
+          const tariff=tariffMap.get(tid),pricing=source?.id==='eco-movement-pcpr-cpo-direct'?pcprDirectPricing(tariff):tariffPricing(tariff);if(!pricing)continue;
+          const connectorExact=['gridserve-pcpr-direct','eco-movement-pcpr-cpo-direct'].includes(source?.id);
           const nextOffer={id:sourceId+':'+stationKey+':'+eid+':'+cid+':'+tid,provider:text(loc?.operator?.name||source?.name||party),kind:'direct',subscriptionId:null,countries:['GB'],currency:text(tariff.currency||'GBP').toUpperCase(),evseIds:[eid],
-            ...(gridserveExact?{connectorIds:[cid],stationIds:[text(loc.id)]}:{}),pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null,connectorId:cid,incompletePricingReason:pricing.incompletePricingReason||null}};
+            ...(connectorExact?{connectorIds:[cid],stationIds:[text(loc.id)]}:{}),pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null,connectorId:cid,priceBasis:tariff?.tccPriceBasis||null,pricingScope:source?.pricingScope||null,incompletePricingReason:pricing.incompletePricingReason||null}};
           offers.push(nextOffer);
-          if(gridserveExact){connectorOut.offers=connectorOut.offers||[];connectorOut.offers.push(nextOffer);}
+          if(connectorExact){connectorOut.offers=connectorOut.offers||[];connectorOut.offers.push(nextOffer);}
         }
       }
       evses.push({id:eid,aliases:uniq([eid,rawEvse.uid,rawEvse.physical_reference]),connectors,status:status(rawEvse.status)});
