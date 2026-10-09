@@ -85,6 +85,22 @@ def build_registry(path):
       "optional":True,
       "policy":"Only connector-bound offers verified against the same Ubitricity public PAYG tariff are rankable. Rejected tariffs stay unpriced."
     })
+    # PCPR feed attributed to ChargePoint CMS, but not to verified physical CPOs.
+    # Only public station/EVSE inventory is activated. Connector tariff IDs
+    # remain source evidence, NOT user-facing direct PAYG offers.
+    upsert(sources,{
+      "id":"uk-eco-movement-pcpr-cms-unverified",
+      "label":"UK Eco-Movement PCPR ChargePoint CMS public inventory; physical CPO unverified",
+      "adapter":"uk-open-feeds-v1",
+      "path":"../snapshot-inputs/UK/sources/uk_eco_movement_pcpr_v9.json.gz",
+      "countries":["GB"],
+      "capabilities":["inventory","connectors","access"],
+      "priority":{"identity":55,"connectors":60,"access":50,"status":0,"tariff":0},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Only public UK inventory with operator clearly marked unverified. Raw PCPR connector tariffs are withheld from comparison until genuine CPO, ad-hoc price channel and VAT are verified. No interpolation."
+    })
     upsert(sources,{
       "id":"france-electra-platform",
       "label":"France Electra eMSP aggregate tariffs joined independently to national EVSEs",
