@@ -193,6 +193,8 @@ jobs:
           python -m unittest discover -s production/tests -p 'test_tesla_tariff_priority.py'
           python production/scripts/validate_browser_asset_graph.py dist/v9-global-preview
           python production/scripts/verify_candidate_manifest.py dist/v9-global-preview
+      - name: Check OCPI PCPR pricing precedence and cross-window safeguards
+        run: node production/tests/uk-ocpi-first-match.test.mjs dist/v9-global-preview/runtime/assets/v9/pricing-engine.js
       - name: Verify deployed V9 bundle contains exact UK Ubitricity input
         shell: bash
         run: |
