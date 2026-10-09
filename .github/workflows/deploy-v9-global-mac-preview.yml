@@ -163,6 +163,13 @@ jobs:
           assert audit["publicLocations"]>=100 and audit["exactPricedConnectors"]>=1000
           print("Gridserve public-only V9 source validated",audit["publicLocations"],audit["exactPricedConnectors"])
           PY
+      - name: Validate UK Eco-Movement PCPR public inventory staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          node production/tests/uk-eco-movement-pcpr-stage.test.mjs \
+            datalab/data/national/uk_eco_movement_pcpr_v9.json.gz \
+            datalab/reports/uk/eco-movement-pcpr-v9-staging.json
       - name: Build and validate current global preview
         shell: bash
         run: |
@@ -208,6 +215,27 @@ jobs:
           priced = sum(bool(c.get('validatedV9Offer')) for loc in locs for e in loc.get('evses',[]) for c in e.get('connectors',[]))
           assert priced == report['pricedConnectors'] and len(locs)==report['locations'] and priced >= 13000
           print(f'V9 Ubitricity ready: {len(locs)} locations / {priced} validated direct connector offers; exact source digest matched')
+          PY
+      - name: Verify UK Eco-Movement public inventory activation is tariff-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import gzip,hashlib,json
+          from pathlib import Path
+          base=Path("dist/v9-global-preview")
+          src=Path("datalab/data/national/uk_eco_movement_pcpr_v9.json.gz")
+          dst=base/"snapshot-inputs/UK/sources/uk_eco_movement_pcpr_v9.json.gz"
+          assert dst.exists(),"Eco-Movement public inventory missing from V9 snapshot"
+          assert hashlib.sha256(src.read_bytes()).digest()==hashlib.sha256(dst.read_bytes()).digest(),"PCPR source mismatch"
+          registry=json.loads((base/"runtime/data/v9/source-registry.json").read_text())
+          s=next(x for x in registry["sources"] if x.get("id")=="uk-eco-movement-pcpr-cms-unverified")
+          assert s["active"] and not s["optional"]
+          assert "tariff" not in s["capabilities"]
+          data=json.load(gzip.open(dst,"rt"))
+          assert data["sources"][0]["tariffs"]==[]
+          assert len(data["sources"][0]["locations"])>0
+          print("UK PCPR inventory active without unverified direct PAYG tariffs")
           PY
       - name: Verify Gridserve is active and exact snapshot is deployed
         shell: bash
