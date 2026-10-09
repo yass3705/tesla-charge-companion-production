@@ -62,7 +62,9 @@
         const connectors=evse.connectors||[];
         for(const connector of connectors){
           const power=num(connector.powerKw??connector.power??evse.powerKw);
-          const offers=(connector.offers||evse.offers||station.offers||row.offers||[]).filter(x=>validOffer(x,allowed));
+          const idsMatch=(wanted,actual)=>!Array.isArray(wanted)||!wanted.length||wanted.map(text).includes(text(actual));
+          const offers=(connector.offers||evse.offers||station.offers||row.offers||[]).filter(x=>
+            validOffer(x,allowed)&&idsMatch(x.evseIds,evse.id||evse.uid)&&idsMatch(x.connectorIds,connector.id||connector.connectorId||connector.uid));
           const priced=offers.map(offer=>({offer,pricePerKm:pricePerKm(row,offer,opts)})).filter(x=>x.pricePerKm!=null).sort((a,b)=>a.pricePerKm-b.pricePerKm);
           const best=priced[0]||null;
           out.push({stationId:text(station.id||row.id),stationName:text(station.name||row.name)||'Borne',evseId:text(evse.id||evse.uid),connectorId:text(connector.id||connector.connectorId||connector.uid),powerKw:power,lat:num(station.latitude??station.lat??station.coordinates?.latitude),lon:num(station.longitude??station.lon??station.coordinates?.longitude),bestPricePerKm:best?.pricePerKm??null,bestChannel:best?.offer?.channel||best?.offer?.source||null,offers:priced.map(x=>({channel:x.offer.channel||x.offer.source||null,source:x.offer.source||x.offer.provider||null,pricePerKm:x.pricePerKm}))});
