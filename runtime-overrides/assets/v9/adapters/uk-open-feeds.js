@@ -91,7 +91,7 @@
       }
     }
     const groups=Object.entries(dims).map(([kind,rules])=>({kind:'OCPI_'+kind,rules}));
-    return groups.length?{type:'component_groups',componentGroups:groups,timeZone:'Europe/London',taxIncluded:true}:null;
+    return groups.length?{type:'component_groups',componentGroups:groups,timeZone:'Europe/London',taxIncluded:true,ocpiFirstMatch:true}:null;
   }
   function validatedUbitricityOffer(offer,loc,eid,cid,source){
     if(source?.id!=='ubitricity-pcpr-payg'||!offer||offer.kind!=='direct'||offer.provider!=='Ubitricity'||offer.currency!=='GBP')return null;
