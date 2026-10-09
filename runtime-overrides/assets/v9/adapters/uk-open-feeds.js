@@ -71,7 +71,7 @@
       if(Object.keys(r).some(k=>!['start_time','end_time','day_of_week','min_duration','max_duration','min_power','max_power','start_date','end_date'].includes(k)))return null;
       for(const pc of el.price_components||[]){
         const kind=text(pc.type).toUpperCase(),key=keys[kind],v=num(pc.price),step=num(pc.step_size);
-        if(!key||v==null||v<0||step==null||step<=0)return null;
+        if(!key||v==null||v<0||step==null||step<0||(step===0&&kind!=='FLAT'))return null;
         const rule={scope:'timeWindow',start:r.start_time||'00:00',end:r.end_time||'24:00',currency:'GBP'};
         if(r.day_of_week!=null){
           if(!Array.isArray(r.day_of_week))return null;
