@@ -310,7 +310,7 @@ def main():
     uk=overlays/"UK"
     copy_file(national/"uk_validated_open_feeds.json.gz", uk/"all.json.gz")
     for p in national.glob("uk_*"):
-        if p.is_file() and p.name != "uk_validated_open_feeds.json.gz":
+        if p.is_file() and p.name not in {"uk_validated_open_feeds.json.gz","uk_gridserve_pcpr_locations.json.gz","uk_gridserve_pcpr_tariffs.json.gz"}:
             copy_file(p,uk/"sources"/p.name)
     for name in ("fastned_direct_stations_uk.json.gz","ionity_direct_stations_uk.json.gz"):
         p=national/name
