@@ -381,6 +381,46 @@ def main():
         local=current_registry["productionIntegration"].setdefault("snapshotLocalSources",[])
         if "uk-gridserve-pcpr-direct" not in local:local.append("uk-gridserve-pcpr-direct")
         write_json(registry,current_registry)
+    # ChargePoint CMS PCPR integration is inventory-only while true physical
+    # CPO and consumer ad-hoc PAYG tariffs remain unverified.
+    eco_src=uk/"sources/uk_eco_movement_pcpr_v9.json.gz"
+    eco_report=dl/"reports/uk/eco-movement-pcpr-v9-staging.json"
+    if eco_src.exists() and eco_report.exists():
+        report=load_json(eco_report)
+        with gzip.open(eco_src,"rt",encoding="utf-8") as f:
+            eco_payload=json.load(f)
+        eco_sources=eco_payload.get("sources") or []
+        if len(eco_sources)!=1 or eco_sources[0].get("id")!="eco-movement-pcpr-cms-unverified":
+            raise AssertionError("Invalid PCPR CMS source identity")
+        if eco_payload.get("collectedAt")!=report.get("sourceCollectedAt"):
+            raise AssertionError("PCPR CMS report/source timestamp mismatch")
+        if eco_payload.get("integrationStatus")!="inventory_stage_unverified_cpo_direct_tariffs":
+            raise AssertionError("PCPR CMS staging policy missing")
+        if report.get("readyForTariffRanking") is not False or report.get("stagedRankableDirectOffers")!=0:
+            raise AssertionError("PCPR CMS tariffs must stay fail-closed until proof")
+        source=eco_sources[0]
+        if source.get("tariffs")!=[]:
+            raise AssertionError("Unverified PCPR tariffs cannot enter the active UK adapter")
+        eco_locations=source.get("locations") or []
+        eco_connectors=[c for loc in eco_locations for evse in loc.get("evses",[]) for c in evse.get("connectors",[])]
+        if (len(eco_locations)!=report.get("stagedPublicLocations") or not eco_locations
+            or len(eco_connectors)!=report.get("stagedConnectors")
+            or sum(len(c.get("sourceTariffIdsUnverified") or []) for c in eco_connectors)!=report.get("sourceTariffReferencesPreserved")
+            or any(c.get("tariff_ids") or c.get("validatedV9Offer") for c in eco_connectors)
+            or any(loc.get("publish") is not True for loc in eco_locations)
+            or any(loc.get("operator",{}).get("name")!="CPO non identifié (ChargePoint CMS)" for loc in eco_locations)):
+            raise AssertionError("PCPR CMS staged inventory integrity failed")
+        reg=load_json(registry)
+        eco_registry=next((s for s in reg.get("sources",[]) if s.get("id")=="uk-eco-movement-pcpr-cms-unverified"),None)
+        if not eco_registry:
+            raise AssertionError("PCPR CMS registry entry missing")
+        eco_registry["active"]=True
+        eco_registry["optional"]=False
+        eco_registry["capabilities"]=["inventory","connectors","access"]
+        prod=reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        if "uk-eco-movement-pcpr-cms-unverified" not in prod:
+            prod.append("uk-eco-movement-pcpr-cms-unverified")
+        write_json(registry,reg)
     copy_file(dl/"docs/uk-cpo-progress-2026-09.json", uk/"cpo-ledger.json")
     uk_ledger=load_json(dl/"docs/uk-cpo-progress-2026-09.json")
     uk_rows=uk_ledger.get("cpos") or []
