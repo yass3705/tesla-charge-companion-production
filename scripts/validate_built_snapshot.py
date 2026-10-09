@@ -195,6 +195,36 @@ def main():
                 p=root/row[field]
                 assert p.exists(), f"{key}: missing {field} {row[field]}"
 
+    # Gridserve is a verified public-only, exact per-connector direct CPO source.
+    grid_src=sources.get("uk-gridserve-pcpr-direct") or {}
+    assert grid_src.get("adapter")=="uk-open-feeds-v1"
+    assert grid_src.get("path")=="../snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz"
+    grid_path=root/"snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz"
+    if grid_path.exists():
+        assert grid_src.get("active") is True and grid_src.get("optional") is False
+        with gzip.open(grid_path,"rt",encoding="utf-8") as f:
+            grid=json.load(f)
+        assert len(grid.get("sources") or [])==1
+        s=grid["sources"][0]
+        assert s["id"]=="gridserve-pcpr-direct"
+        tariffs={str(t["id"]):t for t in s["tariffs"]}
+        assert len(tariffs)>=3
+        locations=s["locations"]
+        assert len(locations)>=100
+        exact_links=0
+        connectors=0
+        for loc in locations:
+            assert loc.get("publish") is True and loc.get("country_code")=="GB"
+            for evse in loc.get("evses") or []:
+                assert str(evse.get("status")).upper()!="REMOVED"
+                for connector in evse.get("connectors") or []:
+                    connectors+=1
+                    tids=connector.get("tariff_ids") or []
+                    assert all(str(tid) in tariffs for tid in tids)
+                    assert all(tariffs[str(tid)].get("party_id")==loc.get("party_id") for tid in tids)
+                    exact_links+=bool(tids)
+        assert connectors>=1000 and exact_links>=1000
+        assert len(locations)==205 and connectors==2569 if grid.get("collectedAt")=="2026-10-09T10:09:22.411963+00:00" else True
     # Guard against the earlier Tesla-inventory mistake for UK.
     # Progress ledgers are optional for historical snapshots created before
     # ledger centralisation. Revision-specific workflows may require them.
