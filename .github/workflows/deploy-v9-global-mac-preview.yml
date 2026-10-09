@@ -17,6 +17,11 @@ on:
       - "tests/runtime-browser-journey-global.mjs"
       - "scripts/build_refresh_candidate_config.py"
       - "scripts/build_snapshot.py"
+      - "scripts/build_runtime_registry.py"
+      - "scripts/validate_built_snapshot.py"
+      - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
+      - "runtime-overrides/assets/v9/map-price-engine.js"
+      - "tests/uk-gridserve-integration.test.mjs"
       - "scripts/tesla_tariff_priority.py"
       - "scripts/validate_stable_parity.py"
       - "tests/test_tesla_tariff_priority.py"
@@ -138,6 +143,26 @@ jobs:
           assert payload['sources'][0]['pricingScope'] == 'cpo_direct_payg_verified'
           print('Validated UK Ubitricity input:', {k:report[k] for k in ('locations','connectors','pricedConnectors','unpricedConnectors')})
           PY
+      - name: Validate Gridserve public access and exact connector tariffs
+        shell: bash
+        run: |
+          set -euo pipefail
+          node production/tests/uk-gridserve-integration.test.mjs datalab/data/national/uk_gridserve_v9.json.gz
+          python - <<'PY'
+          import gzip, json
+          from pathlib import Path
+          p=Path("datalab")
+          audit=json.loads((p/"reports/uk/gridserve-v9-integration-latest.json").read_text())
+          with gzip.open(p/"data/national/uk_gridserve_v9.json.gz","rt",encoding="utf-8") as f:
+              data=json.load(f)
+          assert audit["status"]=="validated_public_connector_exact"
+          assert audit["validatedForV9"] is True
+          assert data["collectedAt"]==audit["collectedAt"]
+          assert audit["exactPricedConnectors"]+audit["unpricedPublicConnectors"]==audit["publicConnectors"]
+          assert audit["publicUnmappedTariffReferences"]==[]
+          assert audit["publicLocations"]>=100 and audit["exactPricedConnectors"]>=1000
+          print("Gridserve public-only V9 source validated",audit["publicLocations"],audit["exactPricedConnectors"])
+          PY
       - name: Build and validate current global preview
         shell: bash
         run: |
@@ -183,6 +208,22 @@ jobs:
           priced = sum(bool(c.get('validatedV9Offer')) for loc in locs for e in loc.get('evses',[]) for c in e.get('connectors',[]))
           assert priced == report['pricedConnectors'] and len(locs)==report['locations'] and priced >= 13000
           print(f'V9 Ubitricity ready: {len(locs)} locations / {priced} validated direct connector offers; exact source digest matched')
+          PY
+      - name: Verify Gridserve is active and exact snapshot is deployed
+        shell: bash
+        run: |
+          set -euo pipefail
+          node production/tests/uk-gridserve-integration.test.mjs \
+            datalab/data/national/uk_gridserve_v9.json.gz \
+            dist/v9-global-preview/snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          registry=json.loads(Path("dist/v9-global-preview/runtime/data/v9/source-registry.json").read_text())
+          s=next(s for s in registry["sources"] if s.get("id")=="uk-gridserve-pcpr-direct")
+          assert s["active"] is True and s["optional"] is False
+          assert s["path"]=="../snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz"
+          print("Gridserve V9 registry active; exact public connector source deployed")
           PY
       - name: Multi-country runtime smoke
         env:
