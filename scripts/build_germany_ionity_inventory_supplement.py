@@ -68,9 +68,16 @@ def build(national, direct):
 if __name__=="__main__":
     root=pathlib.Path(sys.argv[1]);out=pathlib.Path(sys.argv[2])
     result=build(read(root/"data/national/germany_non_tesla_catalog_staging_direct_cpo.json.gz"),read(root/"data/national/ionity_direct_stations_germany.json.gz"))
-    # Pinned r8 evidence gate: unexpected drift must not silently change inclusion.
-    assert result["metadata"]["ionitySourceLocations"]==199,result["metadata"]
-    assert result["metadata"]["isolatedUnpricedSupplement"]==3,result["metadata"]
+    # Updated canonical 2026-10-10 evidence: one additional direct IONITY
+    # site remains independently isolated and strictly UNPRICED. Any later
+    # scope drift must still fail closed rather than silently growing offers.
+    m=result["metadata"]
+    assert m["nationalBaselineStations"]==63405,m
+    assert m["ionitySourceLocations"]==200,m
+    assert m["alreadyNearNationalIonity"]==188,m
+    assert m["quarantinedNearThirdParty"]==8,m
+    assert m["isolatedUnpricedSupplement"]==4,m
+    assert all(not x["pricing"] and not x["evseIds"] and x["source"]["unpricedFailClosed"] for x in result["sites"])
     out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({k:v for k,v in result["metadata"].items() if k!="quarantine"},ensure_ascii=False))
