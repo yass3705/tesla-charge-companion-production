@@ -104,6 +104,25 @@
     if(offer.pricing.timeZone!=='Europe/London'||offer.pricing.rules.some(r=>r.currency!=='GBP'||!Number.isFinite(r.pricePerKwh)||r.pricePerKwh<0))return null;
     return offer;
   }
+  function validatedMidhopeOffer(offer,loc,eid,cid,source){
+    const exact={
+      'GB*CK0*E19825':'a46c9e98-5d68-4025-989a-ab416d7ab670',
+      'GB*CK0*E19865':'d19e0ae8-1424-40d8-aea0b2a2e7354d2a', 
+      'GB*CK0*E19716':'f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0',
+      'GB*CK0*E19707':'9a1d7557-d59c-4e95-a929-b667d73843f0'
+    };
+    if(source?.id!=='connected-kerb-midhope-guest-verified'||!offer||
+       offer.provider!=='Connected Kerb'||offer.kind!=='direct'||offer.currency!=='GBP'|| 
+       loc.id!=='cd20ba89-4241-4b39-b738-514f49093e8d'||loc.publish!==true||
+       exact[eid]!==cid||offer.metadata?.connectorId!==cid||
+       offer.metadata?.sourceEvidence!=='midhope-guest-2026-10-10'||
+       offer.metadata?.pricingScope!=='cpo_direct_guest_exact_connector'||
+       !offer.evseIds?.includes(eid)||!offer.connectorIds?.includes(cid)||!offer.stationIds?.includes(String(loc.id))||
+       offer.pricing?.type!=='connected_kerb_midhope_guest_verified'||
+       offer.pricing?.verifiedSourceVersion!=='2026-10-10-midhope-exact-4'||
+       offer.validThrough!=='2026-10-24')return null;
+    return offer;
+  }
   function normalizeLocation(loc,source,tariffMap,{sourceId='uk-open-feeds-snapshot'}={}){
     if(!loc||!text(loc.id))return null;
     const lat=num(loc?.coordinates?.latitude),lon=num(loc?.coordinates?.longitude);if(lat==null||lon==null)return null;
@@ -116,7 +135,7 @@
         const cid=text(c.id)||eid+':connector';
         const connectorOut={id:cid,kind:connectorKind(c),powerKw:powerKw(c)};
         connectors.push(connectorOut);
-        const verified=validatedUbitricityOffer(c.validatedV9Offer,loc,eid,cid,source);
+        const verified=validatedUbitricityOffer(c.validatedV9Offer,loc,eid,cid,source)||validatedMidhopeOffer(c.validatedV9Offer,loc,eid,cid,source);
         if(verified)offers.push(verified);
         for(const tid of uniq(c.tariff_ids||[])){
           const tariff=tariffMap.get(tid),pricing=source?.id==='eco-movement-pcpr-cpo-direct'?pcprDirectPricing(tariff):tariffPricing(tariff);if(!pricing)continue;
