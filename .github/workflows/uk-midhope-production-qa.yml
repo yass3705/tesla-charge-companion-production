@@ -7,23 +7,40 @@ on:
       - runtime-overrides/assets/v9/pricing-engine.js
       - runtime-overrides/assets/v9/adapters/uk-open-feeds.js
       - tests/uk-midhope-verified-pricing.test.mjs
+      - tests/uk-midhope-source-integration.test.mjs
+      - scripts/build_snapshot.py
+      - scripts/build_runtime_registry.py
       - .github/workflows/uk-midhope-production-qa.yml
 permissions:
   contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: main
+          path: datalab
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Midhope four EVSE and parking phase regression
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Midhope verified 4 connector and 2 boundary regressions
         run: node tests/uk-midhope-verified-pricing.test.mjs
-      - name: Legacy OCPI first-match regression
+      - name: Real Data Lab CPO source to UK adapter and engine integration
+        run: node tests/uk-midhope-source-integration.test.mjs datalab/data/national/uk_connected_kerb_midhope_verified_v9.json.gz
+      - name: Legacy OCPI first-match and segment safety
         run: node tests/uk-ocpi-first-match.test.mjs
-      - name: Other V9 tariff lanes regression
+      - name: Other V9 tariff lanes
         run: node tests/v9-tariff-lanes.test.mjs
-      - name: Core runtime integration regression
-        run: node tests/runtime-integration.test.mjs
+      - name: Verify source JSON, Python and JS syntax
+        run: |
+          python -m py_compile scripts/build_snapshot.py scripts/build_runtime_registry.py
+          node --check runtime-overrides/assets/v9/pricing-engine.js
+          node --check runtime-overrides/assets/v9/adapters/uk-open-feeds.js
