@@ -418,7 +418,7 @@
   }
   function congestionAdjustedTotal(item,key){
     if(!item)return null;
-    if(item.congestion?.available&&congestionSelections.get(key)===false)return num(item.congestion.totalWithoutCongestion);
+    if(item.congestion?.available&&congestionSelections.get(key)!==true)return num(item.congestion.totalWithoutCongestion);
     return num(item.total);
   }
   function bindCongestionToggles(w){
@@ -428,7 +428,7 @@
       const button=event.target?.closest?.('.v9-congestion-toggle');if(!button)return;
       const key=button.dataset.v9CongestionKey;
       if(!key)return;
-      const currentlyIncluded=congestionSelections.get(key)!==false,newIncluded=!currentlyIncluded;
+      const currentlyIncluded=congestionSelections.get(key)===true,newIncluded=!currentlyIncluded;
       congestionSelections.set(key,newIncluded);
       for(const row of w.document.querySelectorAll('.v9-tariff-row')){
         if(row.dataset.v9CongestionKey!==key)continue;
@@ -475,7 +475,7 @@
     return'<div class="v9-tariffs" role="list" aria-label="Tarifs indépendants par borne et puissance" style="display:grid;gap:6px;margin-top:8px">'+categories.map(category=>{
       const state=states.get(category.id),item=state.item,best=category.id===bestId,key=congestionLaneKey(station,evaluation,category.id);
       const hasCongestion=state.status==='priced'&&item?.congestion?.available&&num(item?.congestion?.totalWithoutCongestion)!=null;
-      const including=congestionSelections.get(key)!==false;
+      const including=congestionSelections.get(key)===true;
       const total=hasCongestion&&!including?item.congestion.totalWithoutCongestion:item?.total;
       const displayItem=hasCongestion&&!including?{...item,total,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}:item;
       const amount=state.status==='ambiguous'?'Tarif ambigu à vérifier auprès de l’opérateur'
