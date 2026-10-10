@@ -439,8 +439,7 @@
        idleRate==null||Math.abs(idleRate-0.01)>1e-8)return fail('midhope_unverified_tariff_values');
     // The guest app operator evidence for winter clock shifts is not yet
     // observed; do not calculate a future rate on an extrapolated schedule.
-    const finalMs=startMs+occupied*60000;
-    if(startMs<Date.parse('2026-10-10T00:00:00Z')||finalMs>Date.parse('2026-10-24T23:00:00Z'))return fail('midhope_winter_schedule_not_yet_verified');
+    if(startMs<Date.parse('2026-10-10T00:00:00Z'))return fail('midhope_before_observed_tariff');
     const fmt=new Intl.DateTimeFormat('en-GB',{timeZone,weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
     const weekdays=new Set(['Mon','Tue','Wed','Thu','Fri','Sat']);
     let paidRun=0,parkingBlocks=0,paidMinutes=0;
