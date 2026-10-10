@@ -54,6 +54,10 @@
       if(!found)unresolved.push('element_without_recognized_component:'+index);
       groups.push({kind:'ocpi-element:'+index,rules:[rule]});
     }
+    // Never make a price-bearing offer from a partially understood tariff.
+    // An "incompletePricingReason" alongside componentGroups is not a safe
+    // runtime quarantine when a caller evaluates the tariff directly.
+    if(unresolved.length)return null;
     // Keep the existing single-element OCPI contract for MFG and other consumers.
     // Multiple elements are additive component groups (not competing alternatives).
     if(groups.length===1&&!Object.keys(t.elements[0]?.restrictions||{}).length&&!unresolved.length)
