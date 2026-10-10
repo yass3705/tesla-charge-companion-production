@@ -39,7 +39,8 @@ close(quote.best.congestion.feeAmount,4);
 assert.equal(quote.best.congestion.thresholdSource,'default_soc80');
 const markup=shell.renderTariffs(quote,station,{EUR:1});
 assert.match(markup,/data-v9-congestion-key=/);
-assert.match(markup,/Congestion incluse/);
+assert.match(markup,/Congestion exclue/);
+assert.match(markup,/aria-pressed="false"/);
 assert.match(markup,/À partir de 80 % de batterie/);
 assert.match(markup,/hypothèse V9/);
 assert.match(markup,/Electroverse/);
@@ -65,5 +66,36 @@ const zeroCongestion={...rule,congestionTimePerMinute:0,ocpiCongestionDurationBa
 const plain=engine.evaluateOffer({...offer,pricing:{type:'rules',rules:[zeroCongestion]}},{energyKwh:10,durationMinutes:30});
 assert.equal(plain.complete,true,'zero-fee tariffs do not require a SOC timeline');
 close(plain.totalEur,4);
+
+
+// Official Electra-app occupancy policy: saturation assumed in optional
+// preview, five-minute grace after SOC80, DC only, cap 50 EUR per session.
+const policy={requiresSaturation:true,startsAtSoc:80,graceMinutes:5,rateEurPerMinute:.4,capEur:50,dcOnly:true};
+const officialRule={...bandedRule,electraCongestionPolicy:policy};
+const officialOffer={...bandedOffer,pricing:{type:'component_groups',componentGroups:[{rules:[officialRule]}]}};
+const included=engine.evaluateOffer(officialOffer,{...session,chargingKind:'DC',assumeStationSaturated:true});
+assert.equal(included.complete,true);
+close(included.totalEur,10); // 20 minutes above SOC80; five grace minutes
+close(engine.evaluateOffer(officialOffer,{...session,chargingKind:'AC',assumeStationSaturated:true}).totalEur,4);
+const saturationUnknown=engine.evaluateOffer(officialOffer,{...session,chargingKind:'DC'});
+assert.equal(saturationUnknown.complete,false);
+assert.equal(saturationUnknown.reason,'electra_saturation_not_confirmed');
+const long={...session,chargingKind:'DC',assumeStationSaturated:true,startSoc:85,arrivalSoc:85,targetSoc:99,
+ durationMinutes:200,chargingMinutes:200,postChargeMinutes:0,
+ chargeTimeline:[{offsetMinutes:0,durationMinutes:200,startSoc:85,endSoc:99}]};
+close(engine.evaluateOffer(officialOffer,long).totalEur,54,'cap fee at 50 EUR');
+
+const clockRules=[
+ {scope:'timeWindow',start:'11:00',end:'12:00',pricePerKwh:.39,currency:'EUR'},
+ {scope:'timeWindow',start:'12:00',end:'15:00',pricePerKwh:.61,currency:'EUR'}
+];
+const lockedOffer={id:'electra-start-locked',provider:'Electra',currency:'EUR',pricing:{
+ type:'rules',priceSelectionBasis:'session_start_local_time',rules:clockRules}};
+const local={startAt:'2026-10-10T09:55:00Z',timeZone:'Europe/Paris',
+ energyKwh:20,durationMinutes:40,chargingMinutes:40,includeCongestionFees:false};
+const locked=stationEngine.evaluateSessionStartLockedOffer(lockedOffer,local);
+assert.equal(locked.complete,true);
+assert.equal(locked.segmented,false);
+close(locked.totalEur,7.8,'start-rate lock even when a later slot is more expensive');
 
 console.log('V9 congestion SOC80/toggle/independent lanes: pass');
