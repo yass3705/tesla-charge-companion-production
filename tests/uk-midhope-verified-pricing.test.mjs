@@ -31,8 +31,12 @@ exact('outside window free parking',n(5*.39996),evalAt('2026-10-12T18:00:00Z',60
 exact('early morning before paid window',n(5*.39996),evalAt('2026-10-12T06:00:00Z',60,60,5));
 exact('Mon 08:29 only 1 min inside paid window',n(5*.39996+.80004),evalAt('2026-10-12T07:29:00Z',2,2,5));
 exact('last validated local summer Saturday',n(5*.39996+.80004),evalAt('2026-10-24T14:00:00Z',30,30,5));
-blocked('winter period must fail closed',evalAt('2026-11-02T09:00:00Z',30,30,5),'midhope_winter_schedule_not_yet_verified');
-blocked('summer to winter rollover',evalAt('2026-10-24T22:50:00Z',30,30,5),'midhope_winter_schedule_not_yet_verified');
+exact('winter Monday 09:00 UK still in paid window',n(5*.39996+.80004),evalAt('2026-11-02T09:00:00Z',30,30,5));
+exact('winter Monday 08:20 UK crossing 08:30',n(5*.39996+.80004),evalAt('2026-10-26T08:20:00Z',30,30,5));
+exact('winter Monday 18:00 UK outside window',n(5*.39996),evalAt('2026-10-26T18:00:00Z',30,30,5));
+exact('summer to winter rollover on Sunday free parking',n(5*.39996),evalAt('2026-10-24T22:50:00Z',30,30,5));
+exact('DST fallback Sunday free parking across repeated local hour',n(5*.39996),evalAt('2026-10-25T00:30:00Z',120,120,5));
+blocked('pre-observation price not assumed',evalAt('2026-10-09T09:00:00Z',30,30,5),'midhope_before_observed_tariff');
 blocked('duration exceeding maximum',evalAt('2026-10-12T09:00:00Z',1441,1441,5),'midhope_session_exceeds_verified_max_duration');
 blocked('missing absolute time',evalAt('2026-10-12T09:00:00',30,30,5),'midhope_requires_absolute_start');
 blocked('non-minute aligned time',evalAt('2026-10-12T09:00:20Z',30,30,5),'midhope_requires_minute_aligned_start');
@@ -41,4 +45,4 @@ blocked('unknown price metadata',evalAt('2026-10-12T09:00:00Z',30,30,5,0,{...mk(
 for(const eid of Object.keys(evses)){
  exact('scope '+eid,n(5*.39996+.80004),evalAt('2026-10-12T09:00:00Z',30,30,5,0,mk(eid)));
 }
-console.log(JSON.stringify({passed:true,verifiedSockets:Object.keys(evses).length,phaseRounding:'continuous_occupancy',winter:'blocked',boundaries:['08:30','18:00']}));
+console.log(JSON.stringify({passed:true,verifiedSockets:Object.keys(evses).length,phaseRounding:'continuous_occupancy',winter:'Europe/London_DST_supported',boundaries:['08:30','18:00']}));
