@@ -81,13 +81,13 @@ assert.ok(registry.sources.some(s=>(s.countries||[]).includes('ES')&&s.active!==
 assert.ok(registry.sources.some(s=>(s.countries||[]).includes('NL')&&s.active!==false),'NL runtime sources missing');
 
 const supplement=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json'),'utf8'));
-assert.equal(supplement.sites.length,3,'Pinned German IONITY supplementary sites must be 3');
+assert.equal(supplement.sites.length,4,'Updated German IONITY isolated unpriced sites must be 4');
 assert.equal(supplement.metadata.quarantinedNearThirdParty,8,'Ambiguous German IONITY sites must remain quarantined');
 const supplementRows=await loaders['germany-ionity-isolated-r8']({});
 assert.equal(supplementRows.length,3,'German isolated supplement loader did not retain all 3');
 assert.ok(supplementRows.every(s=>s.offers.length===0),'Supplemental IONITY stations must not receive guessed tariffs');
 const knownSupplementIds=new Set(supplementRows.map(s=>s.canonicalId));
-assert.equal(knownSupplementIds.size,3,'Supplemental IONITY canonical identities collide');
+assert.equal(knownSupplementIds.size,4,'Supplemental IONITY canonical identities collide');
 
 const deAll=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/all.json.gz'))).toString('utf8'));
 const deIonity=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz'))).toString('utf8'));
