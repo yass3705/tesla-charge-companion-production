@@ -107,7 +107,7 @@
   function validatedMidhopeOffer(offer,loc,eid,cid,source){
     const exact={
       'GB*CK0*E19825':'a46c9e98-5d68-4025-989a-ab416d7ab670',
-      'GB*CK0*E19865':'d19e0ae8-1424-40d8-aea0b2a2e7354d2a', 
+      'GB*CK0*E19865':'d19e0ae8-1424-40d8-ae9a-b13fe6704484', 
       'GB*CK0*E19716':'f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0',
       'GB*CK0*E19707':'9a1d7557-d59c-4e95-a929-b667d73843f0'
     };
