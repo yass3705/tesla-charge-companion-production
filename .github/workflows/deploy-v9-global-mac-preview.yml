@@ -130,28 +130,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Verify fresh UK Ubitricity direct PAYG input before publication
+      - name: Confirm UK Ubitricity support hold and verify newly audited Blink
         shell: bash
         run: |
           set -euo pipefail
-          node production/tests/uk-ubitricity-integration.test.mjs datalab/data/national/uk_ubitricity_v9.json.gz
           python - <<'PY'
-          import gzip, json
-          from datetime import datetime, timezone, timedelta
+          import gzip,json
           from pathlib import Path
-          root = Path('datalab')
-          report = json.loads((root/'reports/uk/ubitricity-pcpr-validation-latest.json').read_text())
-          with gzip.open(root/'data/national/uk_ubitricity_v9.json.gz', 'rt') as fh:
-              payload = json.load(fh)
-          assert report['status'] == 'validated_runtime_input_ready', report['status']
-          assert report['collectedAt'] == payload['collectedAt']
-          assert datetime.now(timezone.utc) - datetime.fromisoformat(report['collectedAt']) <= timedelta(hours=48), 'Ubitricity input older than 48h'
-          assert report['countries'] == {'GBR': report['locations']}
-          assert report['locations'] >= 10000 and report['pricedConnectors'] >= 13000, 'Ubitricity coverage unexpectedly dropped'
-          assert report['pricedConnectors'] + report['unpricedConnectors'] == report['connectors']
-          assert report['unpricedConnectors'] >= 0
-          assert payload['sources'][0]['pricingScope'] == 'cpo_direct_payg_verified'
-          print('Validated UK Ubitricity input:', {k:report[k] for k in ('locations','connectors','pricedConnectors','unpricedConnectors')})
+          root=Path("datalab")
+          collection=json.loads((root/"reports/uk/blink-pcpr-latest.json").read_text())
+          audit=json.loads((root/"reports/uk/blink-pcpr-validation-latest.json").read_text())
+          with gzip.open(root/"data/national/uk_blink_pcpr_v9.json.gz","rt",encoding="utf-8") as f:
+              doc=json.load(f)
+          assert doc["collectedAt"]==collection["collectedAt"]==audit["collectedAt"],"Blink source validation out of sync"
+          assert audit["validatedForV9"] is True and audit["status"]=="validated_public_exact_connector"
+          assert audit["exactPricedConnectors"]==audit["publicConnectors"]==3599
+          assert audit["unpricedPublicConnectors"]==0
+          assert audit["distinctTariffs"]==55 and audit["publicLocations"]==869
+          print("BLINK_RECOLLECTED_VALIDATED",audit["collectedAt"],audit["exactPricedConnectors"])
+          print("UBITRICITY_UK_SUPPORT_HOLD: no activation until support response")
           PY
       - name: Validate Gridserve public access and exact connector tariffs
         shell: bash
@@ -173,13 +170,16 @@ jobs:
           assert audit["publicLocations"]>=100 and audit["exactPricedConnectors"]>=1000
           print("Gridserve public-only V9 source validated",audit["publicLocations"],audit["exactPricedConnectors"])
           PY
-      - name: Validate UK ChargePoint PCPR direct connector tariffs
+      - name: Confirm unverified ChargePoint remains excluded from direct price ranking
         shell: bash
         run: |
-          set -euo pipefail
-          node production/tests/uk-eco-movement-pcpr-stage.test.mjs \
-            datalab/data/national/uk_eco_movement_pcpr_v9.json.gz \
-            datalab/reports/uk/eco-movement-pcpr-v9-staging.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path("datalab/reports/uk/eco-movement-pcpr-v9-staging.json").read_text())
+          assert report.get("readyForTariffRanking") is False
+          print("CHARGEPOINT_UK_PAYG_PROOF_PENDING: excluded from direct prices")
+          PY
       - name: Build and validate current global preview
         shell: bash
         run: |
@@ -205,51 +205,34 @@ jobs:
           python production/scripts/verify_candidate_manifest.py dist/v9-global-preview
       - name: Check OCPI PCPR pricing precedence and cross-window safeguards
         run: node production/tests/uk-ocpi-first-match.test.mjs dist/v9-global-preview/runtime/assets/v9/pricing-engine.js
-      - name: Verify deployed V9 bundle contains exact UK Ubitricity input
+      - name: Verify UK exclusions, Blink and Midhope source in built V9 registry
         shell: bash
         run: |
           set -euo pipefail
+          node production/tests/uk-midhope-verified-pricing.test.mjs
+          node production/tests/uk-midhope-source-integration.test.mjs dist/v9-global-preview/snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz
           python - <<'PY'
-          import gzip, hashlib, json
+          import json,gzip,hashlib
           from pathlib import Path
-          dist = Path('dist/v9-global-preview')
-          origin = Path('datalab/data/national/uk_ubitricity_v9.json.gz')
-          deployed = dist/'snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz'
-          assert deployed.exists(), 'Ubitricity feed absent from V9 bundle'
-          assert hashlib.sha256(origin.read_bytes()).digest() == hashlib.sha256(deployed.read_bytes()).digest(), 'Ubitricity feed differs from validated Data Lab source'
-          registry = json.loads((dist/'runtime/data/v9/source-registry.json').read_text())
-          source = next(s for s in registry['sources'] if s.get('id')=='uk-ubitricity-pcpr-payg')
-          assert source['active'] is True and source['optional'] is False
-          assert source['path']=='../snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz'
-          with gzip.open(deployed, 'rt') as fh: data=json.load(fh)
-          report = json.loads(Path('datalab/reports/uk/ubitricity-pcpr-validation-latest.json').read_text())
-          locs = data['sources'][0]['locations']
-          priced = sum(bool(c.get('validatedV9Offer')) for loc in locs for e in loc.get('evses',[]) for c in e.get('connectors',[]))
-          assert priced == report['pricedConnectors'] and len(locs)==report['locations'] and priced >= 13000
-          print(f'V9 Ubitricity ready: {len(locs)} locations / {priced} validated direct connector offers; exact source digest matched')
-          PY
-      - name: Verify ChargePoint direct PCPR tariffs and snapshot fidelity
-        shell: bash
-        run: |
-          set -euo pipefail
-          node production/tests/uk-eco-movement-pcpr-stage.test.mjs \
-            dist/v9-global-preview/snapshot-inputs/UK/sources/uk_eco_movement_pcpr_v9.json.gz \
-            datalab/reports/uk/eco-movement-pcpr-v9-staging.json
-          python - <<'PY'
-          import gzip,hashlib,json
-          from pathlib import Path
-          root=Path("dist/v9-global-preview")
-          src=Path("datalab/data/national/uk_eco_movement_pcpr_v9.json.gz")
-          dst=root/"snapshot-inputs/UK/sources/uk_eco_movement_pcpr_v9.json.gz"
-          assert dst.exists() and hashlib.sha256(src.read_bytes()).digest()==hashlib.sha256(dst.read_bytes()).digest()
-          registry=json.loads((root/"runtime/data/v9/source-registry.json").read_text())
-          s=next(x for x in registry["sources"] if x.get("id")=="uk-eco-movement-pcpr-cpo-direct")
-          assert s["active"] is True and s["optional"] is False and "tariff" in s["capabilities"]
-          payload=json.load(gzip.open(dst,"rt"))
-          report=json.loads(Path("datalab/reports/uk/eco-movement-pcpr-v9-staging.json").read_text())
-          connectors=[c for l in payload["sources"][0]["locations"] for e in l["evses"] for c in e["connectors"]]
-          assert sum(bool(c["tariff_ids"]) for c in connectors)==report["stagedRankableDirectOffers"]>0
-          print("ChargePoint PCPR V9 direct GBP TTC connector offers:",report["stagedRankableDirectOffers"])
+          dist=Path("dist/v9-global-preview")
+          dl=Path("datalab")
+          registry=json.loads((dist/"runtime/data/v9/source-registry.json").read_text())
+          by_id={s["id"]:s for s in registry["sources"]}
+          for sid in ("uk-ubitricity-pcpr-payg","uk-eco-movement-pcpr-cpo-direct"):
+              assert by_id[sid]["active"] is False and by_id[sid]["optional"] is True,sid
+          for sid in ("uk-blink-pcpr-direct","uk-connected-kerb-midhope-guest-verified"):
+              assert by_id[sid]["active"] is True and by_id[sid]["optional"] is False,sid
+          for file in ("uk_blink_pcpr_v9.json.gz","uk_connected_kerb_midhope_verified_v9.json.gz"):
+              original=dl/"data/national"/file
+              deployed=dist/"snapshot-inputs/UK/sources"/file
+              assert deployed.exists() and hashlib.sha256(original.read_bytes()).digest()==hashlib.sha256(deployed.read_bytes()).digest(),file
+          with gzip.open(dist/"snapshot-inputs/UK/sources/uk_blink_pcpr_v9.json.gz","rt") as f:
+              blink=json.load(f)
+          with gzip.open(dist/"snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz","rt") as f:
+              ck=json.load(f)
+          assert sum(len(e["connectors"]) for l in ck["sources"][0]["locations"] for e in l["evses"])==4
+          assert sum(bool(c["tariff_ids"]) for l in blink["sources"][0]["locations"] for e in l["evses"] for c in e["connectors"])==3599
+          print("UK_PRODUCTION_SCOPE_PASSED: Blink 3599, Midhope 4, Ubitricity/ChargePoint inactive")
           PY
       - name: Verify Gridserve is active and exact snapshot is deployed
         shell: bash
@@ -267,6 +250,10 @@ jobs:
           assert s["path"]=="../snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz"
           print("Gridserve V9 registry active; exact public connector source deployed")
           PY
+      - name: Validate Blink direct source and Midhope in actual built snapshot
+        run: |
+          node production/tests/uk-midhope-source-integration.test.mjs dist/v9-global-preview/snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz
+          node production/tests/uk-ocpi-first-match.test.mjs dist/v9-global-preview/runtime/assets/v9/pricing-engine.js
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
