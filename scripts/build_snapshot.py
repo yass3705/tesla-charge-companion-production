@@ -345,6 +345,35 @@ def main():
         ubi_registry["optional"]=False
         current_registry["productionIntegration"]["snapshotLocalSources"].append("uk-ubitricity-pcpr-payg")
         write_json(registry,current_registry)
+    # UK Midhope Road: independent 4-connector first-party screenshot-backed
+    # offer. Do NOT activate the general Connected Kerb unverified candidate.
+    ck_data=uk/"sources/uk_connected_kerb_midhope_verified_v9.json.gz"
+    ck_report=dl/"reports/uk/connected-kerb-midhope-runtime-stage-2026-10-10.json"
+    if ck_data.exists() and ck_report.exists():
+        with gzip.open(ck_data,"rt",encoding="utf-8") as f: ck_payload=json.load(f)
+        ck_summary=load_json(ck_report)
+        ck_sources=ck_payload.get("sources") or []
+        if len(ck_sources)!=1 or ck_sources[0].get("id")!="connected-kerb-midhope-guest-verified":
+            raise AssertionError("Midhope CPO source identity mismatch")
+        ck_locations=ck_sources[0].get("locations") or []
+        ck_evses=[e for loc in ck_locations for e in loc.get("evses",[])]
+        ck_conns=[(loc,e,c) for loc in ck_locations for e in loc.get("evses",[]) for c in e.get("connectors",[])]
+        if (len(ck_locations)!=1 or len(ck_evses)!=4 or len(ck_conns)!=4
+            or ck_summary.get("exactConnectorCount")!=4
+            or ck_summary.get("stationId")!="cd20ba89-4241-4b39-b738-514f49093e8d"
+            or any(loc.get("publish") is not True or loc.get("id")!=ck_summary["stationId"] for loc in ck_locations)
+            or set(ck_summary.get("evseIds") or [])!={e.get("evse_id") for e in ck_evses}
+            or set(ck_summary.get("connectorIds") or [])!={c.get("id") for _,_,c in ck_conns}
+            or any(c.get("validatedV9Offer",{}).get("pricing",{}).get("verifiedSourceVersion")!="2026-10-10-midhope-exact-4" for _,_,c in ck_conns)
+            or any(c.get("validatedV9Offer",{}).get("validThrough")!="2026-10-24" for _,_,c in ck_conns)):
+            raise AssertionError("Midhope 4 EVSE public exact connector tariff proof failed")
+        current_registry=load_json(registry)
+        ck_entry=next(a for a in current_registry["sources"] if a.get("id")=="uk-connected-kerb-midhope-guest-verified")
+        ck_entry["active"]=True
+        ck_entry["optional"]=False
+        locallist=current_registry.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        if ck_entry["id"] not in locallist:locallist.append(ck_entry["id"])
+        write_json(registry,current_registry)
     # Gridserve: only activate the exact, independently audited public subset.
     # Never expose the raw PCPR locations (which include depots, testing and retired sites).
     grid_data=uk/"sources/uk_gridserve_v9.json.gz"
