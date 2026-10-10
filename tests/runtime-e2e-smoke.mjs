@@ -84,7 +84,7 @@ const supplement=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/DE/d
 assert.equal(supplement.sites.length,4,'Updated German IONITY isolated unpriced sites must be 4');
 assert.equal(supplement.metadata.quarantinedNearThirdParty,8,'Ambiguous German IONITY sites must remain quarantined');
 const supplementRows=await loaders['germany-ionity-isolated-r8']({});
-assert.equal(supplementRows.length,3,'German isolated supplement loader did not retain all 3');
+assert.equal(supplementRows.length,4,'German isolated supplement loader must retain exactly four unpriced sites');
 assert.ok(supplementRows.every(s=>s.offers.length===0),'Supplemental IONITY stations must not receive guessed tariffs');
 const knownSupplementIds=new Set(supplementRows.map(s=>s.canonicalId));
 assert.equal(knownSupplementIds.size,4,'Supplemental IONITY canonical identities collide');
