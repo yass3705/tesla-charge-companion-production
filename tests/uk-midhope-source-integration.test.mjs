@@ -34,7 +34,7 @@ for(const offer of station.offers){
  assert.ok(Math.abs(crossing.totalEur-2.79984)<1e-6);
  const winter=pricing.evaluateOffer(offer,{startAt:'2026-11-02T09:00:00Z',
   durationMinutes:30,chargingMinutes:30,energyKwh:5,postChargeMinutes:0});
- assert.equal(winter.complete,false,'Winter must fail closed pending direct operator proof');
+ assert.equal(winter.complete,true,'DST conversion in Europe/London does not change price');
 }
 const old=doc.sources[0];
 const bad={...doc,sources:[{...old,locations:old.locations.map(loc=>({...loc,evses:loc.evses.map(e=>({...e,
