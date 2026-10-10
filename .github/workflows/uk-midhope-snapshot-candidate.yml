@@ -1,0 +1,80 @@
+name: UK Midhope complete V9 snapshot candidate
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/uk-midhope-snapshot-candidate.yml
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: main
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: main
+          path: datalab
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Validate original verified tariff and live four socket Data Lab file
+        run: |
+          node production/tests/uk-midhope-verified-pricing.test.mjs
+          node production/tests/uk-midhope-source-integration.test.mjs datalab/data/national/uk_connected_kerb_midhope_verified_v9.json.gz
+      - name: Assemble isolated complete V9 candidate without deploying other stale sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          STABLE_SHA="$(git -C stable rev-parse HEAD)"
+          DATALAB_SHA="$(git -C datalab rev-parse HEAD)"
+          SNAPSHOT_ID="2026-10-10-r${GITHUB_RUN_ID}"
+          python production/scripts/build_refresh_candidate_config.py \
+            --base production/config/snapshots/2026-10-06-r14-complete-left-join.json \
+            --stable-sha "$STABLE_SHA" --datalab-sha "$DATALAB_SHA" \
+            --snapshot-id "$SNAPSHOT_ID" \
+            --use-stable-tesla-data --use-country-tesla-priority --use-datalab-nl \
+            --out production/config/snapshots/midhope-test-candidate.json
+          python production/scripts/validate_snapshot.py production/config/snapshots/midhope-test-candidate.json
+          python production/scripts/validate_electra_platform_overlay.py datalab
+          python production/scripts/build_snapshot.py --stable stable --datalab datalab \
+            --config production/config/snapshots/midhope-test-candidate.json --out dist/v9-midhope-candidate
+          python production/scripts/validate_built_snapshot.py dist/v9-midhope-candidate "$SNAPSHOT_ID"
+          python production/scripts/validate_browser_asset_graph.py dist/v9-midhope-candidate
+          python production/scripts/verify_candidate_manifest.py dist/v9-midhope-candidate
+          node production/tests/uk-midhope-verified-pricing.test.mjs
+          node production/tests/uk-midhope-source-integration.test.mjs dist/v9-midhope-candidate/snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz
+          node production/tests/uk-ocpi-first-match.test.mjs dist/v9-midhope-candidate/runtime/assets/v9/pricing-engine.js
+          python - <<'PY'
+          import gzip,json,pathlib
+          root=pathlib.Path("dist/v9-midhope-candidate")
+          with gzip.open(root/"snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz","rt",encoding="utf-8") as f:p=json.load(f)
+          assert len(p["sources"])==1
+          assert sum(len(e["connectors"]) for l in p["sources"][0]["locations"] for e in l["evses"])==4
+          registry=json.loads((root/"runtime/data/v9/source-registry.json").read_text(encoding="utf-8"))
+          item=next(x for x in registry["sources"] if x.get("id")=="uk-connected-kerb-midhope-guest-verified")
+          assert item["active"] is True and item["optional"] is False
+          print("MIDHOPE_V9_CANDIDATE_SOURCE_VALIDATED: four exact EVSEs / active registry")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: midhope-v9-isolated-verified-candidate-${{ github.run_id }}
+          path: dist/v9-midhope-candidate/
+          compression-level: 0
+          retention-days: 14
