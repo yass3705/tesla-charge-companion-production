@@ -326,7 +326,11 @@ def main():
     # consistent validated artifact. Older snapshots remain buildable.
     ubi_data=uk/"sources/uk_ubitricity_v9.json.gz"
     ubi_report=dl/"reports/uk/ubitricity-pcpr-validation-latest.json"
-    if ubi_data.exists() and ubi_report.exists():
+    # Support response pending (October 2026): Ubitricity UK must NOT be
+    # activated in any V9 snapshot, regardless of a stale existing source.
+    # Re-enable explicitly only after a fresh validated CPO PAYG collection.
+    ubi_support_hold=True
+    if not ubi_support_hold and ubi_data.exists() and ubi_report.exists():
         with gzip.open(ubi_data,"rt",encoding="utf-8") as f: ubi_payload=json.load(f)
         report=load_json(ubi_report)
         source=next((s for s in ubi_payload.get("sources",[]) if s.get("id")=="ubitricity-pcpr-payg"),None)
@@ -344,6 +348,17 @@ def main():
         ubi_registry["active"]=True
         ubi_registry["optional"]=False
         current_registry["productionIntegration"]["snapshotLocalSources"].append("uk-ubitricity-pcpr-payg")
+        write_json(registry,current_registry)
+    if ubi_support_hold:
+        current_registry=load_json(registry)
+        ubi_entry=next(v for v in current_registry["sources"] if v.get("id")=="uk-ubitricity-pcpr-payg")
+        ubi_entry["active"]=False
+        ubi_entry["optional"]=True
+        # Staging file may remain for provenance, never a live source.
+        current_registry.setdefault("productionIntegration",{})["snapshotLocalSources"]=[
+            v for v in current_registry["productionIntegration"].get("snapshotLocalSources",[])
+            if v!="uk-ubitricity-pcpr-payg"
+        ]
         write_json(registry,current_registry)
     # UK Midhope Road: independent 4-connector first-party screenshot-backed
     # offer. Do NOT activate the general Connected Kerb unverified candidate.
