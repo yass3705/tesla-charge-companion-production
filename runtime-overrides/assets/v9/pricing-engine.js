@@ -382,8 +382,64 @@
     if(matchedGroups===0)return{complete:false,reason:'no_matching_tariff_component',components};
     return{complete:true,totalEur:money(total),components};
   }
+  // Verified Connected Kerb Midhope guest tariff: parking is a single
+  // continuous occupancy charge whether the connector is charging or idle.
+  // An independent idle supplement is added ONLY for not-charging minutes.
+  // This isolated type must not alter OCPI first-match semantics elsewhere.
+  function evaluateVerifiedMidhope(offer,session={}){
+    const p=offer?.pricing||{},meta=offer?.metadata||{},timeZone='Europe/London';
+    const fail=reason=>({complete:false,reason,offerId:offer?.id||null,currency:'GBP',timeZone});
+    if(p.type!=='connected_kerb_midhope_guest_verified'||meta.pricingScope!=='cpo_direct_guest_exact_connector')return fail('unverified_midhope_source');
+    if(offer.currency!=='GBP'||meta.sourceEvidence!=='midhope-guest-2026-10-10'||!meta.connectorId||!Array.isArray(offer.evseIds)||offer.evseIds.length!==1)return fail('midhope_connector_provenance_missing');
+    if(!session.startAt||typeof session.startAt!=='string'||!(/Z$|[+-]\\d\\d:\\d\\d$/.test(session.startAt)))return fail('midhope_requires_absolute_start');
+    const start=new Date(session.startAt),startMs=start.getTime();
+    if(!Number.isFinite(startMs)||start.getUTCSeconds()!==0||start.getUTCMilliseconds()!==0)return fail('midhope_requires_minute_aligned_start');
+    const energy=num(session.energyKwh),duration=num(session.durationMinutes);
+    const charging=num(session.chargingMinutes)??duration;
+    const after=num(session.postChargeMinutes)??0;
+    if([energy,duration,charging,after].some(v=>v==null||v<0||!Number.isInteger(v))||charging>duration)return fail('midhope_requires_explicit_valid_session_durations');
+    const occupied=duration+after,idle=occupied-charging;
+    if(occupied>1440)return fail('midhope_session_exceeds_verified_max_duration');
+    const per30=num(p.parkingPerStarted30minGbp),rate=num(p.energyPerKwhGbp),idleRate=num(p.idleSupplementPerMinuteGbp);
+    if(p.verifiedSourceVersion!=='2026-10-10-midhope-exact-4'||!p.includesVat||
+       per30==null||Math.abs(per30-0.80004)>1e-8||
+       rate==null||Math.abs(rate-0.39996)>1e-8||
+       idleRate==null||Math.abs(idleRate-0.01)>1e-8)return fail('midhope_unverified_tariff_values');
+    // The guest app operator evidence for winter clock shifts is not yet
+    // observed; do not calculate a future rate on an extrapolated schedule.
+    const finalMs=startMs+occupied*60000;
+    if(startMs<Date.parse('2026-10-10T00:00:00Z')||finalMs>Date.parse('2026-10-24T23:00:00Z'))return fail('midhope_winter_schedule_not_yet_verified');
+    const fmt=new Intl.DateTimeFormat('en-GB',{timeZone,weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+    const weekdays=new Set(['Mon','Tue','Wed','Thu','Fri','Sat']);
+    let paidRun=0,parkingBlocks=0,paidMinutes=0;
+    const segments=[];
+    for(let i=0;i<occupied;i++){
+      const at=new Date(startMs+i*60000),fields=fmt.formatToParts(at);
+      const get=t=>fields.find(x=>x.type===t)?.value;
+      const minute=Number(get('hour'))*60+Number(get('minute'));
+      const active=weekdays.has(get('weekday'))&&minute>=8*60+30&&minute<18*60;
+      if(active){paidRun++;paidMinutes++;}
+      if(!active||i===occupied-1){
+        if(paidRun){
+          const blocks=Math.ceil(paidRun/30);parkingBlocks+=blocks;
+          segments.push({billableMinutes:paidRun,startedHalfHourBlocks:blocks,costGbp:money(blocks*per30)});
+          paidRun=0;
+        }
+      }
+    }
+    const energyGbp=money(energy*rate),parkingGbp=money(parkingBlocks*per30),
+      idleGbp=money(idle*idleRate),total=money(energyGbp+parkingGbp+idleGbp);
+    return{complete:true,totalEur:total,currency:'GBP',offerId:offer?.id||null,timeZone,
+      segmented:segments.length>1,components:{
+        energy:energyGbp,parkingTime:{costGbp:parkingGbp,paidMinutes,startedHalfHourBlocks:parkingBlocks,segments},
+        idleSupplement:{costGbp:idleGbp,idleMinutes:idle,rateGbpPerMinute:idleRate},
+        guestPreAuthorisation:{amountGbp:25,includedInTotal:false},
+        sourcePriceBasis:'GBP including VAT, user screenshot and exact guest socket tariff'
+      }};
+  }
   function evaluateOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=session.timeZone||offer?.metadata?.timeZone||null;
+    if(pricing.type==='connected_kerb_midhope_guest_verified')return evaluateVerifiedMidhope(offer,session);
     if(pricing.type==='component_groups'){
       const base=evaluateComponentGroups(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone};
       const finalized=applyMinimumTotal(pricing,base.totalEur,base.components);return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:offer?.id||null,currency:offer?.currency||'EUR',timeZone};
