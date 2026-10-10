@@ -88,10 +88,10 @@ def main():
     assert ionity_extra.get("active") is True and ionity_extra.get("optional") is False
     extra_path=root/"snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json"
     extra=load(extra_path)
-    assert len(extra.get("sites") or [])==3, extra.get("metadata")
+    assert len(extra.get("sites") or [])==4, extra.get("metadata")
     assert extra["metadata"]["quarantinedNearThirdParty"]==8
     assert extra["metadata"]["alreadyNearNationalIonity"]==188
-    assert len({site["id"] for site in extra["sites"]})==3
+    assert len({site["id"] for site in extra["sites"]})==4
     assert all(site.get("pricing")=={} and site.get("evseIds")==[] for site in extra["sites"])
     assert all(site.get("source",{}).get("unpricedFailClosed") is True for site in extra["sites"])
     assert uk_src.get("adapter")=="uk-open-feeds-v1" and uk_src.get("path")=="../snapshot-inputs/UK/all.json.gz", uk_src
@@ -100,8 +100,11 @@ def main():
     assert ubi_src.get("adapter")=="uk-open-feeds-v1"
     assert ubi_src.get("path")=="../snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz"
     ubi_path=root/"snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz"
+    # Explicit UK support hold: a historical file may exist for provenance,
+    # but it must never become a pricing source in this V9 release.
+    assert ubi_src.get("active") is False and ubi_src.get("optional") is True
     if ubi_path.exists():
-        assert ubi_src.get("active") is True and ubi_src.get("optional") is False
+        assert ubi_src.get("active") is False and ubi_src.get("optional") is True
         with gzip.open(ubi_path,"rt",encoding="utf-8") as f: ubi=json.load(f)
         assert [s.get("id") for s in ubi.get("sources",[])]==["ubitricity-pcpr-payg"]
         locations=ubi["sources"][0].get("locations") or []
