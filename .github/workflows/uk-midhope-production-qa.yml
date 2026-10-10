@@ -1,0 +1,28 @@
+name: UK Midhope verified pricing and legacy regression
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - runtime-overrides/assets/v9/pricing-engine.js
+      - tests/uk-midhope-verified-pricing.test.mjs
+      - .github/workflows/uk-midhope-production-qa.yml
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Midhope four EVSE and parking phase regression
+        run: node tests/uk-midhope-verified-pricing.test.mjs
+      - name: Legacy OCPI first-match regression
+        run: node tests/uk-ocpi-first-match.test.mjs
+      - name: Other V9 tariff lanes regression
+        run: node tests/v9-tariff-lanes.test.mjs
+      - name: Core runtime integration regression
+        run: node tests/runtime-integration.test.mjs
