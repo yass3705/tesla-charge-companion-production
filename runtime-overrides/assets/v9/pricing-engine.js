@@ -437,8 +437,8 @@
        per30==null||Math.abs(per30-0.80004)>1e-8||
        rate==null||Math.abs(rate-0.39996)>1e-8||
        idleRate==null||Math.abs(idleRate-0.01)>1e-8)return fail('midhope_unverified_tariff_values');
-    // The guest app operator evidence for winter clock shifts is not yet
-    // observed; do not calculate a future rate on an extrapolated schedule.
+    // Guest-app 09:30-19:00 Europe/Paris is 08:30-18:00 Europe/London
+    // both before and after DST. Revalidate changes in tariffs separately.
     if(startMs<Date.parse('2026-10-10T00:00:00Z'))return fail('midhope_before_observed_tariff');
     const fmt=new Intl.DateTimeFormat('en-GB',{timeZone,weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
     const weekdays=new Set(['Mon','Tue','Wed','Thu','Fri','Sat']);
