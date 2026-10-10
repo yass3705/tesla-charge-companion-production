@@ -100,6 +100,15 @@
       if(minute!=null&&!ruleContains(rule,minute))continue;
       candidates.push({rule,status:ruleThresholdStatus(rule,session,timeZone)});
     }
+    if(pricing?.ocpiFirstMatch===true){
+      // Source OCPI price elements are ordered, and the first applicable
+      // element wins. Generic offers retain ambiguity protection below.
+      for(const candidate of candidates){
+        if(candidate.status==='unknown')return{rule:null,unknown:true,reason:'missing_rule_context'};
+        if(candidate.status==='match')return{rule:candidate.rule,unknown:false};
+      }
+      return{rule:null,unknown:false};
+    }
     const specificity=rule=>Number(rule?.scope!=='allDay')+Number((rule?.daysOfWeek??rule?.days??[]).length>0)+Number(rule?.holidayOnly===true||rule?.excludeHolidays===true)+Number(rule?.validFromDate!=null||rule?.validThroughDate!=null)+Number(rule?.minDurationMinutes!=null||rule?.maxDurationMinutes!=null)+Number(rule?.minPowerKw!=null||rule?.maxPowerKw!=null);
     candidates.sort((a,b)=>specificity(b.rule)-specificity(a.rule));
     const specificPriced=candidates.some(candidate=>candidate.rule?.scope!=='allDay'&&candidate.status!=='no_match'&&tariffRuleHasPositivePrice(candidate.rule));
@@ -377,7 +386,19 @@
       const localPricing={...pricing,rules};const match=matchingRuleDetailed(localPricing,session.startAt,timeZone,session);if(match.unknown)return{complete:false,reason:match.reason,componentKind:group.kind||null};const rule=match.rule;
       if(!rule){components.componentGroups.push({kind:group.kind||null,matched:false,costEur:0});continue;}
       matchedGroups++;
-      const evaluated=evaluateRule(rule,session);if(evaluated.complete===false)return{...evaluated,componentKind:group.kind||null};total+=evaluated.totalEur;components.componentGroups.push({kind:group.kind||null,matched:true,costEur:evaluated.totalEur,components:evaluated.components,rule});
+      // OCPI first-match time windows must be evaluated across the ENTIRE
+      // charging session. A session-start-only price is never sufficient
+      // when the tariff changes mid-session.
+      const duration=Math.max(0,num(session.durationMinutes)??0);
+      const boundary=pricing?.ocpiFirstMatch===true&&session.startAt?
+        minutesUntilRuleBoundary(rule,session.startAt,timeZone):Infinity;
+      const mustSegment=boundary!=null&&Number.isFinite(boundary)&&duration>boundary+1e-9;
+      if(mustSegment&&(num(session.postChargeMinutes)??0)>0)
+        return{complete:false,reason:'ocpi_post_charge_cross_window_requires_independent_segmentation',componentKind:group.kind||null};
+      const evaluated=mustSegment?evaluateSegmentedRules(localPricing,session,timeZone):evaluateRule(rule,session);
+      if(evaluated.complete===false)return{...evaluated,componentKind:group.kind||null};
+      total+=evaluated.totalEur;
+      components.componentGroups.push({kind:group.kind||null,matched:true,costEur:evaluated.totalEur,components:evaluated.components,rule,segmented:mustSegment});
     }
     if(matchedGroups===0)return{complete:false,reason:'no_matching_tariff_component',components};
     return{complete:true,totalEur:money(total),components};
