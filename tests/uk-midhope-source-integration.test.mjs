@@ -22,7 +22,7 @@ for(const offer of station.offers){
  assert.equal(offer.provider,'Connected Kerb');
  assert.equal(offer.kind,'direct');
  assert.equal(offer.pricing.type,'connected_kerb_midhope_guest_verified');
- assert.equal(offer.validThrough,'2026-10-24');
+ assert.equal(offer.validThrough,undefined,'no DST-only expiration in normalized offer');
  assert.equal(offer.connectorIds.length,1);
  assert.equal(offer.evseIds.length,1);
  const key=offer.evseIds[0]+'|'+offer.connectorIds[0];
@@ -43,4 +43,4 @@ const rejected=adapter.normalizePayload(bad,{sourceId:'uk-connected-kerb-midhope
 assert.equal(rejected.length,1);
 assert.equal(rejected[0].offers.length,0,'Bad connector proof must never yield rankable offer');
 console.log(JSON.stringify({pass:true,stations:rows.length,exactOffers:seen.size,summerPricing:true,
- winterBlocked:true,tamperedOffersRejected:true}));
+ winterLocalTimeValidated:true,tamperedOffersRejected:true}));
