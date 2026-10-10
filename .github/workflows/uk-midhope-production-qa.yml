@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - runtime-overrides/assets/v9/pricing-engine.js
+      - runtime-overrides/assets/v9/adapters/uk-open-feeds.js
       - tests/uk-midhope-verified-pricing.test.mjs
       - .github/workflows/uk-midhope-production-qa.yml
 permissions:
