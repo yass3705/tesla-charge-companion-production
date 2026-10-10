@@ -33,7 +33,7 @@ const sunday=pricing.evaluateOffer({currency:'GBP',pricing:window},{energyKwh:10
 assert.equal(sunday.totalEur,.5);
 assert.equal(pricing.evaluateOffer({currency:'EUR',pricing:{type:'component_groups',componentGroups:[{rules:[{scope:'timeWindow',start:'09:00',end:'10:00',pricePerKwh:.5}]}]}},{energyKwh:5,startAt:'2026-10-08T11:00:00Z'}).complete,false,'no applicable components cannot become a free price');
 const unsupported=uk.tariffPricing({currency:'GBP',elements:[{price_components:[{type:'CUSTOM',price:1}]}]});
-assert.match(unsupported.incompletePricingReason,/unsupported_component:CUSTOM/);
+assert.equal(unsupported,null,'Unsupported UK OCPI component must fail closed before creating a tariff');
 const connector={evseId:'IT*ATE*E100',connectorId:'C1',connectorType:'CCS',powerKw:150,tariffs:[{priceComponents:components.map(c=>({priceDimension:c.type,price:{incl_vat:c.price}}))}]};
 const it=atlante.connectorRule(connector,{countryCode:'IT',partyId:'ATE',operatorName:'Atlante'});
 assert.ok(it,'compound Atlante connector retained');
