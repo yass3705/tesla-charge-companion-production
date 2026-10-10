@@ -421,7 +421,10 @@ def main():
     # inheritance from station to EVSE: match only per-connector tariff_ids.
     eco_src=uk/"sources/uk_eco_movement_pcpr_v9.json.gz"
     eco_report=dl/"reports/uk/eco-movement-pcpr-v9-staging.json"
-    if eco_src.exists() and eco_report.exists():
+    # Source audit has 1,035 arithmetically staged connector prices, but
+    # direct guest checkout/VAT is not validated. Do not activate or abort
+    # unrelated verified sources: leave this registry entry inactive.
+    if eco_src.exists() and eco_report.exists() and load_json(eco_report).get("readyForTariffRanking") is True:
         report=load_json(eco_report)
         with gzip.open(eco_src,"rt",encoding="utf-8") as f:
             payload=json.load(f)
