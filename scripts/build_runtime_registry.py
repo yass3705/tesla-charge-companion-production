@@ -85,6 +85,18 @@ def build_registry(path):
       "optional":True,
       "policy":"Only connector-bound offers verified against the same Ubitricity public PAYG tariff are rankable. Rejected tariffs stay unpriced."
     })
+    upsert(sources,{
+      "id":"uk-connected-kerb-midhope-guest-verified",
+      "label":"Connected Kerb Midhope Road verified four connector guest tariff (summer 2026)",
+      "adapter":"uk-open-feeds-v1",
+      "path":"../snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+      "countries":["GB"],
+      "capabilities":["inventory","connectors","access","tariff"],
+      "priority":{"identity":95,"connectors":98,"access":70,"status":0,"tariff":160},
+      "refresh":"verified-operator-screenshot-summer-only",
+      "active":False,"optional":True,
+      "policy":"Exactly four verified public EVSE connector identities at Midhope Road. Guest tariff: 0.39996 GBP/kWh, 0.80004 GBP per started 30min parking occupancy within Mon-Sat 08:30-18:00 UK local, plus 0.01 GBP/min idle. Gross VAT; 25 GBP preauthorisation is not a fee. Winter and unsupported sessions fail closed."
+    })
     # CPO-direct PCPR offer source; exact connector and GBP/VAT-aware only.
     upsert(sources,{
       "id":"uk-eco-movement-pcpr-cpo-direct",
