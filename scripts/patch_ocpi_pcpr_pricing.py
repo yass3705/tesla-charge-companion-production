@@ -5,6 +5,15 @@ import sys
 
 p=Path(sys.argv[1])
 s=p.read_text(encoding="utf-8")
+# Production overlay now carries a fully regression-tested first-match and
+# safe segmentation implementation. Build patches are only for older pinned
+# stable engines without the new implementation; never patch it twice.
+if ("if(pricing?.ocpiFirstMatch===true){" in s and
+    "const mustSegment=" in s and
+    "evaluateSegmentedRules(localPricing,session,timeZone)" in s):
+    print("OCPI ordered precedence and segmentation already embedded in V9 production runtime")
+    sys.exit(0)
+
 needle="    const minute=minuteOfDay(startAt,timeZone),candidates=[];"
 prepend="""    // CPO PCPR: OCPI 2.2.1 selects the first matching element per dimension.
     if(pricing?.ocpiFirstMatch===true){
