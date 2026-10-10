@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/uk-midhope-snapshot-candidate.yml
+      - scripts/patch_ocpi_pcpr_pricing.py
 permissions:
   contents: read
 jobs:
