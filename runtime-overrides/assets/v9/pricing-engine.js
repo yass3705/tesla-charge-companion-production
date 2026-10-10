@@ -180,8 +180,29 @@
     if(!hasFee)return{complete:true,charged:false,totalEur:0};
     if(session.includeCongestionFees===false||session.includeCongestion===false)
       return{complete:true,charged:true,totalEur:0,included:false,thresholdSoc:num(rule?.congestionStartSoc)??80};
+    const electra=rule?.electraCongestionPolicy;
+    if(electra?.dcOnly===true&&session.chargingKind==='AC')
+      return{complete:true,charged:true,totalEur:0,included:false,excludedByAc:true};
+    if(electra?.requiresSaturation===true&&session.assumeStationSaturated!==true)
+      return{complete:false,charged:true,reason:'electra_saturation_not_confirmed'};
     const span=congestionBillableMinutes(session,num(rule?.congestionStartSoc)??80);
     if(!span.complete)return{...span,charged:true};
+    if(electra){
+      // This is an optional hypothetical *saturated DC* scenario; the real
+      // station state is not inferred. Five-minute grace starts at SOC 80.
+      const intervals=span.intervals||[];
+      const at=intervals.length?Math.min(...intervals.map(x=>x[0])):0;
+      const grace=Math.max(0,num(electra.graceMinutes)??0);
+      const billable=intervals.reduce((sum,[lo,hi])=>sum+Math.max(0,hi-Math.max(lo,at+grace)),0);
+      const price=Math.max(0,num(electra.rateEurPerMinute)??0);
+      const cap=num(electra.capEur);
+      const total=cap==null?billable*price:Math.min(billable*price,Math.max(0,cap));
+      return{complete:true,charged:true,ratePerMinute:price,
+        thresholdSoc:span.thresholdSoc,actualMinutes:span.minutes,
+        billableMinutes:billable,chargingMinutes:span.chargingMinutes,
+        postChargeMinutes:span.postChargeMinutes,graceMinutes:grace,capEur:cap,
+        saturatedAssumption:true,included:true,totalEur:money(total)};
+    }
     if(bands.some(b=>!Array.isArray(b)||b.length<3||(num(b[0])??-1)<0||
       (b[1]!=null&&(num(b[1])??-1)<=b[0])||(num(b[2])??-1)<0))
       return{complete:false,charged:true,reason:'invalid_congestion_duration_band'};
