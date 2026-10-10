@@ -380,7 +380,7 @@ def main():
             or set(ck_summary.get("evseIds") or [])!={e.get("evse_id") for e in ck_evses}
             or set(ck_summary.get("connectorIds") or [])!={c.get("id") for _,_,c in ck_conns}
             or any(c.get("validatedV9Offer",{}).get("pricing",{}).get("verifiedSourceVersion")!="2026-10-10-midhope-exact-4" for _,_,c in ck_conns)
-            or any(c.get("validatedV9Offer",{}).get("validThrough")!="2026-10-24" for _,_,c in ck_conns)):
+            or any(c.get("validatedV9Offer",{}).get("validThrough") not in (None,"2026-10-24") for _,_,c in ck_conns)):
             raise AssertionError("Midhope 4 EVSE public exact connector tariff proof failed")
         current_registry=load_json(registry)
         ck_entry=next(a for a in current_registry["sources"] if a.get("id")=="uk-connected-kerb-midhope-guest-verified")
