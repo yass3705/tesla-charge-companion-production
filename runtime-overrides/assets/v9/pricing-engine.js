@@ -390,7 +390,18 @@
     const p=offer?.pricing||{},meta=offer?.metadata||{},timeZone='Europe/London';
     const fail=reason=>({complete:false,reason,offerId:offer?.id||null,currency:'GBP',timeZone});
     if(p.type!=='connected_kerb_midhope_guest_verified'||meta.pricingScope!=='cpo_direct_guest_exact_connector')return fail('unverified_midhope_source');
-    if(offer.currency!=='GBP'||meta.sourceEvidence!=='midhope-guest-2026-10-10'||!meta.connectorId||!Array.isArray(offer.evseIds)||offer.evseIds.length!==1)return fail('midhope_connector_provenance_missing');
+    const verifiedSockets={
+      'GB*CK0*E19825':'a46c9e98-5d68-4025-989a-ab416d7ab670',
+      'GB*CK0*E19865':'d19e0ae8-1424-40d8-ae9a-b13fe6704484',
+      'GB*CK0*E19716':'f02dbb6d-7fcb-4dd0-8f51-1a27111ab5',
+      'GB*CK0*E19707':'9a1d7557-d59c-4e95-a929-b667d73843f0'
+    };
+    if(offer.currency!=='GBP'||meta.sourceEvidence!=='midhope-guest-2026-10-10'||
+       !Array.isArray(offer.evseIds)||offer.evseIds.length!==1||
+       meta.connectorId!==verifiedSockets[offer.evseIds[0]]||
+       !Array.isArray(offer.stationIds)||offer.stationIds.length!==1||
+       offer.stationIds[0]!=='cd20ba89-4241-4b39-b738-514f49093e8d')
+      return fail('midhope_connector_provenance_missing');
     if(!session.startAt||typeof session.startAt!=='string'||!(/Z$|[+-]\\d\\d:\\d\\d$/.test(session.startAt)))return fail('midhope_requires_absolute_start');
     const start=new Date(session.startAt),startMs=start.getTime();
     if(!Number.isFinite(startMs)||start.getUTCSeconds()!==0||start.getUTCMilliseconds()!==0)return fail('midhope_requires_minute_aligned_start');
