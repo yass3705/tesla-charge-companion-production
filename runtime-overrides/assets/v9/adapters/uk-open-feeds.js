@@ -120,8 +120,12 @@
        !offer.evseIds?.includes(eid)||!offer.connectorIds?.includes(cid)||!offer.stationIds?.includes(String(loc.id))||
        offer.pricing?.type!=='connected_kerb_midhope_guest_verified'||
        offer.pricing?.verifiedSourceVersion!=='2026-10-10-midhope-exact-4'||
-       offer.validThrough!=='2026-10-24')return null;
-    return offer;
+       (offer.validThrough!=null&&offer.validThrough!=='2026-10-24'))return null;
+    // Migration guard for the original 10 October compressed Data Lab snapshot.
+    // This old date reflected a speculative winter/DST expiry, not a CPO
+    // contractual end date. Do not carry it into ranking after this review.
+    const {validThrough:_seasonOnlyExpiry,...verified}=offer;
+    return verified;
   }
   function normalizeLocation(loc,source,tariffMap,{sourceId='uk-open-feeds-snapshot'}={}){
     if(!loc||!text(loc.id))return null;
