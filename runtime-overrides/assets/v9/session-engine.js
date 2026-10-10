@@ -114,6 +114,7 @@
     const rule=PricingEngine.matchingRule(pricing,session.startAt,timeZone);
     if(!rule)return{complete:false,reason:'no_matching_time_rule',offerId:text(offer?.id||offer?.offerId),timeZone};
     const base=PricingEngine.evaluateRule(rule,session);
+    if(base.complete===false)return{...base,offerId:text(offer?.id||offer?.offerId),timeZone};
     const finalized=PricingEngine.applyMinimumTotal(pricing,base.totalEur,base.components);
     return{
       complete:true,totalEur:finalized.totalEur,components:finalized.components,
@@ -168,7 +169,7 @@
       ...(Array.isArray(pricing.rules)?pricing.rules:[]),
       ...groups.flatMap(group=>group.rules||[])
     ];
-    return all.filter(rule=>num(rule?.congestionTimePerMinute)!=null&&num(rule.congestionTimePerMinute)>0);
+    return all.filter(rule=>(num(rule?.congestionTimePerMinute)||0)>0||(num(rule?.electraCongestionPolicy?.rateEurPerMinute)||0)>0||(rule?.ocpiCongestionDurationBands||[]).some(b=>Array.isArray(b)&&(num(b[2])||0)>0));
   }
 
   function evaluateStation(station,session={},options={}){
@@ -187,15 +188,21 @@
       const locked=validity.complete?evaluateSessionStartLockedOffer(offer,effectiveSession):null;
       const timeline=validity.complete&&!locked?evaluateTimelineOffer(offer,effectiveSession):null;
       const feeRules=congestionRules(offer?.pricing);
+      // Evaluate both branches for the *same exact EVSE and charging kind*.
+      // The charged branch is a hypothetical saturated-station estimate.
+      const withContext={...effectiveSession,chargingKind,includeCongestionFees:true,assumeStationSaturated:true};
+      const withoutContext={...effectiveSession,chargingKind,includeCongestionFees:false};
+      const lockedWith=validity.complete&&feeRules.length?evaluateSessionStartLockedOffer(offer,withContext):null;
+      const lockedWithout=validity.complete&&feeRules.length?evaluateSessionStartLockedOffer(offer,withoutContext):null;
       const result=validity.complete===false
         ?validity
         :unknownPostCharge&&postChargeMinutes>0
         ?{complete:false,reason:'post_charge_fee_unknown_for_station',offerId:text(offer.id||offer.offerId),postChargeMinutes}
         :feeRules.length
-        ?PricingEngine.evaluateOffer(offer,{...effectiveSession,includeCongestionFees:true})
+        ?(lockedWith||PricingEngine.evaluateOffer(offer,withContext))
         :(locked||timeline||PricingEngine.evaluateOffer(offer,effectiveSession));
       const withoutCongestion=feeRules.length&&validity.complete!==false
-        ?PricingEngine.evaluateOffer(offer,{...effectiveSession,includeCongestionFees:false}):null;
+        ?(lockedWithout||PricingEngine.evaluateOffer(offer,withoutContext)):null;
       const currency=text(result.currency||offer.currency||'EUR').toUpperCase();
       const rate=result.complete?fxRate(currency,targetCurrency,fxRates):null;
       const pricingWarning=text(offer?.metadata?.incompletePricingReason);
