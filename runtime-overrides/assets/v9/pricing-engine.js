@@ -402,7 +402,7 @@
        !Array.isArray(offer.stationIds)||offer.stationIds.length!==1||
        offer.stationIds[0]!=='cd20ba89-4241-4b39-b738-514f49093e8d')
       return fail('midhope_connector_provenance_missing');
-    if(!session.startAt||typeof session.startAt!=='string'||!(/Z$|[+-]\\d\\d:\\d\\d$/.test(session.startAt)))return fail('midhope_requires_absolute_start');
+    if(!session.startAt||typeof session.startAt!=='string'||!(/Z$|[+-]\d\d:\d\d$/.test(session.startAt)))return fail('midhope_requires_absolute_start');
     const start=new Date(session.startAt),startMs=start.getTime();
     if(!Number.isFinite(startMs)||start.getUTCSeconds()!==0||start.getUTCMilliseconds()!==0)return fail('midhope_requires_minute_aligned_start');
     const energy=num(session.energyKwh),duration=num(session.durationMinutes);
