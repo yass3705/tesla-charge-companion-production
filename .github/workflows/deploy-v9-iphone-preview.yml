@@ -1,12 +1,13 @@
 name: Temporary V9 iPhone preview
 
 on:
-  push:
-    branches:
-      - v9/interface-foundation-frozen-snapshot
-    paths:
-      - .github/workflows/deploy-v9-iphone-preview.yml
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the legacy iPhone preview to GitHub Pages
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -14,11 +15,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: v9-iphone-preview
-  cancel-in-progress: true
+  group: v9-global-pages-publish
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish == true
     runs-on: ubuntu-latest
     timeout-minutes: 55
     environment:
