@@ -25,6 +25,9 @@ on:
       - "scripts/build_runtime_registry.py"
       - "scripts/build_snapshot.py"
       - "scripts/build_germany_ionity_inventory_supplement.py"
+      - "config/germany-ionity-supplement-provenance.json"
+      - "config/electra-legacy-source-provenance.json"
+      - "tests/test_germany_ionity_supplement_provenance.py"
       - "scripts/validate_built_snapshot.py"
       - "tests/runtime-e2e-smoke.mjs"
       - "scripts/build_runtime_registry.py"
@@ -57,6 +60,8 @@ on:
       - "scripts/build_runtime_registry.py"
       - "scripts/build_snapshot.py"
       - "scripts/build_germany_ionity_inventory_supplement.py"
+      - "config/germany-ionity-supplement-provenance.json"
+      - "tests/test_germany_ionity_supplement_provenance.py"
       - "scripts/validate_built_snapshot.py"
       - "tests/runtime-e2e-smoke.mjs"
       - "scripts/tesla_tariff_priority.py"
@@ -126,7 +131,9 @@ jobs:
         with:
           path: production
       - name: Verify Pages publication gates
-        run: python3 production/tests/test_v9_pages_publish_gate.py
+        run: |
+          python3 production/tests/test_v9_pages_publish_gate.py
+          python3 -m unittest discover -s production/tests -p 'test_germany_ionity_supplement_provenance.py'
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-stable

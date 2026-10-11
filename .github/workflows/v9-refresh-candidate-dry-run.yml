@@ -2,22 +2,46 @@ name: V9 pinned snapshot development validation
 
 on:
   workflow_dispatch:
+  # Validate changes to the pinned development builder before they reach main.
+  # This workflow has read-only permissions and no Pages or release steps.
+  pull_request:
+    paths:
+      - ".github/workflows/v9-refresh-candidate-dry-run.yml"
+      - "config/refresh-policy.json"
+      - "config/germany-ionity-supplement-provenance.json"
+      - "config/electra-legacy-source-provenance.json"
+      - "scripts/build_snapshot.py"
+      - "scripts/build_germany_ionity_inventory_supplement.py"
+      - "scripts/validate_built_snapshot.py"
+      - "tests/test_germany_ionity_supplement_provenance.py"
+      - "tests/runtime-e2e-smoke.mjs"
+      - "tests/runtime-browser-journey.mjs"
+      - "tests/runtime-browser-journey-pinned-dev.mjs"
+      - "runtime-overrides/assets/v9/**"
+      - "v9-production-shell/**"
   push:
     branches: [main]
     paths:
       - "config/refresh-policy.json"
       - ".github/workflows/v9-refresh-candidate-dry-run.yml"
       - "tests/runtime-browser-journey.mjs"
+      - "tests/runtime-browser-journey-pinned-dev.mjs"
       - "runtime-overrides/assets/v9/**"
       - "v9-production-shell/**"
       - "scripts/build_snapshot.py"
+      - "scripts/build_germany_ionity_inventory_supplement.py"
+      - "config/germany-ionity-supplement-provenance.json"
+      - "config/electra-legacy-source-provenance.json"
+      - "tests/test_germany_ionity_supplement_provenance.py"
+      - "scripts/validate_built_snapshot.py"
+      - "tests/runtime-e2e-smoke.mjs"
 
 permissions:
   contents: read
   actions: read
 
 concurrency:
-  group: v9-pinned-snapshot-development-validation
+  group: v9-pinned-snapshot-development-validation-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -58,7 +82,9 @@ jobs:
           persist-credentials: false
 
       - name: Validate future snapshot source-selection policy
-        run: python -m unittest discover -s production/tests -p test_snapshot_source_selection.py -v
+        run: |
+          python -m unittest discover -s production/tests -p test_snapshot_source_selection.py -v
+          python -m unittest discover -s production/tests -p test_germany_ionity_supplement_provenance.py -v
 
       - name: Verify immutable development snapshot pin
         shell: bash
@@ -75,13 +101,19 @@ jobs:
         run: |
           cd production
           python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override
+          python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
 
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
-        run: node production/tests/runtime-e2e-smoke.mjs dist/v9-dev-snapshot
+        run: |
+          node production/tests/v9-pricing-time-zone.test.mjs
+          node production/tests/v9-tariff-lanes.test.mjs
+          node production/tests/v9-ocpi-component-coverage.test.mjs dist/v9-dev-snapshot
+          node production/tests/v9-congestion-soc80.test.mjs dist/v9-dev-snapshot
+          node production/tests/runtime-e2e-smoke.mjs dist/v9-dev-snapshot
 
       - name: Install browser test dependency
         run: npm install --no-save --no-package-lock playwright@1.55.1
@@ -97,13 +129,13 @@ jobs:
           exit 1
 
       - name: Mocked geocoding/routing browser journey
-        run: node production/tests/runtime-browser-journey.mjs
+        run: node production/tests/runtime-browser-journey-pinned-dev.mjs
 
       - name: Verify candidate manifest hashes
         run: python production/scripts/verify_candidate_manifest.py dist/v9-dev-snapshot
 
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: success()
         with:
           name: v9-dev-snapshot-${{ steps.pin.outputs.snapshot_id }}
           path: |

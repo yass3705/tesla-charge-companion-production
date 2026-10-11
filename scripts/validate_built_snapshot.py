@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import gzip
+import hashlib
 import json
 import pathlib
 import sys
+from build_germany_ionity_inventory_supplement import provenance_for, validate_result
 
 EXPECTED={"TESLA","ES","NL","CH","MA","FR","IT","DE","UK","BE"}
 
@@ -88,12 +90,13 @@ def main():
     assert ionity_extra.get("active") is True and ionity_extra.get("optional") is False
     extra_path=root/"snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json"
     extra=load(extra_path)
-    assert len(extra.get("sites") or [])==4, extra.get("metadata")
-    assert extra["metadata"]["quarantinedNearThirdParty"]==8
-    assert extra["metadata"]["alreadyNearNationalIonity"]==188
-    assert len({site["id"] for site in extra["sites"]})==4
-    assert all(site.get("pricing")=={} and site.get("evseIds")==[] for site in extra["sites"])
-    assert all(site.get("source",{}).get("unpricedFailClosed") is True for site in extra["sites"])
+    provenance=provenance_for(root/"snapshot-inputs/DE/all.json.gz",
+                              root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz",
+                              manifest["sources"]["dataLab"]["sha"])
+    validate_result(extra,provenance)
+    expected_provenance={key:provenance[key] for key in ("id","referenceDataLabSha","nationalSha256","ionitySha256")}
+    expected_provenance["checkoutDataLabSha"]=manifest["sources"]["dataLab"]["sha"]
+    assert extra["metadata"].get("provenance")==expected_provenance, "Germany IONITY supplement provenance mismatch"
     assert uk_src.get("adapter")=="uk-open-feeds-v1" and uk_src.get("path")=="../snapshot-inputs/UK/all.json.gz", uk_src
     assert de_src.get("optional") is False and uk_src.get("optional") is False
     ubi_src=sources.get("uk-ubitricity-pcpr-payg") or {}
@@ -151,16 +154,35 @@ def main():
     electra_src=sources.get("france-electra-platform") or {}
     assert electra_src.get("active") is True and electra_src.get("optional") is False, electra_src
     electra_root=root/"snapshot-inputs/FR/platforms/electra"
-    electra_manifest=load(electra_root/"manifest.json")
+    electra_manifest_path=electra_root/"manifest.json"
+    electra_manifest=load(electra_manifest_path)
     source_archive=electra_manifest.get("sourceArchive") or {}
-    assert source_archive.get("file")=="source-locations.json.gz", source_archive
-    electra_source_path=electra_root/source_archive["file"]
-    assert electra_source_path.exists(), electra_source_path
-    with gzip.open(electra_source_path,"rt",encoding="utf-8") as f:
-        electra_source=json.load(f)
-    assert len(electra_source.get("locations") or [])==int(source_archive.get("locationCount") or -1), source_archive
-    assert int(source_archive.get("evseCount") or 0)>0, source_archive
-    assert (electra_root/"source-policy.json").exists()
+    if source_archive:
+        assert source_archive.get("file")=="source-locations.json.gz", source_archive
+        electra_source_path=electra_root/source_archive["file"]
+        assert electra_source_path.exists(), electra_source_path
+        with gzip.open(electra_source_path,"rt",encoding="utf-8") as f:
+            electra_source=json.load(f)
+        assert len(electra_source.get("locations") or [])==int(source_archive.get("locationCount") or -1), source_archive
+        assert int(source_archive.get("evseCount") or 0)>0, source_archive
+    else:
+        # One immutable development pin predates the source archive. Its exact
+        # compiled manifest and every tile hash are checked instead.
+        legacy=load(pathlib.Path(__file__).resolve().parents[1]/"config/electra-legacy-source-provenance.json")
+        assert legacy["schemaVersion"]==1
+        assert manifest["snapshotId"]==legacy["snapshotId"]
+        assert manifest["sources"]["dataLab"]["sha"]==legacy["dataLabSha"]
+        assert hashlib.sha256(electra_manifest_path.read_bytes()).hexdigest()==legacy["compiledManifestSha256"]
+        assert not (electra_root/"source-locations.json.gz").exists()
+        assert int(electra_manifest["stats"]["publishedOffers"])==legacy["publishedOffers"]
+        assert int(electra_manifest["stats"]["publishedEvseIds"])==legacy["publishedEvseIds"]
+        assert electra_manifest["tileCount"]==len(electra_manifest["tiles"])==legacy["tileCount"]
+        for tile in electra_manifest["tiles"]:
+            tile_path=electra_root/tile["file"]
+            assert tile_path.is_file() and tile_path.stat().st_size==tile["bytes"]
+            assert hashlib.sha256(tile_path.read_bytes()).hexdigest()==tile["sha256"]
+    electra_source_policy=load(electra_root/"source-policy.json")
+    assert electra_source_policy.get("sourceArchive")==source_archive.get("file"), electra_source_policy
 
     avia_ch=sources.get("switzerland-avia-r8") or {}
     assert avia_ch.get("adapter")=="switzerland-avia-v1", avia_ch

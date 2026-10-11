@@ -671,13 +671,17 @@ def main():
         assert em.get("policy",{}).get("electroverseDependency") is False
         assert int((em.get("stats") or {}).get("publishedOffers") or 0) > 0
         copy_tree(electra_platform,overlays/"FR/platforms/electra")
-        if (electra_platform/"source-locations.json.gz").exists():
+        electra_source_archive=(electra_platform/"source-locations.json.gz").exists()
+        if electra_source_archive:
             copy_file(electra_platform/"source-locations.json.gz",overlays/"FR/platforms/electra/source-locations.json.gz")
-        write_json(overlays/"FR/platforms/electra/source-policy.json",{
+        electra_source_policy={
           "dataset":"Electra France complete source overlay",
-          "policy":"All compatible source locations and EVSEs are retained; compiled tiles are LEFT JOIN tariff enrichments.",
-          "sourceArchive":"source-locations.json.gz"
-        })
+          "policy":("All compatible source locations and EVSEs are retained; compiled tiles are LEFT JOIN tariff enrichments."
+                    if electra_source_archive else "Pinned historical compiled tiles only; the original source locations archive is absent.")
+        }
+        if electra_source_archive:
+            electra_source_policy["sourceArchive"]="source-locations.json.gz"
+        write_json(overlays/"FR/platforms/electra/source-policy.json",electra_source_policy)
         reg=load_json(registry)
         for src in reg.get("sources",[]):
             if src.get("id")=="france-electra-platform":
@@ -778,7 +782,8 @@ def main():
               sys.executable,
               str(production_root/"scripts/build_germany_ionity_inventory_supplement.py"),
               str(dl),
-              str(de/"direct/ionity_isolated_unpriced_supplement.json")
+              str(de/"direct/ionity_isolated_unpriced_supplement.json"),
+              "--expected-datalab-sha", cfg["sources"]["dataLab"]["sha"]
             ],check=True)
         m=load_json(source_manifest)
         ledger=load_json(ledger_src)
