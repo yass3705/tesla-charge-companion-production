@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "snapshotId": "2026-09-30-r9-electra-fr",
+  "dataLabSha": "fece067bd58916d493a9479ff9db31bcc94bef6b",
+  "stableSha": "0a6d2c3415504397310d3dc92fae40be843b2435",
+  "nationalFranceSha256": "2c9e89a95f96225cbd6b884af37de80ea019a1d23ed2a740cba810da0a160a70",
+  "electraManifestSha256": "de61eac9704f7be9b7a6cca9d483f34c700a0630fbacaeac5c81c1e26c4ee432",
+  "electraPublishedOffers": 25027,
+  "electraPublishedEvseIds": 88334,
+  "electraTileCount": 327,
+  "electroverseCacheManifestSha256": "618d6d9a0806c060fb2b76af5b39e328ab697af57bc21d515f3d72fe62ef1164",
+  "electroverseCacheShardsSha256": "c64d5767b01bdb0a9291ba724d65c38b65e83daf6957e6115fbf3581ca75fd8e",
+  "electroverseMappingSha256": "0b8e4d2c34cd92300f55f84991e782f23ee803bb7f18cb3393f6ce157ac29a78",
+  "electroverseCompilerSha256": "969c381cdfd83c490a7dcff6a4714b4d0548a11555b581953c2c65a7531a943c",
+  "electroverseExpectedStats": {
+    "cacheLocations": 22816,
+    "cacheEvses": 96552,
+    "physicalRefs": 96551,
+    "exactUniqueNationalEvses": 32761,
+    "pricedExactEvses": 31078,
+    "publishedEvses": 30676,
+    "publishedOffers": 30676,
+    "publishedConnectorCount": 42070
+  },
+  "electroverseExpectedRejected": {
+    "physical_reference_not_in_local_national_pdcs": 63786,
+    "heterogeneous_connectors_within_evse": 402,
+    "pricing_bounded_duration_range": 744,
+    "pricing_date_restriction": 929,
+    "pricing_multiple_unrestricted_rules": 5,
+    "pricing_flat_changes_after_duration": 4,
+    "physical_reference_not_globally_unique": 4,
+    "evse_missing_physical_reference": 1,
+    "pricing_energy_changes_after_duration": 1
+  }
+}

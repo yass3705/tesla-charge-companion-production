@@ -616,13 +616,23 @@ def main():
     # discarded complex and heterogeneous tariffs and is intentionally bypassed.
     evse_overlay=dl/"data/platforms/electroverse/france-evse"
     evse_manifest=evse_overlay/"manifest.json"
-    if not evse_manifest.exists():
+    historical_r9=cfg.get("snapshotId")=="2026-09-30-r9-electra-fr"
+    if historical_r9:
+        from validate_r9_historical_sources import validate_sources, validate_compiled
+        r9_record=validate_sources(cfg,dl,stable)
+        evse_overlay=overlays/"FR/platforms/electroverse"
+        subprocess.run(["node",str(production_root/"scripts/build_electroverse_r9_evse_overlay.mjs"),
+                        str(evse_overlay.resolve())],cwd=dl,check=True,stdout=subprocess.DEVNULL)
+        validate_compiled(evse_overlay,r9_record)
+        evse_manifest=evse_overlay/"manifest.json"
+    elif not evse_manifest.exists():
         raise SystemExit("Pinned Electroverse EVSE tariff overlay is missing; refusing legacy complex-tariff exclusions")
     evse_meta=load_json(evse_manifest)
     evse_stats=evse_meta.get("stats") or {}
     if int(evse_stats.get("publishedOffers") or 0)<5000:
         raise SystemExit("Pinned Electroverse EVSE overlay has incomplete tariff coverage")
-    copy_tree(evse_overlay,overlays/"FR/platforms/electroverse")
+    if not historical_r9:
+        copy_tree(evse_overlay,overlays/"FR/platforms/electroverse")
     # Preserve the complete Electroverse source cache and mapping inputs. The
     # compiled EVSE tariff tiles are an enrichment; they must never become the
     # only representation of the overlay.
@@ -630,6 +640,9 @@ def main():
     ev_mapping=dl/"data/electroverse/irve_location_mapping.json"
     if ev_source.exists(): copy_tree(ev_source,overlays/"FR/platforms/electroverse-source/tariff_cache")
     if ev_mapping.exists(): copy_file(ev_mapping,overlays/"FR/platforms/electroverse-source/irve_location_mapping.json")
+    if historical_r9:
+        copy_file(production_root/"config/r9-electra-historical-provenance.json",
+                  overlays/"FR/platforms/electroverse-source/historical-provenance.json")
     write_json(overlays/"FR/platforms/electroverse-source/README.json",{
       "dataset":"Electroverse France complete source overlay",
       "policy":"Source rows are conserved; compiled tariff tiles are a LEFT JOIN enrichment only.",
