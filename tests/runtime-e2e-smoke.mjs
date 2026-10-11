@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
@@ -81,13 +82,25 @@ assert.ok(registry.sources.some(s=>(s.countries||[]).includes('ES')&&s.active!==
 assert.ok(registry.sources.some(s=>(s.countries||[]).includes('NL')&&s.active!==false),'NL runtime sources missing');
 
 const supplement=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json'),'utf8'));
-assert.equal(supplement.sites.length,4,'Updated German IONITY isolated unpriced sites must be 4');
+const provenanceManifest=JSON.parse(fs.readFileSync(new URL('../config/germany-ionity-supplement-provenance.json',import.meta.url),'utf8'));
+const sourceDigest=file=>createHash('sha256').update(fs.readFileSync(path.join(root,'snapshot-inputs/DE',file))).digest('hex');
+const nationalSha256=sourceDigest('all.json.gz');
+const ionitySha256=sourceDigest('direct/ionity_direct_stations_germany.json.gz');
+const provenance=provenanceManifest.sources.find(source=>source.nationalSha256===nationalSha256&&source.ionitySha256===ionitySha256);
+assert.ok(provenance,'Unknown Germany IONITY source provenance');
+for(const [key,value] of Object.entries(provenance.expected))assert.equal(supplement.metadata[key],value,`Germany IONITY ${key} drift`);
+assert.deepEqual(supplement.metadata.provenance,{
+  id:provenance.id,referenceDataLabSha:provenance.referenceDataLabSha,
+  checkoutDataLabSha:JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8')).sources.dataLab.sha,
+  nationalSha256,ionitySha256
+});
+assert.equal(supplement.sites.length,provenance.expected.isolatedUnpricedSupplement);
 assert.equal(supplement.metadata.quarantinedNearThirdParty,8,'Ambiguous German IONITY sites must remain quarantined');
 const supplementRows=await loaders['germany-ionity-isolated-r8']({});
-assert.equal(supplementRows.length,4,'German isolated supplement loader must retain exactly four unpriced sites');
+assert.equal(supplementRows.length,provenance.expected.isolatedUnpricedSupplement,'German isolated supplement loader must retain the verified unpriced sites');
 assert.ok(supplementRows.every(s=>s.offers.length===0),'Supplemental IONITY stations must not receive guessed tariffs');
 const knownSupplementIds=new Set(supplementRows.map(s=>s.canonicalId));
-assert.equal(knownSupplementIds.size,4,'Supplemental IONITY canonical identities collide');
+assert.equal(knownSupplementIds.size,provenance.expected.isolatedUnpricedSupplement,'Supplemental IONITY canonical identities collide');
 
 const deAll=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/all.json.gz'))).toString('utf8'));
 const deIonity=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root,'snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz'))).toString('utf8'));

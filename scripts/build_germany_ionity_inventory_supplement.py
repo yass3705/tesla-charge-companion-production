@@ -7,14 +7,58 @@ Adds only directly observed IONITY_CPO locations with:
  - no national charging site of any operator within 250 m
 This is a conservative inventory supplement, NOT a tariff reconciliation.
 """
-import gzip, json, math, pathlib, sys
+import argparse, gzip, hashlib, json, math, pathlib, subprocess, uuid
+
+NATIONAL_FILE="germany_non_tesla_catalog_staging_direct_cpo.json.gz"
+IONITY_FILE="ionity_direct_stations_germany.json.gz"
+PROVENANCE_FILE=pathlib.Path(__file__).resolve().parents[1]/"config/germany-ionity-supplement-provenance.json"
+
+def sha256(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def provenance_for(national_path, direct_path, manifest_path=PROVENANCE_FILE):
+    manifest=json.loads(pathlib.Path(manifest_path).read_text(encoding="utf-8"))
+    if manifest.get("schemaVersion")!=1:
+        raise ValueError("Unsupported Germany IONITY provenance manifest")
+    national_hash=sha256(national_path)
+    direct_hash=sha256(direct_path)
+    matches=[entry for entry in manifest["sources"] if entry["nationalSha256"]==national_hash and entry["ionitySha256"]==direct_hash]
+    if len(matches)!=1:
+        raise ValueError(f"Unknown Germany IONITY source provenance: national={national_hash} ionity={direct_hash}")
+    return matches[0]
+
+def validate_result(result, provenance):
+    metadata=result["metadata"]
+    for field, expected in provenance["expected"].items():
+        if metadata.get(field)!=expected:
+            raise ValueError(f"Germany IONITY {provenance['id']} {field}: expected {expected}, got {metadata.get(field)}")
+    if len(metadata["quarantine"])!=metadata["quarantinedNearThirdParty"] or any(
+        item.get("reason")!="third_party_national_site_within_250m_requires_manual_identity_review"
+        for item in metadata["quarantine"]
+    ):
+        raise ValueError("Germany IONITY quarantine drift")
+    quarantine_ids=[item.get("providerUuid") for item in metadata["quarantine"]]
+    if len(set(quarantine_ids))!=len(quarantine_ids) or any(
+        pos(item) is None or not isinstance(item.get("closestNationalSiteMeters"),(int,float))
+        or item["closestNationalSiteMeters"]>250 for item in metadata["quarantine"]
+    ):
+        raise ValueError("Germany IONITY quarantine identity or proximity drift")
+    sites=result["sites"]
+    if len(sites)!=metadata["isolatedUnpricedSupplement"] or len({site["id"] for site in sites})!=len(sites):
+        raise ValueError("Germany IONITY isolated inventory identity drift")
+    if any(pos(site,True) is None or site.get("sourceStationIds")!=[site["id"].replace("ionity-direct:","ionity:")]
+           or site["id"].removeprefix("ionity-direct:") in quarantine_ids for site in sites):
+        raise ValueError("Germany IONITY isolated coordinates or provider identity drift")
+    if any(site.get("pricing")!={} or site.get("evseIds")!=[] or site.get("source",{}).get("unpricedFailClosed") is not True for site in sites):
+        raise ValueError("Germany IONITY isolated inventory must remain unpriced without EVSE identities")
+
 def read(path):
     with gzip.open(path,"rt",encoding="utf-8") as f:return json.load(f)
 def pos(o,nested=False):
     if nested:o=o.get("coordinates") or {}
     try:lat=float(o.get("latitude"));lon=float(o.get("longitude"))
     except (TypeError,ValueError):return None
-    return (lat,lon) if math.isfinite(lat) and math.isfinite(lon) else None
+    return (lat,lon) if math.isfinite(lat) and math.isfinite(lon) and -90<=lat<=90 and -180<=lon<=180 else None
 def dist(a,b):
     a,b,c,d=map(math.radians,(*a,*b))
     h=math.sin((c-a)/2)**2+math.cos(a)*math.cos(c)*math.sin((d-b)/2)**2
@@ -28,28 +72,32 @@ def build(national, direct):
     for loc in direct.get("locations") or []:
         if loc.get("country")!="DE" or loc.get("cpoIdentifier")!="IONITY_CPO":
             raise ValueError("Unexpected IONITY Germany source scope")
-        uuid=str(loc.get("uuid") or "").strip()
+        provider_uuid=str(loc.get("uuid") or "").strip()
         p=pos(loc)
-        if not uuid or uuid in ids or not p:
+        try:
+            valid_uuid=str(uuid.UUID(provider_uuid))==provider_uuid.lower()
+        except (ValueError, AttributeError):
+            valid_uuid=False
+        if not valid_uuid or provider_uuid in ids or not p:
             raise ValueError("Missing/duplicate provider UUID or invalid coordinate")
-        ids.add(uuid)
+        ids.add(provider_uuid)
         near_ionity=min((dist(p,ip) for ip,_ in ionity),default=float("inf"))
         if near_ionity<=2000:
             already+=1
             continue
         near_any=min((dist(p,np) for np,_ in positions),default=float("inf"))
-        entry={"providerUuid":uuid,"name":loc.get("name"),"latitude":p[0],"longitude":p[1],
+        entry={"providerUuid":provider_uuid,"name":loc.get("name"),"latitude":p[0],"longitude":p[1],
             "closestNationalSiteMeters":None if not math.isfinite(near_any) else round(near_any,1),
             "closestNationalIonityMeters":None if not math.isfinite(near_ionity) else round(near_ionity,1)}
         if near_any<=250:
             quarantine.append({**entry,"reason":"third_party_national_site_within_250m_requires_manual_identity_review"})
             continue
         add.append({
-            "id":"ionity-direct:"+uuid,
+            "id":"ionity-direct:"+provider_uuid,
             "operator":"IONITY",
             "name":str(loc.get("name") or "IONITY Direct"),
             "coordinates":{"latitude":p[0],"longitude":p[1]},
-            "sourceStationIds":["ionity:"+uuid],
+            "sourceStationIds":["ionity:"+provider_uuid],
             "evseIds":[],
             "maxConnectionPowerKw":max((float(c.get("powerKw")) for c in loc.get("connectors") or [] if c.get("powerKw") is not None),default=None),
             "declaredChargePoints":len(loc.get("connectors") or []),
@@ -66,18 +114,24 @@ def build(national, direct):
                    "quarantinedNearThirdParty":len(quarantine),"quarantine":quarantine,
                    "policy":"Only conservative first-party inventory additions with no site within 250m and no IONITY within 2km. No EVSE identities or tariffs inferred."}}
 if __name__=="__main__":
-    root=pathlib.Path(sys.argv[1]);out=pathlib.Path(sys.argv[2])
-    result=build(read(root/"data/national/germany_non_tesla_catalog_staging_direct_cpo.json.gz"),read(root/"data/national/ionity_direct_stations_germany.json.gz"))
-    # Updated canonical 2026-10-10 evidence: one additional direct IONITY
-    # site remains independently isolated and strictly UNPRICED. Any later
-    # scope drift must still fail closed rather than silently growing offers.
-    m=result["metadata"]
-    assert m["nationalBaselineStations"]==63405,m
-    assert m["ionitySourceLocations"]==200,m
-    assert m["alreadyNearNationalIonity"]==188,m
-    assert m["quarantinedNearThirdParty"]==8,m
-    assert m["isolatedUnpricedSupplement"]==4,m
-    assert all(not x["pricing"] and not x["evseIds"] and x["source"]["unpricedFailClosed"] for x in result["sites"])
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("datalab",type=pathlib.Path)
+    parser.add_argument("out",type=pathlib.Path)
+    parser.add_argument("--expected-datalab-sha")
+    args=parser.parse_args()
+    root=args.datalab;out=args.out
+    actual=subprocess.check_output(["git","-C",str(root),"rev-parse","HEAD"],text=True).strip()
+    if args.expected_datalab_sha:
+        if actual!=args.expected_datalab_sha:
+            raise ValueError(f"Data Lab checkout SHA mismatch: expected {args.expected_datalab_sha}, got {actual}")
+    national_path=root/"data/national"/NATIONAL_FILE
+    direct_path=root/"data/national"/IONITY_FILE
+    provenance=provenance_for(national_path,direct_path)
+    result=build(read(national_path),read(direct_path))
+    validate_result(result,provenance)
+    result["metadata"]["provenance"]={"id":provenance["id"],"referenceDataLabSha":provenance["referenceDataLabSha"],
+        "checkoutDataLabSha":actual,
+        "nationalSha256":provenance["nationalSha256"],"ionitySha256":provenance["ionitySha256"]}
     out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({k:v for k,v in result["metadata"].items() if k!="quarantine"},ensure_ascii=False))

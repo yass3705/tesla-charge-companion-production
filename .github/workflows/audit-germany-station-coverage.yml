@@ -5,6 +5,8 @@ on:
       - scripts/audit_germany_station_coverage.py
       - .github/workflows/audit-germany-station-coverage.yml
       - scripts/build_germany_ionity_inventory_supplement.py
+      - config/germany-ionity-supplement-provenance.json
+      - tests/test_germany_ionity_supplement_provenance.py
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,6 +26,8 @@ jobs:
       - name: Reconcile exact EVSE and coordinates against pinned r8
         run: |
           python production/scripts/audit_germany_station_coverage.py datalab audit/germany-station-coverage-r8.json
+      - name: Verify IONITY supplement provenance rules
+        run: python -m unittest discover -s production/tests -p test_germany_ionity_supplement_provenance.py -v
       - name: Generate conservative unpriced IONITY inventory supplement
         run: |
           python production/scripts/build_germany_ionity_inventory_supplement.py datalab audit/germany-ionity-isolated-supplement-r8.json
