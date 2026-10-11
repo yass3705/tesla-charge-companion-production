@@ -90,7 +90,7 @@
       return{complete:false,reason:'invalid_offer_validity_window',offerId:text(offer?.id||offer?.offerId),validFrom:rawFrom||null,validThrough:rawThrough||null};
     }
     if(!session.startAt)return{complete:false,reason:'offer_validity_requires_start_time',offerId:text(offer?.id||offer?.offerId),validFrom,validThrough};
-    const timeZone=session.timeZone||offer?.metadata?.timeZone||null,start=PricingEngine.localDateParts(session.startAt,timeZone);
+    const timeZone=PricingEngine.offerTimeZone(offer,session),start=PricingEngine.localDateParts(session.startAt,timeZone);
     if(!start)return{complete:false,reason:'offer_validity_local_date_unresolved',offerId:text(offer?.id||offer?.offerId),timeZone,validFrom,validThrough};
     if((validFrom&&start.key<validFrom)||(validThrough&&start.key>validThrough)){
       return{complete:false,reason:'offer_outside_validity_window',offerId:text(offer?.id||offer?.offerId),timeZone,sessionLocalDate:start.key,validFrom,validThrough};
@@ -109,8 +109,10 @@
   }
 
   function evaluateSessionStartLockedOffer(offer,session={}){
-    const pricing=offer?.pricing||{},timeZone=session.timeZone||offer?.metadata?.timeZone||null;
+    const pricing=offer?.pricing||{},timeZone=PricingEngine.offerTimeZone(offer,session);
     if(pricing.type!=='rules'||pricing.priceSelectionBasis!=='session_start_local_time')return null;
+    if(!timeZone)return{complete:false,reason:'missing_tariff_time_zone',offerId:text(offer?.id||offer?.offerId)};
+    if(!PricingEngine.localDateParts(session.startAt,timeZone))return{complete:false,reason:'invalid_tariff_time_zone',offerId:text(offer?.id||offer?.offerId),timeZone};
     const rule=PricingEngine.matchingRule(pricing,session.startAt,timeZone);
     if(!rule)return{complete:false,reason:'no_matching_time_rule',offerId:text(offer?.id||offer?.offerId),timeZone};
     const base=PricingEngine.evaluateRule(rule,session);
@@ -147,7 +149,7 @@
   }
 
   function evaluateTimelineOffer(offer,session={}){
-    const pricing=offer?.pricing||{},timeZone=session.timeZone||offer?.metadata?.timeZone||null;
+    const pricing=offer?.pricing||{},timeZone=PricingEngine.offerTimeZone(offer,session);
     if(pricing.type!=='rules'||pricing.priceSelectionBasis==='session_start_local_time'||!Array.isArray(session.chargeTimeline)||!session.chargeTimeline.length||!session.startAt)return null;
     const rule=PricingEngine.matchingRule(pricing,session.startAt,timeZone);if(!rule)return null;
     const duration=Math.max(0,num(session.durationMinutes)??0),boundary=PricingEngine.minutesUntilRuleBoundary(rule,session.startAt,timeZone);
@@ -178,6 +180,7 @@
     const targetCurrency=text(options.targetCurrency||session.targetCurrency||'EUR').toUpperCase();
     const fxRates=options.fxRates||session.fxRates||{};
     const effectiveSession=stationSession(station,session,options),km=recoveredKm(session),evaluations=[];
+    effectiveSession.stationTimeZone=station?.timeZone||station?.metadata?.timeZone||effectiveSession.stationTimeZone||null;
     if(num(effectiveSession.powerKw)==null&&chargingPowerKw!=null)effectiveSession.powerKw=chargingPowerKw;
 
     for(const offer of offers){
@@ -199,7 +202,7 @@
       const currency=text(result.currency||offer.currency||'EUR').toUpperCase();
       const rate=result.complete?fxRate(currency,targetCurrency,fxRates):null;
       const pricingWarning=text(offer?.metadata?.incompletePricingReason);
-      const comparable=result.complete&&!pricingWarning&&rate!=null;
+      const comparable=result.complete===true&&!pricingWarning&&rate!=null&&num(result.totalEur)!=null;
       const normalizedTotal=comparable?money(result.totalEur*rate):null;
       const totalWithoutCongestion=withoutCongestion?.complete&&comparable?money(withoutCongestion.totalEur*rate):null;
       const congestionMinutes=feeRules.length?PricingEngine.congestionBillableMinutes(effectiveSession,num(feeRules[0]?.congestionStartSoc)??80):null;

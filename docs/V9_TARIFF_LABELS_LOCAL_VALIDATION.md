@@ -1,10 +1,12 @@
 # V9 tariff labels and local validation — 2026-10-11
 
-Branch: `fix/v9-tariff-labels-local` (local only). Source rule: Data Lab `docs/v9-pricing-result-labels-policy-2026-10-10.md`, amended on `docs/v9-tariff-labels-validation-local`.
+Branch: `fix/v9-tariff-labels-local`, PR #36. Source rule: Data Lab `docs/v9-pricing-result-labels-policy-2026-10-10.md`, amended on `docs/v9-tariff-labels-validation-local` (PR #194).
+
+Review correction, 11 October: tariff time zone priority is `pricing.timeZone`, offer metadata, station, then session. The explicit source zone wins over a conflicting session or Mac zone; invalid source zones fail closed. The same resolver is used by offer validity, session start locked rates, timeline segmentation and general pricing. Regression cases cover DST, a local date change and a charge timeline. The Tesla display now distinguishes an identified incomplete offer (`Tarif incalculable`) from no offer (`Prix non disponible`). The bridge requires `result.complete === true` before a numeric total or cost per kilometre may enter rows, map markers or grouped rankings. No public V9 deployment is implied by these PR changes.
 
 The bridge keeps `priced`, `ambiguous`, `unresolved` and `missing` as internal lane states. It renders `Tarif incalculable` for ambiguous or unresolved offers and `Prix non disponible` for an empty lane. The lane retains offer IDs and detailed reasons in `diagnostics`. Only a complete, comparable result with a numeric total can be priced or selected as best. The existing per connector, EVSE, power and category variant path remains the boundary for comparisons.
 
-The OCPI component test exposed a separate pricing bug: `evaluateOffer` ignored the source `pricing.timeZone` when the session and offer metadata omitted a zone. A Monday UK tariff at 09:00 UTC was evaluated using the Mac's Europe/Paris clock (11:00), excluding its energy component. The engine now falls back to `pricing.timeZone`. Calendar and time-window tariffs without a zone fail closed; an invalid explicit zone also fails closed. All-day rules without a zone remain calculable. Targeted tests cover both DST transitions, an overnight window and a session crossing a tariff boundary, including under `TZ=UTC`.
+The OCPI component test exposed a separate pricing bug: `evaluateOffer` ignored the source `pricing.timeZone` when the session and offer metadata omitted a zone. A Monday UK tariff at 09:00 UTC was evaluated using the Mac's Europe/Paris clock (11:00), excluding its energy component. The engine now prioritizes `pricing.timeZone`. Calendar and time-window tariffs without a zone fail closed; an invalid explicit zone also fails closed. All-day rules without a zone remain calculable. Targeted tests cover both DST transitions, an overnight window and a session crossing a tariff boundary, including under `TZ=UTC`.
 
 The local snapshot command is run from the TCC parent directory:
 
