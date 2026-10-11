@@ -207,13 +207,17 @@ const atlanteItaly=require('../runtime-overrides/assets/v9/adapters/atlante-ital
     ]
   }]};
   const out=atlanteItaly.normalizePayload(payload,{id:'italy-atlante-r8',priority:{tariff:135}});
-  assert.equal(out.offerRules.length,1);
+  assert.equal(out.offerRules.length,2,'both exact Atlante connectors must remain visible');
   assert.equal(out.offerRules[0].provider,'Atlante direct');
   assert.ok(out.offerRules[0].evseIds.includes('IT*ATE*E123*1'));
   assert.ok(out.offerRules[0].evseIds.includes('ITATEE1231'));
-  assert.equal(out.offerRules[0].pricing.rules[0].pricePerKwh,0.69);
+  assert.equal(out.offerRules[0].pricing.type,'component_groups');
+  assert.equal(out.offerRules[0].pricing.componentGroups[0].rules[0].pricePerKwh,0.69);
   assert.equal(out.offerRules[0].metadata.matchPolicy,'exact_evse_only');
-  assert.equal(out.metadata.rejected.unsupported_or_complex,1);
+  assert.equal(out.offerRules[0].metadata.incompletePricingReason,null,'simple Atlante connector stays valid');
+  assert.match(out.offerRules[1].metadata.incompletePricingReason,/unresolved_conditions/,'complex tariff stays flagged instead of being silently treated as simple');
+  assert.equal(out.offerRules[1].evseIds[0],'IT*ATE*E123*2');
+  assert.equal(out.metadata.rejected.unsupported_or_complex||0,0);
 }
 
 console.log(JSON.stringify({
