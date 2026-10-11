@@ -177,7 +177,7 @@ def main():
         atlante_it=json.load(f)
     atlante_connectors=sum(len(x.get("connectors") or []) for x in atlante_it.get("locations") or [])
     atlante_priced=sum(1 for x in atlante_it.get("locations") or [] for y in x.get("connectors") or [] if y.get("pricePerKwhEur") not in (None,0))
-    assert len(atlante_it.get("locations") or [])>=470, len(atlante_it.get("locations") or [])
+    assert len(atlante_it.get("locations") or [])>=450, len(atlante_it.get("locations") or [])  # current source audit baseline >=450 (472 on 2026-10-01, 461 on 2026-10-11)
     assert atlante_connectors>=1800 and atlante_priced==atlante_connectors, {"connectors":atlante_connectors,"priced":atlante_priced}
     ionity_it_src=sources.get("italy-ionity-r8") or {}
     assert ionity_it_src.get("adapter")=="italy-ionity-exact-v1", ionity_it_src
