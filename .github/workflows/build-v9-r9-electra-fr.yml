@@ -15,6 +15,25 @@ on:
       - "scripts/validate_electra_platform_overlay.py"
       - "tests/runtime-e2e-smoke.mjs"
       - "tests/test_r9_historical_sources.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - "config/snapshots/2026-09-30-r9-electra-fr.json"
+      - ".github/workflows/build-v9-r9-electra-fr.yml"
+      - "scripts/build_snapshot.py"
+      - "scripts/build_electroverse_r9_evse_overlay.mjs"
+      - "scripts/validate_r9_historical_sources.py"
+      - "config/r9-electra-historical-provenance.json"
+      - "config/germany-ionity-supplement-provenance.json"
+      - "scripts/build_runtime_registry.py"
+      - "scripts/validate_built_snapshot.py"
+      - "scripts/validate_electra_platform_overlay.py"
+      - "scripts/validate_snapshot.py"
+      - "scripts/validate_stable_parity.py"
+      - "scripts/validate_browser_asset_graph.py"
+      - "scripts/verify_candidate_manifest.py"
+      - "tests/runtime-e2e-smoke.mjs"
+      - "tests/test_r9_historical_sources.py"
   workflow_dispatch:
 
 permissions:
