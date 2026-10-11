@@ -24,7 +24,7 @@ const providedThreshold={...offer,pricing:{type:'component_groups',componentGrou
 close(engine.evaluateOffer(providedThreshold,session).totalEur,4);
 const stepped={...offer,pricing:{type:'component_groups',componentGroups:[{rules:[{...rule,congestionTimeStepSeconds:900}]}]}};
 close(engine.evaluateOffer(stepped,session).totalEur,10); // 20min => 30min billable
-const segmented=engine.evaluateOffer({id:'segmented',currency:'EUR',pricing:{type:'rules',rules:[{...rule,scope:'timeWindow',start:'00:00',end:'10:10'},{...rule,scope:'timeWindow',start:'10:10',end:'24:00'}]}},session);
+const segmented=engine.evaluateOffer({id:'segmented',currency:'EUR',pricing:{type:'rules',timeZone:'UTC',rules:[{...rule,scope:'timeWindow',start:'00:00',end:'10:10'},{...rule,scope:'timeWindow',start:'10:10',end:'24:00'}]}},session);
 assert.equal(segmented.complete,true);
 close(segmented.totalEur,8);
 const unavailable=engine.evaluateOffer(offer,{energyKwh:10,durationMinutes:30});

@@ -332,7 +332,7 @@
         const group=clusters.find(item=>Math.hypot(item.x-x,item.y-y)<72);
         if(group)group.indices.push(index);else clusters.push({x,y,indices:[index]});
       });
-      markers.innerHTML=clusters.map(group=>{const nearby=group.indices.map(index=>points[index]),priced=nearby.filter(row=>num(row.evaluation?.best?.total)!=null).sort((a,b)=>a.evaluation.best.total-b.evaluation.best.total),count=group.indices.length,label=count===1?text(nearby[0].station.name||'Station'):count+' stations proches',best=priced[0]?.evaluation?.best,amount=best?formatCurrencyAmount(best.total,best.targetCurrency||currencyForCountry(nearby[0]?.station?.countryCode)):'—';return'<button type="button" class="v9-map-marker" data-indices="'+group.indices.join(',')+'" title="'+esc(label)+' · '+esc(best?'Session dès '+amount:'Tarif indisponible')+'" aria-label="Sélectionner '+esc(label)+' · '+esc(best?'session dès '+amount:'tarif indisponible')+'" style="position:absolute;left:'+group.x.toFixed(1)+'px;top:'+group.y.toFixed(1)+'px;min-width:58px;width:auto;height:30px;transform:translate(-50%,-50%);border:2px solid white;border-radius:16px;box-shadow:0 2px 8px #111a;background:'+(best?'#f4a64a':'#737b82')+';pointer-events:auto;cursor:pointer;padding:2px 8px;color:#111;font-size:12px;font-weight:800;white-space:nowrap">'+esc(amount)+(count>1?' <span style="font-size:10px">· '+count+'</span>':'')+'</button>';}).join('');
+      markers.innerHTML=clusters.map(group=>{const nearby=group.indices.map(index=>points[index]),priced=nearby.filter(row=>num(row.evaluation?.best?.total)!=null).sort((a,b)=>a.evaluation.best.total-b.evaluation.best.total),count=group.indices.length,label=count===1?text(nearby[0].station.name||'Station'):count+' stations proches',best=priced[0]?.evaluation?.best,amount=best?formatCurrencyAmount(best.total,best.targetCurrency||currencyForCountry(nearby[0]?.station?.countryCode)):'—';return'<button type="button" class="v9-map-marker" data-indices="'+group.indices.join(',')+'" title="'+esc(label)+' · '+esc(best?'Session dès '+amount:nearby.some(row=>[row.evaluation?.best,...(row.evaluation?.alternatives||[]),...(row.evaluation?.incomplete||[])].some(Boolean))?'Tarif incalculable':'Prix non disponible')+'" aria-label="Sélectionner '+esc(label)+' · '+esc(best?'session dès '+amount:nearby.some(row=>[row.evaluation?.best,...(row.evaluation?.alternatives||[]),...(row.evaluation?.incomplete||[])].some(Boolean))?'tarif incalculable':'prix non disponible')+'" style="position:absolute;left:'+group.x.toFixed(1)+'px;top:'+group.y.toFixed(1)+'px;min-width:58px;width:auto;height:30px;transform:translate(-50%,-50%);border:2px solid white;border-radius:16px;box-shadow:0 2px 8px #111a;background:'+(best?'#f4a64a':'#737b82')+';pointer-events:auto;cursor:pointer;padding:2px 8px;color:#111;font-size:12px;font-weight:800;white-space:nowrap">'+esc(amount)+(count>1?' <span style="font-size:10px">· '+count+'</span>':'')+'</button>';}).join('');
     };
     const setMode=mode=>{const map=mode==='map';if(zones)zones.style.display=map?'block':'none';if(summary)summary.style.display=map?'block':'none';if(results)results.style.display=map?'none':'';listButton?.classList.toggle('primary',!map);mapButton?.classList.toggle('primary',map);host.dataset.v9View=mode;if(map){fit();draw();}};
     const selectPoint=index=>{
@@ -375,7 +375,7 @@
 
   function displayAmount(item,fxRates={}){
     const local=text(item?.targetCurrency||'EUR').toUpperCase(),amount=num(item?.total);
-    if(amount==null)return'Tarif non disponible';
+    if(amount==null)return'Prix non disponible';
     const primary=formatCurrencyAmount(amount,local);
     if(local==='EUR')return primary;
     const rate=num(fxRates?.[local]),sourceCurrency=text(item?.currency).toUpperCase();
@@ -387,18 +387,19 @@
   function tariffLaneState(evaluation,station,category){
     const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])]
       .filter(item=>item&&offerPriceCategory(item)===category);
-    if(!offers.length)return{status:'missing',item:null,offers:[]};
+    if(!offers.length)return{status:'missing',item:null,offers:[],diagnostics:[]};
     const sourceOffers=station?.offers||[];
     const localEvseIds=new Set((station?.evses||[]).flatMap(evse=>[text(evse.id),text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)]).filter(Boolean));
+    const diagnostics=offers.map(item=>({offerId:text(item.offerId),reason:text(item.result?.reason||item.incompletePricingReason||'')}));
     if(offers.some(item=>/ambig/i.test(text(item.result?.reason))||sourceOffers.some(offer=>{
       if(text(offer?.id||offer?.offerId)!==text(item.offerId)||offer?.metadata?.tariffAmbiguous!==true)return false;
       const conflicted=offer.metadata.ambiguousPdcIds;
       return !Array.isArray(conflicted)||conflicted.some(id=>localEvseIds.has(text(id)));
-    })))return{status:'ambiguous',item:null,offers};
+    })))return{status:'ambiguous',item:null,offers,diagnostics};
     const descriptions=new Set();
     for(const item of offers){
       const source=sourceOffers.find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
-      const unresolved=item.comparable===false||num(item.total)==null;
+      const unresolved=item.comparable===false||item.result?.complete===false||num(item.total)==null;
       const signature=JSON.stringify({
         currency:text(item.currency),total:unresolved?null:Math.round(Number(item.total)*1e6)/1e6,
         pricing:source?.pricing||item.result?.matchedRule||null,
@@ -406,10 +407,10 @@
       });
       descriptions.add(signature);
     }
-    if(descriptions.size>1)return{status:'ambiguous',item:null,offers};
-    const priced=offers.find(item=>item.comparable!==false&&num(item.total)!=null);
-    if(priced)return{status:'priced',item:priced,offers};
-    return{status:'unresolved',item:null,offers};
+    if(descriptions.size>1)return{status:'ambiguous',item:null,offers,diagnostics};
+    const priced=offers.find(item=>item.comparable!==false&&item.result?.complete===true&&num(item.total)!=null);
+    if(priced)return{status:'priced',item:priced,offers,diagnostics};
+    return{status:'unresolved',item:null,offers,diagnostics};
   }
 
   function congestionLaneKey(station,evaluation,category){
@@ -457,8 +458,8 @@
   }
   function renderTariffs(evaluation,station,fxRates={},selectedSubscriptionIds=[]){
     if(isTeslaStation(station)){
-      const item=[evaluation?.best,...(evaluation?.alternatives||[])].filter(row=>row&&num(row.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0];
-      return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(displayAmount(item,fxRates))+'</div>':'<div class="v9-tesla-price">Tarif non disponible</div>';
+      const item=[evaluation?.best,...(evaluation?.alternatives||[])].filter(row=>row&&row.comparable!==false&&row.result?.complete===true&&num(row.total)!=null).sort((a,b)=>num(a.total)-num(b.total))[0];
+      return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(displayAmount(item,fxRates))+'</div>':'<div class="v9-tesla-price">Prix non disponible</div>';
     }
     const evaluated=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
     const subs=[...new Set((selectedSubscriptionIds||[]).map(text).filter(Boolean))];
@@ -478,9 +479,8 @@
       const including=congestionSelections.get(key)!==false;
       const total=hasCongestion&&!including?item.congestion.totalWithoutCongestion:item?.total;
       const displayItem=hasCongestion&&!including?{...item,total,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}:item;
-      const amount=state.status==='ambiguous'?'Tarif ambigu à vérifier auprès de l’opérateur'
-        :state.status==='unresolved'?'Tarif à vérifier auprès de l’opérateur'
-        :state.status==='priced'?displayAmount(displayItem,fxRates):'Tarif non disponible';
+      const amount=state.status==='priced'?displayAmount(displayItem,fxRates)
+        :state.status==='missing'?'Prix non disponible':'Tarif incalculable';
       const congestionAttr=hasCongestion?' data-v9-congestion-key="'+esc(key)+'" data-v9-included-total="'+esc(item.total)+'" data-v9-excluded-total="'+esc(item.congestion.totalWithoutCongestion)+'" data-v9-included-amount="'+esc(displayAmount(item,fxRates))+'" data-v9-excluded-amount="'+esc(displayAmount({...item,total:item.congestion.totalWithoutCongestion,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}},fxRates))+'"':'';
       const totalAttr=state.status==='priced'&&num(total)!=null?' data-v9-effective-total="'+esc(total)+'"':'';
       const names=[...new Set(state.offers.map(offer=>text(offer.provider)).filter(Boolean))];
@@ -749,7 +749,7 @@
       '<h3>1. Préparer la recherche</h3><p>Saisis une adresse de départ ou utilise « Position actuelle », puis règle le niveau de batterie, l’objectif et le profil de calcul.</p>'+
       '<h3>2. Choisir les réseaux</h3><p>Tous les réseaux sont sélectionnés au départ. « Tesla uniquement » limite la recherche au réseau Tesla. La liste Opérateurs permet de choisir plusieurs réseaux et applique chaque changement directement.</p>'+
       '<h3>3. Régler les filtres et lancer le calcul</h3><p>Choisis le type AC/DC, la puissance minimale et maximale, la distance et la priorité de classement. Appuie sur « Simuler » pour afficher les résultats.</p>'+
-      '<h3>4. Lire les prix</h3><p>Chaque puissance présente toujours Direct (ou l’abonnement sélectionné), Electra et Electroverse, dans cet ordre. « Prix non disponible » signifie qu’aucun prix comparable et validé n’est disponible dans cette catégorie. Le tarif le plus bas est mis en évidence.</p>'+
+      '<h3>4. Lire les prix</h3><p>Chaque puissance présente toujours Direct (ou l’abonnement sélectionné), Electra et Electroverse, dans cet ordre. « Prix non disponible » signifie qu’aucune offre tarifaire exploitable n’est identifiée dans cette catégorie; « Tarif incalculable » signale une offre identifiée sans calcul fiable. Le tarif le plus bas est mis en évidence.</p>'+
       '<h3>5. Comprendre une fiche</h3><p>Chaque fiche précise la base source de la station et le tarif de base retenu pour le calcul. Les stations sont séparées par type et puissance. Le coût par kilomètre récupéré aide au classement; le routage détaillé se lance à la demande.</p>'+
       '<h3>6. Fraîcheur des données</h3><p>En bas de page, consulte la dernière date fournie par les métadonnées de chaque base. Si la source ne donne pas de date, la page indique la date de révision du snapshot épinglé.</p>'+
       '<p class="small">Les états de disponibilité en temps réel ne sont pas utilisés. Les tarifs non validés ou non comparables restent signalés comme indisponibles.</p></div>';

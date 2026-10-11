@@ -33,8 +33,8 @@ assert.equal(lane.status,'ambiguous');
 assert.equal(ui.tariffLaneState(evaluation,s,'direct').status,'priced');
 assert.equal(ui.tariffLaneState(evaluation,s,'electroverse').status,'priced');
 const rendered=ui.renderTariffs(evaluation,s,{EUR:1},['my-subscription']);
-assert.match(rendered,/Tarif ambigu à vérifier auprès de l’opérateur/);
-assert.match(rendered,/Tarif non disponible/);
+assert.match(rendered,/Tarif incalculable/);
+assert.match(rendered,/Prix non disponible/);
 assert.ok(rendered.indexOf('Direct')<rendered.indexOf('my-subscription')&&rendered.indexOf('my-subscription')<rendered.indexOf('Electra'),'selected subscription must be between direct and Electra');
 assert.match(rendered,/5,00 €/);
 assert.match(rendered,/8,00 €/);
@@ -52,7 +52,18 @@ assert.match(chMarkup,/≈ 5,00 €/);
 assert.equal(ui.tariffLaneState({best:null,alternatives:[],incomplete:[]},s,'electra').status,'missing');
 const nonComputable={...electroverse,total:null,comparable:false,result:{complete:false,reason:'unknown_component'}};
 assert.equal(ui.tariffLaneState({best:null,alternatives:[],incomplete:[nonComputable]},s,'electroverse').status,'unresolved');
-assert.match(ui.renderTariffs({best:null,alternatives:[],incomplete:[nonComputable]},s,{}),/Tarif à vérifier auprès de l’opérateur/);
+assert.match(ui.renderTariffs({best:null,alternatives:[],incomplete:[nonComputable]},s,{}),/Tarif incalculable/);
+assert.equal(ui.tariffLaneState({best:null,alternatives:[],incomplete:[nonComputable]},s,'electroverse').diagnostics[0].reason,'unknown_component');
+assert.doesNotMatch(ui.renderTariffs({best:null,alternatives:[],incomplete:[nonComputable]},s,{}),/MEILLEUR TARIF/);
+const invalidTotal={...nonComputable,total:1,comparable:true};
+assert.equal(ui.tariffLaneState({best:invalidTotal,alternatives:[],incomplete:[]},s,'electroverse').status,'unresolved','a numeric total with an incomplete result is not a price');
+assert.equal(ui.consistentLaneEvaluation({best:invalidTotal,alternatives:[],incomplete:[]},s,[]).best,null);
+const tesla={...station('tesla'),physicalOperator:{name:'Tesla'}};
+assert.match(ui.renderTariffs({best:invalidTotal,alternatives:[],incomplete:[]},tesla,{}),/Prix non disponible/,'an incomplete Tesla total cannot be displayed as a price');
+const otherEvse=station('other',22);
+otherEvse.offers=[{id:'v-other',provider:'Electroverse',kind:'roaming',evseIds:['EVSE-other'],connectorIds:['CON-other'],pricing:{pricePerKwh:.5}}];
+const otherPrice=evaluated('v-other','Electroverse','roaming',5,{pricePerKwh:.5});
+assert.equal(ui.tariffLaneState({best:otherPrice,alternatives:[],incomplete:[]},otherEvse,'electroverse').status,'priced','a conflict on another EVSE, connector or power must not contaminate this lane');
 
 // Legacy compact migration must never silently discard competing power/EVSE tariffs.
 const tariffRow=price=>['allDay','00:00','24:00','kwh','EUR',price,0,0,0,0,0,null,[]];
@@ -95,6 +106,8 @@ assert.equal(overlap.complete,false);
 assert.equal(overlap.reason,'ambiguous_overlapping_tariff_rules');
 const ambigSingle={...electroverse,total:null,comparable:false,result:overlap};
 assert.equal(ui.tariffLaneState({best:null,alternatives:[],incomplete:[ambigSingle]},s,'electroverse').status,'ambiguous');
+assert.equal(ui.tariffLaneState({best:null,alternatives:[],incomplete:[ambigSingle]},s,'electroverse').diagnostics[0].reason,'ambiguous_overlapping_tariff_rules');
+assert.match(ui.renderTariffs({best:null,alternatives:[],incomplete:[ambigSingle]},s,{}),/Tarif incalculable/);
 // Identical rule IDs from distinct tariff sources must never overwrite each other.
 const baseStation=station('collision');
 const collision=data.applyOfferRules([baseStation],[

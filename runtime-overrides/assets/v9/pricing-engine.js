@@ -473,8 +473,15 @@
       }};
   }
   function evaluateOffer(offer,session={}){
-    const pricing=offer?.pricing||{},timeZone=session.timeZone||offer?.metadata?.timeZone||null;
+    const pricing=offer?.pricing||{},timeZone=session.timeZone||offer?.metadata?.timeZone||pricing.timeZone||null;
     if(pricing.type==='connected_kerb_midhope_guest_verified')return evaluateVerifiedMidhope(offer,session);
+    const rules=[...(pricing.rules||[]),...(pricing.componentGroups||[]).flatMap(group=>group.rules||[])];
+    const needsLocalTime=rules.some(rule=>rule.scope==='timeWindow'||rule.daysOfWeek!=null||rule.days!=null||rule.holidayOnly===true||rule.excludeHolidays===true||rule.validFromDate!=null||rule.validThroughDate!=null);
+    if(needsLocalTime&&!timeZone)return{complete:false,reason:'missing_tariff_time_zone',offerId:offer?.id||null};
+    if(timeZone){
+      try{new Intl.DateTimeFormat('en-GB',{timeZone});}
+      catch(_){return{complete:false,reason:'invalid_tariff_time_zone',offerId:offer?.id||null,timeZone};}
+    }
     if(pricing.type==='component_groups'){
       const base=evaluateComponentGroups(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone};
       const finalized=applyMinimumTotal(pricing,base.totalEur,base.components);return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:offer?.id||null,currency:offer?.currency||'EUR',timeZone};
