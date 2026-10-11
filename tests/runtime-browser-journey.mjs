@@ -32,22 +32,23 @@ try{
   // one versioned self-reload shortly after pageshow. Let that settle, then
   // require the V9 shell and stable data bootstrap again before interacting.
   await page.waitForTimeout(1200);
-  await page.waitForFunction(()=>window.__TCC_V9_SHELL__?.ready===true||window.__TCC_V9_SHELL__?.error,null,{timeout:120000});
+  // The frozen 2026-09-30 bridge has no `ready` or `error` marker fields.
+  await page.waitForFunction(()=>window.__TCC_V9_SHELL__?.mode==='candidate'
+    &&window.__TCC_V9_SHELL_CONFIG__?.snapshotId==='2026-09-30-r8'
+    &&typeof window.compare==='function'
+    &&document.querySelector('#simOperatorFilter')
+    &&document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:120000});
   shellState=await page.evaluate(()=>({marker:window.__TCC_V9_SHELL__,config:window.__TCC_V9_SHELL_CONFIG__,compareType:typeof window.compare,operatorFilter:!!document.querySelector('#simOperatorFilter')}));
-  assert.equal(shellState.marker?.error,undefined,shellState);
-  assert.equal(shellState.marker?.ready,true,shellState);
+  assert.equal(shellState.marker?.mode,'candidate',shellState);
+  assert.equal(shellState.marker?.candidateSha,'0a6d2c3415504397310d3dc92fae40be843b2435',shellState);
+  assert.equal(shellState.config?.snapshotId,'2026-09-30-r8',shellState);
+  assert.equal(shellState.compareType,'function',shellState);
   assert.equal(shellState.operatorFilter,true,shellState);
-  await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
-  const openFilterGroupFor=async id=>{
-    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
-    await group.locator('summary').click();
-  };
-  await openFilterGroupFor('simOperatorFilter');
+  // RC1 exposes these controls directly; later builds added collapsible groups.
+  assert.equal(await page.locator('details.v9-filter-group').count(),0);
   await page.locator('#simOperatorFilter').selectOption('tesla');
-  await openFilterGroupFor('simMaxDistance');
   await page.locator('#simMaxDistance').fill('100');
-  await openFilterGroupFor('simNow');
   await page.locator('#simNow').fill('20');
   await page.locator('#simTarget').fill('80');
   assert.equal(await page.locator('#simOrigin').inputValue(),'47.61764, 9.2688');
