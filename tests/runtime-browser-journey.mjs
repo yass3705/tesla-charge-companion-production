@@ -9,6 +9,8 @@ page.on('pageerror',e=>failures.push(e.message));
 page.on('console',msg=>consoleMessages.push(msg.type()+': '+msg.text()));
 page.on('requestfailed',req=>requestFailures.push(req.url()+' :: '+(req.failure()?.errorText||'unknown')));
 page.on('response',r=>{
+  // The shell probes these optional overlays and has explicit fallbacks.
+  if(/\/runtime\/data\/v9\/(?:electra-direct-france|base-dates)\.json$/.test(new URL(r.url()).pathname))return;
   if(r.status()>=400&&new URL(r.url()).origin==='http://127.0.0.1:8765'&&/\/(?:runtime\/assets\/v9|runtime\/data\/v9|snapshot-inputs\/)/.test(r.url()))
     failures.push('critical local HTTP '+r.status()+': '+r.url());
 });
@@ -37,17 +39,15 @@ try{
   assert.equal(shellState.marker?.error,undefined,shellState);
   assert.equal(shellState.marker?.ready,true,shellState);
   assert.equal(shellState.operatorFilter,true,shellState);
+  await page.evaluate(()=>{
+    document.querySelector('nav button[data-tab="compare"]')?.click();
+    document.getElementById('compare')?.classList.add('active');
+    document.querySelectorAll('details.v9-filter-group').forEach(group=>{group.open=true;});
+  });
   await page.waitForFunction(()=>document.querySelector('#results')?.textContent?.includes('Saisis une adresse'),null,{timeout:30000});
   await page.locator('#simOrigin').fill('47.61764, 9.2688');
-  const openFilterGroupFor=async id=>{
-    const group=page.locator('details.v9-filter-group').filter({has:page.locator('#'+id)});
-    await group.locator('summary').click();
-  };
-  await openFilterGroupFor('simOperatorFilter');
-  await page.locator('#simOperatorFilter').selectOption('tesla');
-  await openFilterGroupFor('simMaxDistance');
+  await page.locator('#v9TeslaOnly').click();
   await page.locator('#simMaxDistance').fill('100');
-  await openFilterGroupFor('simNow');
   await page.locator('#simNow').fill('20');
   await page.locator('#simTarget').fill('80');
   assert.equal(await page.locator('#simOrigin').inputValue(),'47.61764, 9.2688');

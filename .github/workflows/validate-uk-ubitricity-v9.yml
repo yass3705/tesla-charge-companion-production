@@ -5,7 +5,10 @@ on:
       - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
       - "scripts/build_runtime_registry.py"
       - "scripts/build_snapshot.py"
+      - "scripts/build_germany_ionity_inventory_supplement.py"
       - "scripts/validate_built_snapshot.py"
+      - "config/germany-ionity-supplement-provenance.json"
+      - "tests/test_germany_ionity_supplement_provenance.py"
       - "tests/uk-ubitricity-integration.test.mjs"
       - ".github/workflows/validate-uk-ubitricity-v9.yml"
   workflow_dispatch:
@@ -32,6 +35,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m py_compile production/scripts/build_runtime_registry.py production/scripts/build_snapshot.py production/scripts/validate_built_snapshot.py
+      - run: python -m unittest discover -s production/tests -p test_germany_ionity_supplement_provenance.py -v
       - run: node production/tests/uk-ubitricity-integration.test.mjs datalab/data/national/uk_ubitricity_v9.json.gz
       - name: Compare independent Data Lab validation report
         run: |
