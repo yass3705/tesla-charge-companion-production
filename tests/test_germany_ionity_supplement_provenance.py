@@ -41,7 +41,7 @@ class GermanyIonityProvenanceTest(unittest.TestCase):
         self.manifest_path.write_text(json.dumps({"schemaVersion": 1, "sources": [self.entry]}))
 
     def test_known_provenance_and_unpriced_inventory(self):
-        entry = provenance_for(self.national_path, self.direct_path, self.manifest_path)
+        entry = provenance_for(self.national_path, self.direct_path, "a" * 40, self.manifest_path)
         result = build(self.national, self.direct)
         validate_result(result, entry)
         self.assertEqual(result["metadata"]["alreadyNearNationalIonity"], 1)
@@ -51,10 +51,28 @@ class GermanyIonityProvenanceTest(unittest.TestCase):
     def test_changed_source_and_unknown_provenance_fail(self):
         self.direct_path.write_bytes(self.direct_path.read_bytes() + b"changed")
         with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
-            provenance_for(self.national_path, self.direct_path, self.manifest_path)
+            provenance_for(self.national_path, self.direct_path, "a" * 40, self.manifest_path)
         self.manifest_path.write_text(json.dumps({"schemaVersion": 1, "sources": []}))
         with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
-            provenance_for(self.national_path, self.direct_path, self.manifest_path)
+            provenance_for(self.national_path, self.direct_path, "a" * 40, self.manifest_path)
+
+    def test_checkout_sha_must_match_source_pair(self):
+        with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
+            provenance_for(self.national_path, self.direct_path, "b" * 40, self.manifest_path)
+        explicitly_allowed = copy.deepcopy(self.entry)
+        explicitly_allowed["id"] = "same-bytes-different-commit"
+        explicitly_allowed["referenceDataLabSha"] = "b" * 40
+        self.manifest_path.write_text(json.dumps({"schemaVersion": 1, "sources": [self.entry, explicitly_allowed]}))
+        self.assertEqual(provenance_for(self.national_path, self.direct_path, "b" * 40, self.manifest_path)["id"],
+                         "same-bytes-different-commit")
+        with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
+            provenance_for(self.national_path, self.direct_path, "c" * 40, self.manifest_path)
+        wrong_pair = copy.deepcopy(self.entry)
+        wrong_pair["referenceDataLabSha"] = "b" * 40
+        wrong_pair["ionitySha256"] = "0" * 64
+        self.manifest_path.write_text(json.dumps({"schemaVersion": 1, "sources": [wrong_pair]}))
+        with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
+            provenance_for(self.national_path, self.direct_path, "b" * 40, self.manifest_path)
 
     def test_duplicate_uuid_and_invalid_coordinate_fail(self):
         duplicate = copy.deepcopy(self.direct)
@@ -75,6 +93,25 @@ class GermanyIonityProvenanceTest(unittest.TestCase):
         result["sites"][0]["pricing"] = {"pricePerKwh": 0.5}
         with self.assertRaisesRegex(ValueError, "remain unpriced"):
             validate_result(result, self.entry)
+
+    def test_quarantine_and_evse_identity_drift_fail(self):
+        self.national["sites"].append({"operator": "Other", "coordinates": {"latitude": 51, "longitude": 9}})
+        result = build(self.national, self.direct)
+        changed = copy.deepcopy(self.entry)
+        changed["expected"]["nationalBaselineStations"] = 2
+        changed["expected"]["quarantinedNearThirdParty"] = 1
+        changed["expected"]["isolatedUnpricedSupplement"] = 0
+        validate_result(result, changed)
+        result["metadata"]["quarantine"][0]["providerUuid"] = "00000000-0000-4000-8000-000000000099"
+        result["metadata"]["quarantine"].append(copy.deepcopy(result["metadata"]["quarantine"][0]))
+        result["metadata"]["quarantinedNearThirdParty"] = 2
+        changed["expected"]["quarantinedNearThirdParty"] = 2
+        with self.assertRaisesRegex(ValueError, "quarantine identity"):
+            validate_result(result, changed)
+        clean = build({"sites": self.national["sites"][:1]}, self.direct)
+        clean["sites"][0]["evseIds"] = ["invented"]
+        with self.assertRaisesRegex(ValueError, "remain unpriced"):
+            validate_result(clean, self.entry)
 
 
 if __name__ == "__main__":

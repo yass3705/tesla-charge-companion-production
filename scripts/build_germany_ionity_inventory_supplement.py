@@ -16,15 +16,16 @@ PROVENANCE_FILE=pathlib.Path(__file__).resolve().parents[1]/"config/germany-ioni
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
-def provenance_for(national_path, direct_path, manifest_path=PROVENANCE_FILE):
+def provenance_for(national_path, direct_path, checkout_datalab_sha, manifest_path=PROVENANCE_FILE):
     manifest=json.loads(pathlib.Path(manifest_path).read_text(encoding="utf-8"))
     if manifest.get("schemaVersion")!=1:
         raise ValueError("Unsupported Germany IONITY provenance manifest")
     national_hash=sha256(national_path)
     direct_hash=sha256(direct_path)
-    matches=[entry for entry in manifest["sources"] if entry["nationalSha256"]==national_hash and entry["ionitySha256"]==direct_hash]
+    matches=[entry for entry in manifest["sources"] if entry["nationalSha256"]==national_hash
+             and entry["ionitySha256"]==direct_hash and entry["referenceDataLabSha"]==checkout_datalab_sha]
     if len(matches)!=1:
-        raise ValueError(f"Unknown Germany IONITY source provenance: national={national_hash} ionity={direct_hash}")
+        raise ValueError(f"Unknown Germany IONITY source provenance: datalab={checkout_datalab_sha} national={national_hash} ionity={direct_hash}")
     return matches[0]
 
 def validate_result(result, provenance):
@@ -126,7 +127,7 @@ if __name__=="__main__":
             raise ValueError(f"Data Lab checkout SHA mismatch: expected {args.expected_datalab_sha}, got {actual}")
     national_path=root/"data/national"/NATIONAL_FILE
     direct_path=root/"data/national"/IONITY_FILE
-    provenance=provenance_for(national_path,direct_path)
+    provenance=provenance_for(national_path,direct_path,actual)
     result=build(read(national_path),read(direct_path))
     validate_result(result,provenance)
     result["metadata"]["provenance"]={"id":provenance["id"],"referenceDataLabSha":provenance["referenceDataLabSha"],

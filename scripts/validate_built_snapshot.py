@@ -91,7 +91,8 @@ def main():
     extra_path=root/"snapshot-inputs/DE/direct/ionity_isolated_unpriced_supplement.json"
     extra=load(extra_path)
     provenance=provenance_for(root/"snapshot-inputs/DE/all.json.gz",
-                              root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz")
+                              root/"snapshot-inputs/DE/direct/ionity_direct_stations_germany.json.gz",
+                              manifest["sources"]["dataLab"]["sha"])
     validate_result(extra,provenance)
     expected_provenance={key:provenance[key] for key in ("id","referenceDataLabSha","nationalSha256","ionitySha256")}
     expected_provenance["checkoutDataLabSha"]=manifest["sources"]["dataLab"]["sha"]

@@ -28,6 +28,19 @@
       }
     },
     {
+      "id": "ubitricity-2026-10-07",
+      "referenceDataLabSha": "8e3462094dfa36d6e5623bfc9838f5fc53bab914",
+      "nationalSha256": "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318",
+      "ionitySha256": "b5153d4080209f7fa1b801f620f198a1b3dd6a799e2892722bfda76727127513",
+      "expected": {
+        "nationalBaselineStations": 63405,
+        "ionitySourceLocations": 199,
+        "alreadyNearNationalIonity": 188,
+        "quarantinedNearThirdParty": 8,
+        "isolatedUnpricedSupplement": 3
+      }
+    },
+    {
       "id": "refresh-2026-10-10",
       "referenceDataLabSha": "4930259dc78889cd59b4405f5227c5a348d610a0",
       "nationalSha256": "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318",

@@ -86,12 +86,14 @@ const provenanceManifest=JSON.parse(fs.readFileSync(new URL('../config/germany-i
 const sourceDigest=file=>createHash('sha256').update(fs.readFileSync(path.join(root,'snapshot-inputs/DE',file))).digest('hex');
 const nationalSha256=sourceDigest('all.json.gz');
 const ionitySha256=sourceDigest('direct/ionity_direct_stations_germany.json.gz');
-const provenance=provenanceManifest.sources.find(source=>source.nationalSha256===nationalSha256&&source.ionitySha256===ionitySha256);
-assert.ok(provenance,'Unknown Germany IONITY source provenance');
+const checkoutDataLabSha=JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8')).sources.dataLab.sha;
+const matchingProvenance=provenanceManifest.sources.filter(source=>source.nationalSha256===nationalSha256&&source.ionitySha256===ionitySha256&&source.referenceDataLabSha===checkoutDataLabSha);
+assert.equal(matchingProvenance.length,1,'Unknown or ambiguous Germany IONITY source provenance');
+const provenance=matchingProvenance[0];
 for(const [key,value] of Object.entries(provenance.expected))assert.equal(supplement.metadata[key],value,`Germany IONITY ${key} drift`);
 assert.deepEqual(supplement.metadata.provenance,{
   id:provenance.id,referenceDataLabSha:provenance.referenceDataLabSha,
-  checkoutDataLabSha:JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8')).sources.dataLab.sha,
+  checkoutDataLabSha,
   nationalSha256,ionitySha256
 });
 assert.equal(supplement.sites.length,provenance.expected.isolatedUnpricedSupplement);

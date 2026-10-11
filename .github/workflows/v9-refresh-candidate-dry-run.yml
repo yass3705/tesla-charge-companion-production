@@ -2,6 +2,22 @@ name: V9 pinned snapshot development validation
 
 on:
   workflow_dispatch:
+  # Validate changes to the pinned development builder before they reach main.
+  # This workflow has read-only permissions and no Pages or release steps.
+  pull_request:
+    paths:
+      - ".github/workflows/v9-refresh-candidate-dry-run.yml"
+      - "config/refresh-policy.json"
+      - "config/germany-ionity-supplement-provenance.json"
+      - "config/electra-legacy-source-provenance.json"
+      - "scripts/build_snapshot.py"
+      - "scripts/build_germany_ionity_inventory_supplement.py"
+      - "scripts/validate_built_snapshot.py"
+      - "tests/test_germany_ionity_supplement_provenance.py"
+      - "tests/runtime-e2e-smoke.mjs"
+      - "tests/runtime-browser-journey.mjs"
+      - "runtime-overrides/assets/v9/**"
+      - "v9-production-shell/**"
   push:
     branches: [main]
     paths:
@@ -23,7 +39,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: v9-pinned-snapshot-development-validation
+  group: v9-pinned-snapshot-development-validation-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
