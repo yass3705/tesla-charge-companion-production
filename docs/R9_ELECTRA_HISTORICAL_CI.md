@@ -1,0 +1,23 @@
+# r9 Electra France: immutable-source compatibility validation
+
+The `2026-09-30-r9-electra-fr` configuration pins Data Lab `fece067bd58916d493a9479ff9db31bcc94bef6b` and Stable `0a6d2c3415504397310d3dc92fae40be843b2435`. It is a historical candidate, not the current development or public snapshot.
+
+## Cause and source inventory
+
+Production commit `3b439a83fe5c8464d45e30f6d7302401d29ffb41` (8 October) replaced the station-level Electroverse flattener with a required compiled EVSE overlay for R14. `scripts/build_snapshot.py` then required `data/platforms/electroverse/france-evse/manifest.json` for every snapshot. The r9 Data Lab pin predates the first publication of that path at Data Lab `1d7d6da4caef959e6b40550ff1768dfb1e6b8ac8` (30 September, 21:37 UTC); the r9 pin was published at 19:50 UTC. Runs `38058988637`, `38059294136`, `38072559712` and `38181406471` reached the same missing-overlay guard. The guard is correct for recent snapshots, but its scope was too broad for r9.
+
+The r9 pin contains the complete 128-shard Electroverse tariff cache, its IRVE mapping, the national France identity base, and Electra's compiled EVSE tiles. Its cache manifest records 22,816 locations. The Electroverse EVSE overlay and Electra's original `source-locations.json.gz` archive are absent. [The exact source record](../config/r9-electra-historical-provenance.json) binds the snapshot and both repository commits to the national, Electra, cache, mapping, compiler and shard-set SHA-256 values. Electra's 327 tiles are individually checked against its pinned manifest. No later tariff or EVSE source is substituted.
+
+The same Data Lab pin has the older German IONITY source pair (199 direct locations, 188 already near national IONITY, eight quarantined, three isolated and unpriced). Its exact SHA/byte-hash association is recorded separately in the [IONITY provenance manifest](../config/germany-ionity-supplement-provenance.json); it cannot inherit the r8 checkout authorization merely because its source files match.
+
+The older r8 Data Lab pin `d0996b493bcfee5312b5ca1e38070df87b0d9642` also lacks the compiled Electroverse manifest; the 3 October development pin `40806cdd10c428579ed7c6b0bbecca0a01b70d12` and current Data Lab `0150f6efb89803e3577b02148e28c37024a05981` contain it. This r9 contract does not repair or authorize r8, whose workflow remains separately manual and historically incompatible.
+
+## Historical compatibility contract
+
+For this exact snapshot only, Production runs a versioned copy of the earliest EVSE-level Electroverse compiler from Data Lab commit `1d7d6da4caef959e6b40550ff1768dfb1e6b8ac8`. Its SHA-256 is pinned in the source record. The compiler is later code applied to the **original pinned cache and mapping**; the resulting candidate is a fresh reconstruction, not a claim that these compiled files existed in r9. It keeps the national France base as the EVSE identity hub and attaches Electra and Electroverse independently by exact EVSE identity. It emits 30,676 EVSE-level Electroverse offers and preserves its rejection ledger, including 744 bounded-duration and 929 date-restricted cases that this historical compiler cannot calculate. Those cases remain unpriced, not guessed or ranked. The current R14 compiler and runtime validations remain mandatory for newer snapshots and support their richer components.
+
+The former station flattener produces only 2,968 offers from this cache and rejects 19,549 complex-pricing rows. Reinstating it would silently lose calculable connector tariffs and is therefore rejected. Copying a later Data Lab overlay would change the source generation and is also rejected. An unknown source SHA, changed cache shard, mapping, Electra tile, compiler, count or rejection reason fails validation.
+
+The r9 national NL path predates the current DOT-NL snapshot-local overlay. Its legacy manifest explicitly says `scope.publishedToTcc: false`; the offline Amsterdam smoke query returns zero stations. The r9 smoke verifies that unpublished flag and records the zero result, while still checking Tesla, ES, DE, GB, FR, IT, CH and MA, including independent Electra/Electroverse attachment on the same national France hub. Current snapshots continue to require populated NL results. This is a historical coverage limit, not a successful NL validation.
+
+The historical workflow builds, validates source provenance, checks the resulting snapshot, Stable parity with the established V9 pricing-engine override, verifies the browser graph and every artifact hash, then runs the multinational smoke. It uploads a candidate only after all preceding steps succeed. It has no Pages or release deployment step. Nothing here promotes r9 or changes the public V9 site.

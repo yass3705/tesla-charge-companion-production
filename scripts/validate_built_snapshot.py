@@ -5,6 +5,7 @@ import json
 import pathlib
 import sys
 from build_germany_ionity_inventory_supplement import provenance_for, validate_result
+from validate_r9_historical_sources import load_record, validate_compiled, validate_built_sources
 
 EXPECTED={"TESLA","ES","NL","CH","MA","FR","IT","DE","UK","BE"}
 
@@ -151,6 +152,10 @@ def main():
     assert (ev_source_root/"irve_location_mapping.json").exists(), "Electroverse source mapping missing"
     ev_cache=load(ev_source_root/"tariff_cache/manifest.json")
     assert int(ev_cache.get("totalStations") or ev_cache.get("stationCount") or 0)>0, ev_cache
+    if manifest["snapshotId"]=="2026-09-30-r9-electra-fr":
+        r9_record=load_record(manifest)
+        validate_built_sources(ev_source_root,r9_record)
+        validate_compiled(ev_manifest_path.parent,r9_record)
     electra_src=sources.get("france-electra-platform") or {}
     assert electra_src.get("active") is True and electra_src.get("optional") is False, electra_src
     electra_root=root/"snapshot-inputs/FR/platforms/electra"
@@ -166,9 +171,18 @@ def main():
         assert len(electra_source.get("locations") or [])==int(source_archive.get("locationCount") or -1), source_archive
         assert int(source_archive.get("evseCount") or 0)>0, source_archive
     else:
-        # One immutable development pin predates the source archive. Its exact
-        # compiled manifest and every tile hash are checked instead.
-        legacy=load(pathlib.Path(__file__).resolve().parents[1]/"config/electra-legacy-source-provenance.json")
+        # Only explicitly recorded immutable pins may lack the Electra source
+        # archive; their compiled manifest and every tile remain verified.
+        if manifest["snapshotId"]=="2026-09-30-r9-electra-fr":
+            r9_record=load_record(manifest)
+            legacy={"schemaVersion":1,"snapshotId":r9_record["snapshotId"],
+                    "dataLabSha":r9_record["dataLabSha"],
+                    "compiledManifestSha256":r9_record["electraManifestSha256"],
+                    "publishedOffers":r9_record["electraPublishedOffers"],
+                    "publishedEvseIds":r9_record["electraPublishedEvseIds"],
+                    "tileCount":r9_record["electraTileCount"]}
+        else:
+            legacy=load(pathlib.Path(__file__).resolve().parents[1]/"config/electra-legacy-source-provenance.json")
         assert legacy["schemaVersion"]==1
         assert manifest["snapshotId"]==legacy["snapshotId"]
         assert manifest["sources"]["dataLab"]["sha"]==legacy["dataLabSha"]

@@ -6,9 +6,15 @@ on:
       - "config/snapshots/2026-09-30-r9-electra-fr.json"
       - ".github/workflows/build-v9-r9-electra-fr.yml"
       - "scripts/build_snapshot.py"
+      - "scripts/build_electroverse_r9_evse_overlay.mjs"
+      - "scripts/validate_r9_historical_sources.py"
+      - "config/r9-electra-historical-provenance.json"
+      - "config/germany-ionity-supplement-provenance.json"
       - "scripts/build_runtime_registry.py"
+      - "scripts/validate_built_snapshot.py"
       - "scripts/validate_electra_platform_overlay.py"
       - "tests/runtime-e2e-smoke.mjs"
+      - "tests/test_r9_historical_sources.py"
   workflow_dispatch:
 
 permissions:
@@ -35,9 +41,15 @@ jobs:
           ref: fece067bd58916d493a9479ff9db31bcc94bef6b
           path: datalab
           persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Validate pinned Electra national-EVSE overlay
         run: python production/scripts/validate_electra_platform_overlay.py datalab
+
+      - name: Verify historical pin guards and negative cases
+        run: python -m unittest discover -s production/tests -p test_r9_historical_sources.py -v
 
       - name: Verify config pins exact Data Lab commit
         run: |
@@ -63,8 +75,9 @@ jobs:
             --config config/snapshots/2026-09-30-r9-electra-fr.json \
             --out ../dist/v9-2026-09-30-r9-electra-fr
           python scripts/validate_built_snapshot.py ../dist/v9-2026-09-30-r9-electra-fr 2026-09-30-r9-electra-fr
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r9-electra-fr
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-2026-09-30-r9-electra-fr --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-2026-09-30-r9-electra-fr
+          python scripts/verify_candidate_manifest.py ../dist/v9-2026-09-30-r9-electra-fr
 
       - name: Require independent Electra and Electroverse overlays on France national hub
         env:

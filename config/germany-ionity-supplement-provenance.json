@@ -15,6 +15,19 @@
       }
     },
     {
+      "id": "r9-electra-2026-09-30",
+      "referenceDataLabSha": "fece067bd58916d493a9479ff9db31bcc94bef6b",
+      "nationalSha256": "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318",
+      "ionitySha256": "cc2a46e61b0e491a8d5b3228a2cf018299a193706ed1ff6780729360110c2c56",
+      "expected": {
+        "nationalBaselineStations": 63405,
+        "ionitySourceLocations": 199,
+        "alreadyNearNationalIonity": 188,
+        "quarantinedNearThirdParty": 8,
+        "isolatedUnpricedSupplement": 3
+      }
+    },
+    {
       "id": "dev-2026-10-03",
       "referenceDataLabSha": "40806cdd10c428579ed7c6b0bbecca0a01b70d12",
       "nationalSha256": "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318",
