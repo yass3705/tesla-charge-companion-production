@@ -1,0 +1,23 @@
+name: Test NL DOT-NL OCPI time and rounding pricing
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - runtime-overrides/assets/v9/adapters/netherlands-dotnl.js
+      - runtime-overrides/assets/v9/pricing-engine.js
+      - tests/netherlands-dotnl-ocpi-pricing.test.mjs
+      - .github/workflows/test-netherlands-dotnl-ocpi.yml
+permissions:
+  contents: read
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify V9 NL OCPI 2.2.1 exact billable session calculations
+        run: node tests/netherlands-dotnl-ocpi-pricing.test.mjs
