@@ -126,8 +126,8 @@ try{
       {id:'direct',provider:'Electra',kind:'direct',pricing:{type:'rules',rules:[{pricePerKwh:.5,congestionTimePerMinute:.1}]}},
       {id:'evr',provider:'Electroverse',kind:'roaming',pricing:{type:'rules',rules:[{pricePerKwh:.6}]}}
     ]};
-    const quote={chargingConnectorId:'CCS-1',best:{offerId:'evr',provider:'Electroverse',kind:'roaming',total:9.5,currency:'EUR',targetCurrency:'EUR',comparable:true},
-      alternatives:[{offerId:'direct',provider:'Electra',kind:'direct',total:10,currency:'EUR',targetCurrency:'EUR',comparable:true,result:{totalEur:10},congestion:{available:true,totalWithoutCongestion:8,sourceCurrencyTotalWithout:8,thresholdSoc:80,thresholdSource:'default_soc80',minutes:10}}],incomplete:[]};
+    const quote={chargingConnectorId:'CCS-1',best:{offerId:'evr',provider:'Electroverse',kind:'roaming',total:9.5,currency:'EUR',targetCurrency:'EUR',comparable:true,result:{complete:true,totalEur:9.5}},
+      alternatives:[{offerId:'direct',provider:'Electra',kind:'direct',total:10,currency:'EUR',targetCurrency:'EUR',comparable:true,result:{complete:true,totalEur:10},congestion:{available:true,totalWithoutCongestion:8,sourceCurrencyTotalWithout:8,thresholdSoc:80,thresholdSource:'default_soc80',minutes:10}}],incomplete:[]};
     const el=document.createElement('div');el.id='v9CongestionBrowserTest';el.innerHTML=ui.renderTariffs(quote,st,{EUR:1});document.body.appendChild(el);
     const direct=el.querySelector('[data-v9-lane-label="Direct"]'),other=el.querySelector('[data-v9-lane-label="Electroverse"]'),toggle=direct?.querySelector('.v9-congestion-toggle');
     if(!toggle||toggle.getAttribute('aria-pressed')!=='true'||direct.querySelector('.v9-lane-amount')?.textContent!=='10,00 €')throw Error('Congestion default UI missing');

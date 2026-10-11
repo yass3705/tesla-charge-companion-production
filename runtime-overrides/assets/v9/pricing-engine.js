@@ -6,6 +6,9 @@
   'use strict';
   const num=v=>{if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const money=v=>Math.round((Number(v)+Number.EPSILON)*1000000)/1000000;
+  function offerTimeZone(offer,session={}){
+    return offer?.pricing?.timeZone||offer?.metadata?.timeZone||session.stationTimeZone||session.timeZone||null;
+  }
   function minuteOfDay(value,timeZone){
     if(typeof value==='number'&&Number.isFinite(value))return ((Math.floor(value)%1440)+1440)%1440;
     const d=value instanceof Date?value:new Date(value);if(Number.isNaN(d.getTime()))return null;
@@ -473,8 +476,15 @@
       }};
   }
   function evaluateOffer(offer,session={}){
-    const pricing=offer?.pricing||{},timeZone=session.timeZone||offer?.metadata?.timeZone||null;
+    const pricing=offer?.pricing||{},timeZone=offerTimeZone(offer,session);
     if(pricing.type==='connected_kerb_midhope_guest_verified')return evaluateVerifiedMidhope(offer,session);
+    const rules=[...(pricing.rules||[]),...(pricing.componentGroups||[]).flatMap(group=>group.rules||[])];
+    const needsLocalTime=rules.some(rule=>rule.scope==='timeWindow'||rule.daysOfWeek!=null||rule.days!=null||rule.holidayOnly===true||rule.excludeHolidays===true||rule.validFromDate!=null||rule.validThroughDate!=null);
+    if(needsLocalTime&&!timeZone)return{complete:false,reason:'missing_tariff_time_zone',offerId:offer?.id||null};
+    if(timeZone){
+      try{new Intl.DateTimeFormat('en-GB',{timeZone});}
+      catch(_){return{complete:false,reason:'invalid_tariff_time_zone',offerId:offer?.id||null,timeZone};}
+    }
     if(pricing.type==='component_groups'){
       const base=evaluateComponentGroups(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone};
       const finalized=applyMinimumTotal(pricing,base.totalEur,base.components);return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:offer?.id||null,currency:offer?.currency||'EUR',timeZone};
@@ -507,5 +517,5 @@
     const finalized=applyMinimumTotal(pricing,total,components);
     return{complete:!longConnection,totalEur:finalized.totalEur,components:finalized.components,longConnection,offerId:offer?.id||null,currency:offer?.currency||'EUR',matchedRule:rule,segmented,timeZone};
   }
-  return{congestionBillableMinutes,congestionFee,evaluateOffer,evaluateRule,evaluateSegmentedRules,evaluateComponentGroups,segmentableRule,ruleThresholdStatus,ruleThresholdMatches,matchingRuleDetailed,evaluateConditionalSessionFees,evaluatePostChargeFee,postChargeBillableMinutes,exemptWindowContains,matchingRule,ruleContains,ruleDayMatches,localDateParts,isHoliday,italianHolidayKeys,minuteOfDay,minutesUntilRuleBoundary,applyMinimumTotal};
+  return{congestionBillableMinutes,congestionFee,evaluateOffer,offerTimeZone,evaluateRule,evaluateSegmentedRules,evaluateComponentGroups,segmentableRule,ruleThresholdStatus,ruleThresholdMatches,matchingRuleDetailed,evaluateConditionalSessionFees,evaluatePostChargeFee,postChargeBillableMinutes,exemptWindowContains,matchingRule,ruleContains,ruleDayMatches,localDateParts,isHoliday,italianHolidayKeys,minuteOfDay,minutesUntilRuleBoundary,applyMinimumTotal};
 });

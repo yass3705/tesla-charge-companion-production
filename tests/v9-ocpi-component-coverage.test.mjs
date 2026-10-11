@@ -29,6 +29,7 @@ const window=uk.tariffPricing({currency:'GBP',elements:[
 assert.deepEqual(window.componentGroups[0].rules[0].days,[1]);
 const monday=pricing.evaluateOffer({currency:'GBP',pricing:window},{energyKwh:10,durationMinutes:30,powerKw:22,startAt:'2026-10-05T09:00:00Z'});
 assert.equal(monday.totalEur,2.5);
+assert.equal(monday.timeZone,'Europe/London','the source tariff time zone must govern day and time restrictions');
 const sunday=pricing.evaluateOffer({currency:'GBP',pricing:window},{energyKwh:10,durationMinutes:30,powerKw:22,startAt:'2026-10-04T09:00:00Z'});
 assert.equal(sunday.totalEur,.5);
 assert.equal(pricing.evaluateOffer({currency:'EUR',pricing:{type:'component_groups',componentGroups:[{rules:[{scope:'timeWindow',start:'09:00',end:'10:00',pricePerKwh:.5}]}]}},{energyKwh:5,startAt:'2026-10-08T11:00:00Z'}).complete,false,'no applicable components cannot become a free price');

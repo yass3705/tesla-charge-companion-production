@@ -50,7 +50,7 @@ lully.station.evses = [
   { id: 'low', pdcIds: ['p1', 'p2', 'p3'], connectors: [{ id: 'low-connector', powerKw: 7.4 }] },
   { id: 'high', pdcIds: ['p4'], connectors: [{ id: 'high-connector', powerKw: 22.1 }] },
 ];
-lully.evaluation = { chargingConnectorId: 'high-connector', best: { total: 5 } };
+lully.evaluation = { chargingConnectorId: 'high-connector', best: { total: 5, result:{complete:true} } };
 const mixedPowers = groupRows([lully]);
 assert.equal(mixedPowers.length, 2);
 assert.equal(mixedPowers.find(x => x.displayPowerKw === 7).pointCount, 3);
@@ -65,7 +65,7 @@ electra.station.evses = [
   { id: 'dc600', connectors: [{ id: 'dc600', kind: 'DC', powerKw: 600 }] },
 ];
 electra.station.offers = [{ id: 'electra-direct', connectorKinds: ['DC'], metadata: { energyOnly: true } }];
-electra.evaluation = { chargingConnectorId: 'dc600', best: { offerId: 'electra-direct', total: 4.9, provider: 'Electra direct' } };
+electra.evaluation = { chargingConnectorId: 'dc600', best: { offerId: 'electra-direct', total: 4.9, provider: 'Electra direct', result:{complete:true} } };
 const electraRows = groupRows([electra]);
 assert.equal(electraRows.length, 4);
 assert.ok(electraRows.filter(x => x.displayPowerKw >= 100).every(x => x.total === 4.9), 'energy-only price should cover every eligible DC power');
@@ -76,7 +76,7 @@ teslaTracker.station.address = '2 Avenue Charles de Gaulle, Le Chesnay 78150, Fr
 teslaTracker.station.latitude = 48.828051;
 teslaTracker.station.longitude = 2.11910;
 teslaTracker.station.evses = Array.from({length:12}, (_,index)=>({id:'tracker-'+index,pdcIds:['tracker-'+index],connectors:[{kind:'DC',powerKw:250}]}));
-teslaTracker.evaluation = {best:{offerId:'tesla-price',provider:'Tesla',kind:'direct',total:8,comparable:true,result:{totalEur:8}}};
+teslaTracker.evaluation = {best:{offerId:'tesla-price',provider:'Tesla',kind:'direct',total:8,comparable:true,result:{complete:true,totalEur:8}}};
 const teslaIrve = row('FRTSLP11192', 250, 'Tesla', 'Le Chesnay, France');
 teslaIrve.station.address = '2, Avenue Charles de Gaulle, 78158';
 teslaIrve.station.latitude = 48.82805;
@@ -95,5 +95,12 @@ const unroutedTesla=row('tangier',250,'Tesla','Tangier');unroutedTesla.station.c
 const noRoute=rowsFromArea({stations:[unroutedTesla.station],sessionEvaluations:{tangier:{best:{total:76.63}}}}, {lat:35.75,lon:-5.79});
 assert.equal(noRoute[0].distanceEstimated,true);
 assert.equal(rankRows(noRoute,'balanced',20).length,1,'a priced Tesla station must remain visible when routing fails');
+assert.equal(noRoute[0].total,null,'a numeric total without a complete result cannot enter ranking');
+const incompleteNumeric={...teslaTracker.station,id:'incomplete-numeric'};
+const unsafe=rowsFromArea({stations:[incompleteNumeric],sessionEvaluations:{'incomplete-numeric':{best:{total:1,costPerRecoveredKm:.01,comparable:true,result:{complete:false,totalEur:1,reason:'missing_component'}}}}});
+assert.equal(unsafe[0].total,null);
+assert.equal(unsafe[0].costPerKm,null);
+assert.equal(groupRows(unsafe)[0].total,null);
+assert.equal(rankRows([{...unsafe[0],total:1,distanceKm:1}, {...teslaTracker,total:8,distanceKm:2}], 'price')[0].station.id,'tesla-le-chesnay-france','a numeric incomplete row must not outrank a complete offer');
 
 console.log('V9 shell grouping OK');
