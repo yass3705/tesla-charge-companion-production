@@ -1,0 +1,67 @@
+name: Validate IZIVIA FAST V9 direct candidate
+
+on:
+  push:
+    branches: ["feat/v9-izivia-fast-exact-direct-20261012"]
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "scripts/validate_izivia_fast_direct.py"
+      - "scripts/build_snapshot.py"
+      - "scripts/build_runtime_registry.py"
+      - "config/snapshots/2026-10-12-izivia-fast-direct-candidate.json"
+      - ".github/workflows/validate-izivia-fast-v9.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout production code
+        uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Checkout audited Data Lab pin
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: bddc8f8cd9e092423e173cfa810744f2cdfa4a4a
+          path: datalab
+          persist-credentials: false
+      - name: Verify pinned national evidence
+        run: |
+          test "$(git -C datalab rev-parse HEAD)" = "bddc8f8cd9e092423e173cfa810744f2cdfa4a4a"
+          python -m py_compile production/scripts/validate_izivia_fast_direct.py production/scripts/build_snapshot.py production/scripts/build_runtime_registry.py
+          python production/scripts/validate_snapshot.py production/config/snapshots/2026-10-12-izivia-fast-direct-candidate.json
+          python production/scripts/validate_izivia_fast_direct.py \
+            datalab/data/operator_direct/izivia_fast_direct_france_2026_10_06.json \
+            datalab/data/operator_direct/izivia_fast_inventory_france_2026_10_06.json \
+            out/izivia_fast_direct_offers.json
+      - name: Assert exact Type2 and CCS scope and tariff semantics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('out/izivia_fast_direct_offers.json').read_text())
+          assert x['policy']['chademoOfferAssignmentsRemoved']==12
+          assert x['policy']['evseIdInference'] is False
+          assert len(x['directOffers'])==6
+          assert len({sid for o in x['directOffers'] for sid in o['stationIds']})==616
+          assert all(o['metadata']['validation']=='exact_FAST_station_and_supported_connector_power' for o in x['directOffers'])
+          assert all(o.get('directOperatorOnly') for o in x['directOffers'])
+          assert not x['subscriptionOffers']
+          assert all(o['metadata']['powerKw'] not in (62,62.5) for o in x['directOffers'])
+          PY
+      - name: Public safety for production integration changes
+        run: |
+          python -m compileall -q production/scripts
+      - name: Upload stage-only offers for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: izivia-fast-validated-type2-ccs-offers
+          path: out/izivia_fast_direct_offers.json
+          retention-days: 7
