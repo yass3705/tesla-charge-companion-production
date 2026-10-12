@@ -100,7 +100,10 @@
   function validatedUbitricityOffer(offer,loc,eid,cid,source){
     if(source?.id!=='ubitricity-pcpr-payg'||!offer||offer.kind!=='direct'||offer.provider!=='Ubitricity'||offer.currency!=='GBP')return null;
     if(!offer.stationIds?.includes(String(loc.id))||!offer.evseIds?.includes(eid)||text(offer.metadata?.connectorId)!==cid)return null;
-    if(offer.metadata?.scope!=='cpo_direct_payg_verified'||offer.metadata?.paygVerification!==true||!Array.isArray(offer.pricing?.rules)||!offer.pricing.rules.length)return null;
+    const oldVerified=offer.metadata?.scope==='cpo_direct_payg_verified'&&offer.metadata?.paygVerification===true;
+    const pcprVerified=offer.metadata?.scope==='cpo_direct_pcpr_verified'&&
+      offer.metadata?.pricingSource==='PCPR OCPI first-match'&&source.pricingScope==='cpo_direct_pcpr_verified';
+    if((!oldVerified&&!pcprVerified)||!Array.isArray(offer.pricing?.rules)||!offer.pricing.rules.length)return null;
     if(offer.pricing.timeZone!=='Europe/London'||offer.pricing.rules.some(r=>r.currency!=='GBP'||!Number.isFinite(r.pricePerKwh)||r.pricePerKwh<0))return null;
     return offer;
   }
