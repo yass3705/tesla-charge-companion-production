@@ -50,5 +50,18 @@ for(const cpo of completed){
 }
 const summary={completed:rows.length,present:rows.filter(r=>r.present).length,priced:rows.filter(r=>r.exactOffers>0).length,
   absent:rows.filter(r=>!r.present).map(r=>r.name),presentWithoutVerifiedPrice:rows.filter(r=>r.present&&r.exactOffers===0).map(r=>r.name)};
+const batchPath=path.join(root,'snapshot-inputs/UK/direct-batch-report.json');
+if(fs.existsSync(batchPath)){
+  const batch=read(batchPath);
+  for(const [name,expected] of Object.entries(batch)){
+    const actual=rows.find(row=>row.name===name);
+    if(!actual?.present||actual.stations!==expected.locations||actual.connectors!==expected.connectors||actual.exactOffers!==expected.tariffs)
+      throw Error(`${name}: built UK runtime differs from pinned direct batch report`);
+  }
+}
+summary.stationOnly=rows.filter(r=>r.present&&r.connectors===0).map(r=>r.name);
+summary.connectorInventoryUnpriced=rows.filter(r=>r.present&&r.connectors>0&&r.exactOffers===0).map(r=>r.name);
+summary.pricedComplete=rows.filter(r=>r.present&&r.connectors>0&&r.exactOffers===r.connectors).map(r=>r.name);
+summary.pricedPartial=rows.filter(r=>r.present&&r.exactOffers>0&&r.exactOffers<r.connectors).map(r=>r.name);
 const out={snapshotId:read(path.join(root,'manifest.json')).snapshotId,summary,cpos:rows};
 console.log(JSON.stringify(out,null,2));
