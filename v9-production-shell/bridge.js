@@ -228,10 +228,29 @@
       add(rule?.connectedTimePerMinuteEur,'min',currency,' connecté'+window);
       add(rule?.idlePerMinute,'min',currency,' après charge'+window);
       add(rule?.congestionTimePerMinute,'min congestion',currency,' dès '+(num(rule?.congestionStartSoc)??80)+' %'+window);
+      for(const [field,description] of [['connectionFee','frais de connexion'],['sessionFeeEur','frais de session'],['connectedTimeComponentEur','temps connecté']]){
+        const value=num(rule?.[field]);if(value==null||value===0)continue;
+        const label=formatCurrencyAmount(value,currency)+' '+description+window;
+        if(!seen.has(label)){seen.add(label);labels.push(label);}
+      }
+      if(num(rule?.connectedTimeBlockMinutes)>0&&num(rule?.connectedTimeBlockEur)!=null){
+        const label=formatCurrencyAmount(rule.connectedTimeBlockEur,currency)+' / '+rule.connectedTimeBlockMinutes+' min connectées'+window;
+        if(!seen.has(label)){seen.add(label);labels.push(label);}
+      }
+      if(num(rule?.minimumSessionEur)>0){const label='Minimum '+formatCurrencyAmount(rule.minimumSessionEur,currency)+window;if(!seen.has(label)){seen.add(label);labels.push(label);}}
+      if(Array.isArray(rule?.ocpiDurationBands))for(const band of rule.ocpiDurationBands){
+        const rate=formatRate(band?.[3],currency,'min');if(!rate)continue;
+        const label=rate+' ('+text(band?.[0])+'–'+text(band?.[1])+' min)';if(!seen.has(label)){seen.add(label);labels.push(label);}
+      }
     }
     add(pricing.pricePerKwh,'kWh',pricing.currency||offer?.currency);
     add(pricing.pricePerMinute,'min',pricing.currency||offer?.currency,' connecté');
     add(pricing.chargePerMinute??pricing.chargingTimePerMinuteEur,'min',pricing.currency||offer?.currency,' charge');
+    const longFee=pricing.longConnectionFee;
+    if(num(longFee?.eurPerHourAfterThreshold)>0){
+      const label=formatRate(longFee.eurPerHourAfterThreshold,pricing.currency||offer?.currency,'h')+' après '+longFee.thresholdMinutes+' min';
+      if(!seen.has(label)){seen.add(label);labels.push(label);}
+    }
     return labels;
   }
   function baseTariffsForPower(row,line){
@@ -306,7 +325,9 @@
     }
     return'<div class="v9-power-lines" style="margin-top:8px">'+lines.map(line=>{
       const fallback=applied&&!hasTimeWindows&&appliedOffer?tariffRateLabels(appliedOffer):[];
-      const tariffs=[...new Set(electroverseLabels.length?electroverseLabels:appliedLabels.length?appliedLabels:fallback)];
+      const longFee=appliedOffer?.pricing?.longConnectionFee;
+      const longFeeLabels=longFee?tariffRateLabels({currency:appliedOffer.currency,pricing:{longConnectionFee:longFee}}):[];
+      const tariffs=[...new Set([...(electroverseLabels.length?electroverseLabels:appliedLabels.length?appliedLabels:fallback),...longFeeLabels])];
       const provider=text(applied?.provider||'');
       const baseLine=tariffs.length
         ?'<div class="small" style="color:#c7d0d9">Base utilisée: '+tariffs.map(esc).join(' · ')+(provider?' · '+esc(provider):'')+(hasTimeWindows&&appliedOffer?.pricing?.timeZone==='UTC'?' · horaires UTC':'')+'</div>'
