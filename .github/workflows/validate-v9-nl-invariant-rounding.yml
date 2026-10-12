@@ -1,0 +1,58 @@
+name: Validate NL invariant whole-session rounding (no publish)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/validate-v9-nl-invariant-rounding.yml"
+      - "runtime-overrides/assets/v9/pricing-engine.js"
+      - "tests/v9-nl-invariant-rounding.test.mjs"
+permissions:
+  contents: read
+jobs:
+  invariant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check whole-session and fail-closed alternate windows
+        run: |
+          node tests/v9-nl-invariant-rounding.test.mjs
+          node tests/netherlands-dotnl-ocpi-pricing.test.mjs
+          node tests/v9-pricing-time-zone.test.mjs
+      - name: Checkout exact frozen DOT-NL audit
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: 8d0e94910f8125203bbf99435d8e141f4ee9875c
+          path: datalab-pin
+          persist-credentials: false
+      - name: Replay six DOT-NL profiles with this engine
+        env:
+          TCC_PRODUCTION_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git -C datalab-pin rev-parse HEAD)" = "8d0e94910f8125203bbf99435d8e141f4ee9875c"
+          python3 datalab-pin/scripts/v9_nl_direct_tariff_simulation_fixtures_20261012.py --output "$RUNNER_TEMP/nl-fixtures.json"
+          node datalab-pin/scripts/v9_nl_direct_tariff_simulation_runtime_20261012.cjs "$RUNNER_TEMP/nl-fixtures.json" "$PWD" "$RUNNER_TEMP/nl-invariant-simulations.json"
+          python3 - "$RUNNER_TEMP/nl-invariant-simulations.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d['representedActiveCompiledConnectors']==161509
+          assert d['weightedEvaluationCount']==969054
+          assert d['nonEurSourceCurrencyWeight']==24
+          assert d['independentOracleMismatchWeight']==0
+          profiles={p['id']:p['results'] for p in d['profiles']}
+          assert profiles['weekday_midnight']['completeWeight']>154834, 'No improvement'
+          for name in ('weekday_day','weekday_evening_idle','sunday_idle','long_session','fall_dst_crossing'):
+            assert profiles[name]['completeWeight']==161485, 'Regression in '+name
+          assert d['publishedToTcc'] is False
+          print('Invariant candidate:',{k:v['completeWeight'] for k,v in profiles.items()})
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v9-nl-invariant-rule-candidate-audit
+          path: ${{ runner.temp }}/nl-invariant-simulations.json
+          retention-days: 14
