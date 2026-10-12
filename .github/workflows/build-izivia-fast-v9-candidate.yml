@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/build-izivia-fast-v9-candidate.yml"
       - "scripts/build_snapshot.py"
+      - "runtime-overrides/assets/v9/production-loader-extension.js"
+      - "scripts/build_runtime_registry.py"
       - "scripts/audit_izivia_fast_irve_identity.py"
       - "runtime-overrides/assets/v9/pricing-engine.js"
       - "tests/izivia-fast-direct-pricing.test.mjs"
@@ -66,9 +68,15 @@ jobs:
           registry=json.loads((root/"runtime/data/v9/source-registry.json").read_text())
           row=next(s for s in registry['sources'] if s['id']=='france-izivia-fast-direct-exact')
           assert row['active'] is True and row['optional'] is False
+          correctionSource=next(s for s in registry['sources'] if s['id']=='france-izivia-fast-connector-correction')
+          assert correctionSource['active'] is True and correctionSource['optional'] is False
           data=json.loads((root/"snapshot-inputs/FR/direct/izivia_fast_direct_offers.json").read_text())
           assert len({sid for o in data['directOffers'] for sid in o['stationIds']})==616
           assert data['policy']['chademoOfferAssignmentsRemoved']==12
+          correction=json.loads((root/"snapshot-inputs/FR/direct/izivia_fast_connector_correction.json").read_text())
+          assert correction['policy']['evseIdentityNotInferred'] is True
+          assert len(correction['stations'])==616
+          assert all(e.get('id') is None and all(c.get('id') is None for c in e['connectors']) for s in correction['stations'] for e in s['evses'])
           assert not data['subscriptionOffers']
           print("IZIVIA FAST V9 source active in candidate: 616 stations, Type2/CCS only")
           PY
