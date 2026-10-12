@@ -5,6 +5,8 @@ on:
     branches: ["feat/v9-izivia-fast-exact-direct-20261012"]
     paths:
       - ".github/workflows/build-izivia-fast-v9-candidate.yml"
+      - "scripts/build_snapshot.py"
+      - "config/snapshots/2026-10-12-izivia-fast-direct-candidate.json"
   pull_request:
     branches: ["main"]
     paths:
