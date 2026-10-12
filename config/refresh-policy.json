@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-13-nine-country-be-candidate",
+    "currentSnapshot": "2026-10-13-nine-country-be-belib-exact-candidate",
     "dataLabSha": "047e1911a5dfd4dcce741ad9b461c6096effb9cd",
-    "rule": "Nine-country pinned candidate adds Belgium public inventory and 41,706 exact energy-only gross EUR offers, keeps GeniePoint 281 and IZIVIA FAST 616/616; earlier candidates remain rollback baselines. No Pages deployment."
+    "rule": "Nine-country candidate retains Belgium 41,706 safe offers, GeniePoint 281 and IZIVIA FAST 616/616; Belib's existing tariffs are scoped to official EVSE identities by Production builder #59. Earlier pins remain rollback baselines. No Pages deployment."
   }
 }
