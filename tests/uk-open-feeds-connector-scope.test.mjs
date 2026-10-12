@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
 import zlib from 'node:zlib';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
-const root=process.argv[2];
-assert.ok(root,'Built snapshot path required');
+assert.ok(process.argv[2],'Built snapshot path required');
+const root=path.resolve(process.argv[2]);
 const adapter=require(`${root}/runtime/assets/v9/adapters/uk-open-feeds.js`);
 const payload=JSON.parse(zlib.gunzipSync(fs.readFileSync(`${root}/snapshot-inputs/UK/all.json.gz`)));
 const rows=adapter.normalizePayload(payload,{sourceId:'uk-production-open-feeds'});
