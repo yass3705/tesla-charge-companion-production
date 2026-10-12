@@ -30,6 +30,8 @@ on:
       - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
       - "scripts/build_runtime_registry.py"
       - "scripts/build_snapshot.py"
+      - "scripts/compile_uk_direct_batch.py"
+      - "tests/test_uk_geniepoint_tariff_choice.py"
       - "scripts/build_germany_ionity_inventory_supplement.py"
       - "config/germany-ionity-supplement-provenance.json"
       - "config/electra-legacy-source-provenance.json"
@@ -66,6 +68,8 @@ on:
       - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
       - "scripts/build_runtime_registry.py"
       - "scripts/build_snapshot.py"
+      - "scripts/compile_uk_direct_batch.py"
+      - "tests/test_uk_geniepoint_tariff_choice.py"
       - "scripts/build_germany_ionity_inventory_supplement.py"
       - "config/germany-ionity-supplement-provenance.json"
       - "tests/test_germany_ionity_supplement_provenance.py"
@@ -142,6 +146,7 @@ jobs:
         run: |
           python3 production/tests/test_v9_pages_publish_gate.py
           python3 -m unittest discover -s production/tests -p 'test_germany_ionity_supplement_provenance.py'
+          python3 -m unittest discover -s production/tests -p 'test_uk_geniepoint_tariff_choice.py'
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-stable
