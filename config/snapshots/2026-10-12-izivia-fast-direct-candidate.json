@@ -118,8 +118,10 @@
       "NL runtime is Tesla-excluded and uses fail-closed tariff handling.",
       "Non-EUR and missing direct prices retain station inventory without a numeric EUR offer.",
       "DOT-NL runtime manifest 2026-10-12T10:56:10.446523Z, 73557 stations.",
-      "IZIVIA FAST national 620 official priced stations, 616 Type2/CCS sites, CHAdeMO excluded from V9 offers; published Data Lab source remains 2026-10-06 with same audited 616-site coverage."
+      "IZIVIA FAST national 620 official priced stations, 616 Type2/CCS sites, CHAdeMO excluded from V9 offers; published Data Lab source remains 2026-10-06 with same audited 616-site coverage.",
+      "UK recent direct batch intentionally not enabled by this France-specific pinned candidate; UK production source remains unchanged."
     ]
   },
-  "franceIziviaFastDirect": true
+  "franceIziviaFastDirect": true,
+  "ukDirectBatch": false
 }
