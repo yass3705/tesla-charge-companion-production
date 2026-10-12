@@ -46,12 +46,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: bddc8f8cd9e092423e173cfa810744f2cdfa4a4a
+          ref: 66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60
           path: datalab
           persist-credentials: false
       - name: Verify source pins
         run: |
-          test "$(git -C datalab rev-parse HEAD)" = bddc8f8cd9e092423e173cfa810744f2cdfa4a4a
+          test "$(git -C datalab rev-parse HEAD)" = 66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60
           test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
       - name: Build V9 candidate
         run: |
