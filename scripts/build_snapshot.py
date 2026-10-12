@@ -765,10 +765,11 @@ def main():
         izivia_inventory=izivia_root/"izivia_fast_inventory_france_2026_10_06.json"
         subprocess.run([
             sys.executable,str(production_root/"scripts/validate_izivia_fast_direct.py"),
-            str(izivia_offers),str(izivia_inventory)
+            str(izivia_offers),str(izivia_inventory),
+            str(fr_direct/"izivia_fast_direct_offers.json")
         ],check=True)
-        copy_file(izivia_offers,fr_direct/"izivia_fast_direct_offers.json")
-        copy_file(izivia_inventory,fr_direct/"izivia_fast_inventory.json")
+        # Audit input only: synthetic summary IDs are not standalone EVSE identities.
+        copy_file(izivia_inventory,fr_direct/"izivia_fast_inventory_evidence.json")
         reg=load_json(registry)
         for source in reg.get("sources",[]):
             if source.get("id")=="france-izivia-fast-direct-exact":
