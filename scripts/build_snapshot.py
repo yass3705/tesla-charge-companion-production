@@ -432,6 +432,58 @@ def main():
         local=current_registry["productionIntegration"].setdefault("snapshotLocalSources",[])
         if "uk-gridserve-pcpr-direct" not in local:local.append("uk-gridserve-pcpr-direct")
         write_json(registry,current_registry)
+    # Source EV: activate only the pinned, freshly collected CPO-only file.
+    source_ev_data=uk/"sources/uk_source_ev_pcpr_v9.json.gz"
+    source_ev_report=dl/"reports/uk/source_ev-pcpr-latest.json"
+    if source_ev_data.exists() and source_ev_report.exists():
+        report=load_json(source_ev_report)
+        with gzip.open(source_ev_data,"rt",encoding="utf-8") as f:
+            payload=json.load(f)
+        src=payload.get("sources") or []
+        if (len(src)!=1 or src[0].get("id")!="source-ev-uk-pcpr-direct"
+            or payload.get("integrationStatus")!="cpo_direct_exact_connector_vat_inclusive_staged"
+            or payload.get("collectedAt")!=report.get("collectedAt")
+            or report.get("workflowRunId")!="38289342775"
+            or report.get("freshCollection") is not True
+            or report.get("publishedToV9") is not False
+            or report.get("publicCpoLocations")!=37
+            or report.get("publicConnectors")!=338
+            or report.get("pricedExactConnectors")!=338
+            or report.get("excluded",{}).get("unsupported_connector_standard")!=22
+            or report.get("blockedTariffReasons")):
+            raise AssertionError("Source EV pinned public collection/audit mismatch")
+        locations=src[0].get("locations") or []
+        tariffs={str(t.get("id")):t for t in src[0].get("tariffs") or []}
+        expected={"GB*SGB_02":0.89004,"GB*SGB_02_22Kw_AC":0.54}
+        if len(locations)!=37 or set(tariffs)!=set(expected):
+            raise AssertionError("Source EV exact station/tariff scope changed")
+        for key,value in expected.items():
+            tariff=tariffs[key]
+            energy=[p for e in tariff.get("elements") or [] for p in e.get("price_components") or [] if p.get("type")=="ENERGY"]
+            if (tariff.get("currency")!="GBP" or tariff.get("tccPriceBasis")!="GBP_including_public_UK_VAT"
+                or len(energy)!=1 or abs(float(energy[0].get("price",-1))-value)>0.000001
+                or energy[0].get("tccVatRateAppliedPct")!=20):
+                raise AssertionError("Source EV VAT or direct price mismatch")
+        count=0
+        for loc in locations:
+            if loc.get("publish") is not True or loc.get("country_code")!="GB" or (loc.get("operator") or {}).get("name")!="Source EV":
+                raise AssertionError("Source EV nonpublic or wrong-operator location")
+            for evse in loc.get("evses") or []:
+                if evse.get("status")=="REMOVED":
+                    raise AssertionError("Source EV removed EVSE")
+                for c in evse.get("connectors") or []:
+                    count+=1
+                    if c.get("standard") not in ("IEC_62196_T2","IEC_62196_T2_COMBO") or len(c.get("tariff_ids") or [])!=1 or c["tariff_ids"][0] not in tariffs:
+                        raise AssertionError("Source EV connector tariff/scope mismatch")
+        if count!=338:
+            raise AssertionError("Source EV connector count mismatch")
+        current_registry=load_json(registry)
+        entry=next(s for s in current_registry["sources"] if s.get("id")=="uk-source-ev-pcpr-direct")
+        entry["active"]=True
+        entry["optional"]=False
+        local=current_registry["productionIntegration"].setdefault("snapshotLocalSources",[])
+        if entry["id"] not in local:local.append(entry["id"])
+        write_json(registry,current_registry)
     # ChargePoint/Eco-Movement PCPR direct CPO feed. No eMSP rates, no tariff
     # inheritance from station to EVSE: match only per-connector tariff_ids.
     eco_src=uk/"sources/uk_eco_movement_pcpr_v9.json.gz"
