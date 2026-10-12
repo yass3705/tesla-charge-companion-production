@@ -11,6 +11,8 @@ on:
       - "config/germany-ionity-supplement-provenance.json"
       - "config/electra-legacy-source-provenance.json"
       - "scripts/build_snapshot.py"
+      - "scripts/scope_belib_offers.py"
+      - "tests/belib-exact-evse.test.mjs"
       - "scripts/compile_uk_direct_batch.py"
       - "tests/test_uk_geniepoint_tariff_choice.py"
       - "scripts/build_germany_ionity_inventory_supplement.py"
@@ -33,6 +35,8 @@ on:
       - "tests/belgium-nap-safe-pricing.test.mjs"
       - "v9-production-shell/**"
       - "scripts/build_snapshot.py"
+      - "scripts/scope_belib_offers.py"
+      - "tests/belib-exact-evse.test.mjs"
       - "scripts/compile_uk_direct_batch.py"
       - "tests/test_uk_geniepoint_tariff_choice.py"
       - "scripts/build_germany_ionity_inventory_supplement.py"
@@ -104,6 +108,7 @@ jobs:
         run: |
           python production/scripts/validate_electra_platform_overlay.py datalab
           node production/tests/belgium-nap-safe-pricing.test.mjs
+          TCC_STABLE_ROOT=stable TCC_DATALAB_ROOT=datalab node production/tests/belib-exact-evse.test.mjs
 
       - name: Build self-contained refreshed candidate
         run: |
