@@ -71,6 +71,8 @@ jobs:
           assert not data['subscriptionOffers']
           print("IZIVIA FAST V9 source active in candidate: 616 stations, Type2/CCS only")
           PY
+      - name: Audit exact national FAST connector correspondence
+        run: python production/scripts/audit_izivia_fast_irve_identity.py dist/v9-izivia-fast-candidate
       - name: Smoke runtime and tariff lanes
         run: |
           node production/tests/izivia-fast-direct-pricing.test.mjs dist/v9-izivia-fast-candidate/snapshot-inputs/FR/direct/izivia_fast_direct_offers.json
