@@ -16,7 +16,8 @@ else:stations=national
 print("FR IRVE national rows",len(stations))
 print("FR IRVE sample",json.dumps(stations[0] if stations else {},ensure_ascii=False)[:1700])
 inv=json.loads((root/"snapshot-inputs/FR/direct/izivia_fast_inventory_evidence.json").read_text())
-idx={str(s.get("sourceStationId") or s.get("id") or s.get("canonicalId","").split(":")[-1]):s for s in stations}
+idx={str(s[0]):s for s in stations if isinstance(s,list) and len(s)>=9}
+print("Compact IRVE station records",len(idx))
 print("FR IRVE FAST exact IDs",sum(x["sourceStationId"] in idx for x in inv["stations"]))
 matches=0;discordant=[]
 for row in inv["stations"]:
@@ -27,9 +28,8 @@ for row in inv["stations"]:
     source={(c.get("kind"),round(float(c.get("powerKw") or 0),1))
             for e in row["evses"] if "chademo" not in e.get("id","").lower()
             for c in e.get("connectors",[])}
-    actual={(c.get("kind"),round(float(c.get("powerKw") or 0),1))
-            for e in n.get("evses",[])
-            for c in e.get("connectors",[])}
+    actual={(str(e[2]).upper(),round(float(e[3] or 0),1))
+            for e in n[8] if isinstance(e,list) and len(e)>3}
     if source.intersection(actual):matches+=1
     else:discordant.append({"stationId":row["sourceStationId"],"reason":"kind_power_discordance",
                             "official":sorted(map(str,source)),"irve":sorted(map(str,actual))})
