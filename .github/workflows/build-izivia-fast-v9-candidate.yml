@@ -12,6 +12,7 @@ on:
       - "runtime-overrides/assets/v9/pricing-engine.js"
       - "tests/izivia-fast-direct-pricing.test.mjs"
       - "tests/izivia-fast-runtime-join.test.mjs"
+      - "tests/izivia-fast-national-join.test.mjs"
       - "config/snapshots/2026-10-12-izivia-fast-direct-candidate.json"
   pull_request:
     branches: ["main"]
@@ -89,12 +90,15 @@ jobs:
           node production/tests/v9-tariff-lanes.test.mjs
           node production/tests/runtime-e2e-smoke.mjs dist/v9-izivia-fast-candidate
           node production/tests/izivia-fast-runtime-join.test.mjs dist/v9-izivia-fast-candidate
+      - name: Exhaustive France IZIVIA FAST runtime reconciliation
+        run: node --max-old-space-size=6144 production/tests/izivia-fast-national-join.test.mjs dist/v9-izivia-fast-candidate
       - name: Upload candidate proof only
         uses: actions/upload-artifact@v4
         with:
           name: izivia-fast-v9-candidate-manifest
           path: |
             dist/v9-izivia-fast-candidate/manifest.json
+            dist/v9-izivia-fast-candidate/izivia-fast-national-join-audit.json
             dist/v9-izivia-fast-candidate/runtime/data/v9/source-registry.json
             dist/v9-izivia-fast-candidate/snapshot-inputs/FR/direct/izivia_fast_direct_offers.json
           retention-days: 7
