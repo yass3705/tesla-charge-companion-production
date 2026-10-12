@@ -57,6 +57,12 @@ const base={timeZone:'Europe/Amsterdam',startAt:'2026-10-11T16:30:00+02:00',
   assert.equal(adapter.normalizeRow(row('NL:EFL:test','EFL',eur)).offers.length,1);
   const missing=[['timeWindow','00:00','24:00','kwh',null,null,0,0,0,0,0,DAYS,[],{}]];
   assert.equal(adapter.normalizeRow(row('NL:EFL:missing','EFL',missing)).offers.length,0);
+  for(const party of ['AGO','GFX','LNT']){
+    const station=adapter.normalizeRow(row('NL:'+party+':unpriced',party,[]));
+    assert.ok(station,'unpriced '+party+' station stays visible');
+    assert.equal(station.evses.length,1);
+    assert.equal(station.offers.length,0,'unpriced '+party+' has unavailable direct tariff');
+  }
 }
 
 console.log('DOT-NL OCPI exact costs, duration rounds, conditional FLAT and cross-midnight boundary: PASS');
