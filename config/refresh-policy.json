@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-12-nl-dotnl-validated",
-    "dataLabSha": "c7173fd03143a89f9fd41e4eed6e2c6d71531b52",
-    "rule": "Development/runtime validation uses this immutable NL-enabled snapshot with versioned DOT-NL runtime from 12 October; R9 and the 3 October NL snapshot remain rollback baselines."
+    "currentSnapshot": "2026-10-12-nl-source-ev-uk",
+    "dataLabSha": "971dc5e25596958826db3406927352726b8c3ba7",
+    "rule": "Development uses the immutable NL plus Source EV exact CPO snapshot; prior NL and R9 remain rollback baselines. Evyve is not activated."
   }
 }
