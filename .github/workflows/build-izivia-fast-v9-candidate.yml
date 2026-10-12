@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/build-izivia-fast-v9-candidate.yml"
       - "scripts/build_snapshot.py"
+      - "runtime-overrides/assets/v9/pricing-engine.js"
+      - "tests/izivia-fast-direct-pricing.test.mjs"
       - "config/snapshots/2026-10-12-izivia-fast-direct-candidate.json"
   pull_request:
     branches: ["main"]
@@ -14,6 +16,8 @@ on:
       - "scripts/build_snapshot.py"
       - "scripts/build_runtime_registry.py"
       - "scripts/validate_izivia_fast_direct.py"
+      - "runtime-overrides/assets/v9/pricing-engine.js"
+      - "tests/izivia-fast-direct-pricing.test.mjs"
       - "config/snapshots/2026-10-12-izivia-fast-direct-candidate.json"
 
 permissions:
@@ -68,6 +72,7 @@ jobs:
           PY
       - name: Smoke runtime and tariff lanes
         run: |
+          node production/tests/izivia-fast-direct-pricing.test.mjs dist/v9-izivia-fast-candidate/snapshot-inputs/FR/direct/izivia_fast_direct_offers.json
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
           node production/tests/runtime-e2e-smoke.mjs dist/v9-izivia-fast-candidate
