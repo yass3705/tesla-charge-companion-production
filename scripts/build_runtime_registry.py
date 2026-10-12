@@ -85,6 +85,21 @@ def build_registry(path):
       "optional":True,
       "policy":"Only connector-bound offers verified against the same Ubitricity public PAYG tariff are rankable. Rejected tariffs stay unpriced."
     })
+    # Latest merged UK PCPR adapter does not exist in the older pinned Stable
+    # baseline. Register it in Production, then allow the existing audited
+    # builder to activate it only after exact source/audit agreement.
+    upsert(sources,{
+      "id":"allego-uk-pcpr-direct",
+      "label":"Allego UK CPO direct PCPR exact EVSE connector tariffs",
+      "adapter":"uk-pcpr-v1",
+      "countries":["GB"],
+      "operatorIds":["allego"],
+      "capabilities":["inventory","connectors","access","tariff"],
+      "priority":{"identity":90,"connectors":95,"access":90,"status":0,"tariff":130},
+      "refresh":"daily-verified-pcpr",
+      "active":False,
+      "optional":True
+    })
     upsert(sources,{
       "id":"uk-connected-kerb-guest-direct",
       "label":"UK Connected Kerb app-verified exact guest connector tariffs",
