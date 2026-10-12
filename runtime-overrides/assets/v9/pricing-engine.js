@@ -274,7 +274,7 @@
     const minimum=num(rule?.minimumSessionEur);if(minimum!=null&&total<minimum){components.minimumSession={minimumEur:minimum,preMinimumTotalEur:money(total),topUpEur:money(minimum-total)};total=minimum;}
     return{totalEur:money(total),components};
   }
-  function segmentableRule(rule){
+  function segmentableRule(rule,wholeSessionMinutes=null){
     if(!rule)return false;
     // Weekday-dependent OCPI time windows are segmentable: the evaluator
     // already splits at local midnight and calls ruleDayMatches again.
@@ -284,8 +284,22 @@
     // Zero-priced dimensions are not affected by their OCPI rounding step.
     // Keep every *billable* step fail-closed across tariff boundaries: rounding
     // each segment independently would otherwise risk double charging.
-    const hasBands=dimension=>Array.isArray(rule.ocpiDurationBands)&&
-      rule.ocpiDurationBands.some(b=>String(b?.[0]||'').toUpperCase()===dimension);
+    // OCPI duration bands are selected on the WHOLE session duration.
+    // A future paid TIME step cannot charge a session below its threshold.
+    // Unknown duration or malformed bounds fail closed.
+    const hasBands=dimension=>{
+      const bands=Array.isArray(rule.ocpiDurationBands)?
+        rule.ocpiDurationBands.filter(b=>String(b?.[0]||'').toUpperCase()===dimension):[];
+      if(!bands.length)return false;
+      const minutes=num(wholeSessionMinutes);
+      if(minutes==null||minutes<0)return true;
+      const seconds=minutes*60;
+      return bands.some(b=>{
+        const from=num(b?.[1]),to=b?.[2]==null?Infinity:num(b[2]);
+        if(from==null||from<0||to==null||to<=from)return true;
+        return seconds>=from&&seconds<to;
+      });
+    };
     const energyCharge=num(rule.pricePerKwh);
     const timeCharge=num(rule.chargePerMinute)??num(rule.chargingTimePerMinuteEur);
     const billableEnergyStep=num(rule.energyStepWh)>0&&
@@ -347,7 +361,7 @@
     }
     if(duration<=0){
       const rule=matchingRule(pricing,session.startAt,timeZone,session);if(!rule)return{complete:false,reason:'no_matching_time_rule'};
-      if(!segmentableRule(rule))return{complete:false,reason:'tariff_window_crossing_unsupported_components'};
+      if(!segmentableRule(rule,duration))return{complete:false,reason:'tariff_window_crossing_unsupported_components'};
       const evaluated=evaluateRule(rule,{...session,energyKwh:energy,durationMinutes:0,tariffDurationMinutes:duration,postChargeMinutes:session.postChargeMinutes});
       if(evaluated.complete===false)return evaluated;
       return{complete:true,totalEur:evaluated.totalEur,components:{segmentedPricing:{segments:[{startAt:new Date(session.startAt).toISOString(),durationMinutes:0,energyKwh:energy,totalEur:evaluated.totalEur,rule}]}}};
@@ -356,7 +370,7 @@
     while(elapsed<duration-1e-9){
       const at=addMinutes(session.startAt,elapsed);if(!at)return{complete:false,reason:'invalid_segmentation_start_time'};
       const rule=matchingRule(pricing,at,timeZone,session);if(!rule)return{complete:false,reason:'no_matching_time_rule',segmentStartAt:at.toISOString()};
-      if(!segmentableRule(rule))return{complete:false,reason:'tariff_window_crossing_unsupported_components',segmentStartAt:at.toISOString(),matchedRule:rule};
+      if(!segmentableRule(rule,duration))return{complete:false,reason:'tariff_window_crossing_unsupported_components',segmentStartAt:at.toISOString(),matchedRule:rule};
       let boundary=minutesUntilRuleBoundary(rule,at,timeZone);if(boundary==null)return{complete:false,reason:'unresolved_tariff_boundary'};
       if(!Number.isFinite(boundary))boundary=duration-elapsed;
       const slice=Math.min(duration-elapsed,Math.max(boundary,1e-6));
