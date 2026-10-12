@@ -49,6 +49,11 @@ const swiss={...direct,currency:'CHF',targetCurrency:'CHF',total:5.25,result:{to
 const chMarkup=ui.renderTariffs({best:swiss,alternatives:[],incomplete:[]},ch,{CHF:1.05});
 assert.match(chMarkup,/5,25 CHF/);
 assert.match(chMarkup,/≈ 5,00 €/);
+const evidencedFx=ui.verifiedExchangeRates({base:'EUR',date:'2026-10-11',checkedAt:'2026-10-11T10:17:12Z',source:'dated exchange provider',rates:{EUR:1,CHF:.93,GBP:.85}});
+assert.equal(evidencedFx.CHF,.93);
+const unverifiedFx=ui.verifiedExchangeRates({rates:{EUR:1,CHF:.945922}});
+assert.deepEqual(unverifiedFx,{EUR:1},'undated hard-coded fallback cannot convert a CHF quote');
+assert.match(ui.displayAmount(swiss,unverifiedFx),/conversion en € non disponible/);
 assert.equal(ui.tariffLaneState({best:null,alternatives:[],incomplete:[]},s,'electra').status,'missing');
 const nonComputable={...electroverse,total:null,comparable:false,result:{complete:false,reason:'unknown_component'}};
 assert.equal(ui.tariffLaneState({best:null,alternatives:[],incomplete:[nonComputable]},s,'electroverse').status,'unresolved');
