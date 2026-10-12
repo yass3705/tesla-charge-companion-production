@@ -71,6 +71,27 @@ class GermanyIonityProvenanceTest(unittest.TestCase):
         self.assertEqual(provenance_for(self.national_path, self.direct_path, "c" * 40, self.manifest_path)["id"],
                          "fixture")
 
+    def test_current_germany_200_location_digests_are_approved_across_commits(self):
+        # Verified Git blobs are identical between Data Lab 9a25db1d and
+        # 641fce30 (2026-10-12): national d4610a40 / IONITY 8c81d1bb.
+        # A national-file or IONITY-file change still must fail SHA-256 trust.
+        manifest_path = pathlib.Path(__file__).resolve().parents[1] / "config/germany-ionity-supplement-provenance.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        matching = [item for item in manifest["sources"] if
+            item["nationalSha256"] == "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318"
+            and item["ionitySha256"] == "4c179df0984df0697b4c49aa38d191917ef1264d203646452e58425cbe8394c6"]
+        self.assertGreater(len(matching), 0)
+        self.assertTrue(all(item["expected"] == {
+            "nationalBaselineStations": 63405,
+            "ionitySourceLocations": 200,
+            "alreadyNearNationalIonity": 188,
+            "quarantinedNearThirdParty": 8,
+            "isolatedUnpricedSupplement": 4,
+        } for item in matching))
+        self.assertNotIn("641fce3038d8039f915b7153ff87c0726100f64e",
+                         [item["referenceDataLabSha"] for item in matching],
+                         "The test must prove that explicit commit whitelisting is unnecessary")
+
     def test_checkout_still_must_equal_the_snapshot_pin(self):
         require_checkout_sha("a" * 40, "a" * 40)
         with self.assertRaisesRegex(ValueError, "Data Lab checkout SHA mismatch"):
