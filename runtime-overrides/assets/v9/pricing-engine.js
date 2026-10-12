@@ -565,7 +565,11 @@
     const match=matchingRuleDetailed(pricing,session.startAt,timeZone,session);if(match.unknown)return{complete:false,reason:match.reason,offerId:offer?.id||null,timeZone};const rule=match.rule;if(!rule)return{complete:false,reason:'no_matching_time_rule',offerId:offer?.id||null,timeZone};
     const duration=Math.max(0,num(session.durationMinutes)??0),boundary=minutesUntilRuleBoundary(rule,session.startAt,timeZone);
     let base,segmented=false;
-    if(boundary!=null&&Number.isFinite(boundary)&&duration>boundary+1e-9){
+    // An explicit session-start tariff remains fixed for the whole connection;
+    // do not segment across clock-time window boundaries.
+    if(pricing.priceSelectionBasis==='session_start_local_time'){
+      base=evaluateRule(rule,{...session,tariffDurationMinutes:duration});
+    }else if(boundary!=null&&Number.isFinite(boundary)&&duration>boundary+1e-9){
       base=evaluateSegmentedRules(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone,boundaryMinutes:boundary};segmented=true;
     }else base=evaluateRule(rule,{...session,tariffDurationMinutes:duration});
     if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone};
