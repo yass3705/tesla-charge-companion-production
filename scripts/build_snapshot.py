@@ -328,6 +328,9 @@ def main():
     for name in ("fastned_direct_stations_uk.json.gz","ionity_direct_stations_uk.json.gz"):
         p=national/name
         if p.exists(): copy_file(p,uk/"sources"/name)
+    if uk_recent_candidate:
+        from compile_uk_direct_batch import main as compile_uk_direct_batch
+        compile_uk_direct_batch(uk)
     allego_data=uk/"sources/uk_allego_uk_pcpr_v9.json.gz"
     allego_report=dl/"reports/uk/allego_uk-pcpr-validation-latest.json"
     if uk_recent_candidate and allego_data.exists() and allego_report.exists():
