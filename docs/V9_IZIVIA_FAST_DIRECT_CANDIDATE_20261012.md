@@ -12,7 +12,7 @@
 - Activation uniquement si le manifeste de snapshot contient `franceIziviaFastDirect: true`. Aucun snapshot historique ne change de comportement.
 - `scripts/validate_izivia_fast_direct.py` valide l'identité station `FRIZFPFASTxxxx`, la relation station/prise/type/puissance et le texte tarifaire officialisé ; tout écart bloque le build.
 - Écarter **12 affectations CHAdeMO** présentes dans les données source. Garder exactement les 616 stations avec Type 2 ou CCS. Les identifiants `izivia-map-...` ne sont pas des identifiants EVSE uniques et ne sont **jamais** inventés comme rapprochement IRVE.
-- Tarifs directs : énergie facturée par kWh entamé (0,30 EUR de 09h à 11h et de 15h à 17h, sinon 0,35 EUR), frais de connexion 0,30 EUR/min après 60 minutes, horaire de branchement pris pour toute la session. Vérifier le support effectif des frais différés dans le moteur avant de classer l'offre.
+- Tarifs directs : énergie facturée par kWh entamé (0,30 EUR de 09h à 11h et de 15h à 17h, sinon 0,35 EUR), frais de connexion 0,30 EUR/min par **minute entamée** après 60 minutes, horaire de branchement conservé pour toute la session. La première CI de scénarios a détecté que le moteur segmentait à tort les règles verrouillées au démarrage ; un correctif spécifique aux offres `session_start_local_time` a été ajouté avec un pas de facturation des minutes de 60 secondes. Vérifier la nouvelle CI avant validation.
 
 ## Critères avant promotion
 
