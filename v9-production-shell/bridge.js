@@ -150,18 +150,26 @@
     try{w.sessionStorage.setItem(cacheKey,code);}catch(_){ }return code;
   }
   function adapters(w){return{teslaJson:w.TCCV9Adapters?.teslaJson,nationalCompact:w.TCCV9Adapters?.nationalCompact,directOffers:w.TCCV9Adapters?.directOffers,legacyDirectTariffs:w.TCCV9Adapters?.legacyDirectTariffs,legacyDirectStations:w.TCCV9Adapters?.legacyDirectStations,franceEmspCompact:w.TCCV9Adapters?.franceEmspCompact,franceCrosswalk:w.TCCV9Adapters?.franceCrosswalk,franceIrveStatus:w.TCCV9Adapters?.franceIrveStatus,moroccoPublic:w.TCCV9Adapters?.moroccoPublic,moroccoKilowattTariff:w.TCCV9Adapters?.moroccoKilowattTariff};}
+  function verifiedExchangeRates(payload){
+    if(!payload||text(payload.base).toUpperCase()!=='EUR'||!/^\d{4}-\d{2}-\d{2}$/.test(text(payload.date))||
+       !Number.isFinite(Date.parse(payload.checkedAt))||!text(payload.source)||num(payload.rates?.EUR)!==1)return{EUR:1};
+    const rates={EUR:1};
+    for(const [currency,value] of Object.entries(payload.rates||{})){
+      const rate=num(value);if(/^[A-Z]{3}$/.test(currency)&&rate!=null&&rate>0)rates[currency]=rate;
+    }
+    return rates;
+  }
   async function createEngine(w,cfg){
     if(!w.TCCV9RuntimeEngine||!w.TCCV9BrowserLoaders||!w.TCCV9BrowserRouting)throw new Error('V9 runtime dependency missing');
     const base=String(cfg.runtimeBase||'.').replace(/\/$/,''),[registry,vehicleProfiles]=await Promise.all([
       w.fetch(`${base}/data/v9/source-registry.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`registry ${r.status}`);return r.json();}),
       w.fetch(`${base}/data/v9/vehicle-profiles.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`vehicle profiles ${r.status}`);return r.json();})
     ]);
-    const exchangeFallback={rates:{EUR:1,CHF:.945922,GBP:.85799,NOK:10.836693,SEK:11.322245,DKK:7.475513,PLN:4.372226,CZK:24.39362,HUF:367.109795,RON:5.275231,BGN:1.95583,MAD:10.96131,DZD:152.302423,TND:3.359272}};
     const exchangeUrl=new URL('../data/exchange_rates.json',w.location.href).toString();
-    const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>r.ok?r.json():exchangeFallback).catch(()=>exchangeFallback);
+    const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null);
     const loaders=w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),routeProvider=w.TCCV9BrowserRouting.osrmProvider();
     const engine=w.TCCV9RuntimeEngine.createEngine({registry,loaders,routeProvider,vehicleProfiles});
-    engine.__tccFxRates=exchange?.rates||{};
+    engine.__tccFxRates=verifiedExchangeRates(exchange);
     return engine;
   }
   function straightLineDistanceKm(origin,station){
@@ -1114,5 +1122,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
