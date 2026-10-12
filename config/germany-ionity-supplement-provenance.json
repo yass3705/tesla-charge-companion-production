@@ -130,6 +130,19 @@
         "quarantinedNearThirdParty": 8,
         "isolatedUnpricedSupplement": 4
       }
+    },
+    {
+      "id": "refresh-2026-10-12-direct-de",
+      "referenceDataLabSha": "f147720f712507fcbe26d130898a02de7ac27d99",
+      "nationalSha256": "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318",
+      "ionitySha256": "4ccea5c95f9525c9f8b916a79f7c39b650da1f059155d6ff11efc820aef3d67c",
+      "expected": {
+        "nationalBaselineStations": 63405,
+        "ionitySourceLocations": 200,
+        "alreadyNearNationalIonity": 188,
+        "quarantinedNearThirdParty": 8,
+        "isolatedUnpricedSupplement": 4
+      }
     }
   ]
 }

@@ -320,9 +320,45 @@
     const d=value instanceof Date?new Date(value.getTime()):new Date(value);if(Number.isNaN(d.getTime()))return null;
     return new Date(d.getTime()+Number(minutes||0)*60000);
   }
+  function invariantBillableStepRule(pricing,session,timeZone){
+    // One all-day, seven-day rule cannot change price at the clock boundary.
+    // In that narrow case, evaluate all rounded dimensions once on the FULL
+    // charging session rather than independently rounding midnight slices.
+    const rules=Array.isArray(pricing?.rules)?pricing.rules:[];
+    if(rules.length!==1)return null;
+    const rule=rules[0];
+    if(!rule)return null;
+    const wholeClock=rule.scope==='allDay'||
+      (rule.scope==='timeWindow'&&hm(rule.start,0)===0&&hm(rule.end,1440)===1440);
+    if(!wholeClock||rule.mustEndSameLocalDay===true||rule.holidayOnly===true||
+       rule.excludeHolidays===true||rule.validFromDate!=null||rule.validThroughDate!=null)return null;
+    const days=rule.daysOfWeek??rule.days;
+    if(Array.isArray(days)&&days.length>0&&
+       !(days.length===7&&new Set(days.map(Number)).size===7&&
+         days.every(day=>Number.isInteger(Number(day))&&Number(day)>=0&&Number(day)<=6)))return null;
+    const hasBands=dimension=>Array.isArray(rule.ocpiDurationBands)&&
+      rule.ocpiDurationBands.some(b=>String(b?.[0]||'').toUpperCase()===dimension);
+    const paidTime=num(rule.chargingTimeStepSeconds)>0&&
+      ((num(rule.chargePerMinute)??num(rule.chargingTimePerMinuteEur)??0)!==0||hasBands('TIME'));
+    const paidEnergy=num(rule.energyStepWh)>0&&
+      ((num(rule.pricePerKwh)??0)!==0||hasBands('ENERGY'));
+    if(!paidTime&&!paidEnergy)return null;
+    return matchingRule(pricing,session.startAt,timeZone,session)===rule?rule:null;
+  }
   function evaluateSegmentedRules(pricing,session={},timeZone=null){
     const duration=Math.max(0,num(session.durationMinutes)??0),energy=Math.max(0,num(session.energyKwh)??0),charging=Math.max(0,Math.min(duration,num(session.chargingMinutes)??duration));
     if(!session.startAt)return{complete:false,reason:'segmentation_requires_start_time'};
+    const invariant=duration>0?invariantBillableStepRule(pricing,session,timeZone):null;
+    if(invariant){
+      const evaluated=evaluateRule(invariant,{...session,tariffDurationMinutes:duration,includeOneTimeFees:true});
+      if(evaluated.complete===false)return evaluated;
+      return{complete:true,totalEur:evaluated.totalEur,components:{segmentedPricing:{
+        wholeSessionSingleRule:true,totalEur:evaluated.totalEur,
+        segments:[{startAt:new Date(session.startAt).toISOString(),durationMinutes:duration,
+          chargingMinutes:charging,energyKwh:energy,totalEur:evaluated.totalEur,
+          components:evaluated.components,rule:invariant}]
+      }}};
+    }
     if(duration<=0){
       const rule=matchingRule(pricing,session.startAt,timeZone,session);if(!rule)return{complete:false,reason:'no_matching_time_rule'};
       if(!segmentableRule(rule,duration))return{complete:false,reason:'tariff_window_crossing_unsupported_components'};
