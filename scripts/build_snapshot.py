@@ -756,6 +756,29 @@ def main():
     ionity_fr_exact=dl/"data/operator_direct/ionity_exact_france.json"
     if ionity_fr_exact.exists():
         copy_file(ionity_fr_exact,fr_direct/"ionity_exact_france.json")
+    # The October 12 FAST capture confirmed 620 station tariffs and 616
+    # connector-eligible sites. Opt in only on a new snapshot config; keep
+    # historical pinned builds bit-for-bit unchanged.
+    if cfg.get("franceIziviaFastDirect") is True:
+        izivia_root=dl/"data/operator_direct"
+        izivia_offers=izivia_root/"izivia_fast_direct_france_2026_10_06.json"
+        izivia_inventory=izivia_root/"izivia_fast_inventory_france_2026_10_06.json"
+        subprocess.run([
+            sys.executable,str(production_root/"scripts/validate_izivia_fast_direct.py"),
+            str(izivia_offers),str(izivia_inventory)
+        ],check=True)
+        copy_file(izivia_offers,fr_direct/"izivia_fast_direct_offers.json")
+        copy_file(izivia_inventory,fr_direct/"izivia_fast_inventory.json")
+        reg=load_json(registry)
+        for source in reg.get("sources",[]):
+            if source.get("id")=="france-izivia-fast-direct-exact":
+                source["active"]=True
+                source["optional"]=False
+                break
+        else:
+            raise AssertionError("IZIVIA FAST exact direct registry source missing")
+        reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[]).append("france-izivia-fast-direct-exact")
+        write_json(registry,reg)
     ev_inventory=dl/"data/electroverse/inventory/france-current.json"
     ev_delta=dl/"reports/electroverse/daily-delta.json"
     if ev_inventory.exists(): copy_file(ev_inventory,overlays/"FR/platforms/electroverse-france-current.json")
