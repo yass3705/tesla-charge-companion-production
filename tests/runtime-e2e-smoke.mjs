@@ -91,9 +91,15 @@ const sourceDigest=file=>createHash('sha256').update(fs.readFileSync(path.join(r
 const nationalSha256=sourceDigest('all.json.gz');
 const ionitySha256=sourceDigest('direct/ionity_direct_stations_germany.json.gz');
 const checkoutDataLabSha=JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8')).sources.dataLab.sha;
-const matchingProvenance=provenanceManifest.sources.filter(source=>source.nationalSha256===nationalSha256&&source.ionitySha256===ionitySha256&&source.referenceDataLabSha===checkoutDataLabSha);
-assert.equal(matchingProvenance.length,1,'Unknown or ambiguous Germany IONITY source provenance');
-const provenance=matchingProvenance[0];
+const matchingProvenance=provenanceManifest.sources.filter(source=>source.nationalSha256===nationalSha256&&source.ionitySha256===ionitySha256);
+assert.ok(matchingProvenance.length>0,'Unknown Germany IONITY source provenance');
+// A new unrelated Data Lab commit may reuse *identical* reviewed DE source bytes.
+// Reject conflicting counter contracts and retain historical exact-SHA evidence.
+for(const source of matchingProvenance)assert.deepEqual(source.expected,matchingProvenance[0].expected,
+  'Conflicting Germany IONITY source provenance for identical digests');
+const exact=matchingProvenance.filter(source=>source.referenceDataLabSha===checkoutDataLabSha);
+assert.ok(exact.length<=1,'Duplicate Germany IONITY commit-specific provenance');
+const provenance=exact[0]||[...matchingProvenance].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0)[0];
 for(const [key,value] of Object.entries(provenance.expected))assert.equal(supplement.metadata[key],value,`Germany IONITY ${key} drift`);
 assert.deepEqual(supplement.metadata.provenance,{
   id:provenance.id,referenceDataLabSha:provenance.referenceDataLabSha,

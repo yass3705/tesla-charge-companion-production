@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
-from build_germany_ionity_inventory_supplement import build, provenance_for, validate_result
+from build_germany_ionity_inventory_supplement import build, provenance_for, require_checkout_sha, validate_result
 
 
 class GermanyIonityProvenanceTest(unittest.TestCase):
@@ -56,23 +56,64 @@ class GermanyIonityProvenanceTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
             provenance_for(self.national_path, self.direct_path, "a" * 40, self.manifest_path)
 
-    def test_checkout_sha_must_match_source_pair(self):
-        with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
-            provenance_for(self.national_path, self.direct_path, "b" * 40, self.manifest_path)
+    def test_same_source_bytes_across_unrelated_data_lab_commits(self):
+        # Different Data Lab commit, identical approved DE source payloads:
+        # no new manifest row is necessary, but the checkout remains traceable.
+        known = provenance_for(self.national_path, self.direct_path, "a" * 40, self.manifest_path)
+        moved = provenance_for(self.national_path, self.direct_path, "b" * 40, self.manifest_path)
+        self.assertEqual(known["id"], moved["id"])
         explicitly_allowed = copy.deepcopy(self.entry)
         explicitly_allowed["id"] = "same-bytes-different-commit"
         explicitly_allowed["referenceDataLabSha"] = "b" * 40
         self.manifest_path.write_text(json.dumps({"schemaVersion": 1, "sources": [self.entry, explicitly_allowed]}))
         self.assertEqual(provenance_for(self.national_path, self.direct_path, "b" * 40, self.manifest_path)["id"],
                          "same-bytes-different-commit")
-        with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
-            provenance_for(self.national_path, self.direct_path, "c" * 40, self.manifest_path)
+        self.assertEqual(provenance_for(self.national_path, self.direct_path, "c" * 40, self.manifest_path)["id"],
+                         "fixture")
+
+    def test_current_germany_200_location_digests_are_approved_across_commits(self):
+        # Verified Git blobs are identical between Data Lab 9a25db1d and
+        # 641fce30 (2026-10-12): national d4610a40 / IONITY 8c81d1bb.
+        # A national-file or IONITY-file change still must fail SHA-256 trust.
+        manifest_path = pathlib.Path(__file__).resolve().parents[1] / "config/germany-ionity-supplement-provenance.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        matching = [item for item in manifest["sources"] if
+            item["nationalSha256"] == "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318"
+            and item["ionitySha256"] == "4c179df0984df0697b4c49aa38d191917ef1264d203646452e58425cbe8394c6"]
+        self.assertGreater(len(matching), 0)
+        self.assertTrue(all(item["expected"] == {
+            "nationalBaselineStations": 63405,
+            "ionitySourceLocations": 200,
+            "alreadyNearNationalIonity": 188,
+            "quarantinedNearThirdParty": 8,
+            "isolatedUnpricedSupplement": 4,
+        } for item in matching))
+        self.assertNotIn("641fce3038d8039f915b7153ff87c0726100f64e",
+                         [item["referenceDataLabSha"] for item in matching],
+                         "The test must prove that explicit commit whitelisting is unnecessary")
+
+    def test_checkout_still_must_equal_the_snapshot_pin(self):
+        require_checkout_sha("a" * 40, "a" * 40)
+        with self.assertRaisesRegex(ValueError, "Data Lab checkout SHA mismatch"):
+            require_checkout_sha("b" * 40, "a" * 40)
+        with self.assertRaisesRegex(ValueError, "Invalid Data Lab checkout SHA"):
+            provenance_for(self.national_path, self.direct_path, "not-a-commit", self.manifest_path)
+
+    def test_unknown_source_pair_and_contradictory_counts_fail(self):
         wrong_pair = copy.deepcopy(self.entry)
-        wrong_pair["referenceDataLabSha"] = "b" * 40
         wrong_pair["ionitySha256"] = "0" * 64
         self.manifest_path.write_text(json.dumps({"schemaVersion": 1, "sources": [wrong_pair]}))
         with self.assertRaisesRegex(ValueError, "Unknown Germany IONITY source provenance"):
             provenance_for(self.national_path, self.direct_path, "b" * 40, self.manifest_path)
+        conflicting = copy.deepcopy(self.entry)
+        conflicting["id"] = "contradictory-provenance"
+        conflicting["referenceDataLabSha"] = "b" * 40
+        conflicting["expected"]["isolatedUnpricedSupplement"] = 99
+        self.manifest_path.write_text(json.dumps({"schemaVersion": 1, "sources": [self.entry, conflicting]}))
+        with self.assertRaisesRegex(ValueError, "Conflicting Germany IONITY source provenance"):
+            provenance_for(self.national_path, self.direct_path, "a" * 40, self.manifest_path)
+        with self.assertRaisesRegex(ValueError, "Conflicting Germany IONITY source provenance"):
+            provenance_for(self.national_path, self.direct_path, "c" * 40, self.manifest_path)
 
     def test_duplicate_uuid_and_invalid_coordinate_fail(self):
         duplicate = copy.deepcopy(self.direct)

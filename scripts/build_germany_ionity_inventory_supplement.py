@@ -16,17 +16,38 @@ PROVENANCE_FILE=pathlib.Path(__file__).resolve().parents[1]/"config/germany-ioni
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+def require_checkout_sha(actual_sha, expected_sha):
+    """Keep the full Data Lab checkout pin separate from source-content trust."""
+    if expected_sha and actual_sha != expected_sha:
+        raise ValueError(f"Data Lab checkout SHA mismatch: expected {expected_sha}, got {actual_sha}")
+
+
 def provenance_for(national_path, direct_path, checkout_datalab_sha, manifest_path=PROVENANCE_FILE):
     manifest=json.loads(pathlib.Path(manifest_path).read_text(encoding="utf-8"))
     if manifest.get("schemaVersion")!=1:
         raise ValueError("Unsupported Germany IONITY provenance manifest")
+    if not isinstance(checkout_datalab_sha,str) or len(checkout_datalab_sha)!=40 or any(
+        c not in "0123456789abcdef" for c in checkout_datalab_sha.lower()
+    ):
+        raise ValueError("Invalid Data Lab checkout SHA")
     national_hash=sha256(national_path)
     direct_hash=sha256(direct_path)
+    # Trust is anchored in BOTH exact compressed source payloads. A change to an
+    # unrelated Data Lab file must not invalidate unchanged, reviewed DE inputs.
     matches=[entry for entry in manifest["sources"] if entry["nationalSha256"]==national_hash
-             and entry["ionitySha256"]==direct_hash and entry["referenceDataLabSha"]==checkout_datalab_sha]
-    if len(matches)!=1:
+             and entry["ionitySha256"]==direct_hash]
+    if not matches:
         raise ValueError(f"Unknown Germany IONITY source provenance: datalab={checkout_datalab_sha} national={national_hash} ionity={direct_hash}")
-    return matches[0]
+    # Historical records retain their commit-specific evidence. Never silently
+    # accept conflicting expectations for identical source bytes.
+    if any(entry["expected"]!=matches[0]["expected"] for entry in matches[1:]):
+        raise ValueError("Conflicting Germany IONITY source provenance for identical digests")
+    exact=[entry for entry in matches if entry.get("referenceDataLabSha")==checkout_datalab_sha]
+    if len(exact)>1:
+        raise ValueError("Duplicate Germany IONITY commit-specific provenance")
+    # When the current commit is not listed but the bytes are identical, use
+    # a stable historical reference and record the *actual* checkout separately.
+    return exact[0] if exact else min(matches,key=lambda e:e["id"])
 
 def validate_result(result, provenance):
     metadata=result["metadata"]
@@ -122,9 +143,7 @@ if __name__=="__main__":
     args=parser.parse_args()
     root=args.datalab;out=args.out
     actual=subprocess.check_output(["git","-C",str(root),"rev-parse","HEAD"],text=True).strip()
-    if args.expected_datalab_sha:
-        if actual!=args.expected_datalab_sha:
-            raise ValueError(f"Data Lab checkout SHA mismatch: expected {args.expected_datalab_sha}, got {actual}")
+    require_checkout_sha(actual,args.expected_datalab_sha)
     national_path=root/"data/national"/NATIONAL_FILE
     direct_path=root/"data/national"/IONITY_FILE
     provenance=provenance_for(national_path,direct_path,actual)
