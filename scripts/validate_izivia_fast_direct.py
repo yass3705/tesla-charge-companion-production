@@ -87,16 +87,56 @@ def materialize(offers_src, inventory_src):
             "directOffers":result}
 
 
+def connector_correction(inventory):
+    """Attach official station-level Type2/CCS grouping, without EVSE identities."""
+    stations=[]
+    removed=0
+    for row in inventory["stations"]:
+        sid=row["sourceStationId"]
+        groups=[]
+        for evse in row.get("evses",[]):
+            label=str(evse.get("id","")).lower()
+            if "chademo" in label:
+                removed+=1
+                continue
+            assert label.startswith(("izivia-map-t2-","izivia-map-combo_t2-"))
+            connectors=[]
+            for c in evse.get("connectors",[]):
+                assert c.get("kind") in ("AC","DC") and float(c.get("powerKw",0))>0
+                connectors.append({"id":None,"kind":c["kind"],"powerKw":c["powerKw"]})
+            if connectors:
+                groups.append({"id":None,"stalls":evse.get("stalls"),"connectors":connectors,
+                               "identityEvidence":"station_level_kind_power_only_no_evse_id"})
+        assert groups, sid+" has no Type2/CCS evidence"
+        stations.append({"canonicalId":"FR:national:"+sid,"sourceStationId":sid,
+                         "evses":groups,
+                         "connectorEvidence":"IZIVIA official FAST station map; no EVSE identity inferred"})
+    assert len(stations)==616 and removed==12
+    return {"schemaVersion":1,"country":"FR",
+            "policy":{"connectorKindPowerFromOfficialMap":True,
+                      "exactNationalStationIdOnly":True,"evseIdentityNotInferred":True,
+                      "chademoGroupsRemoved":removed},
+            "stations":stations}
+
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("source")
     parser.add_argument("inventory")
     parser.add_argument("output",nargs="?")
+    parser.add_argument("--connector-output")
     args=parser.parse_args()
     result=materialize(args.source,args.inventory)
     if args.output:
         p=Path(args.output);p.parent.mkdir(parents=True,exist_ok=True)
         p.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    if args.connector_output:
+        inv=json.loads(Path(args.inventory).read_text(encoding="utf-8"))
+        correction=connector_correction(inv)
+        p=Path(args.connector_output)
+        p.parent.mkdir(parents=True,exist_ok=True)
+        p.write_text(json.dumps(correction,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
     print(json.dumps({"directOfferGroups":len(result["directOffers"]),
       "coveredStations":len({s for o in result["directOffers"] for s in o["stationIds"]}),
       "removedCHAdeMO":result["policy"]["chademoOfferAssignmentsRemoved"]}))
