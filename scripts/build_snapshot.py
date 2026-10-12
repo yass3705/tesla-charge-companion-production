@@ -767,19 +767,19 @@ def main():
         subprocess.run([
             sys.executable,str(production_root/"scripts/validate_izivia_fast_direct.py"),
             str(izivia_offers),str(izivia_inventory),
-            str(fr_direct/"izivia_fast_direct_offers.json")
+            str(fr_direct/"izivia_fast_direct_offers.json"),
+            "--connector-output",str(fr_direct/"izivia_fast_connector_correction.json")
         ],check=True)
         # Audit input only: synthetic summary IDs are not standalone EVSE identities.
         copy_file(izivia_inventory,fr_direct/"izivia_fast_inventory_evidence.json")
         reg=load_json(registry)
         for source in reg.get("sources",[]):
-            if source.get("id")=="france-izivia-fast-direct-exact":
+            if source.get("id") in ("france-izivia-fast-direct-exact","france-izivia-fast-connector-correction"):
                 source["active"]=True
                 source["optional"]=False
-                break
         else:
             raise AssertionError("IZIVIA FAST exact direct registry source missing")
-        reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[]).append("france-izivia-fast-direct-exact")
+        reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[]).extend(["france-izivia-fast-direct-exact","france-izivia-fast-connector-correction"])
         write_json(registry,reg)
     ev_inventory=dl/"data/electroverse/inventory/france-current.json"
     ev_delta=dl/"reports/electroverse/daily-delta.json"
