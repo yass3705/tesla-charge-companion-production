@@ -126,6 +126,19 @@ def build_registry(path):
       "policy":"Blink CPO UK only, explicit public access; per-connector OCPI tariff_ids and GBP VAT-inclusive prices only. No eMSP or station tariff inheritance; exact source/audit checksum guards."
     })
     upsert(sources,{
+      "id":"uk-source-ev-pcpr-direct",
+      "label":"UK Source EV exact connector CPO direct tariffs",
+      "adapter":"uk-open-feeds-v1",
+      "path":"../snapshot-inputs/UK/sources/uk_source_ev_pcpr_v9.json.gz",
+      "countries":["GB"],
+      "capabilities":["inventory","connectors","access","status","tariff"],
+      "priority":{"identity":85,"connectors":85,"access":70,"status":70,"tariff":140},
+      "refresh":"daily-PCPR-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Source EV CPO UK public available/charging Type 2 and CCS only; exact connector tariff IDs and independently audited GBP VAT-inclusive PAYG prices. No cross-CPO or station price inheritance."
+    })
+    upsert(sources,{
       "id":"france-electra-platform",
       "label":"France Electra eMSP aggregate tariffs joined independently to national EVSEs",
       "adapter":"direct-offer-sharded-v1",

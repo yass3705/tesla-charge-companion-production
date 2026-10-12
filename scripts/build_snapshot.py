@@ -317,7 +317,7 @@ def main():
     uk=overlays/"UK"
     copy_file(national/"uk_validated_open_feeds.json.gz", uk/"all.json.gz")
     for p in national.glob("uk_*"):
-        if p.is_file() and p.name not in {"uk_validated_open_feeds.json.gz","uk_gridserve_pcpr_locations.json.gz","uk_gridserve_pcpr_tariffs.json.gz"}:
+        if p.is_file() and p.name not in {"uk_validated_open_feeds.json.gz","uk_gridserve_pcpr_locations.json.gz","uk_gridserve_pcpr_tariffs.json.gz","uk_source_ev_pcpr.json.gz"}:
             copy_file(p,uk/"sources"/p.name)
     for name in ("fastned_direct_stations_uk.json.gz","ionity_direct_stations_uk.json.gz"):
         p=national/name
@@ -540,6 +540,73 @@ def main():
         entry["optional"]=False
         local=reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
         if entry["id"] not in local:local.append(entry["id"])
+        write_json(registry,reg)
+    # A staged daily collection is not sufficient: only a matching independent
+    # audit may activate Source EV in this immutable candidate.
+    source_ev_data=uk/"sources/uk_source_ev_pcpr_v9.json.gz"
+    source_ev_report=dl/"reports/uk/source_ev-pcpr-latest.json"
+    source_ev_audit=dl/"reports/uk/source_ev-pcpr-validation-latest.json"
+    if source_ev_audit.exists():
+        if not source_ev_data.exists() or not source_ev_report.exists():
+            raise AssertionError("Source EV audit without collection source/report")
+        audited=load_json(source_ev_audit)
+        collected=load_json(source_ev_report)
+        with gzip.open(source_ev_data,"rt",encoding="utf-8") as f:
+            payload=json.load(f)
+        sources=payload.get("sources") or []
+        if (len(sources)!=1 or sources[0].get("id")!="source-ev-uk-pcpr-direct"
+            or payload.get("country")!="GB"
+            or payload.get("collectedAt")!=collected.get("collectedAt")
+            or payload.get("collectedAt")!=audited.get("collectedAt")
+            or audited.get("sourceSha256")!=sha256(source_ev_data)
+            or audited.get("collectionRunId")!=collected.get("workflowRunId")
+            or audited.get("provider")!="Source EV"
+            or audited.get("status")!="validated_public_exact_connector"
+            or audited.get("validatedForV9") is not True):
+            raise AssertionError("Source EV collection/audit provenance mismatch")
+        source=sources[0]
+        locs=source.get("locations") or []
+        tariffs=source.get("tariffs") or []
+        ids=[str(t.get("id") or "") for t in tariffs]
+        if (not locs or not tariffs or not all(ids) or len(ids)!=len(set(ids))
+            or set(ids)-{"GB*SGB_02","GB*SGB_02_22Kw_AC"}
+            or len(locs)!=audited.get("publicLocations")
+            or len(tariffs)!=audited.get("distinctTariffs")
+            or any(t.get("currency")!="GBP" or t.get("party_id")!="SGB"
+                   or t.get("tccPriceBasis")!="GBP_including_public_UK_VAT" for t in tariffs)):
+            raise AssertionError("Source EV tariff identity or coverage mismatch")
+        count=priced=0
+        seen=set()
+        for loc in locs:
+            if (loc.get("publish") is not True or loc.get("country_code")!="GB"
+                or loc.get("party_id")!="SGB" or
+                not "".join(c for c in (loc.get("operator") or {}).get("name","").lower() if c.isalnum()).startswith("sourceev")):
+                raise AssertionError("Source EV cross-CPO/private location")
+            for evse in loc.get("evses") or []:
+                if evse.get("status") not in ("AVAILABLE","CHARGING"):
+                    raise AssertionError("Source EV inactive EVSE")
+                for conn in evse.get("connectors") or []:
+                    key=(loc.get("id"),evse.get("evse_id") or evse.get("uid"),conn.get("id"))
+                    refs=[str(x) for x in conn.get("tariff_ids") or []]
+                    if (not all(key) or key in seen or
+                        conn.get("standard") not in ("IEC_62196_T2","IEC_62196_T2_COMBO") or
+                        any(ref not in ids for ref in refs) or
+                        not set(refs).issubset(set(conn.get("sourceTariffIds") or []))):
+                        raise AssertionError("Source EV connector/tariff mapping invalid")
+                    seen.add(key)
+                    count+=1
+                    priced+=bool(refs)
+        if (count!=audited.get("publicConnectors") or
+            priced!=audited.get("exactPricedConnectors") or
+            count-priced!=audited.get("unpricedPublicConnectors") or priced==0):
+            raise AssertionError("Source EV audited connector counts mismatch")
+        reg=load_json(registry)
+        entry=next((s for s in reg.get("sources",[]) if s.get("id")=="uk-source-ev-pcpr-direct"),None)
+        if entry is None: raise AssertionError("Missing Source EV V9 registry entry")
+        entry["active"]=True
+        entry["optional"]=False
+        local=reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        if entry["id"] not in local: local.append(entry["id"])
         write_json(registry,reg)
     copy_file(dl/"docs/uk-cpo-progress-2026-09.json", uk/"cpo-ledger.json")
     uk_ledger=load_json(dl/"docs/uk-cpo-progress-2026-09.json")
