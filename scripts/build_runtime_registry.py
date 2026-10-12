@@ -85,6 +85,21 @@ def build_registry(path):
       "optional":True,
       "policy":"Only connector-bound offers verified against the same Ubitricity public PAYG tariff are rankable. Rejected tariffs stay unpriced."
     })
+    # Latest merged UK PCPR adapter does not exist in the older pinned Stable
+    # baseline. Register it in Production, then allow the existing audited
+    # builder to activate it only after exact source/audit agreement.
+    upsert(sources,{
+      "id":"allego-uk-pcpr-direct",
+      "label":"Allego UK CPO direct PCPR exact EVSE connector tariffs",
+      "adapter":"uk-pcpr-v1",
+      "countries":["GB"],
+      "operatorIds":["allego"],
+      "capabilities":["inventory","connectors","access","tariff"],
+      "priority":{"identity":90,"connectors":95,"access":90,"status":0,"tariff":130},
+      "refresh":"daily-verified-pcpr",
+      "active":False,
+      "optional":True
+    })
     upsert(sources,{
       "id":"uk-connected-kerb-guest-direct",
       "label":"UK Connected Kerb app-verified exact guest connector tariffs",
@@ -231,6 +246,32 @@ def build_registry(path):
       "policy":"Exact EVSE ID only. CHF/kWh incl. VAT only; time-based or unsupported tariff semantics fail closed."
     })
 
+    upsert(sources,{
+      "id":"france-izivia-fast-connector-correction",
+      "label":"IZIVIA FAST verified Type2/CCS connector groups (without EVSE identity)",
+      "adapter":"station-json-v1",
+      "path":"../snapshot-inputs/FR/direct/izivia_fast_connector_correction.json",
+      "countries":["FR"],
+      "capabilities":["connectors"],
+      "priority":{"identity":0,"connectors":180,"status":0,"tariff":0},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Only exact national FAST canonical station IDs receive official connector kind/power corrections. No synthetic EVSE/PDC identity or CHAdeMO exposed."
+    })
+    upsert(sources,{
+      "id":"france-izivia-fast-direct-exact",
+      "label":"France IZIVIA FAST audited station/power direct tariffs",
+      "adapter":"direct-offer-json",
+      "path":"../snapshot-inputs/FR/direct/izivia_fast_direct_offers.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":125},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Exact national FAST station IDs and connector kind/power only. No inferred tariff from nearby sites; never mix eMSP and direct offers."
+    })
     upsert(sources,{
       "id":"france-electra-direct-exact",
       "label":"France Electra exact direct station tariffs",

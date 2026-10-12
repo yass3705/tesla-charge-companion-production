@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-12-nl-dotnl-validated",
-    "dataLabSha": "c7173fd03143a89f9fd41e4eed6e2c6d71531b52",
-    "rule": "Development/runtime validation uses this immutable NL-enabled snapshot with versioned DOT-NL runtime from 12 October; R9 and the 3 October NL snapshot remain rollback baselines."
+    "currentSnapshot": "2026-10-12-izivia-fast-direct-candidate",
+    "dataLabSha": "66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60",
+    "rule": "Pinned immutable candidate verified with full IZIVIA FAST 616/616 station joins, 1212 direct offers, UK audited CPO batch preserved and no Pages deployment. NL 12 October pin remains rollback baseline."
   }
 }

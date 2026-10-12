@@ -179,7 +179,7 @@ def main():
         dependency_anchor,
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/map-price-engine.js',"
-        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/netherlands-dotnl.js','assets/v9/adapters/belgium-nap.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
+        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/netherlands-dotnl.js','assets/v9/adapters/belgium-nap.js','assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/uk-pcpr.js','assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
     )
     for required in ("v9-production-shell/bridge.js","assets/v9/production-bootstrap.js","assets/v9/production-loader-extension.js"):
@@ -319,7 +319,8 @@ def main():
     # snapshots precede the reconciled Connected Kerb guest data and the
     # Stable Allego registry entry.
     uk_recent_candidate=(str(cfg.get("snapshotId", ""))[:10]>="2026-10-12"
-                         and cfg.get("snapshotId")!="2026-10-12-nl-dotnl-validated")
+                         and cfg.get("snapshotId")!="2026-10-12-nl-dotnl-validated"
+                         and cfg.get("ukDirectBatch", True) is not False)
     uk=overlays/"UK"
     copy_file(national/"uk_validated_open_feeds.json.gz", uk/"all.json.gz")
     for p in national.glob("uk_*"):
@@ -756,6 +757,33 @@ def main():
     ionity_fr_exact=dl/"data/operator_direct/ionity_exact_france.json"
     if ionity_fr_exact.exists():
         copy_file(ionity_fr_exact,fr_direct/"ionity_exact_france.json")
+    # The October 12 FAST capture confirmed 620 station tariffs and 616
+    # connector-eligible sites. Opt in only on a new snapshot config; keep
+    # historical pinned builds bit-for-bit unchanged.
+    if cfg.get("franceIziviaFastDirect") is True:
+        izivia_root=dl/"data/operator_direct"
+        izivia_offers=izivia_root/"izivia_fast_direct_france_2026_10_06.json"
+        izivia_inventory=izivia_root/"izivia_fast_inventory_france_2026_10_06.json"
+        subprocess.run([
+            sys.executable,str(production_root/"scripts/validate_izivia_fast_direct.py"),
+            str(izivia_offers),str(izivia_inventory),
+            str(fr_direct/"izivia_fast_direct_offers.json"),
+            "--connector-output",str(fr_direct/"izivia_fast_connector_correction.json")
+        ],check=True)
+        # Audit input only: synthetic summary IDs are not standalone EVSE identities.
+        copy_file(izivia_inventory,fr_direct/"izivia_fast_inventory_evidence.json")
+        reg=load_json(registry)
+        required={"france-izivia-fast-direct-exact","france-izivia-fast-connector-correction"}
+        found=set()
+        for source in reg.get("sources",[]):
+            if source.get("id") in required:
+                source["active"]=True
+                source["optional"]=False
+                found.add(source["id"])
+        if found!=required:
+            raise AssertionError(f"IZIVIA FAST registry sources missing: {sorted(required-found)}")
+        reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[]).extend(["france-izivia-fast-direct-exact","france-izivia-fast-connector-correction"])
+        write_json(registry,reg)
     ev_inventory=dl/"data/electroverse/inventory/france-current.json"
     ev_delta=dl/"reports/electroverse/daily-delta.json"
     if ev_inventory.exists(): copy_file(ev_inventory,overlays/"FR/platforms/electroverse-france-current.json")
@@ -984,6 +1012,7 @@ def main():
           "runtime/assets/v9/adapters/netherlands-dotnl.js",
           "runtime/assets/v9/adapters/belgium-nap.js",
           "runtime/assets/v9/adapters/uk-open-feeds.js",
+          "runtime/assets/v9/adapters/uk-pcpr.js",
           "runtime/assets/v9/adapters/switzerland-avia.js",
           "runtime/assets/v9/adapters/italy-ionity-exact.js",
           "runtime/assets/v9/adapters/france-ionity-exact.js",

@@ -126,7 +126,7 @@
         rule?.connectedTimeBlockMinutes,rule?.connectedTimeBlockEur,rule?.sessionFeeEur,
         rule?.minimumSessionEur,rule?.ocpiDurationBands,rule?.powerBands,
         rule?.congestionTimePerMinute,rule?.congestionStartSoc,rule?.congestionTimeStepSeconds,rule?.ocpiCongestionDurationBands,
-        rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur
+        rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur,rule?.connectedTimeAfterFreeStepSeconds
       ]);
       if(new Set(samePriority.map(row=>signature(row.rule))).size>1)
         return{rule:null,unknown:true,reason:'ambiguous_overlapping_tariff_rules'};
@@ -256,8 +256,10 @@
     }
     const freeMinutes=num(rule?.connectedTimeFreeMinutes),afterFree=num(rule?.connectedTimePerMinuteAfterFreeEur);
     if(freeMinutes!=null&&freeMinutes>=0&&afterFree!=null){
-      const billableMinutes=Math.max(0,duration-freeMinutes),costEur=money(billableMinutes*afterFree);
-      components.connectedTimeAfterFree={freeMinutes,billableMinutes,eurPerMinute:afterFree,costEur};total+=costEur;
+      const actualMinutes=Math.max(0,duration-freeMinutes),step=num(rule?.connectedTimeAfterFreeStepSeconds);
+      const billableMinutes=step>0&&actualMinutes>0?Math.ceil(actualMinutes*60/step)*step/60:actualMinutes;
+      const costEur=money(billableMinutes*afterFree);
+      components.connectedTimeAfterFree={freeMinutes,actualMinutes,billableMinutes,stepSeconds:step>0?step:null,eurPerMinute:afterFree,costEur};total+=costEur;
     }
     const initialMinutes=num(rule?.connectedTimeInitialMinutes),initialFlat=num(rule?.connectedTimeInitialFlatEur),afterInitial=num(rule?.connectedTimeAfterInitialPerMinuteEur);
     if(initialMinutes>0&&initialFlat!=null&&afterInitial!=null&&duration>0){
@@ -563,7 +565,11 @@
     const match=matchingRuleDetailed(pricing,session.startAt,timeZone,session);if(match.unknown)return{complete:false,reason:match.reason,offerId:offer?.id||null,timeZone};const rule=match.rule;if(!rule)return{complete:false,reason:'no_matching_time_rule',offerId:offer?.id||null,timeZone};
     const duration=Math.max(0,num(session.durationMinutes)??0),boundary=minutesUntilRuleBoundary(rule,session.startAt,timeZone);
     let base,segmented=false;
-    if(boundary!=null&&Number.isFinite(boundary)&&duration>boundary+1e-9){
+    // An explicit session-start tariff remains fixed for the whole connection;
+    // do not segment across clock-time window boundaries.
+    if(pricing.priceSelectionBasis==='session_start_local_time'){
+      base=evaluateRule(rule,{...session,tariffDurationMinutes:duration});
+    }else if(boundary!=null&&Number.isFinite(boundary)&&duration>boundary+1e-9){
       base=evaluateSegmentedRules(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone,boundaryMinutes:boundary};segmented=true;
     }else base=evaluateRule(rule,{...session,tariffDurationMinutes:duration});
     if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone};

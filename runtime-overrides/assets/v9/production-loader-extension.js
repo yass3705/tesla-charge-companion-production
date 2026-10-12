@@ -85,6 +85,13 @@
             const ionityPayload=source.ionityPath?await memoizedJson(join(basePath,source.ionityPath),opts.fetchImpl,dataCache):null;
             return de.normalizePayload(payload,{sourceId:source.id,ionityPayload});
           };
+        }else if(source.adapter==='station-json-v1'){
+          loaders[source.id]=async()=>{
+            const payload=await memoizedJson(join(basePath,source.path),opts.fetchImpl,dataCache);
+            if(!payload||!Array.isArray(payload.stations)||payload.policy?.evseIdentityNotInferred!==true)
+              throw new Error('station correction provenance or EVSE-identity guard missing');
+            return{stations:payload.stations};
+          };
         }else if(source.adapter==='uk-open-feeds-v1'){
           if(!uk?.normalizePayload)throw new Error('UK adapter missing');
           loaders[source.id]=async query=>{
