@@ -8,6 +8,7 @@ on:
       - "scripts/build_snapshot.py"
       - "runtime-overrides/assets/v9/pricing-engine.js"
       - "tests/izivia-fast-direct-pricing.test.mjs"
+      - "tests/izivia-fast-runtime-join.test.mjs"
       - "config/snapshots/2026-10-12-izivia-fast-direct-candidate.json"
   pull_request:
     branches: ["main"]
@@ -76,6 +77,7 @@ jobs:
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
           node production/tests/runtime-e2e-smoke.mjs dist/v9-izivia-fast-candidate
+          node production/tests/izivia-fast-runtime-join.test.mjs dist/v9-izivia-fast-candidate
       - name: Upload candidate proof only
         uses: actions/upload-artifact@v4
         with:
