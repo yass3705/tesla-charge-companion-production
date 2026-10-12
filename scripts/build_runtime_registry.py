@@ -232,6 +232,19 @@ def build_registry(path):
     })
 
     upsert(sources,{
+      "id":"france-izivia-fast-direct-exact",
+      "label":"France IZIVIA FAST audited station/power direct tariffs",
+      "adapter":"direct-offer-json",
+      "path":"../snapshot-inputs/FR/direct/izivia_fast_direct_offers.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":125},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Exact national FAST station IDs and connector kind/power only. No inferred tariff from nearby sites; never mix eMSP and direct offers."
+    })
+    upsert(sources,{
       "id":"france-electra-direct-exact",
       "label":"France Electra exact direct station tariffs",
       "adapter":"direct-offer-json",
