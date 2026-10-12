@@ -35,6 +35,7 @@ on:
       - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
       - "runtime-overrides/assets/v9/map-price-engine.js"
       - "tests/uk-gridserve-integration.test.mjs"
+      - "tests/uk-source-ev-integration.test.mjs"
       - "scripts/tesla_tariff_priority.py"
       - "scripts/validate_stable_parity.py"
       - "tests/test_tesla_tariff_priority.py"
@@ -64,6 +65,7 @@ on:
       - "tests/test_germany_ionity_supplement_provenance.py"
       - "scripts/validate_built_snapshot.py"
       - "tests/runtime-e2e-smoke.mjs"
+      - "tests/uk-source-ev-integration.test.mjs"
       - "scripts/tesla_tariff_priority.py"
       - "scripts/validate_stable_parity.py"
       - "tests/test_tesla_tariff_priority.py"
@@ -273,6 +275,26 @@ jobs:
           assert s["path"]=="../snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz"
           print("Gridserve V9 registry active; exact public connector source deployed")
           PY
+      - name: Verify independently audited Source EV exact connector offers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -f datalab/reports/uk/source_ev-pcpr-validation-latest.json; then
+            node production/tests/uk-source-ev-integration.test.mjs \
+              datalab/data/national/uk_source_ev_pcpr_v9.json.gz \
+              dist/v9-global-preview/snapshot-inputs/UK/sources/uk_source_ev_pcpr_v9.json.gz
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('dist/v9-global-preview')
+          registry=json.loads((root/'runtime/data/v9/source-registry.json').read_text())
+          source=next(s for s in registry['sources'] if s.get('id')=='uk-source-ev-pcpr-direct')
+          assert source['active'] is True and source['optional'] is False
+          print('Source EV audited daily PCPR source active in candidate')
+          PY
+          else
+            echo 'Source EV independent audit pending; source remains inactive'
+          fi
       - name: Validate Blink direct source and Midhope in actual built snapshot
         run: |
           node production/tests/uk-midhope-source-integration.test.mjs dist/v9-global-preview/snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz

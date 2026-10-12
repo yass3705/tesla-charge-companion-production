@@ -103,6 +103,18 @@ def main():
     ubi_src=sources.get("uk-ubitricity-pcpr-payg") or {}
     assert ubi_src.get("adapter")=="uk-open-feeds-v1"
     assert ubi_src.get("path")=="../snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz"
+    source_ev=sources.get("uk-source-ev-pcpr-direct") or {}
+    assert source_ev.get("adapter")=="uk-open-feeds-v1"
+    assert source_ev.get("path")=="../snapshot-inputs/UK/sources/uk_source_ev_pcpr_v9.json.gz"
+    source_ev_path=root/"snapshot-inputs/UK/sources/uk_source_ev_pcpr_v9.json.gz"
+    assert not (root/"snapshot-inputs/UK/sources/uk_source_ev_pcpr.json.gz").exists(), "raw Source EV feed included"
+    if source_ev.get("active"):
+        assert source_ev.get("optional") is False and source_ev_path.exists()
+        with gzip.open(source_ev_path,"rt",encoding="utf-8") as f: source_ev_payload=json.load(f)
+        assert [s.get("id") for s in source_ev_payload.get("sources",[])]==["source-ev-uk-pcpr-direct"]
+        assert source_ev_payload.get("country")=="GB"
+    else:
+        assert source_ev.get("optional") is True
     ubi_path=root/"snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz"
     # Explicit UK support hold: a historical file may exist for provenance,
     # but it must never become a pricing source in this V9 release.

@@ -142,8 +142,8 @@
         const verified=validatedUbitricityOffer(c.validatedV9Offer,loc,eid,cid,source)||validatedMidhopeOffer(c.validatedV9Offer,loc,eid,cid,source);
         if(verified)offers.push(verified);
         for(const tid of uniq(c.tariff_ids||[])){
-          const tariff=tariffMap.get(tid),pricing=source?.id==='eco-movement-pcpr-cpo-direct'?pcprDirectPricing(tariff):tariffPricing(tariff);if(!pricing)continue;
-          const connectorExact=['gridserve-pcpr-direct','eco-movement-pcpr-cpo-direct'].includes(source?.id);
+          const tariff=tariffMap.get(tid),pricing=['eco-movement-pcpr-cpo-direct','source-ev-uk-pcpr-direct'].includes(source?.id)?pcprDirectPricing(tariff):tariffPricing(tariff);if(!pricing)continue;
+          const connectorExact=['gridserve-pcpr-direct','eco-movement-pcpr-cpo-direct','source-ev-uk-pcpr-direct'].includes(source?.id);
           const nextOffer={id:sourceId+':'+stationKey+':'+eid+':'+cid+':'+tid,provider:text(loc?.operator?.name||source?.name||party),kind:'direct',subscriptionId:null,countries:['GB'],currency:text(tariff.currency||'GBP').toUpperCase(),evseIds:[eid],
             ...(connectorExact?{connectorIds:[cid],stationIds:[text(loc.id)]}:{}),pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null,connectorId:cid,priceBasis:tariff?.tccPriceBasis||null,pricingScope:source?.pricingScope||null,timeZone:'Europe/London',incompletePricingReason:pricing.incompletePricingReason||null}};
           offers.push(nextOffer);
