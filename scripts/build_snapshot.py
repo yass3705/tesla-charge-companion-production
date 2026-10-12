@@ -773,12 +773,15 @@ def main():
         # Audit input only: synthetic summary IDs are not standalone EVSE identities.
         copy_file(izivia_inventory,fr_direct/"izivia_fast_inventory_evidence.json")
         reg=load_json(registry)
+        required={"france-izivia-fast-direct-exact","france-izivia-fast-connector-correction"}
+        found=set()
         for source in reg.get("sources",[]):
-            if source.get("id") in ("france-izivia-fast-direct-exact","france-izivia-fast-connector-correction"):
+            if source.get("id") in required:
                 source["active"]=True
                 source["optional"]=False
-        else:
-            raise AssertionError("IZIVIA FAST exact direct registry source missing")
+                found.add(source["id"])
+        if found!=required:
+            raise AssertionError(f"IZIVIA FAST registry sources missing: {sorted(required-found)}")
         reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[]).extend(["france-izivia-fast-direct-exact","france-izivia-fast-connector-correction"])
         write_json(registry,reg)
     ev_inventory=dl/"data/electroverse/inventory/france-current.json"
