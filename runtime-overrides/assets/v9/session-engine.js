@@ -26,18 +26,25 @@
     const state=text(connector?.status?.state??connector?.status).toLowerCase();
     return !['out_of_service','unavailable','offline','faulted','inoperative'].includes(state);
   }
+  const evseIdentity=v=>text(v).toUpperCase().replace(/[^A-Z0-9]/g,'');
+  function evseIdentities(evse={}){
+    return [evse.evseId,evse.pdcId,evse.id,...(Array.isArray(evse.aliases)?evse.aliases:[]),...(Array.isArray(evse.pdcIds)?evse.pdcIds:[])].map(evseIdentity).filter(Boolean);
+  }
   function stationChargingProfile(station){
     let selected=null;
     for(const evse of station?.evses||[])for(const connector of evse?.connectors||[]){
       if(!connectorUsable(connector))continue;
       const power=num(connector?.powerKw);if(power==null||power<=0)continue;
-      if(!selected||power>selected.powerKw)selected={powerKw:power,kind:connectorKind(connector),connectorId:text(connector?.id)||null,plugName:text(connector?.plugName||connector?.type)||null};
+      if(!selected||power>selected.powerKw)selected={powerKw:power,kind:connectorKind(connector),connectorId:text(connector?.id)||null,plugName:text(connector?.plugName||connector?.type)||null,evseIds:evseIdentities(evse)};
     }
-    return selected||{powerKw:null,kind:null,connectorId:null,plugName:null};
+    return selected||{powerKw:null,kind:null,connectorId:null,plugName:null,evseIds:[]};
   }
   function stationChargingKind(station){return stationChargingProfile(station).kind;}
 
-  function offerMatchesChargingKind(offer,chargingKind,chargingPowerKw=null,chargingPlugName=null,chargingConnectorId=null){
+  function offerMatchesChargingKind(offer,chargingKind,chargingPowerKw=null,chargingPlugName=null,chargingConnectorId=null,chargingEvseIds=[]){
+    const scopedEvses=Array.isArray(offer?.evseIds)?offer.evseIds.map(evseIdentity).filter(Boolean):[];
+    const candidateEvses=(Array.isArray(chargingEvseIds)?chargingEvseIds:[chargingEvseIds]).map(evseIdentity).filter(Boolean);
+    if(scopedEvses.length&&!scopedEvses.some(id=>candidateEvses.includes(id)))return false;
     const allowed=Array.isArray(offer?.connectorKinds)?offer.connectorKinds.map(v=>text(v).toUpperCase()).filter(Boolean):[];
     if(chargingKind&&allowed.length&&!allowed.includes(chargingKind))return false;
     const min=num(offer?.minPowerKw),max=num(offer?.maxPowerKw),power=num(chargingPowerKw);
@@ -176,39 +183,50 @@
   function evaluateStation(station,session={},options={}){
     const selectedSubscriptions=options.selectedSubscriptions||session.selectedSubscriptions||[];
     const chargingProfile=stationChargingProfile(station),chargingKind=chargingProfile.kind,chargingPowerKw=chargingProfile.powerKw,chargingPlugName=chargingProfile.plugName,chargingConnectorId=chargingProfile.connectorId;
-    const offers=OfferEngine.eligibleOffers(station,selectedSubscriptions,{countryCode:station?.countryCode}).filter(offer=>offerMatchesChargingKind(offer,chargingKind,chargingPowerKw,chargingPlugName,chargingConnectorId));
+    const connectorProfiles=(station?.evses||[]).flatMap(evse=>(evse.connectors||[]).filter(connectorUsable).map(connector=>({kind:connectorKind(connector),powerKw:num(connector.powerKw),plugName:text(connector.plugName||connector.type)||null,connectorId:text(connector.id)||null,evseIds:evseIdentities(evse)})));
+    const offerPairs=OfferEngine.eligibleOffers(station,selectedSubscriptions,{countryCode:station?.countryCode}).map(offer=>{
+      const exact=Array.isArray(offer?.evseIds)&&offer.evseIds.length>0||offer?.metadata?.pcprExactConnector===true;
+      const profile=exact?connectorProfiles.find(p=>offerMatchesChargingKind(offer,p.kind,p.powerKw,p.plugName,p.connectorId,p.evseIds))
+        :offerMatchesChargingKind(offer,chargingKind,chargingPowerKw,chargingPlugName,chargingConnectorId,chargingProfile.evseIds)?chargingProfile:null;
+      return{offer,profile,exact};
+    }).filter(pair=>pair.profile);
     const targetCurrency=text(options.targetCurrency||session.targetCurrency||'EUR').toUpperCase();
     const fxRates=options.fxRates||session.fxRates||{};
     const effectiveSession=stationSession(station,session,options),km=recoveredKm(session),evaluations=[];
     effectiveSession.stationTimeZone=station?.timeZone||station?.metadata?.timeZone||effectiveSession.stationTimeZone||null;
     if(num(effectiveSession.powerKw)==null&&chargingPowerKw!=null)effectiveSession.powerKw=chargingPowerKw;
 
-    for(const offer of offers){
-      const postChargeMinutes=Math.max(0,num(effectiveSession.postChargeMinutes)??0);
+    for(const {offer,profile,exact} of offerPairs){
+      const connectorSession=exact?options.pcprConnectorSessions?.[profile.connectorId]:null;
+      const currentSession={...(connectorSession||effectiveSession),chargingKind:profile.kind};
+      if(exact&&profile.powerKw!=null)currentSession.powerKw=Math.min(num(currentSession.powerKw)??profile.powerKw,profile.powerKw);
+      const postChargeMinutes=Math.max(0,num(currentSession.postChargeMinutes)??0);
       const unknownPostCharge=offer?.pricing?.postChargeFeeUnknown===true||offer?.metadata?.postChargeFeeUnknown===true;
-      const validity=evaluateOfferValidity(offer,effectiveSession);
-      const locked=validity.complete?evaluateSessionStartLockedOffer(offer,effectiveSession):null;
-      const timeline=validity.complete&&!locked?evaluateTimelineOffer(offer,effectiveSession):null;
+      const validity=evaluateOfferValidity(offer,currentSession);
+      const locked=validity.complete?evaluateSessionStartLockedOffer(offer,currentSession):null;
+      const timeline=validity.complete&&!locked?evaluateTimelineOffer(offer,currentSession):null;
       const feeRules=congestionRules(offer?.pricing);
       const result=validity.complete===false
         ?validity
         :unknownPostCharge&&postChargeMinutes>0
         ?{complete:false,reason:'post_charge_fee_unknown_for_station',offerId:text(offer.id||offer.offerId),postChargeMinutes}
         :feeRules.length
-        ?PricingEngine.evaluateOffer(offer,{...effectiveSession,includeCongestionFees:true})
-        :(locked||timeline||PricingEngine.evaluateOffer(offer,effectiveSession));
+        ?PricingEngine.evaluateOffer(offer,{...currentSession,includeCongestionFees:true})
+        :(locked||timeline||PricingEngine.evaluateOffer(offer,currentSession));
       const withoutCongestion=feeRules.length&&validity.complete!==false
-        ?PricingEngine.evaluateOffer(offer,{...effectiveSession,includeCongestionFees:false}):null;
+        ?PricingEngine.evaluateOffer(offer,{...currentSession,includeCongestionFees:false}):null;
       const currency=text(result.currency||offer.currency||'EUR').toUpperCase();
       const rate=result.complete?fxRate(currency,targetCurrency,fxRates):null;
       const pricingWarning=text(offer?.metadata?.incompletePricingReason);
       const comparable=result.complete===true&&!pricingWarning&&rate!=null&&num(result.totalEur)!=null;
       const normalizedTotal=comparable?money(result.totalEur*rate):null;
       const totalWithoutCongestion=withoutCongestion?.complete&&comparable?money(withoutCongestion.totalEur*rate):null;
-      const congestionMinutes=feeRules.length?PricingEngine.congestionBillableMinutes(effectiveSession,num(feeRules[0]?.congestionStartSoc)??80):null;
+      const congestionMinutes=feeRules.length?PricingEngine.congestionBillableMinutes(currentSession,num(feeRules[0]?.congestionStartSoc)??80):null;
       evaluations.push({
         offerId:text(offer.id||offer.offerId),provider:text(offer.provider),kind:text(offer.kind),subscriptionId:text(offer.subscriptionId),selectionId:text(offer.selectionId)||null,
         priority:num(offer.priority)??0,currency,result,comparable,targetCurrency,
+        connectorId:exact?profile.connectorId:null,evseId:exact?profile.evseIds[0]||null:null,
+        connectorPowerKw:exact?profile.powerKw:null,connectorKind:exact?profile.kind:null,
         incompletePricingReason:pricingWarning||null,
         total:normalizedTotal,costPerRecoveredKm:normalizedTotal!=null&&km?money(normalizedTotal/km):null,
         congestion:feeRules.length?{
@@ -230,7 +248,7 @@
     const best=comparable[0]||null;
     return{
       stationId:text(station?.id||station?.canonicalId||station?.stationId),chargingKind,chargingPowerKw,chargingPlugName,chargingConnectorId,
-      eligibleOfferCount:offers.length,comparableOfferCount:comparable.length,targetCurrency,recoveredKm:km,
+      eligibleOfferCount:offerPairs.length,comparableOfferCount:comparable.length,targetCurrency,recoveredKm:km,
       requestedEnergyKwh:effectiveSession.requestedEnergyKwh,approachEnergyKwh:effectiveSession.approachEnergyKwh,billedEnergyKwh:effectiveSession.energyKwh,
       best,
       alternatives:comparable.slice(1),
