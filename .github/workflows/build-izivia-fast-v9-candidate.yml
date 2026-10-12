@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/build-izivia-fast-v9-candidate.yml"
       - "scripts/build_snapshot.py"
+      - "scripts/audit_izivia_fast_irve_identity.py"
       - "runtime-overrides/assets/v9/pricing-engine.js"
       - "tests/izivia-fast-direct-pricing.test.mjs"
       - "tests/izivia-fast-runtime-join.test.mjs"
