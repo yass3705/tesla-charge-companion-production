@@ -44,6 +44,7 @@ jobs:
           harness="$RUNNER_TEMP/pricing-harness/runtime-overrides/assets/v9"
           mkdir -p "$harness/adapters"
           cp runtime-overrides/assets/v9/pricing-engine.js "$harness/pricing-engine.js"
+          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
           git show "${{ github.event.pull_request.base.sha }}:runtime-overrides/assets/v9/adapters/netherlands-dotnl.js" > "$harness/adapters/netherlands-dotnl.js"
           node datalab-pin/scripts/v9_nl_direct_tariff_simulation_runtime_20261012.cjs "$RUNNER_TEMP/nl-fixtures.json" "$RUNNER_TEMP/pricing-harness" "$RUNNER_TEMP/nl-candidate-simulations.json"
           python3 - "$RUNNER_TEMP/nl-candidate-simulations.json" <<'PY'
