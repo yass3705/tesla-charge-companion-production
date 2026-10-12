@@ -14,7 +14,6 @@ const dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));
 const browserLoaders=require(path.join(runtime,'assets/v9/browser-loaders.js'));
 const de=require(path.join(runtime,'assets/v9/adapters/germany-national.js'));
 const uk=require(path.join(runtime,'assets/v9/adapters/uk-open-feeds.js'));
-const ukPcpr=require(path.join(runtime,'assets/v9/adapters/uk-pcpr.js'));
 const ma=require(path.join(runtime,'assets/v9/adapters/morocco-public.js'));
 const nationalCompact=require(path.join(runtime,'assets/v9/adapters/national-compact.js'));
 const directOffers=require(path.join(runtime,'assets/v9/adapters/direct-offers.js'));
@@ -52,6 +51,7 @@ const sourceEvActive=registry.sources.some(s=>s.id==='uk-source-ev-pcpr-direct'&
 if(sourceEvActive)wanted.add('uk-source-ev-pcpr-direct');
 const allegoActive=registry.sources.some(s=>s.id==='allego-uk-pcpr-direct'&&s.active===true);
 if(allegoActive)wanted.add('allego-uk-pcpr-direct');
+const ukPcpr=allegoActive?require(path.join(runtime,'assets/v9/adapters/uk-pcpr.js')):null;
 const ckGuestActive=registry.sources.some(s=>s.id==='uk-connected-kerb-guest-direct'&&s.active===true);
 if(ckGuestActive)wanted.add('uk-connected-kerb-guest-direct');
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
