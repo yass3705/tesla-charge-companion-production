@@ -73,6 +73,18 @@ def build_registry(path):
       "policy":"Only published public Gridserve OCPI stations. Exact tariff_ids bound per connector; private/depot/testing/removed locations excluded. Unknown tariff references fail closed."
     })
     upsert(sources,{
+      "id":"uk-source-ev-pcpr-direct",
+      "label":"UK Source EV public exact Type 2/CCS direct tariffs",
+      "adapter":"uk-open-feeds-v1",
+      "path":"../snapshot-inputs/UK/sources/uk_source_ev_pcpr_v9.json.gz",
+      "countries":["GB"],
+      "capabilities":["inventory","connectors","access","tariff"],
+      "priority":{"identity":85,"connectors":85,"access":70,"status":0,"tariff":140},
+      "refresh":"daily-PCPR-snapshot",
+      "active":False,"optional":True,
+      "policy":"Source EV CPO UK only. Exact connector tariff IDs and GBP VAT-inclusive prices corroborated with the official CPO PAYG page. Type 2 and CCS only; unverified changes fail closed."
+    })
+    upsert(sources,{
       "id":"uk-ubitricity-pcpr-payg",
       "label":"UK Ubitricity authenticated PCPR with exact public PAYG verification",
       "adapter":"uk-open-feeds-v1",
