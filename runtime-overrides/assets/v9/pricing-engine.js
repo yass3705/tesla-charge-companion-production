@@ -281,7 +281,19 @@
     // A weekday list (including seven days) must not make a valid
     // time-of-use tariff incalculable when the session crosses a boundary.
     if(rule.mustEndSameLocalDay===true||rule.holidayOnly===true||rule.excludeHolidays===true)return false;
-    if(rule.energyRounding==='started_kwh'||num(rule.energyStepWh)>0||num(rule.connectedTimeStepSeconds)>0||num(rule.chargingTimeStepSeconds)>0)return false;
+    // Zero-priced dimensions are not affected by their OCPI rounding step.
+    // Keep every *billable* step fail-closed across tariff boundaries: rounding
+    // each segment independently would otherwise risk double charging.
+    const hasBands=dimension=>Array.isArray(rule.ocpiDurationBands)&&
+      rule.ocpiDurationBands.some(b=>String(b?.[0]||'').toUpperCase()===dimension);
+    const energyCharge=num(rule.pricePerKwh);
+    const timeCharge=num(rule.chargePerMinute)??num(rule.chargingTimePerMinuteEur);
+    const billableEnergyStep=num(rule.energyStepWh)>0&&
+      ((energyCharge??0)!==0||hasBands('ENERGY'));
+    const billableChargingStep=num(rule.chargingTimeStepSeconds)>0&&
+      ((timeCharge??0)!==0||hasBands('TIME'));
+    if(rule.energyRounding==='started_kwh'||billableEnergyStep||
+       num(rule.connectedTimeStepSeconds)>0||billableChargingStep)return false;
     if(num(rule.connectedTimeBlockMinutes)>0||num(rule.connectedTimeBlockEur)!=null)return false;
     if(num(rule.connectedTimeFreeMinutes)!=null||num(rule.connectedTimePerMinuteAfterFreeEur)!=null)return false;
     if(num(rule.connectedTimeInitialMinutes)!=null||num(rule.connectedTimeInitialFlatEur)!=null||num(rule.connectedTimeAfterInitialPerMinuteEur)!=null)return false;
