@@ -73,6 +73,7 @@ def materialize(offers_src, inventory_src):
         if valid:
             assert len(set(valid))==len(valid)
             result.append({**offer, "stationIds":valid,
+                           "pricing":{**offer["pricing"],"rules":[{**rule,"connectedTimeAfterFreeStepSeconds":60} for rule in rules]},
                            "metadata":{**offer["metadata"],"stationCount":len(valid),
                                        "validation":"exact_FAST_station_and_supported_connector_power"}})
     coverage = {sid for offer in result for sid in offer["stationIds"]}
