@@ -130,11 +130,11 @@ try{
       alternatives:[{offerId:'direct',provider:'Electra',kind:'direct',total:10,currency:'EUR',targetCurrency:'EUR',comparable:true,result:{complete:true,totalEur:10},congestion:{available:true,totalWithoutCongestion:8,sourceCurrencyTotalWithout:8,thresholdSoc:80,thresholdSource:'default_soc80',minutes:10}}],incomplete:[]};
     const el=document.createElement('div');el.id='v9CongestionBrowserTest';el.innerHTML=ui.renderTariffs(quote,st,{EUR:1});document.body.appendChild(el);
     const direct=el.querySelector('[data-v9-lane-label="Direct"]'),other=el.querySelector('[data-v9-lane-label="Electroverse"]'),toggle=direct?.querySelector('.v9-congestion-toggle');
-    if(!toggle||toggle.getAttribute('aria-pressed')!=='true'||direct.querySelector('.v9-lane-amount')?.textContent!=='10,00 €')throw Error('Congestion default UI missing');
+    if(!toggle||toggle.getAttribute('aria-pressed')!=='true'||direct.querySelector('.v9-lane-amount')?.textContent!=='Prix calculé · 10,00 €')throw Error('Congestion default UI missing');
     toggle.click();
-    if(toggle.getAttribute('aria-pressed')!=='false'||direct.querySelector('.v9-lane-amount')?.textContent!=='8,00 €'||other.querySelector('.v9-lane-amount')?.textContent!=='9,50 €'||!direct.classList.contains('v9-best-tariff'))throw Error('Congestion toggle does not update the right lane');
+    if(toggle.getAttribute('aria-pressed')!=='false'||direct.querySelector('.v9-lane-amount')?.textContent!=='Prix calculé · 8,00 €'||other.querySelector('.v9-lane-amount')?.textContent!=='Prix calculé · 9,50 €'||!direct.classList.contains('v9-best-tariff'))throw Error('Congestion toggle does not update the right lane');
     toggle.click();
-    if(toggle.getAttribute('aria-pressed')!=='true'||direct.querySelector('.v9-lane-amount')?.textContent!=='10,00 €'||!other.classList.contains('v9-best-tariff'))throw Error('Congestion re-enable failed');
+    if(toggle.getAttribute('aria-pressed')!=='true'||direct.querySelector('.v9-lane-amount')?.textContent!=='Prix calculé · 10,00 €'||!other.classList.contains('v9-best-tariff'))throw Error('Congestion re-enable failed');
     el.remove();
   });
   assert.ok(result.cards>0,result);
