@@ -4,20 +4,22 @@ import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {mkdtempSync,rmSync,copyFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join,resolve} from 'node:path';
+import {dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const require=createRequire(import.meta.url);
 const stable=process.env.TCC_STABLE_ROOT;
 if(stable){
-  const adapter=require(join(stable,'v9-production-runtime/assets/v9/adapters/direct-offers.js'));
-  const engine=require(join(stable,'v9-production-runtime/assets/v9/data-engine.js'));
+  const adapter=require(resolve(stable,'v9-production-runtime/assets/v9/adapters/direct-offers.js'));
+  const engine=require(resolve(stable,'v9-production-runtime/assets/v9/data-engine.js'));
   const datalab=process.env.TCC_DATALAB_ROOT;
   assert.ok(datalab,'TCC_DATALAB_ROOT required');
   const directory=mkdtempSync(join(tmpdir(),'tcc-belib-'));
   try{
     const path=join(directory,'offers.json');
-    copyFileSync(join(stable,'v9-production-runtime/data/v9/france-belib-offers.json'),path);
-    execFileSync('python3',['scripts/scope_belib_offers.py',path,join(datalab,'data/national/belib_stations_paris.json')]);
+    copyFileSync(resolve(stable,'v9-production-runtime/data/v9/france-belib-offers.json'),path);
+    execFileSync('python3',[resolve(dirname(fileURLToPath(import.meta.url)),'../scripts/scope_belib_offers.py'),path,resolve(datalab,'data/national/belib_stations_paris.json')]);
     const offers=adapter.normalizePayload(JSON.parse(readFileSync(path))).offerRules;
     assert.equal(offers.length,new Set(offers.map(offer=>offer.id)).size);
     const station={id:'FR:national:FRV75PPX0201',countryCode:'FR',physicalOperator:{name:'TotalEnergies'},networkBrand:'TotalEnergies',evses:[{id:'cfg',pdcIds:['FRV75EPX02011'],connectors:[{kind:'AC',powerKw:7}]}]};
