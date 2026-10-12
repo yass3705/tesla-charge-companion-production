@@ -29,12 +29,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
-          ref: bddc8f8cd9e092423e173cfa810744f2cdfa4a4a
+          ref: 66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60
           path: datalab
           persist-credentials: false
       - name: Verify pinned national evidence
         run: |
-          test "$(git -C datalab rev-parse HEAD)" = "bddc8f8cd9e092423e173cfa810744f2cdfa4a4a"
+          test "$(git -C datalab rev-parse HEAD)" = "66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60"
           python -m py_compile production/scripts/validate_izivia_fast_direct.py production/scripts/build_snapshot.py production/scripts/build_runtime_registry.py
           python production/scripts/validate_snapshot.py production/config/snapshots/2026-10-12-izivia-fast-direct-candidate.json
           python production/scripts/validate_izivia_fast_direct.py \
