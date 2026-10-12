@@ -322,6 +322,30 @@ def main():
     for name in ("fastned_direct_stations_uk.json.gz","ionity_direct_stations_uk.json.gz"):
         p=national/name
         if p.exists(): copy_file(p,uk/"sources"/name)
+    allego_data=uk/"sources/uk_allego_uk_pcpr_v9.json.gz"
+    allego_report=dl/"reports/uk/allego_uk-pcpr-validation-latest.json"
+    if allego_data.exists() and allego_report.exists():
+        with gzip.open(allego_data,"rt",encoding="utf-8") as f: allego_payload=json.load(f)
+        allego_audit=load_json(allego_report)
+        if (allego_payload.get("collectedAt")!=allego_audit.get("collectedAt")
+            or allego_audit.get("validatedForV9") is not True
+            or allego_audit.get("sourceId")!="allego-uk-pcpr-direct"
+            or allego_audit.get("publicLocations")!=77
+            or allego_audit.get("exactPricedConnectors")!=240):
+            raise AssertionError("Allego UK pinned source/audit mismatch")
+        audit_target=uk/"reports/allego_uk-pcpr-validation-latest.json"
+        copy_file(allego_report,audit_target)
+        current_registry=load_json(registry)
+        allego_entry=next(s for s in current_registry["sources"] if s.get("id")=="allego-uk-pcpr-direct")
+        allego_entry.pop("url",None)
+        allego_entry.pop("auditUrl",None)
+        allego_entry["path"]="../snapshot-inputs/UK/sources/uk_allego_uk_pcpr_v9.json.gz"
+        allego_entry["auditPath"]="../snapshot-inputs/UK/reports/allego_uk-pcpr-validation-latest.json"
+        allego_entry["active"]=True
+        allego_entry["optional"]=False
+        local=current_registry.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        if allego_entry["id"] not in local:local.append(allego_entry["id"])
+        write_json(registry,current_registry)
     # Activate the Ubitricity runtime source only for a pinned, internally
     # consistent validated artifact. Older snapshots remain buildable.
     ubi_data=uk/"sources/uk_ubitricity_v9.json.gz"
@@ -360,8 +384,57 @@ def main():
             if v!="uk-ubitricity-pcpr-payg"
         ]
         write_json(registry,current_registry)
-    # UK Midhope Road: independent 4-connector first-party screenshot-backed
-    # offer. Do NOT activate the general Connected Kerb unverified candidate.
+    # Connected Kerb: activate only the app-reconciled, connector-exact guest
+    # subset. The separate Midhope source has its own stronger screenshot proof.
+    ck_guest_data=uk/"sources/uk_connected_kerb_v9.json.gz"
+    ck_exclusions=dl/"reports/uk/connected-kerb-price-exclusions-latest.json"
+    ck_integration=dl/"docs/connected-kerb-uk-integration-2026-10-07.json"
+    if ck_guest_data.exists() and ck_exclusions.exists() and ck_integration.exists():
+        with gzip.open(ck_guest_data,"rt",encoding="utf-8") as f: ck_guest=json.load(f)
+        excluded=load_json(ck_exclusions)
+        integration=load_json(ck_integration)
+        ck_sources=ck_guest.get("sources") or []
+        if (len(ck_sources)!=1 or ck_sources[0].get("id")!="connected-kerb-guest"
+            or ck_guest.get("operatorBaselineCollectedAt")!=excluded.get("snapshotCollectedAt")
+            or ck_guest.get("collectedAt")!=excluded.get("appCollectedAt")
+            or ck_guest.get("operatorBaselineCollectedAt")!=integration.get("snapshotCollectedAt")
+            or integration.get("counts",{}).get("validatedConnectors")!=excluded.get("retainedConnectorCount")):
+            raise AssertionError("Connected Kerb guest source/audit identity mismatch")
+        locations=ck_sources[0].get("locations") or []
+        connectors=[(loc,e,c) for loc in locations for e in loc.get("evses") or [] for c in e.get("connectors") or []]
+        identities={(loc.get("id"),e.get("evse_id"),c.get("id")) for loc,e,c in connectors}
+        if (len(locations)!=excluded.get("priceUnambiguousStationCount")
+            or len(connectors)!=excluded.get("retainedConnectorCount")
+            or len(identities)!=len(connectors)
+            or len({loc.get("id") for loc in locations})!=len(locations)
+            or any(loc.get("publish") is not True or loc.get("country_code")!="GB" for loc in locations)
+            or any(loc.get("id")=="cd20ba89-4241-4b39-b738-514f49093e8d" for loc in locations)):
+            raise AssertionError("Connected Kerb guest scope regression")
+        for loc,e,c in connectors:
+            offer=c.get("validatedV9Offer") or {}
+            direct=c.get("validatedDirectPricing") or {}
+            direct_prices=sorted(round(float(s.get("price")),6) for s in direct.get("energySlices") or [])
+            offer_prices=sorted(round(float(r.get("pricePerKwh")),6) for r in offer.get("pricing",{}).get("rules") or [])
+            if (offer.get("provider")!="Connected Kerb" or offer.get("currency")!="GBP"
+                or offer.get("directOperatorOnly") is not True or offer.get("verifiedScope")!="exact_evse"
+                or loc.get("id") not in offer.get("stationIds",[])
+                or e.get("evse_id") not in offer.get("evseIds",[])
+                or offer.get("metadata",{}).get("connectorId")!=c.get("id")
+                or offer.get("pricing",{}).get("timeZone")!="UTC"
+                or offer.get("pricing",{}).get("type")!="rules"
+                or not direct_prices or direct_prices!=offer_prices
+                or direct.get("currency")!="GBP" or direct.get("priceIncludesVat") is not True
+                or direct.get("timeBasis")!="UTC"
+                or c.get("pricingSource")!="operator_app_guest_detail"):
+                raise AssertionError("Connected Kerb guest connector offer regression")
+        current_registry=load_json(registry)
+        ck_entry=next(s for s in current_registry["sources"] if s.get("id")=="uk-connected-kerb-guest-direct")
+        ck_entry["active"]=True
+        ck_entry["optional"]=False
+        local=current_registry.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        if ck_entry["id"] not in local:local.append(ck_entry["id"])
+        write_json(registry,current_registry)
+    # UK Midhope Road: independent 4-connector first-party screenshot-backed offer.
     ck_data=uk/"sources/uk_connected_kerb_midhope_verified_v9.json.gz"
     ck_report=dl/"reports/uk/connected-kerb-midhope-runtime-stage-2026-10-10.json"
     if ck_data.exists() and ck_report.exists():

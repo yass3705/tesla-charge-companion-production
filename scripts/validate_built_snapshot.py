@@ -100,6 +100,25 @@ def main():
     assert extra["metadata"].get("provenance")==expected_provenance, "Germany IONITY supplement provenance mismatch"
     assert uk_src.get("adapter")=="uk-open-feeds-v1" and uk_src.get("path")=="../snapshot-inputs/UK/all.json.gz", uk_src
     assert de_src.get("optional") is False and uk_src.get("optional") is False
+    ck_guest=sources.get("uk-connected-kerb-guest-direct") or {}
+    assert ck_guest.get("adapter")=="uk-open-feeds-v1"
+    assert ck_guest.get("path")=="../snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz"
+    if ck_guest.get("active"):
+        assert ck_guest.get("optional") is False
+        with gzip.open(root/"snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz","rt",encoding="utf-8") as f: ck_payload=json.load(f)
+        assert [s.get("id") for s in ck_payload.get("sources",[])]==["connected-kerb-guest"]
+        ck_locations=ck_payload["sources"][0]["locations"]
+        assert len(ck_locations)==2102
+        assert sum(len(e.get("connectors") or []) for loc in ck_locations for e in loc.get("evses") or [])==8100
+    allego=sources.get("allego-uk-pcpr-direct") or {}
+    if allego.get("path"):
+        assert allego.get("active") is True and allego.get("optional") is False
+        assert allego.get("path")=="../snapshot-inputs/UK/sources/uk_allego_uk_pcpr_v9.json.gz"
+        assert allego.get("auditPath")=="../snapshot-inputs/UK/reports/allego_uk-pcpr-validation-latest.json"
+        assert not allego.get("url") and not allego.get("auditUrl")
+        assert (root/"snapshot-inputs/UK/reports/allego_uk-pcpr-validation-latest.json").exists()
+    chargepoint=sources.get("uk-eco-movement-pcpr-cpo-direct") or {}
+    assert chargepoint.get("active") is False and chargepoint.get("optional") is True, "unverified ChargePoint guest prices activated"
     ubi_src=sources.get("uk-ubitricity-pcpr-payg") or {}
     assert ubi_src.get("adapter")=="uk-open-feeds-v1"
     assert ubi_src.get("path")=="../snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz"

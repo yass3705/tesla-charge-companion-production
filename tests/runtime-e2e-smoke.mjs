@@ -49,6 +49,8 @@ const historicalR9=snapshotManifest.snapshotId==='2026-09-30-r9-electra-fr'
 const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl-national','belgium-nap-national','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const sourceEvActive=registry.sources.some(s=>s.id==='uk-source-ev-pcpr-direct'&&s.active===true);
 if(sourceEvActive)wanted.add('uk-source-ev-pcpr-direct');
+const ckGuestActive=registry.sources.some(s=>s.id==='uk-connected-kerb-guest-direct'&&s.active===true);
+if(ckGuestActive)wanted.add('uk-connected-kerb-guest-direct');
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -66,6 +68,7 @@ const loaders=browserLoaders.createRegistryLoaders({
 assert.equal(typeof loaders['germany-production-snapshot'],'function');
 assert.equal(typeof loaders['uk-production-open-feeds'],'function');
 if(sourceEvActive)assert.equal(typeof loaders['uk-source-ev-pcpr-direct'],'function');
+if(ckGuestActive)assert.equal(typeof loaders['uk-connected-kerb-guest-direct'],'function');
 assert.equal(typeof loaders['morocco-evgo-native'],'function');
 assert.equal(typeof loaders['morocco-kilowatt-public'],'function');
 assert.equal(typeof loaders['france-national'],'function');
@@ -161,6 +164,15 @@ if(sourceEvActive){
   assert.ok(exact.length>0,'Source EV exact connector offers missing near a verified site');
   sourceEvStations=exact.length;
 }
+let connectedKerbStations=0;
+if(ckGuestActive){
+  const ckResult=await engine.queryArea({countryCode:'GB',origin:{lat:51.866002,lon:-2.248667},radiusKm:2,routingBudget:20});
+  assert.ok(ckResult.diagnostics.sources['uk-connected-kerb-guest-direct']?.loaded===true);
+  const exact=ckResult.stations.filter(s=>s.physicalOperator?.name==='Connected Kerb'&&
+    (s.offers||[]).some(o=>o.provider==='Connected Kerb'&&o.connectorIds?.length===1&&o.pricing?.timeZone==='UTC'));
+  assert.ok(exact.length>0,'Connected Kerb guest exact connector offers missing near Gloucester');
+  connectedKerbStations=exact.length;
+}
 
 const exactMfg=gbResult.stations.find(s=>(s.evses||[]).some(e=>e.id==='GB*MFL*E5550'));
 assert.ok(exactMfg,'Expected MFG EVSE GB*MFL*E5550 missing from GB runtime query');
@@ -255,7 +267,7 @@ console.log(JSON.stringify({
   ES:{stations:esResult.stations.length,sourceLoaded:true},
   NL:{stations:nlResult.stations.length,sourceLoaded:!historicalR9,historicalLegacySource:historicalR9},
   DE:{supplementalIsolatedUnpriced:supplementRows.length,areaStations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSmokeStations:ionityPriced.length,tiled:true},
-  GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true,sourceEvStations},
+  GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true,sourceEvStations,connectedKerbStations},
   FR:{stations:frResult.stations.length,pricedStations:frPriced.length,electroverseStations:frElectroverse.length,electraStations:frElectra.length,dualEmspStations:frDualEmsp.length},
   IT:{stations:itResult.stations.length,pricedStations:itPriced.length,ionityExactPricedStations:itIonityPriced.length,atlanteExactSmoke:true},
   CH:{stations:chResult.stations.length,pricedStations:chPriced.length,aviaExactPricedStations:chAviaPriced.length},
