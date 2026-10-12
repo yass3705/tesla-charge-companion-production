@@ -14,6 +14,8 @@ on:
       - "runtime-overrides/assets/v9/pricing-engine.js"
       - "runtime-overrides/assets/v9/session-engine.js"
       - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
+      - "runtime-overrides/assets/v9/adapters/belgium-nap.js"
+      - "tests/belgium-nap-safe-pricing.test.mjs"
       - "runtime-overrides/assets/v9/production-loader-extension.js"
       - "runtime-overrides/assets/v9/production-bootstrap.js"
       - "tests/uk-connected-kerb-guest-integration.test.mjs"
@@ -53,6 +55,8 @@ on:
     branches: [main]
     paths:
       - "data/tesla_mac_country_updates.json"
+      - "runtime-overrides/assets/v9/adapters/belgium-nap.js"
+      - "tests/belgium-nap-safe-pricing.test.mjs"
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
       - "v9-production-shell/bridge.js"
       - "runtime-overrides/assets/v9/pricing-engine.js"
@@ -147,6 +151,7 @@ jobs:
           python3 production/tests/test_v9_pages_publish_gate.py
           python3 -m unittest discover -s production/tests -p 'test_germany_ionity_supplement_provenance.py'
           python3 -m unittest discover -s production/tests -p 'test_uk_geniepoint_tariff_choice.py'
+          node production/tests/belgium-nap-safe-pricing.test.mjs
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-stable

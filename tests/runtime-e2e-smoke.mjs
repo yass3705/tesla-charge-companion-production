@@ -221,6 +221,17 @@ if(historicalR9){
   assert.ok(nlResult.diagnostics.sources['netherlands-dotnl-national']?.loaded===true,'NL runtime source not loaded');
 }
 
+const beActive=registry.sources.some(s=>s.id==='belgium-nap-national'&&s.active===true);
+if(process.env.REQUIRE_BE==='1')assert.ok(beActive,'BE NAP source required by nine-country candidate');
+let beResult=null,bePriced=[];
+if(beActive){
+  beResult=await engine.queryArea({countryCode:'BE',origin:{lat:50.85,lon:4.35},radiusKm:20,routingBudget:20});
+  assert.ok(beResult.stations.length>0,'BE Brussels runtime query returned no stations');
+  assert.ok(beResult.diagnostics.sources['belgium-nap-national']?.loaded===true,'BE NAP source not loaded');
+  bePriced=beResult.stations.filter(s=>(s.offers||[]).some(o=>o.kind==='direct'&&o.currency==='EUR'));
+  assert.ok(bePriced.length>0,'BE NAP exact gross EUR offers missing near Brussels');
+}
+
 const frResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.8566,lon:2.3522},radiusKm:25,routingBudget:20});
 assert.ok(frResult.stations.length>0,'FR returned no stations');
 const frPriced=frResult.stations.filter(s=>(s.offers||[]).length>0);
@@ -275,6 +286,7 @@ console.log(JSON.stringify({
   TESLA:{localInventoryPresent:true,bytes:teslaBytes.byteLength},
   ES:{stations:esResult.stations.length,sourceLoaded:true},
   NL:{stations:nlResult.stations.length,sourceLoaded:!historicalR9,historicalLegacySource:historicalR9},
+  BE:{stations:beResult?.stations.length||0,pricedStations:bePriced.length,sourceLoaded:beActive},
   DE:{supplementalIsolatedUnpriced:supplementRows.length,areaStations:deResult.stations.length,pricedStations:dePriced.length,ionityDirectSmokeStations:ionityPriced.length,tiled:true},
   GB:{stations:gbResult.stations.length,pricedStations:gbPriced.length,mfgExactTariffIdJoinVerified:true,sourceEvStations,connectedKerbStations},
   FR:{stations:frResult.stations.length,pricedStations:frPriced.length,electroverseStations:frElectroverse.length,electraStations:frElectra.length,dualEmspStations:frDualEmsp.length},

@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-13-uk-geniepoint-ad-hoc-candidate",
-    "dataLabSha": "66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60",
-    "rule": "Pinned candidate retains IZIVIA FAST 616/616 and adds 46 exact GeniePoint walk-up connector offers after full V9 CI; older IZIVIA FAST and NL pins remain rollback baselines. No Pages deployment."
+    "currentSnapshot": "2026-10-13-nine-country-be-candidate",
+    "dataLabSha": "047e1911a5dfd4dcce741ad9b461c6096effb9cd",
+    "rule": "Nine-country pinned candidate adds Belgium public inventory and 41,706 exact energy-only gross EUR offers, keeps GeniePoint 281 and IZIVIA FAST 616/616; earlier candidates remain rollback baselines. No Pages deployment."
   }
 }

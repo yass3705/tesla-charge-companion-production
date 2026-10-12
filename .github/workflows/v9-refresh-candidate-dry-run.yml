@@ -20,6 +20,7 @@ on:
       - "tests/runtime-browser-journey.mjs"
       - "tests/runtime-browser-journey-pinned-dev.mjs"
       - "runtime-overrides/assets/v9/**"
+      - "tests/belgium-nap-safe-pricing.test.mjs"
       - "v9-production-shell/**"
   push:
     branches: [main]
@@ -29,6 +30,7 @@ on:
       - "tests/runtime-browser-journey.mjs"
       - "tests/runtime-browser-journey-pinned-dev.mjs"
       - "runtime-overrides/assets/v9/**"
+      - "tests/belgium-nap-safe-pricing.test.mjs"
       - "v9-production-shell/**"
       - "scripts/build_snapshot.py"
       - "scripts/compile_uk_direct_batch.py"
@@ -101,6 +103,7 @@ jobs:
       - name: Validate source-specific guards
         run: |
           python production/scripts/validate_electra_platform_overlay.py datalab
+          node production/tests/belgium-nap-safe-pricing.test.mjs
 
       - name: Build self-contained refreshed candidate
         run: |
@@ -109,10 +112,12 @@ jobs:
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
+          node tests/belgium-nap-safe-pricing.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/BE/pages
 
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"
+          REQUIRE_BE: "1"
         run: |
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
