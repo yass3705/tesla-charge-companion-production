@@ -1,0 +1,7 @@
+# GeniePoint UK: exact walk-up tariffs in the V9 candidate
+
+The official GeniePoint OCPI collection at Data Lab pin `66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60` is unchanged (source blob SHA-256 `40c6a494a59f0b946614d2ef80920b9211d9bc7276dd9ac496a4744701106687`). It contains 306 public sites and 1,138 exact connectors. The earlier compiler admitted 235 connectors with one simple `REGULAR` tariff and excluded every connector with two references.
+
+OCPI 2.2.1 explicitly identifies `AD_HOC_PAYMENT` as the walk-up payment tariff. For a connector referencing exactly one `AD_HOC_PAYMENT` and one `REGULAR` tariff, the candidate now selects the ad-hoc tariff. It still requires GBP, 20% VAT on every component, one ENERGY component, one FLAT component, and zero monetary TIME/PARKING_TIME components. The 46 newly admitted connectors meet these conditions. Their tariff is attached only to the exact EVSE connector and power. A missing or duplicated reference, two tariffs of the same type, nonzero time/parking fee or unsupported component remains unpriced.
+
+Expected output is **281 priced / 1,138 connectors**, with **857** connectors retained without a ranked amount. The source remains the [official OCPI feed](https://opendata.geniepoint.co.uk/tariffs); the [OCPI 2.2.1 tariff specification](https://github.com/ocpi/ocpi/blob/2.2.1/mod_tariffs.asciidoc) defines the tariff types and VAT basis. This compiler change does not turn a `REGULAR` member price into a walk-up quote and does not infer parking charges from incomplete terms.
