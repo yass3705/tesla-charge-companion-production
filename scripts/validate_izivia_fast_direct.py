@@ -136,7 +136,7 @@ def main():
         correction=connector_correction(inv)
         p=Path(args.connector_output)
         p.parent.mkdir(parents=True,exist_ok=True)
-        p.write_text(json.dumps(correction,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+        p.write_text(json.dumps(correction,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({"directOfferGroups":len(result["directOffers"]),
       "coveredStations":len({s for o in result["directOffers"] for s in o["stationIds"]}),
       "removedCHAdeMO":result["policy"]["chademoOfferAssignmentsRemoved"]}))
