@@ -319,7 +319,8 @@ def main():
     # snapshots precede the reconciled Connected Kerb guest data and the
     # Stable Allego registry entry.
     uk_recent_candidate=(str(cfg.get("snapshotId", ""))[:10]>="2026-10-12"
-                         and cfg.get("snapshotId")!="2026-10-12-nl-dotnl-validated")
+                         and cfg.get("snapshotId")!="2026-10-12-nl-dotnl-validated"
+                         and cfg.get("ukDirectBatch", True) is not False)
     uk=overlays/"UK"
     copy_file(national/"uk_validated_open_feeds.json.gz", uk/"all.json.gz")
     for p in national.glob("uk_*"):
