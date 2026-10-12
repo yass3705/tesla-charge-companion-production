@@ -307,6 +307,13 @@ jobs:
           node production/tests/uk-connected-kerb-guest-integration.test.mjs dist/v9-global-preview/snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz
           node production/tests/uk-midhope-source-integration.test.mjs dist/v9-global-preview/snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz
           node production/tests/uk-ocpi-first-match.test.mjs dist/v9-global-preview/runtime/assets/v9/pricing-engine.js
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          registry=json.loads(Path('dist/v9-global-preview/runtime/data/v9/source-registry.json').read_text())
+          source=next(s for s in registry['sources'] if s['id']=='uk-connected-kerb-guest-direct')
+          assert source['active'] is True and source['optional'] is False
+          PY
       - name: Audit completed UK CPOs against active runtime sources
         run: node production/scripts/audit_uk_snapshot_coverage.mjs dist/v9-global-preview datalab/docs/uk-cpo-progress-2026-09.json
       - name: Multi-country runtime smoke

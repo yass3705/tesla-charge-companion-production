@@ -314,6 +314,12 @@ def main():
     # UK: do NOT use inventory/united_kingdom.json (Tesla inventory).
     # The non-Tesla baseline is the validated open-feed aggregate plus exact
     # operator datasets already proven in the canonical CPO ledger.
+    # Immutable historical builds must keep their original UK activation scope.
+    # In particular, the pinned NL development snapshot and pre-12 October
+    # snapshots precede the reconciled Connected Kerb guest data and the
+    # Stable Allego registry entry.
+    uk_recent_candidate=(str(cfg.get("snapshotId", ""))[:10]>="2026-10-12"
+                         and cfg.get("snapshotId")!="2026-10-12-nl-dotnl-validated")
     uk=overlays/"UK"
     copy_file(national/"uk_validated_open_feeds.json.gz", uk/"all.json.gz")
     for p in national.glob("uk_*"):
@@ -324,7 +330,7 @@ def main():
         if p.exists(): copy_file(p,uk/"sources"/name)
     allego_data=uk/"sources/uk_allego_uk_pcpr_v9.json.gz"
     allego_report=dl/"reports/uk/allego_uk-pcpr-validation-latest.json"
-    if allego_data.exists() and allego_report.exists():
+    if uk_recent_candidate and allego_data.exists() and allego_report.exists():
         with gzip.open(allego_data,"rt",encoding="utf-8") as f: allego_payload=json.load(f)
         allego_audit=load_json(allego_report)
         if (allego_payload.get("collectedAt")!=allego_audit.get("collectedAt")
@@ -389,7 +395,7 @@ def main():
     ck_guest_data=uk/"sources/uk_connected_kerb_v9.json.gz"
     ck_exclusions=dl/"reports/uk/connected-kerb-price-exclusions-latest.json"
     ck_integration=dl/"docs/connected-kerb-uk-integration-2026-10-07.json"
-    if ck_guest_data.exists() and ck_exclusions.exists() and ck_integration.exists():
+    if uk_recent_candidate and ck_guest_data.exists() and ck_exclusions.exists() and ck_integration.exists():
         with gzip.open(ck_guest_data,"rt",encoding="utf-8") as f: ck_guest=json.load(f)
         excluded=load_json(ck_exclusions)
         integration=load_json(ck_integration)
