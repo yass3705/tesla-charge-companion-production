@@ -14,6 +14,13 @@
 - Écarter **12 affectations CHAdeMO** présentes dans les données source. Garder exactement les 616 stations avec Type 2 ou CCS. Les identifiants `izivia-map-...` ne sont pas des identifiants EVSE uniques et ne sont **jamais** inventés comme rapprochement IRVE.
 - Tarifs directs : énergie facturée par kWh entamé (0,30 EUR de 09h à 11h et de 15h à 17h, sinon 0,35 EUR), frais de connexion 0,30 EUR/min par **minute entamée** après 60 minutes, horaire de branchement conservé pour toute la session. La première CI de scénarios a détecté que le moteur segmentait à tort les règles verrouillées au démarrage ; un correctif spécifique aux offres `session_start_local_time` a été ajouté avec un pas de facturation des minutes de 60 secondes. Vérifier la nouvelle CI avant validation.
 
+## Réconciliation IRVE (audit complémentaire)
+
+- La base nationale V9 épinglée contient exactement les **616/616** identifiants FAST, mais seuls **2/616** groupes connecteur Type 2/CCS sont cohérents avec l'opérateur. Exemple `FRIZFPFAST1` : IRVE AC 200 kW, officiel CCS 200 + Type 2 22 kW ; ne jamais appliquer un prix DC sur cette fausse AC.
+- La source séparée `france-izivia-fast-connector-correction` ne modifie que la famille `connectors`, à priorité élevée, et seulement pour les 616 stations reconnues par identifiant national exact. Elle conserve l'identité et le statut des stations IRVE, exclut CHAdeMO, et expose **des groupes de connecteurs anonymes sans ID EVSE/PDC**, pas des équivalences physiques fictives.
+- La tarification demeure une preuve directe CPO, indexée par identité station, catégorie AC/DC et puissance, avec session-start lock et minutes entamées. L'offre n'est utilisable que si la correction de puissance et les règles passent les tests de jointure à l'exécution.
+- Run d'évaluation de cette correction : [#38307932196](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38307932196). Aucune publication automatique.
+
 ## Critères avant promotion
 
 1. CI de préparation Type2/CCS verte avec 616 sites, 12 affectations CHAdeMO supprimées et aucun tarif inventé.
