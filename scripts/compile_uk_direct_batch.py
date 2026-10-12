@@ -35,7 +35,7 @@ EXPECTED = {
     "Believ": (854, 0, 0),
     "Monta": (1389, 1389, 0),
     "ParkRecharge": (443, 811, 0),
-    "GeniePoint": (306, 1138, 235),
+    "GeniePoint": (306, 1138, 281),
 }
 
 
@@ -582,6 +582,20 @@ def parkrecharge(data, filename, blob):
     return result
 
 
+def geniepoint_direct_tariff(refs, source_tariffs):
+    """Select the walk-up tariff only when its OCPI identity is unambiguous."""
+    if not 1 <= len(refs) <= 2 or len(set(map(str, refs))) != len(refs):
+        return None
+    found = [source_tariffs.get(str(ref)) for ref in refs]
+    if any(row is None for row in found):
+        return None
+    if len(found) == 1:
+        return found[0] if found[0].get("type") in ("AD_HOC_PAYMENT", "REGULAR") else None
+    ad_hoc = [row for row in found if row.get("type") == "AD_HOC_PAYMENT"]
+    regular = [row for row in found if row.get("type") == "REGULAR"]
+    return ad_hoc[0] if len(ad_hoc) == len(regular) == 1 else None
+
+
 def geniepoint(data, filename, blob):
     source_tariffs = {str(row["id"]): row for row in data["tariffs"]}
     locations = copy.deepcopy(data["locations"])
@@ -593,10 +607,8 @@ def geniepoint(data, filename, blob):
             for connector in evse["connectors"]:
                 refs = connector.get("tariff_ids") or []
                 connector["tariff_ids"] = []
-                if len(refs) != 1:
-                    continue
-                original = source_tariffs.get(str(refs[0]))
-                if not original or original.get("currency") != "GBP" or original.get("type") != "REGULAR":
+                original = geniepoint_direct_tariff(refs, source_tariffs)
+                if not original or original.get("currency") != "GBP":
                     continue
                 components = [component for element in original.get("elements") or []
                               for component in element.get("price_components") or []]
@@ -624,7 +636,8 @@ def geniepoint(data, filename, blob):
     result = source("GeniePoint", "GPT", locations, tariffs, filename, blob)
     result["sourceAudit"]["grossVatMethod"] = "OCPI 2.2 component price ex VAT multiplied by (1 + 20/100)"
     result["sourceAudit"]["quarantinedConnectors"] = 1138 - len(tariffs)
-    result["sourceAudit"]["quarantineReason"] = "multiple tariff IDs, missing ID or nonzero time/parking fee requiring full session semantics"
+    result["sourceAudit"]["quarantineReason"] = "ambiguous/missing tariff identity or nonzero time/parking fee requiring full session semantics"
+    result["sourceAudit"]["adHocPreference"] = "one AD_HOC_PAYMENT plus one REGULAR: use the walk-up tariff only when full fee components are calculable"
     return result
 
 
