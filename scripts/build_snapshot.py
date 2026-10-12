@@ -361,7 +361,7 @@ def main():
     ubi_report=dl/"reports/uk/ubitricity-pcpr-validation-latest.json"
     # Support response pending (October 2026): Ubitricity UK must NOT be
     # activated in any V9 snapshot, regardless of a stale existing source.
-    # Re-enable explicitly only after a fresh validated CPO PAYG collection.
+    # Re-enable explicitly only after a fresh validated CPO PCPR collection.
     ubi_support_hold=True
     if not ubi_support_hold and ubi_data.exists() and ubi_report.exists():
         with gzip.open(ubi_data,"rt",encoding="utf-8") as f: ubi_payload=json.load(f)
