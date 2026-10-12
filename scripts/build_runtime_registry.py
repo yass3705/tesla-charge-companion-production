@@ -232,6 +232,19 @@ def build_registry(path):
     })
 
     upsert(sources,{
+      "id":"france-izivia-fast-connector-correction",
+      "label":"IZIVIA FAST verified Type2/CCS connector groups (without EVSE identity)",
+      "adapter":"station-json-v1",
+      "path":"../snapshot-inputs/FR/direct/izivia_fast_connector_correction.json",
+      "countries":["FR"],
+      "capabilities":["connectors"],
+      "priority":{"identity":0,"connectors":180,"status":0,"tariff":0},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Only exact national FAST canonical station IDs receive official connector kind/power corrections. No synthetic EVSE/PDC identity or CHAdeMO exposed."
+    })
+    upsert(sources,{
       "id":"france-izivia-fast-direct-exact",
       "label":"France IZIVIA FAST audited station/power direct tariffs",
       "adapter":"direct-offer-json",
