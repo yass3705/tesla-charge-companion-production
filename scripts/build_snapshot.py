@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 from tesla_tariff_priority import build_selected_catalogue
+from scope_belib_offers import scope_belib_offers
 
 def sha256(path):
     h=hashlib.sha256()
@@ -50,6 +51,13 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    belib_offers=out/"runtime/data/v9/france-belib-offers.json"
+    if belib_offers.exists():
+        belib_catalogue=dl/"data/national/belib_stations_paris.json"
+        if not belib_catalogue.exists():
+            raise SystemExit(f"Pinned Belib EVSE catalogue missing: {belib_catalogue}")
+        if not scope_belib_offers(belib_offers,belib_catalogue):
+            raise SystemExit("Pinned Belib EVSE catalogue produced no exact offers")
     # Production owns the integration layer. Start from the pinned stable
     # engine, then overlay production-only adapters/loaders and rewrite the
     # source registry so snapshot inputs are actually consumable at runtime.
