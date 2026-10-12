@@ -14,6 +14,7 @@ const dataEngine=require(path.join(runtime,'assets/v9/data-engine.js'));
 const browserLoaders=require(path.join(runtime,'assets/v9/browser-loaders.js'));
 const de=require(path.join(runtime,'assets/v9/adapters/germany-national.js'));
 const uk=require(path.join(runtime,'assets/v9/adapters/uk-open-feeds.js'));
+const ukPcpr=require(path.join(runtime,'assets/v9/adapters/uk-pcpr.js'));
 const ma=require(path.join(runtime,'assets/v9/adapters/morocco-public.js'));
 const nationalCompact=require(path.join(runtime,'assets/v9/adapters/national-compact.js'));
 const directOffers=require(path.join(runtime,'assets/v9/adapters/direct-offers.js'));
@@ -49,25 +50,33 @@ const historicalR9=snapshotManifest.snapshotId==='2026-09-30-r9-electra-fr'
 const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl-national','belgium-nap-national','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const sourceEvActive=registry.sources.some(s=>s.id==='uk-source-ev-pcpr-direct'&&s.active===true);
 if(sourceEvActive)wanted.add('uk-source-ev-pcpr-direct');
+const allegoActive=registry.sources.some(s=>s.id==='allego-uk-pcpr-direct'&&s.active===true);
+if(allegoActive)wanted.add('allego-uk-pcpr-direct');
 const ckGuestActive=registry.sources.some(s=>s.id==='uk-connected-kerb-guest-direct'&&s.active===true);
 if(ckGuestActive)wanted.add('uk-connected-kerb-guest-direct');
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
   baseLoaders:browserLoaders,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact,netherlandsDotnl,belgiumNap}
+  adapters:{germanyNational:de,ukOpenFeeds:uk,ukPcpr,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,switzerlandAvia,italyIonityExact,franceIonityExact,atlanteItalyExact,netherlandsDotnl,belgiumNap}
 });
 
 const loaders=browserLoaders.createRegistryLoaders({
   registry:subRegistry,
   basePath:pathToFileURL(runtime+path.sep).href,
-  adapters:{germanyNational:de,ukOpenFeeds:uk,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,netherlandsDotnl,belgiumNap},
+  adapters:{germanyNational:de,ukOpenFeeds:uk,ukPcpr,moroccoPublic:ma,nationalCompact,directOffers,legacyDirectStations,netherlandsDotnl,belgiumNap},
   fetchImpl:fileFetch(runtime)
 });
 
 assert.equal(typeof loaders['germany-production-snapshot'],'function');
 assert.equal(typeof loaders['uk-production-open-feeds'],'function');
 if(sourceEvActive)assert.equal(typeof loaders['uk-source-ev-pcpr-direct'],'function');
+if(allegoActive){
+  assert.equal(typeof loaders['allego-uk-pcpr-direct'],'function');
+  const allegoRows=await loaders['allego-uk-pcpr-direct']();
+  assert.equal(allegoRows.stations.length,77);
+  assert.equal(allegoRows.stations.reduce((n,s)=>n+s.offers.length,0),240);
+}
 if(ckGuestActive)assert.equal(typeof loaders['uk-connected-kerb-guest-direct'],'function');
 assert.equal(typeof loaders['morocco-evgo-native'],'function');
 assert.equal(typeof loaders['morocco-kilowatt-public'],'function');

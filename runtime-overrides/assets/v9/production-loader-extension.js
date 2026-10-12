@@ -47,6 +47,7 @@
     const target=baseLoaders||root?.TCCV9BrowserLoaders;if(!target?.createRegistryLoaders)throw new Error('base browser loaders missing');
     const de=adapters?.germanyNational||root?.TCCV9Adapters?.germanyNational;
     const uk=adapters?.ukOpenFeeds||root?.TCCV9Adapters?.ukOpenFeeds;
+    const ukPcpr=adapters?.ukPcpr||root?.TCCV9Adapters?.ukPcpr;
     const ma=adapters?.moroccoPublic||root?.TCCV9Adapters?.moroccoPublic;
     const chAvia=adapters?.switzerlandAvia||root?.TCCV9Adapters?.switzerlandAvia;
     const itIonity=adapters?.italyIonityExact||root?.TCCV9Adapters?.italyIonityExact;
@@ -61,6 +62,7 @@
       const dataCache=new Map();
       const baseRegistry={...registry,sources:(registry.sources||[]).filter(s=>{
         if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1','atlante-italy-exact-v1','netherlands-dotnl-v1','belgium-nap-v1'].includes(s.adapter))return false;
+        if(s.adapter==='uk-pcpr-v1'&&s.path&&s.auditPath)return false;
         if(s.adapter==='morocco-public-v1'&&['evgo-production-local','kilowatt-native-local'].includes(s.profile))return false;
         return true;
       })};
@@ -89,6 +91,10 @@
             const payload=await memoizedJson(join(basePath,source.path),opts.fetchImpl,dataCache);
             return uk.normalizePayload(filterUkPayload(payload,query),{sourceId:source.id});
           };
+        }else if(source.adapter==='uk-pcpr-v1'&&source.path&&source.auditPath){
+          if(!ukPcpr?.createLoader)throw new Error('UK PCPR adapter missing');
+          loaders[source.id]=ukPcpr.createLoader({source:{...source,
+            url:join(basePath,source.path),auditUrl:join(basePath,source.auditPath)},fetchImpl:opts.fetchImpl});
         }else if(source.adapter==='morocco-public-v1'&&source.profile==='evgo-production-local'){
           if(!ma?.normalizeEvgoDataset||!ma?.evgoOverlayFreshness)throw new Error('Morocco EVGO adapter missing');
           loaders[source.id]=async()=>{

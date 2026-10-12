@@ -26,6 +26,7 @@
       adapters:{
         germanyNational:root.TCCV9Adapters.germanyNational,
         ukOpenFeeds:root.TCCV9Adapters.ukOpenFeeds,
+        ukPcpr:root.TCCV9Adapters.ukPcpr,
         moroccoPublic:root.TCCV9Adapters.moroccoPublic,
         switzerlandAvia:root.TCCV9Adapters.switzerlandAvia,
         italyIonityExact:root.TCCV9Adapters.italyIonityExact,
