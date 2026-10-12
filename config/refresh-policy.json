@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-12-izivia-fast-direct-candidate",
+    "currentSnapshot": "2026-10-13-uk-geniepoint-ad-hoc-candidate",
     "dataLabSha": "66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60",
-    "rule": "Pinned immutable candidate verified with full IZIVIA FAST 616/616 station joins, 1212 direct offers, UK audited CPO batch preserved and no Pages deployment. NL 12 October pin remains rollback baseline."
+    "rule": "Pinned candidate retains IZIVIA FAST 616/616 and adds 46 exact GeniePoint walk-up connector offers after full V9 CI; older IZIVIA FAST and NL pins remain rollback baselines. No Pages deployment."
   }
 }
