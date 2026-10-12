@@ -41,4 +41,15 @@ const base={timeZone:'Europe/Amsterdam',startAt:'2026-10-11T16:30:00+02:00',
   assert.equal(result.complete,true,JSON.stringify(result));
   assert.ok(Math.abs(result.totalEur-(2.5*.46+7.5*.48+.5))<1e-5,JSON.stringify(result));
 }
+{
+  const row=(id,operator)=>[id,'Site','Amsterdam',52.37,4.9,operator,1,null,
+    [['cfg-1','Type2','AC',22,1,[rule('00:00','24:00',.3,0)]]],
+    '2026-10-12T10:00:00Z','IN_SERVICE'];
+  assert.equal(adapter.normalizeRow(row('NL:CPI:NLCPIL7424365','ChargePoint')),null,
+    'UPS site has no verified public access in the compact feed');
+  assert.equal(adapter.normalizeRow(row('NL:CPI:NLCPIL6620135','ChargePoint')),null,
+    'other CPI sites share the missing access evidence');
+  assert.ok(adapter.normalizeRow(row('NL:EFL:test','EFL')),
+    'non-Target operators continue to load');
+}
 console.log('DOT-NL OCPI exact costs, duration rounds, conditional FLAT and cross-midnight boundary: PASS');
