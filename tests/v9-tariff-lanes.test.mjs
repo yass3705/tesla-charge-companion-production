@@ -61,6 +61,12 @@ assert.equal(ui.consistentLaneEvaluation({best:invalidTotal,alternatives:[],inco
 const tesla={...station('tesla'),physicalOperator:{name:'Tesla'}};
 assert.match(ui.renderTariffs({best:invalidTotal,alternatives:[],incomplete:[]},tesla,{}),/Tarif incalculable/,'an incomplete Tesla total cannot be displayed as a price');
 assert.match(ui.renderTariffs({best:null,alternatives:[],incomplete:[]},tesla,{}),/Prix non disponible/);
+const emptyTesla=ui.renderTariffs({best:null,alternatives:[],incomplete:[]},tesla,{});
+assert.equal((emptyTesla.match(/class="v9-tariff-row/g)||[]).length,3,'Tesla must retain Direct, Electra and Electroverse lanes when prices are absent');
+for(const lane of ['Direct','Electra','Electroverse'])assert.match(emptyTesla,new RegExp(`data-v9-lane-label="${lane}"`));
+const pricedTesla=ui.renderTariffs({best:evaluated('tesla-price','Tesla','direct',8,{pricePerKwh:.4}),alternatives:[],incomplete:[]},tesla,{});
+assert.match(pricedTesla,/Direct · MEILLEUR TARIF/);
+assert.equal((pricedTesla.match(/Prix non disponible/g)||[]).length,2);
 const otherEvse=station('other',22);
 otherEvse.offers=[{id:'v-other',provider:'Electroverse',kind:'roaming',evseIds:['EVSE-other'],connectorIds:['CON-other'],pricing:{pricePerKwh:.5}}];
 const otherPrice=evaluated('v-other','Electroverse','roaming',5,{pricePerKwh:.5});
