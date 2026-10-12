@@ -126,7 +126,7 @@
         rule?.connectedTimeBlockMinutes,rule?.connectedTimeBlockEur,rule?.sessionFeeEur,
         rule?.minimumSessionEur,rule?.ocpiDurationBands,rule?.powerBands,
         rule?.congestionTimePerMinute,rule?.congestionStartSoc,rule?.congestionTimeStepSeconds,rule?.ocpiCongestionDurationBands,
-        rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur
+        rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur,rule?.connectedTimeAfterFreeStepSeconds
       ]);
       if(new Set(samePriority.map(row=>signature(row.rule))).size>1)
         return{rule:null,unknown:true,reason:'ambiguous_overlapping_tariff_rules'};
@@ -256,8 +256,10 @@
     }
     const freeMinutes=num(rule?.connectedTimeFreeMinutes),afterFree=num(rule?.connectedTimePerMinuteAfterFreeEur);
     if(freeMinutes!=null&&freeMinutes>=0&&afterFree!=null){
-      const billableMinutes=Math.max(0,duration-freeMinutes),costEur=money(billableMinutes*afterFree);
-      components.connectedTimeAfterFree={freeMinutes,billableMinutes,eurPerMinute:afterFree,costEur};total+=costEur;
+      const actualMinutes=Math.max(0,duration-freeMinutes),step=num(rule?.connectedTimeAfterFreeStepSeconds);
+      const billableMinutes=step>0&&actualMinutes>0?Math.ceil(actualMinutes*60/step)*step/60:actualMinutes;
+      const costEur=money(billableMinutes*afterFree);
+      components.connectedTimeAfterFree={freeMinutes,actualMinutes,billableMinutes,stepSeconds:step>0?step:null,eurPerMinute:afterFree,costEur};total+=costEur;
     }
     const initialMinutes=num(rule?.connectedTimeInitialMinutes),initialFlat=num(rule?.connectedTimeInitialFlatEur),afterInitial=num(rule?.connectedTimeAfterInitialPerMinuteEur);
     if(initialMinutes>0&&initialFlat!=null&&afterInitial!=null&&duration>0){
