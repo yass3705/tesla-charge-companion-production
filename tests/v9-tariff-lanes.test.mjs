@@ -67,6 +67,16 @@ for(const lane of ['Direct','Electra','Electroverse'])assert.match(emptyTesla,ne
 const pricedTesla=ui.renderTariffs({best:evaluated('tesla-price','Tesla','direct',8,{pricePerKwh:.4}),alternatives:[],incomplete:[]},tesla,{});
 assert.match(pricedTesla,/Direct · MEILLEUR TARIF/);
 assert.equal((pricedTesla.match(/Prix non disponible/g)||[]).length,2);
+const detailedFeeOffer={id:'fee-direct',provider:'Belib',kind:'direct',currency:'EUR',pricing:{type:'rules',rules:[{
+  scope:'allDay',pricePerKwh:.33,connectionFee:.1,sessionFeeEur:.2,connectedTimeComponentEur:.3,
+  connectedTimeBlockMinutes:15,connectedTimeBlockEur:.57,minimumSessionEur:2,ocpiDurationBands:[[0,60,0,.05]]
+}],longConnectionFee:{thresholdMinutes:840,eurPerHourAfterThreshold:10}}};
+const feeLabels=ui.tariffRateLabels(detailedFeeOffer).join(' | ');
+for(const expected of ['frais de connexion','frais de session','temps connecté','15 min connectées','Minimum','0–60 min','après 840 min'])assert.ok(feeLabels.includes(expected),`missing visible component: ${expected}`);
+const feeStation={...station('fees',22),offers:[detailedFeeOffer]};
+const feeEvaluation={best:evaluated('fee-direct','Belib','direct',5,{}),alternatives:[],incomplete:[]};
+assert.match(ui.renderTariffs(feeEvaluation,feeStation,{}),/frais de session/);
+assert.match(ui.renderPowerLines({station:feeStation,evaluation:feeEvaluation}),/après 840 min/);
 const otherEvse=station('other',22);
 otherEvse.offers=[{id:'v-other',provider:'Electroverse',kind:'roaming',evseIds:['EVSE-other'],connectorIds:['CON-other'],pricing:{pricePerKwh:.5}}];
 const otherPrice=evaluated('v-other','Electroverse','roaming',5,{pricePerKwh:.5});
