@@ -38,6 +38,8 @@ assert.match(rendered,/Prix non disponible/);
 assert.ok(rendered.indexOf('Direct')<rendered.indexOf('my-subscription')&&rendered.indexOf('my-subscription')<rendered.indexOf('Electra'),'selected subscription must be between direct and Electra');
 assert.match(rendered,/5,00 €/);
 assert.match(rendered,/8,00 €/);
+assert.equal((rendered.match(/Prix calculé/g)||[]).length,2,'only complete Direct and Electroverse lanes have calculated prices');
+assert.doesNotMatch(rendered,/Prix calculé · Tarif incalculable/);
 const pricedA={station:s,evaluation:{best:direct,alternatives:[electraA,electroverse],incomplete:[]},distanceKm:2,total:5};
 const s2=station('b');s2.offers=s.offers;
 const pricedB={station:s2,evaluation:{best:direct,alternatives:[electraB,electroverse],incomplete:[]},distanceKm:2,total:5};
@@ -72,6 +74,7 @@ for(const lane of ['Direct','Electra','Electroverse'])assert.match(emptyTesla,ne
 const pricedTesla=ui.renderTariffs({best:evaluated('tesla-price','Tesla','direct',8,{pricePerKwh:.4}),alternatives:[],incomplete:[]},tesla,{});
 assert.match(pricedTesla,/Direct · MEILLEUR TARIF/);
 assert.equal((pricedTesla.match(/Prix non disponible/g)||[]).length,2);
+assert.match(pricedTesla,/Prix calculé · 8,00 €/);
 const detailedFeeOffer={id:'fee-direct',provider:'Belib',kind:'direct',currency:'EUR',pricing:{type:'rules',rules:[{
   scope:'allDay',pricePerKwh:.33,connectionFee:.1,sessionFeeEur:.2,connectedTimeComponentEur:.3,
   connectedTimeBlockMinutes:15,connectedTimeBlockEur:.57,minimumSessionEur:2,ocpiDurationBands:[[0,60,0,.05]]

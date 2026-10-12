@@ -507,9 +507,10 @@
       const including=congestionSelections.get(key)!==false;
       const total=hasCongestion&&!including?item.congestion.totalWithoutCongestion:item?.total;
       const displayItem=hasCongestion&&!including?{...item,total,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}:item;
-      const amount=state.status==='priced'?displayAmount(displayItem,fxRates)
+      const calculated=value=>'Prix calculé · '+displayAmount(value,fxRates);
+      const amount=state.status==='priced'?calculated(displayItem)
         :state.status==='missing'?'Prix non disponible':'Tarif incalculable';
-      const congestionAttr=hasCongestion?' data-v9-congestion-key="'+esc(key)+'" data-v9-included-total="'+esc(item.total)+'" data-v9-excluded-total="'+esc(item.congestion.totalWithoutCongestion)+'" data-v9-included-amount="'+esc(displayAmount(item,fxRates))+'" data-v9-excluded-amount="'+esc(displayAmount({...item,total:item.congestion.totalWithoutCongestion,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}},fxRates))+'"':'';
+      const congestionAttr=hasCongestion?' data-v9-congestion-key="'+esc(key)+'" data-v9-included-total="'+esc(item.total)+'" data-v9-excluded-total="'+esc(item.congestion.totalWithoutCongestion)+'" data-v9-included-amount="'+esc(calculated(item))+'" data-v9-excluded-amount="'+esc(calculated({...item,total:item.congestion.totalWithoutCongestion,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}))+'"':'';
       const totalAttr=state.status==='priced'&&num(total)!=null?' data-v9-effective-total="'+esc(total)+'"':'';
       const names=[...new Set(state.offers.map(offer=>text(offer.provider)).filter(Boolean))];
       const detail=item&&station?.offers?.find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
