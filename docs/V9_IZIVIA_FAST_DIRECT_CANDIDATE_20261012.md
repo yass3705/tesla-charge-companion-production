@@ -21,6 +21,13 @@
 - La tarification demeure une preuve directe CPO, indexée par identité station, catégorie AC/DC et puissance, avec session-start lock et minutes entamées. L'offre n'est utilisable que si la correction de puissance et les règles passent les tests de jointure à l'exécution.
 - Run d'évaluation de cette correction : [#38307932196](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38307932196). Aucune publication automatique.
 
+## Validation nationale et combinaison sans régression (12/10)
+
+- [Run national #38308710299](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38308710299) : moteur réel, **616/616 stations**, **1 212 offres directes**, aucun manquant, offre étrangère ou association type/puissance incohérente, sur 47 502 stations nationales chargées.
+- [Run combiné France + derniers CPO UK #38309263354](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38309263354) : **success**. Pin Data Lab `66ec5a67b5498a5e95ff5896d2d7b9ebc25fde60`. Les lots UK incluent Allego et GeniePoint validés. Leur usage avec le Stable historiquement épinglé nécessite l'enregistrement local de la source Allego et l'adaptateur PCPR officiel dans Production ; ces deux adaptations sont conservatrices et testées par le smoke global.
+- Mise à jour candidate du pin développement dans `config/refresh-policy.json` : `2026-10-12-izivia-fast-direct-candidate`. La validation du workflow de développement épinglé [#38309449098](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38309449098) constitue le dernier garde avant fusion. La présence du pin sur la branche n'est pas une promotion effective tant que PR #52 n'est pas fusionnée.
+- Aucun workflow Pages, release ou changement de pin actif n'a été lancé par les tests. Les snapshots historiques, notamment NL du 12 octobre, restent conservés comme retour arrière.
+
 ## Critères avant promotion
 
 1. CI de préparation Type2/CCS verte avec 616 sites, 12 affectations CHAdeMO supprimées et aucun tarif inventé.
