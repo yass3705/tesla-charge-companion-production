@@ -8,7 +8,7 @@
   const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
   const uniq=a=>[...new Set((a||[]).map(text).filter(Boolean))];
   function status(v){const s=text(v).toUpperCase();if(s==='AVAILABLE')return'available';if(['OUTOFORDER','INOPERATIVE','REMOVED'].includes(s))return'out_of_service';return'unknown';}
-  function powerKw(c){const w=num(c?.max_electric_power);if(w!=null&&w>0)return w/1000;const v=num(c?.max_voltage),a=num(c?.max_amperage);return v!=null&&a!=null?v*a/1000:null;}
+  function powerKw(c){const w=num(c?.max_electric_power);if(w!=null&&w>0)return w/1000;const v=num(c?.max_voltage),a=num(c?.max_amperage);if(v==null||a==null)return null;return text(c?.power_type).toUpperCase()==='AC_3_PHASE'?(v>=380?Math.sqrt(3)*v*a:3*v*a)/1000:v*a/1000;}
   function connectorKind(c){const p=text(c?.power_type).toUpperCase();if(p.startsWith('DC'))return'DC';if(p.startsWith('AC'))return'AC';return text(c?.standard).toUpperCase()||'UNKNOWN';}
   function tariffPricing(t){
     if(!t||!Array.isArray(t.elements)||!t.elements.length)return null;
@@ -104,6 +104,17 @@
     if(offer.pricing.timeZone!=='Europe/London'||offer.pricing.rules.some(r=>r.currency!=='GBP'||!Number.isFinite(r.pricePerKwh)||r.pricePerKwh<0))return null;
     return offer;
   }
+  function validatedConnectedKerbOffer(offer,loc,eid,cid,source){
+    if(source?.id!=='connected-kerb-guest'||!offer||loc.publish!==true||loc.country_code!=='GB'||
+       offer.provider!=='Connected Kerb'||offer.currency!=='GBP'||offer.directOperatorOnly!==true||
+       offer.verifiedScope!=='exact_evse'||offer.metadata?.connectorId!==cid||
+       offer.metadata?.pricingScope!=='cpo_direct_standard_guest'||
+       !offer.stationIds?.includes(String(loc.id))||!offer.evseIds?.includes(eid)||
+       offer.pricing?.type!=='rules'||offer.pricing?.timeZone!=='UTC'||
+       !Array.isArray(offer.pricing.rules)||!offer.pricing.rules.length||
+       offer.pricing.rules.some(r=>!Number.isFinite(r.pricePerKwh)||r.pricePerKwh<0))return null;
+    return {...offer,kind:'direct',connectorIds:[cid]};
+  }
   function validatedMidhopeOffer(offer,loc,eid,cid,source){
     const exact={
       'GB*CK0*E19825':'a46c9e98-5d68-4025-989a-ab416d7ab670',
@@ -139,11 +150,12 @@
         const cid=text(c.id)||eid+':connector';
         const connectorOut={id:cid,kind:connectorKind(c),powerKw:powerKw(c)};
         connectors.push(connectorOut);
-        const verified=validatedUbitricityOffer(c.validatedV9Offer,loc,eid,cid,source)||validatedMidhopeOffer(c.validatedV9Offer,loc,eid,cid,source);
+        const verified=validatedUbitricityOffer(c.validatedV9Offer,loc,eid,cid,source)||validatedMidhopeOffer(c.validatedV9Offer,loc,eid,cid,source)||validatedConnectedKerbOffer(c.validatedV9Offer,loc,eid,cid,source);
         if(verified)offers.push(verified);
         for(const tid of uniq(c.tariff_ids||[])){
+          if(source?.id==='connected-kerb-guest')continue;
           const tariff=tariffMap.get(tid),pricing=['eco-movement-pcpr-cpo-direct','source-ev-uk-pcpr-direct'].includes(source?.id)?pcprDirectPricing(tariff):tariffPricing(tariff);if(!pricing)continue;
-          const connectorExact=['gridserve-pcpr-direct','eco-movement-pcpr-cpo-direct','source-ev-uk-pcpr-direct'].includes(source?.id);
+          const connectorExact=sourceId==='uk-production-open-feeds'||['gridserve-pcpr-direct','blink-uk-pcpr-direct','eco-movement-pcpr-cpo-direct','source-ev-uk-pcpr-direct'].includes(source?.id);
           const nextOffer={id:sourceId+':'+stationKey+':'+eid+':'+cid+':'+tid,provider:text(loc?.operator?.name||source?.name||party),kind:'direct',subscriptionId:null,countries:['GB'],currency:text(tariff.currency||'GBP').toUpperCase(),evseIds:[eid],
             ...(connectorExact?{connectorIds:[cid],stationIds:[text(loc.id)]}:{}),pricing,metadata:{tariffId:tid,partyId:party,sourceName:source?.name||null,connectorId:cid,priceBasis:tariff?.tccPriceBasis||null,pricingScope:source?.pricingScope||null,timeZone:'Europe/London',incompletePricingReason:pricing.incompletePricingReason||null}};
           offers.push(nextOffer);

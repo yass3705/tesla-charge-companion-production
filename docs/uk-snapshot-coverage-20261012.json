@@ -1,0 +1,357 @@
+{
+  "snapshotId": "2026-10-12-uk-consolidation-candidate",
+  "summary": {
+    "completed": 32,
+    "present": 11,
+    "priced": 9,
+    "absent": [
+      "Osprey Charging",
+      "IONITY",
+      "Fastned",
+      "Be.EV",
+      "Applegreen Fast Charge",
+      "Wenea",
+      "Shell Recharge",
+      "Believ",
+      "Monta",
+      "Zest",
+      "Roam",
+      "RAW Charging",
+      "Lidl",
+      "ParkRecharge",
+      "GeniePoint",
+      "Qwello",
+      "TotalEnergies",
+      "Charge My Street",
+      "Shell Recharge ubitricity",
+      "JOLT",
+      "3ti Energy Hubs"
+    ],
+    "presentWithoutVerifiedPrice": [
+      "Arnold Clark Charge",
+      "ScottishPower Recharge"
+    ]
+  },
+  "cpos": [
+    {
+      "name": "Osprey Charging",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "GRIDSERVE",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-gridserve-pcpr-direct",
+      "stations": 205,
+      "connectors": 2569,
+      "powerKnown": 2569,
+      "exactOffers": 2569
+    },
+    {
+      "name": "MFG EV Power",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-production-open-feeds",
+      "stations": 597,
+      "connectors": 3018,
+      "powerKnown": 3018,
+      "exactOffers": 3018
+    },
+    {
+      "name": "IONITY",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Fastned",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Be.EV",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "PoGo Charge",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-production-open-feeds",
+      "stations": 161,
+      "connectors": 809,
+      "powerKnown": 809,
+      "exactOffers": 809
+    },
+    {
+      "name": "Applegreen Fast Charge",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Wenea",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Shell Recharge",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Allego",
+      "ledgerStatus": "complete_v9_runtime_integrated_validated",
+      "present": true,
+      "source": "allego-uk-pcpr-direct",
+      "stations": 77,
+      "connectors": 240,
+      "powerKnown": 240,
+      "exactOffers": 240
+    },
+    {
+      "name": "Arnold Clark Charge",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-production-open-feeds",
+      "stations": 126,
+      "connectors": 429,
+      "powerKnown": 429,
+      "exactOffers": 0
+    },
+    {
+      "name": "Believ",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Monta",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Zest",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Roam",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "RAW Charging",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Evolt",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-production-open-feeds",
+      "stations": 710,
+      "connectors": 3415,
+      "powerKnown": 3412,
+      "exactOffers": 3413
+    },
+    {
+      "name": "Lidl",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "ParkRecharge",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "ScottishPower Recharge",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-production-open-feeds",
+      "stations": 65,
+      "connectors": 187,
+      "powerKnown": 187,
+      "exactOffers": 0
+    },
+    {
+      "name": "GeniePoint",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Mer",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-production-open-feeds",
+      "stations": 176,
+      "connectors": 808,
+      "powerKnown": 808,
+      "exactOffers": 808
+    },
+    {
+      "name": "Clenergy EV",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-production-open-feeds",
+      "stations": 1399,
+      "connectors": 1714,
+      "powerKnown": 1714,
+      "exactOffers": 1714
+    },
+    {
+      "name": "Qwello",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "char.gy",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-production-open-feeds",
+      "stations": 5946,
+      "connectors": 5948,
+      "powerKnown": 5948,
+      "exactOffers": 4856
+    },
+    {
+      "name": "TotalEnergies",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Charge My Street",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Shell Recharge ubitricity",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "Blink",
+      "ledgerStatus": "complete",
+      "present": true,
+      "source": "uk-blink-pcpr-direct",
+      "stations": 869,
+      "connectors": 3599,
+      "powerKnown": 3599,
+      "exactOffers": 3599
+    },
+    {
+      "name": "JOLT",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    },
+    {
+      "name": "3ti Energy Hubs",
+      "ledgerStatus": "complete",
+      "present": false,
+      "source": null,
+      "stations": 0,
+      "connectors": 0,
+      "powerKnown": 0,
+      "exactOffers": 0
+    }
+  ]
+}

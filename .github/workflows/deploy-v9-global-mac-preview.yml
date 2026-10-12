@@ -14,6 +14,12 @@ on:
       - "runtime-overrides/assets/v9/pricing-engine.js"
       - "runtime-overrides/assets/v9/session-engine.js"
       - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
+      - "runtime-overrides/assets/v9/production-loader-extension.js"
+      - "runtime-overrides/assets/v9/production-bootstrap.js"
+      - "tests/uk-connected-kerb-guest-integration.test.mjs"
+      - "tests/uk-allego-pinned-snapshot.test.mjs"
+      - "tests/uk-open-feeds-connector-scope.test.mjs"
+      - "scripts/audit_uk_snapshot_coverage.mjs"
       - "runtime-overrides/assets/v9/adapters/atlante-italy-exact.js"
       - "tests/runtime-browser-journey-global.mjs"
       - "scripts/build_refresh_candidate_config.py"
@@ -297,8 +303,20 @@ jobs:
           fi
       - name: Validate Blink direct source and Midhope in actual built snapshot
         run: |
+          node production/tests/uk-allego-pinned-snapshot.test.mjs dist/v9-global-preview
+          node production/tests/uk-open-feeds-connector-scope.test.mjs dist/v9-global-preview
+          node production/tests/uk-connected-kerb-guest-integration.test.mjs dist/v9-global-preview/snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz
           node production/tests/uk-midhope-source-integration.test.mjs dist/v9-global-preview/snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz
           node production/tests/uk-ocpi-first-match.test.mjs dist/v9-global-preview/runtime/assets/v9/pricing-engine.js
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          registry=json.loads(Path('dist/v9-global-preview/runtime/data/v9/source-registry.json').read_text())
+          source=next(s for s in registry['sources'] if s['id']=='uk-connected-kerb-guest-direct')
+          assert source['active'] is True and source['optional'] is False
+          PY
+      - name: Audit completed UK CPOs against active runtime sources
+        run: node production/scripts/audit_uk_snapshot_coverage.mjs dist/v9-global-preview datalab/docs/uk-cpo-progress-2026-09.json
       - name: Multi-country runtime smoke
         env:
           REQUIRE_ELECTRA_PLATFORM: "1"

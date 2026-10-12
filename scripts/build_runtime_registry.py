@@ -86,6 +86,18 @@ def build_registry(path):
       "policy":"Only connector-bound offers verified against the same Ubitricity public PAYG tariff are rankable. Rejected tariffs stay unpriced."
     })
     upsert(sources,{
+      "id":"uk-connected-kerb-guest-direct",
+      "label":"UK Connected Kerb app-verified exact guest connector tariffs",
+      "adapter":"uk-open-feeds-v1",
+      "path":"../snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz",
+      "countries":["GB"],
+      "capabilities":["inventory","connectors","access","status","tariff"],
+      "priority":{"identity":85,"connectors":85,"access":70,"status":70,"tariff":140},
+      "refresh":"daily-audited-snapshot",
+      "active":False,"optional":True,
+      "policy":"Only same-socket guest app verified offers with exact station, EVSE and connector identity. UTC tariff windows; excluded connectors remain unpriced. Midhope uses its separate screenshot-backed source."
+    })
+    upsert(sources,{
       "id":"uk-connected-kerb-midhope-guest-verified",
       "label":"Connected Kerb Midhope Road verified four connector guest tariff (summer 2026)",
       "adapter":"uk-open-feeds-v1",
