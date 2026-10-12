@@ -1,6 +1,13 @@
 name: Test NL DOT-NL OCPI time and rounding pricing
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - runtime-overrides/assets/v9/adapters/netherlands-dotnl.js
+      - runtime-overrides/assets/v9/pricing-engine.js
+      - tests/netherlands-dotnl-ocpi-pricing.test.mjs
+      - .github/workflows/test-netherlands-dotnl-ocpi.yml
   push:
     branches: [main]
     paths:
