@@ -101,4 +101,45 @@ const evaluate=o=>pricing.evaluateOffer(o,session);
     ]}};
   assert.equal(evaluate(o).reason,'tariff_window_crossing_unsupported_components');
 }
+// A TIME band starting after four hours is not applicable to a 150-minute
+// session. The 60-second TIME step is therefore monetarily inert.
+{
+  const band=[['TIME',14400,null,.01]];
+  const o={id:'NL-ENV-under-threshold',currency:'EUR',pricing:{
+    type:'rules',timeZone:'Europe/Amsterdam',rules:[
+      {scope:'timeWindow',start:'23:00',end:'24:00',pricePerKwh:.5,
+        chargePerMinute:0,chargingTimeStepSeconds:60,connectionFee:.5,
+        ocpiDurationBands:band,days:DAYS},
+      {scope:'timeWindow',start:'00:00',end:'23:00',pricePerKwh:.5,
+        chargePerMinute:0,chargingTimeStepSeconds:60,connectionFee:.5,
+        ocpiDurationBands:band,days:DAYS}
+    ]}};
+  const early=pricing.evaluateOffer(o,{...session,durationMinutes:150,chargingMinutes:80,energyKwh:15});
+  assert.equal(early.complete,true,JSON.stringify(early));
+  near(early.totalEur,15*.5+.5,'inactive TIME band and one FLAT fee');
+  for(const duration of [240,270]){
+    const charged=pricing.evaluateOffer(o,{...session,durationMinutes:duration,chargingMinutes:duration,energyKwh:15});
+    assert.equal(charged.complete,false,JSON.stringify({duration,charged}));
+    assert.equal(charged.reason,'tariff_window_crossing_unsupported_components');
+  }
+}
+// An ENERGY band that becomes payable only after the session length is
+// similarly inactive before its duration threshold but protected thereafter.
+{
+  const band=[['ENERGY',14400,null,.6]];
+  const o={id:'NL-energy-threshold',currency:'EUR',pricing:{
+    type:'rules',timeZone:'Europe/Amsterdam',rules:[
+      {scope:'timeWindow',start:'23:00',end:'24:00',pricePerKwh:0,
+       energyStepWh:1000,connectionFee:.5,ocpiDurationBands:band,days:DAYS},
+      {scope:'timeWindow',start:'00:00',end:'23:00',pricePerKwh:0,
+       energyStepWh:1000,connectionFee:.5,ocpiDurationBands:band,days:DAYS}
+    ]}};
+  const short=pricing.evaluateOffer(o,{...session,durationMinutes:150,chargingMinutes:150,energyKwh:1.2});
+  assert.equal(short.complete,true,JSON.stringify(short));
+  near(short.totalEur,.5,'inapplicable ENERGY band');
+  const long=pricing.evaluateOffer(o,{...session,durationMinutes:270,chargingMinutes:270,energyKwh:1.2});
+  assert.equal(long.complete,false);
+  assert.equal(long.reason,'tariff_window_crossing_unsupported_components');
+}
+
 console.log('V9 zero-priced OCPI step midnight guards: PASS');
