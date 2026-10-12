@@ -20,18 +20,6 @@ const session={
 const near=(actual,want,label)=>assert.ok(Math.abs(actual-want)<1e-6,`${label}: ${actual} != ${want}`);
 const evaluate=o=>pricing.evaluateOffer(o,session);
 
-// A present TIME step of 60 seconds carries no monetary effect when TIME costs 0.
-// The midnight energy price changes; the one-time FLAT fee must appear only once.
-{
-  const o=offer([
-    raw('00:00','24:00',.4,0,.5,{chargingTimeStepSeconds:60}),
-    raw('22:00','24:00',.2,0,.5,{chargingTimeStepSeconds:60})
-  ]);
-  const result=evaluate(o);
-  assert.equal(result.complete,true,JSON.stringify(result));
-  assert.equal(result.segmented,true,'explicit midnight boundary was crossed');
-  near(result.totalEur,10*.2+.5,'whole-session price at 23:30');
-}
 // Explicit two successive windows with zero-priced TIME rounding must segment,
 // including a midnight change in ENERGY without duplicating FLAT.
 {
