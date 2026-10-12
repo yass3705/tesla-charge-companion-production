@@ -460,11 +460,6 @@
     });
   }
   function renderTariffs(evaluation,station,fxRates={},selectedSubscriptionIds=[]){
-    if(isTeslaStation(station)){
-      const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
-      const item=offers.filter(pricedItem).sort((a,b)=>num(a.total)-num(b.total))[0];
-      return item?'<div class="v9-tesla-price"><strong>Tesla</strong> · '+esc(displayAmount(item,fxRates))+'</div>':'<div class="v9-tesla-price">'+(offers.length?'Tarif incalculable':'Prix non disponible')+'</div>';
-    }
     const evaluated=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
     const subs=[...new Set((selectedSubscriptionIds||[]).map(text).filter(Boolean))];
     const subscriptionNames=new Map(evaluated.filter(item=>text(item.subscriptionId)).map(item=>[text(item.subscriptionId),text(item.provider)||text(item.subscriptionId)]));
