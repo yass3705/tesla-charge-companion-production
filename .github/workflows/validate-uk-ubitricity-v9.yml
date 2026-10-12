@@ -10,6 +10,7 @@ on:
       - "config/germany-ionity-supplement-provenance.json"
       - "tests/test_germany_ionity_supplement_provenance.py"
       - "tests/uk-ubitricity-integration.test.mjs"
+      - "tests/uk-ubitricity-pcpr-priority.test.mjs"
       - ".github/workflows/validate-uk-ubitricity-v9.yml"
   workflow_dispatch:
 permissions:
@@ -37,6 +38,7 @@ jobs:
       - run: python -m py_compile production/scripts/build_runtime_registry.py production/scripts/build_snapshot.py production/scripts/validate_built_snapshot.py
       - run: python -m unittest discover -s production/tests -p test_germany_ionity_supplement_provenance.py -v
       - run: node production/tests/uk-ubitricity-integration.test.mjs datalab/data/national/uk_ubitricity_v9.json.gz
+      - run: node production/tests/uk-ubitricity-pcpr-priority.test.mjs
       - name: Compare independent Data Lab validation report
         run: |
           python - <<'PY'

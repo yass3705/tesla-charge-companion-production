@@ -104,6 +104,12 @@
     const pcprVerified=offer.metadata?.scope==='cpo_direct_pcpr_verified'&&
       offer.metadata?.pricingSource==='PCPR OCPI first-match'&&source.pricingScope==='cpo_direct_pcpr_verified';
     if((!oldVerified&&!pcprVerified)||!Array.isArray(offer.pricing?.rules)||!offer.pricing.rules.length)return null;
+    if(pcprVerified&&offer.metadata?.idleFeeSource){
+      const fee=offer.pricing?.postChargeFee;
+      if(fee?.eurPerMinute!==0.05||fee?.graceMinutes!==60||
+         fee?.exemptLocalWindows?.length!==1||
+         fee.exemptLocalWindows[0]?.start!=='20:00'||fee.exemptLocalWindows[0]?.end!=='08:00')return null;
+    }
     if(offer.pricing.timeZone!=='Europe/London'||offer.pricing.rules.some(r=>r.currency!=='GBP'||!Number.isFinite(r.pricePerKwh)||r.pricePerKwh<0))return null;
     return offer;
   }
