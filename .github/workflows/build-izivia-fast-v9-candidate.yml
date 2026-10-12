@@ -1,0 +1,83 @@
+name: Build IZIVIA FAST full V9 snapshot candidate (no publish)
+
+on:
+  push:
+    branches: ["feat/v9-izivia-fast-exact-direct-20261012"]
+    paths:
+      - ".github/workflows/build-izivia-fast-v9-candidate.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/build-izivia-fast-v9-candidate.yml"
+      - "scripts/build_snapshot.py"
+      - "scripts/build_runtime_registry.py"
+      - "scripts/validate_izivia_fast_direct.py"
+      - "config/snapshots/2026-10-12-izivia-fast-direct-candidate.json"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: bddc8f8cd9e092423e173cfa810744f2cdfa4a4a
+          path: datalab
+          persist-credentials: false
+      - name: Verify source pins
+        run: |
+          test "$(git -C datalab rev-parse HEAD)" = bddc8f8cd9e092423e173cfa810744f2cdfa4a4a
+          test "$(git -C stable rev-parse HEAD)" = 0a6d2c3415504397310d3dc92fae40be843b2435
+      - name: Build V9 candidate
+        run: |
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-10-12-izivia-fast-direct-candidate.json
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config config/snapshots/2026-10-12-izivia-fast-direct-candidate.json --out ../dist/v9-izivia-fast-candidate
+          python scripts/validate_built_snapshot.py ../dist/v9-izivia-fast-candidate 2026-10-12-izivia-fast-direct-candidate
+          python scripts/validate_browser_asset_graph.py ../dist/v9-izivia-fast-candidate
+      - name: Verify exact runtime registry wiring
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("dist/v9-izivia-fast-candidate")
+          registry=json.loads((root/"runtime/data/v9/source-registry.json").read_text())
+          row=next(s for s in registry['sources'] if s['id']=='france-izivia-fast-direct-exact')
+          assert row['active'] is True and row['optional'] is False
+          data=json.loads((root/"snapshot-inputs/FR/direct/izivia_fast_direct_offers.json").read_text())
+          assert len({sid for o in data['directOffers'] for sid in o['stationIds']})==616
+          assert data['policy']['chademoOfferAssignmentsRemoved']==12
+          assert not data['subscriptionOffers']
+          print("IZIVIA FAST V9 source active in candidate: 616 stations, Type2/CCS only")
+          PY
+      - name: Smoke runtime and tariff lanes
+        run: |
+          node production/tests/v9-pricing-time-zone.test.mjs
+          node production/tests/v9-tariff-lanes.test.mjs
+          node production/tests/runtime-e2e-smoke.mjs dist/v9-izivia-fast-candidate
+      - name: Upload candidate proof only
+        uses: actions/upload-artifact@v4
+        with:
+          name: izivia-fast-v9-candidate-manifest
+          path: |
+            dist/v9-izivia-fast-candidate/manifest.json
+            dist/v9-izivia-fast-candidate/runtime/data/v9/source-registry.json
+            dist/v9-izivia-fast-candidate/snapshot-inputs/FR/direct/izivia_fast_direct_offers.json
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: No release or Pages deployment
+        run: echo "Candidate validation only. No Pages, release, or development pin mutation."
