@@ -238,7 +238,7 @@ def main():
         dependency_anchor,
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/map-price-engine.js',"
-        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/netherlands-dotnl.js','assets/v9/adapters/belgium-nap.js','assets/v9/adapters/uk-open-feeds.js',"+uk_pcpr_dependency+"'assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
+        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/netherlands-dotnl.js','assets/v9/adapters/belgium-nap.js','assets/v9/adapters/energyvision-belgium.js','assets/v9/adapters/uk-open-feeds.js',"+uk_pcpr_dependency+"'assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
     )
     for required in ("v9-production-shell/bridge.js","assets/v9/production-bootstrap.js","assets/v9/production-loader-extension.js"):
@@ -352,6 +352,40 @@ def main():
           "policy":"Eco-Movement selected-CPO NAP baseline with exact tariff records; missing operators and unresolved prices remain fail-closed."
         })
 
+    # Optional source-native public EnergyVision CPO supplement (not present in
+    # the selected Eco-Movement Belgium NAP inventory). Only an explicit
+    # immutable candidate may activate it. The adapter applies complete
+    # single-component direct rules; complex DATEX station rates stay unpriced.
+    energyvision_cfg=cfg.get("belgiumEnergyvisionOfficial")
+    if energyvision_cfg:
+        if not any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
+            raise AssertionError("EnergyVision cannot be enabled without BE NAP baseline")
+        source_path=dl/energyvision_cfg.get("sourcePath","")
+        if not source_path.is_file():
+            raise AssertionError("Missing immutable EnergyVision official source")
+        if source_path.suffix!=".gz":
+            raise AssertionError("EnergyVision CPO source must be an immutable gzip")
+        with gzip.open(source_path,"rt",encoding="utf-8") as handle:
+            energyvision= json.load(handle)
+        ec=energyvision.get("counts",{})
+        if (energyvision.get("provider")!="EnergyVision" or energyvision.get("country")!="BE"
+            or energyvision.get("v9PublicationReady") is not False
+            or energyvision.get("v9PricedPDC")!=0
+            or energyvision.get("sourceSha256")!=energyvision_cfg.get("sourceStaticSha256")
+            or ec.get("sourcePDC")!=3795 or ec.get("distinctExternalEvseIds")!=3795
+            or ec.get("unassignedStationRates")!=1228
+            or energyvision.get("napCrosswalk",{}).get("unmatchedIds")!=3795):
+            raise AssertionError("Unverified EnergyVision official source counters or provenance")
+        for site in energyvision.get("sites",[]):
+            if site.get("sourceSiteEnergyRateCount")!=0:
+                raise AssertionError("Unexpected site-level EnergyVision rate override")
+            for station in site.get("stations",[]):
+                if station.get("sourceStationEnergyRateCount")!=len(station.get("sourceStationRatesUnassignedToPdc",[])):
+                    raise AssertionError("Station-level EnergyVision rate mismatch")
+                if any(p.get("sourcePointEnergyRateCount")!=0 for p in station.get("pdc",[])):
+                    raise AssertionError("PDC-specific EnergyVision rate override")
+        copy_file(source_path,be/"energyvision-official.json.gz")
+
     # Activate the up-to-date national baselines and suppress historic NL inventory.
     if nl_cfg.get("primarySource")=="dataLab" or any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
         current_registry=load_json(registry)
@@ -368,6 +402,22 @@ def main():
         for identifier in ("netherlands-dotnl-national","belgium-nap-national"):
             if next((a for a in current_registry.get("sources",[]) if a.get("id")==identifier and a.get("active")),None) and identifier not in local:
                 local.append(identifier)
+        if energyvision_cfg:
+            energyvision_id="energyvision-be-official"
+            if any(e.get("id")==energyvision_id for e in current_registry.get("sources",[])):
+                raise AssertionError("EnergyVision source id already present")
+            current_registry.setdefault("sources",[]).append({
+              "id":energyvision_id,
+              "label":"EnergyVision Belgium official direct CPO",
+              "adapter":"energyvision-be-v1",
+              "path":"snapshot-inputs/BE/energyvision-official.json.gz",
+              "countries":["BE"],
+              "capabilities":["inventory","connectors","status","tariff"],
+              "priority":{"identity":90,"connectors":90,"status":80,"tariff":125},
+              "refresh":"immutable Data Lab exact pin",
+              "active":True,"optional":False
+            })
+            if energyvision_id not in local:local.append(energyvision_id)
         write_json(registry,current_registry)
 
     # UK: do NOT use inventory/united_kingdom.json (Tesla inventory).
@@ -1098,6 +1148,7 @@ def main():
           "runtime/assets/v9/adapters/germany-national.js",
           "runtime/assets/v9/adapters/netherlands-dotnl.js",
           "runtime/assets/v9/adapters/belgium-nap.js",
+          "runtime/assets/v9/adapters/energyvision-belgium.js",
           "runtime/assets/v9/adapters/uk-open-feeds.js",
           "runtime/assets/v9/adapters/uk-pcpr.js",
           "runtime/assets/v9/adapters/switzerland-avia.js",
@@ -1123,6 +1174,9 @@ def main():
         "BE":{"kind":"national-nap","manifest":"snapshot-inputs/BE/manifest.json","pages":"snapshot-inputs/BE/pages","coverage":"partial-selected-cpo"}
       }
     }
+    if energyvision_cfg:
+        contract["datasets"]["BE"]["energyvisionOfficialCpo"]="snapshot-inputs/BE/energyvision-official.json.gz"
+        contract["datasets"]["BE"]["coverage"]="selected-NAP-plus-independent-EnergyVision-CPO"
     if not any(d.get("id")=="BE" for d in cfg.get("datasets",[])):
         contract["deployment"]["engineScopeCountries"].remove("BE")
         contract["datasets"].pop("BE")
