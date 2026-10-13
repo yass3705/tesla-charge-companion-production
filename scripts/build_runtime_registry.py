@@ -285,6 +285,19 @@ def build_registry(path):
       "optional":True,
       "policy":"Exact national IRVE station identity only. Only fully supported ENERGY tariff components are published; congestion-time tariffs remain fail-closed."
     })
+    upsert(sources,{
+      "id":"france-spie-metropolis-direct-exact",
+      "label":"France Metropolis public direct tariffs by exact EVSE",
+      "adapter":"direct-offer-json",
+      "path":"../snapshot-inputs/FR/direct/metropolis_spie_direct_offers.json",
+      "countries":["FR"],
+      "capabilities":["tariff"],
+      "priority":{"tariff":130},
+      "refresh":"immutable-production-snapshot",
+      "active":False,
+      "optional":True,
+      "policy":"Only exact national Metropolis EVSE with matching SPIE station/operator/power and complete official public post-charge terms. Special Neuilly time windows excluded."
+    })
 
     upsert(sources,{
       "id":"netherlands-dotnl-national",

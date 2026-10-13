@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-13-fr-belib-tesla-congestion-evidence-candidate",
-    "dataLabSha": "2cc230af128b316bf980d9e7cd7fc5408301b6a4",
-    "rule": "Development candidate adds exact active Belib stations and preserves unverified Tesla congestion amounts as metadata. Source SHAs remain explicit. First public Pages pin stays immutable; no automatic deployment."
+    "currentSnapshot": "2026-10-13-fr-spie-exact-candidate",
+    "dataLabSha": "e39a4466096b520b3c459e75539bf9b112235165",
+    "rule": "Development candidate adds exact Metropolis direct tariffs with complete public fee terms; Neuilly time-window exceptions remain unavailable. Older candidates and first public Pages pin stay immutable; no automatic deployment."
   }
 }
