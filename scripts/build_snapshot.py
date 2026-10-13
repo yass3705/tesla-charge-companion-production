@@ -122,6 +122,18 @@ def main():
         str(production_root/"scripts/patch_ocpi_pcpr_pricing.py"),
         str(out/"runtime/assets/v9/pricing-engine.js")
     ],check=True)
+    e55c_cfg=cfg.get("franceE55cExactCandidate")
+    if e55c_cfg:
+        e55c_src=pathlib.Path(a.e55c_datalab or a.datalab)/"data/national/electric55_stations_france.json"
+        if not e55c_src.is_file(): raise SystemExit("Pinned E55C Data Lab source missing")
+        if e55c_cfg.get("sourceSha256") and sha256(e55c_src)!=e55c_cfg["sourceSha256"]: raise AssertionError("Pinned E55C source hash mismatch")
+        evidence=load_json(e55c_src)
+        st=evidence.get("stats") or {}
+        if (st.get("stationCount"),st.get("chargePointCount"),st.get("chargePointCountWithMachineReadablePricing"))!=(649,1977,1923):
+            raise AssertionError("E55C national census drift")
+        if evidence.get("source",{}).get("directTariff",{}).get("nationalOwnEmspOnlyVerified") is not True:
+            raise AssertionError("E55C national sole source is not verified")
+        copy_file(e55c_src,out/"snapshot-inputs/FR/direct/e55c-exact-france.json")
     registry=out/"runtime/data/v9/source-registry.json"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
 
@@ -290,18 +302,6 @@ def main():
     for src,dst in pairs:
         if src.exists(): copy_file(src,dst)
 
-    e55c_cfg=cfg.get("franceE55cExactCandidate")
-    if e55c_cfg:
-        e55c_src=pathlib.Path(a.e55c_datalab or a.datalab)/"data/national/electric55_stations_france.json"
-        if not e55c_src.is_file(): raise SystemExit("Pinned E55C Data Lab source missing")
-        if e55c_cfg.get("sourceSha256") and sha256(e55c_src)!=e55c_cfg["sourceSha256"]: raise AssertionError("Pinned E55C source hash mismatch")
-        evidence=load_json(e55c_src)
-        st=evidence.get("stats") or {}
-        if (st.get("stationCount"),st.get("chargePointCount"),st.get("chargePointCountWithMachineReadablePricing"))!=(649,1977,1923):
-            raise AssertionError("E55C national census drift")
-        if evidence.get("source",{}).get("directTariff",{}).get("nationalOwnEmspOnlyVerified") is not True:
-            raise AssertionError("E55C national sole source is not verified")
-        copy_file(e55c_src,overlays/"FR/direct/e55c-exact-france.json")
     # Persist country progress ledgers beside their data so every snapshot is
     # self-describing and auditable.
     ledger_pairs=[
