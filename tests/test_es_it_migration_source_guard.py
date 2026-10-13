@@ -18,6 +18,12 @@ class DatasetMigrationSafetyTests(unittest.TestCase):
                 self.assertEqual(datasets[country]["primarySource"], "stable")
                 self.assertTrue(entry["blockers"])
         self.assertEqual(audit["stableSha"], snapshot["sources"]["stable"]["sha"])
+        stream = audit["countries"]["ES"]["dataLabReveStream"]
+        self.assertEqual(stream["integrationStatus"], "PRE_INTEGRATION_ONLY")
+        self.assertFalse(stream["complete"])
+        self.assertLess(stream["tariffPagesCollected"], stream["tariffTotalPages"])
+        self.assertLess(stream["statusPagesCollected"], stream["statusTotalPages"])
+
 
 
 if __name__ == "__main__":
