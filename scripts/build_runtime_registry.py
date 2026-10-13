@@ -364,6 +364,7 @@ def build_registry(path):
             src["refresh"]="immutable-production-snapshot"
             src["policy"]="Use the pinned r8 Atlante France exact-EVSE direct snapshot; unmatched EVSEs remain fail-closed."
 
+    upsert(sources,{"id":"france-e55c-exact","label":"France E55C exact EVSE tariffs","adapter":"e55c-exact-v1","path":"../snapshot-inputs/FR/direct/e55c-exact-france.json","countries":["FR"],"capabilities":["tariff"],"priority":{"tariff":138},"refresh":"immutable-production-snapshot","active":True,"optional":False,"policy":"Only exact E55C EVSE: 07-23 and 23-07 charging prices, one fixed fee, parking after charge completion; nationally sole E55C ROAMING_EMPS tariff accepted only with pinned full-census proof."})
     # Tesla stations are kept in the dedicated Tesla catalogue only.
     for src in sources:
         if src.get("id") in {"france-national","spain-reve","italy-pun","switzerland-national","germany-production-snapshot","uk-production-open-feeds","netherlands-dotnl-national","belgium-nap-national"}:
