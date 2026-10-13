@@ -21,7 +21,7 @@
   const windows=[];
   for(const r of windowed){
    const charge=n(r.chargingTimeEurPerMinute),parking=n(r.parkingTimeEurPerMinute);
-   if(r.scope!=='timeWindow'||charge===null||parking===null||charge<0||parking<0||charge>10||parking>10||!/^\\d{2}:\\d{2}$/.test(t(r.start))||!/^\\d{2}:\\d{2}$/.test(t(r.end)))return null;
+   if(r.scope!=='timeWindow'||charge===null||parking===null||charge<0||parking<0||charge>10||parking>10||!/^\d{2}:\d{2}$/.test(t(r.start))||!/^\d{2}:\d{2}$/.test(t(r.end)))return null;
    windows.push({start:r.start,end:r.end,chargePerMinute:charge,parkingPerMinute:parking});
   }
   if(!windows.some(r=>r.start==='07:00'&&r.end==='23:00')||!windows.some(r=>r.start==='23:00'&&r.end==='07:00'))return null;
@@ -35,7 +35,7 @@
   for(const st of payload.stations||[])for(const p of st.chargePoints||[]){
    const profileId=p?.pricing?.profileId,profile=profiles.get(profileId),value=tariff(profile);
    const evse=t(p.localEvseId||p.evseId);
-   if(p?.pricing?.status!=='resolved_e55c_scan_pay'||!value||!evse||!/^FR\\*55C\\*/i.test(evse)){
+   if(p?.pricing?.status!=='resolved_e55c_scan_pay'||!value||!evse||!/^FR\*55C\*/i.test(evse)){
     rejected.noSafeTariff=(rejected.noSafeTariff||0)+1;continue;
    }
    const id=canonical(evse);
