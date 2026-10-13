@@ -24,6 +24,7 @@ on:
       - "runtime-overrides/assets/v9/**"
       - "tests/france-direct-offer-kind.test.mjs"
       - "tests/v9-common-station-links.test.mjs"
+      - "tests/v9-tesla-matosinhos-runtime.test.mjs"
       - "tests/v9-tesla-global-layout.test.mjs"
       - "tests/belgium-nap-safe-pricing.test.mjs"
       - "v9-production-shell/**"
@@ -132,6 +133,7 @@ jobs:
         run: |
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
+          node production/tests/v9-tesla-matosinhos-runtime.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-ocpi-component-coverage.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-congestion-soc80.test.mjs dist/v9-dev-snapshot
           node production/tests/runtime-e2e-smoke.mjs dist/v9-dev-snapshot
