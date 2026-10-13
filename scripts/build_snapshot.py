@@ -38,6 +38,7 @@ def main():
     ap.add_argument("--stable",required=True)
     ap.add_argument("--datalab",required=True)
     ap.add_argument("--germany-source")
+    ap.add_argument("--e55c-datalab")
     ap.add_argument("--out",required=True)
     ap.add_argument("--config",default="config/snapshots/2026-09-30.json")
     a=ap.parse_args()
@@ -238,7 +239,7 @@ def main():
         dependency_anchor,
         "'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js',"
         "'assets/v9/map-price-engine.js',"
-        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/netherlands-dotnl.js','assets/v9/adapters/belgium-nap.js','assets/v9/adapters/energyvision-belgium.js','assets/v9/adapters/uk-open-feeds.js',"+uk_pcpr_dependency+"'assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
+        "'assets/v9/adapters/germany-national.js','assets/v9/adapters/netherlands-dotnl.js','assets/v9/adapters/belgium-nap.js','assets/v9/adapters/energyvision-belgium.js','assets/v9/adapters/uk-open-feeds.js',"+uk_pcpr_dependency+"'assets/v9/adapters/switzerland-avia.js','assets/v9/adapters/italy-ionity-exact.js','assets/v9/adapters/france-ionity-exact.js','assets/v9/adapters/e55c-exact.js','assets/v9/adapters/atlante-italy-exact.js','assets/v9/browser-loaders.js',"
         "'assets/v9/production-loader-extension.js','assets/v9/production-bootstrap.js'"
     )
     for required in ("v9-production-shell/bridge.js","assets/v9/production-bootstrap.js","assets/v9/production-loader-extension.js"):
@@ -289,6 +290,18 @@ def main():
     for src,dst in pairs:
         if src.exists(): copy_file(src,dst)
 
+    e55c_cfg=cfg.get("franceE55cExactCandidate")
+    if e55c_cfg:
+        e55c_src=pathlib.Path(a.e55c_datalab or a.datalab)/"data/national/electric55_stations_france.json"
+        if not e55c_src.is_file(): raise SystemExit("Pinned E55C Data Lab source missing")
+        if sha256(e55c_src)!=e55c_cfg["sourceSha256"]: raise AssertionError("Pinned E55C source hash mismatch")
+        evidence=load_json(e55c_src)
+        st=evidence.get("stats") or {}
+        if (st.get("stationCount"),st.get("chargePointCount"),st.get("chargePointCountWithMachineReadablePricing"))!=(649,1977,1923):
+            raise AssertionError("E55C national census drift")
+        if evidence.get("source",{}).get("directTariff",{}).get("nationalOwnEmspOnlyVerified") is not True:
+            raise AssertionError("E55C national sole source is not verified")
+        copy_file(e55c_src,overlays/"FR/direct/e55c-exact-france.json")
     # Persist country progress ledgers beside their data so every snapshot is
     # self-describing and auditable.
     ledger_pairs=[
