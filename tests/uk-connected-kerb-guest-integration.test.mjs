@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
 import zlib from 'node:zlib';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
@@ -8,11 +9,18 @@ const adapter=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js'
 const input=process.argv[2];
 assert.ok(input,'Connected Kerb audited V9 input required');
 const payload=JSON.parse(zlib.gunzipSync(fs.readFileSync(input)).toString('utf8'));
+const reportsRoot=path.resolve(path.dirname(input),'../reports');
+const exclusion=JSON.parse(fs.readFileSync(path.join(reportsRoot,'connected-kerb-price-exclusions.json'),'utf8'));
+const integration=JSON.parse(fs.readFileSync(path.join(reportsRoot,'connected-kerb-integration.json'),'utf8'));
 assert.deepEqual(payload.sources.map(x=>x.id),['connected-kerb-guest']);
 const rows=adapter.normalizePayload(payload,{sourceId:'uk-connected-kerb-guest-direct'});
 const offers=rows.flatMap(s=>s.offers);
-assert.equal(rows.length,2102);
-assert.equal(offers.length,8100);
+assert.equal(payload.operatorBaselineCollectedAt,exclusion.snapshotCollectedAt);
+assert.equal(payload.collectedAt,exclusion.appCollectedAt);
+assert.equal(rows.length,exclusion.priceUnambiguousStationCount);
+assert.equal(rows.length,integration.counts.retainedStations);
+assert.equal(offers.length,exclusion.retainedConnectorCount);
+assert.equal(offers.length,integration.counts.validatedConnectors);
 for(const row of rows){
   assert.equal(row.physicalOperator.name,'Connected Kerb');
   for(const offer of row.offers){

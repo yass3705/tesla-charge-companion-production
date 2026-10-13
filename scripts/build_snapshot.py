@@ -51,6 +51,16 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    belib_supplement=cfg.get("franceBelibExactSupplement")
+    if belib_supplement:
+        from supplement_france_irve_exact import supplement
+        source=dl/"data/national/france-irve-static-v9/all.json.gz"
+        dynamic=dl/"data/national/france-irve-dynamic-status-v9.json.gz"
+        catalogue=dl/"data/national/belib_stations_paris.json"
+        proof=supplement(out/"runtime/data/v9/france-static",source,dynamic,catalogue,
+                         belib_supplement["stationIds"],belib_supplement["staticSha256"],
+                         belib_supplement["dynamicSourceSha256"])
+        write_json(out/"snapshot-inputs/FR/belib-exact-supplement.json",proof)
     belib_offers=out/"runtime/data/v9/france-belib-offers.json"
     if belib_offers.exists():
         belib_catalogue=dl/"data/national/belib_stations_paris.json"
@@ -449,6 +459,8 @@ def main():
                 or direct.get("timeBasis")!="UTC"
                 or c.get("pricingSource")!="operator_app_guest_detail"):
                 raise AssertionError("Connected Kerb guest connector offer regression")
+        copy_file(ck_exclusions,uk/"reports/connected-kerb-price-exclusions.json")
+        copy_file(ck_integration,uk/"reports/connected-kerb-integration.json")
         current_registry=load_json(registry)
         ck_entry=next(s for s in current_registry["sources"] if s.get("id")=="uk-connected-kerb-guest-direct")
         ck_entry["active"]=True

@@ -108,8 +108,14 @@ def main():
         with gzip.open(root/"snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz","rt",encoding="utf-8") as f: ck_payload=json.load(f)
         assert [s.get("id") for s in ck_payload.get("sources",[])]==["connected-kerb-guest"]
         ck_locations=ck_payload["sources"][0]["locations"]
-        assert len(ck_locations)==2102
-        assert sum(len(e.get("connectors") or []) for loc in ck_locations for e in loc.get("evses") or [])==8100
+        ck_exclusions=load(root/"snapshot-inputs/UK/reports/connected-kerb-price-exclusions.json")
+        ck_integration=load(root/"snapshot-inputs/UK/reports/connected-kerb-integration.json")
+        ck_connectors=[(loc,e,c) for loc in ck_locations for e in loc.get("evses") or [] for c in e.get("connectors") or []]
+        assert ck_payload.get("operatorBaselineCollectedAt")==ck_exclusions.get("snapshotCollectedAt")==ck_integration.get("snapshotCollectedAt")
+        assert ck_payload.get("collectedAt")==ck_exclusions.get("appCollectedAt")==ck_integration.get("appCollectedAt")
+        assert len(ck_locations)==ck_exclusions.get("priceUnambiguousStationCount")==ck_integration.get("counts",{}).get("retainedStations")
+        assert len(ck_connectors)==ck_exclusions.get("retainedConnectorCount")==ck_integration.get("counts",{}).get("validatedConnectors")
+        assert len({(loc.get("id"),e.get("evse_id"),c.get("id")) for loc,e,c in ck_connectors})==len(ck_connectors)
     allego=sources.get("allego-uk-pcpr-direct") or {}
     if allego.get("path"):
         assert allego.get("active") is True and allego.get("optional") is False

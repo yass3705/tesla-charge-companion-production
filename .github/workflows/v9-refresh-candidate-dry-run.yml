@@ -11,6 +11,8 @@ on:
       - "config/germany-ionity-supplement-provenance.json"
       - "config/electra-legacy-source-provenance.json"
       - "scripts/build_snapshot.py"
+      - "scripts/supplement_france_irve_exact.py"
+      - "tests/test_france_belib_exact_supplement.py"
       - "scripts/scope_belib_offers.py"
       - "tests/belib-exact-evse.test.mjs"
       - "scripts/compile_uk_direct_batch.py"
@@ -44,6 +46,10 @@ on:
       - "tests/belgium-nap-safe-pricing.test.mjs"
       - "v9-production-shell/**"
       - "scripts/build_snapshot.py"
+      - "scripts/supplement_france_irve_exact.py"
+      - "tests/test_france_belib_exact_supplement.py"
+      - "config/refresh-policy.json"
+      - "config/snapshots/2026-10-13-fr-belib-exact-supplement-candidate.json"
       - "scripts/scope_belib_offers.py"
       - "tests/belib-exact-evse.test.mjs"
       - "scripts/compile_uk_direct_batch.py"
@@ -133,6 +139,8 @@ jobs:
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
+          python tests/test_france_belib_exact_supplement.py ../stable ../datalab ../dist/v9-dev-snapshot
+          node tests/uk-connected-kerb-guest-integration.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz
           node tests/belgium-nap-safe-pricing.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/BE/pages
 
       - name: Multi-country runtime smoke

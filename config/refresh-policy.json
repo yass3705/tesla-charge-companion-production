@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-13-live-audit-corrected-candidate",
-    "dataLabSha": "047e1911a5dfd4dcce741ad9b461c6096effb9cd",
-    "rule": "Live-audit corrected development candidate reuses the first public snapshot source SHAs and adds validated Production code fixes. First public Pages pin remains immutable and unchanged; no automatic deployment."
+    "currentSnapshot": "2026-10-13-fr-belib-exact-supplement-candidate",
+    "dataLabSha": "2cc230af128b316bf980d9e7cd7fc5408301b6a4",
+    "rule": "Development candidate supplements four exact active Belib stations and pins the 13 October Data Lab source. First public Pages pin remains immutable and unchanged; no automatic deployment."
   }
 }
