@@ -185,6 +185,13 @@ jobs:
           path: datalab
           fetch-depth: 1
           persist-credentials: false
+      - name: Checkout validated E55C exact tariffs (immutable source)
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: 3a49cc95537dc0a7771251b51e88caa44f8b74de
+          path: datalab-e55c
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -254,14 +261,32 @@ jobs:
             --snapshot-id "${{ steps.pins.outputs.snapshot_id }}" \
             --use-stable-tesla-data --use-country-tesla-priority --use-datalab-nl \
             --out production/config/snapshots/global-mac-preview.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path("production/config/snapshots/global-mac-preview.json")
+          config=json.loads(path.read_text(encoding="utf-8"))
+          config["franceE55cExactCandidate"]={
+              "sourceRepo":"yass3705/tesla-charge-companion-data-lab",
+              "sourceCommit":"3a49cc95537dc0a7771251b51e88caa44f8b74de",
+              "relativePath":"data/national/electric55_stations_france.json",
+              "expectedStationCount":649,
+              "expectedEvseCount":1977,
+              "expectedDirectTariffEvseCount":1923,
+              "publicDeployment":True
+          }
+          path.write_text(json.dumps(config,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+          PY
+          test "$(git -C datalab-e55c rev-parse HEAD)" = "3a49cc95537dc0a7771251b51e88caa44f8b74de"
           python production/scripts/validate_snapshot.py production/config/snapshots/global-mac-preview.json
           python production/scripts/validate_electra_platform_overlay.py datalab
-          python production/scripts/build_snapshot.py --stable stable --datalab datalab \
+          python production/scripts/build_snapshot.py --stable stable --datalab datalab --e55c-datalab datalab-e55c \
             --config production/config/snapshots/global-mac-preview.json --out dist/v9-global-preview
           python production/scripts/validate_built_snapshot.py dist/v9-global-preview "${{ steps.pins.outputs.snapshot_id }}"
           cmp dist/v9-global-preview/runtime/data/tesla_stations.json dist/v9-global-preview/data/tesla_stations.json
           python production/scripts/validate_stable_parity.py stable dist/v9-global-preview --allow-nl-override --allow-country-tesla-priority --allow-pricing-engine-override
           python -m unittest discover -s production/tests -p 'test_tesla_tariff_priority.py'
+          node production/tests/v9-e55c-exact.test.mjs dist/v9-global-preview
           python production/scripts/validate_browser_asset_graph.py dist/v9-global-preview
           python production/scripts/verify_candidate_manifest.py dist/v9-global-preview
       - name: Check OCPI PCPR pricing precedence and cross-window safeguards
