@@ -55,13 +55,14 @@
     const itAtlante=adapters?.atlanteItalyExact||root?.TCCV9Adapters?.atlanteItalyExact;
     const nl=adapters?.netherlandsDotnl||root?.TCCV9Adapters?.netherlandsDotnl;
     const be=adapters?.belgiumNap||root?.TCCV9Adapters?.belgiumNap;
+    const ev=adapters?.energyvisionBelgium||root?.TCCV9Adapters?.energyvisionBelgium;
     const original=target.createRegistryLoaders.bind(target);
     target.createRegistryLoaders=function(opts={}){
       const registry=opts.registry||{sources:[]};
       const basePath=opts.basePath??'..';
       const dataCache=new Map();
       const baseRegistry={...registry,sources:(registry.sources||[]).filter(s=>{
-        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1','atlante-italy-exact-v1','netherlands-dotnl-v1','belgium-nap-v1'].includes(s.adapter))return false;
+        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1','atlante-italy-exact-v1','netherlands-dotnl-v1','belgium-nap-v1','energyvision-be-v1'].includes(s.adapter))return false;
         if(s.adapter==='uk-pcpr-v1'&&s.path&&s.auditPath)return false;
         if(s.adapter==='morocco-public-v1'&&['evgo-production-local','kilowatt-native-local'].includes(s.profile))return false;
         return true;
@@ -152,6 +153,12 @@
             const rows=parts.flatMap(x=>x?.locations||[]).filter(row=>!b||pointInBounds(row?.latitude,row?.longitude,b));
             return rows.map(row=>be.normalizeLocation(row,{sourceId:source.id})).filter(Boolean);
           };
+        }else if(source.adapter==='energyvision-be-v1'){
+          if(!ev?.normalizePayload)throw new Error('EnergyVision official BE adapter missing');
+          loaders[source.id]=async query=>ev.normalizePayload(
+            await memoizedJson(join(basePath,source.path),opts.fetchImpl,dataCache),
+            {sourceId:source.id,bounds:queryBounds(query)}
+          );
         }else if(source.adapter==='morocco-public-v1'&&source.profile==='kilowatt-native-local'){
           if(!ma?.normalizeKilowattNativeDataset||!ma?.kilowattNativeFreshness)throw new Error('Morocco Kilowatt adapter missing');
           loaders[source.id]=async()=>{
