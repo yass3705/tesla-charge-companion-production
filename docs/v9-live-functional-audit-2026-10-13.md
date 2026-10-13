@@ -47,7 +47,7 @@ Matosinhos was tested separately at 41.20845, −8.688498 within 10 km, using th
 
 | Station | Public before | Corrected candidate after | Visible change |
 | --- | --- | --- | --- |
-| Lidl `LFR3148EVCP01` | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-lidl.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-lidl.png) | Zero-minute and zero-congestion components are absent from the compact summary; direct, Electra and Electroverse remain separate. |
+| Lidl `LFR3148EVCP01` | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-lidl.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-lidl.png) | Zero-minute and zero-congestion components are absent from the compact summary; direct, Electra and Electroverse remain separate. A later display fix uses the source IRVE address `Rue de l'Aérostation Maritime` with operator `Lidl France` instead of this technical title, keeping its original IDs for pricing. |
 | Ze-Watt Safran Vélizy | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-safran.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-safran.png) | AC 7,360 kW becomes AC 7.36 kW; charge time and the minute-based Electra quote are recalculated using the corrected power. |
 | Tesla Matosinhos, Portugal | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-pt.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-pt.png) | The special legacy Tesla card becomes the shared V9 Direct / Electra / Electroverse card with navigation, source date and official Tesla link. The €15.16 legacy and €14.40 V9 totals come from different default vehicle/session models; they are **not** treated as a verified tariff correction. |
 
