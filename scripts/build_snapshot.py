@@ -129,7 +129,8 @@ def main():
     # as an explicit local fallback under /control/.
     copy_tree(stable/"assets", out/"assets")
     copy_tree(stable/"data", out/"data")
-    copy_tree(stable/"v9-production-shell", out/"v9-production-shell")
+    # Production owns the V9 shell (index, bridge and configuration); Stable is no longer its source.
+    copy_tree(production_root/"v9-production-shell", out/"v9-production-shell")
     # Production-owned shell override: keep stable as fallback baseline while
     # allowing V9 UI behavior to evolve without mutating the stable repository.
     shell_override=production_root/"v9-production-shell"
@@ -249,7 +250,7 @@ def main():
             raise AssertionError(f"stable shell runtime dependency rewrite missing: {required}")
     shell_path.write_text(shell_text,encoding="utf-8")
 
-    shell_cfg=load_json(stable/"v9-production-shell/shell-config.json")
+    shell_cfg=load_json(production_root/"v9-production-shell/shell-config.json")
     shell_cfg.update({
       "mode":"candidate",
       "controlIndex":"../control/index.html",
