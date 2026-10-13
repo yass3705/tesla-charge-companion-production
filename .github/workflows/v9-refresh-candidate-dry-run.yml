@@ -47,6 +47,7 @@ on:
       - "tests/v9-tesla-global-layout.test.mjs"
       - "tests/belgium-nap-safe-pricing.test.mjs"
       - "tests/energyvision-belgium-source.test.mjs"
+      - "tests/energyvision-complex-duration-oracles.test.mjs"
       - "config/snapshots/2026-10-13-be-energyvision-official-cpo-candidate.json"
       - "v9-production-shell/**"
   push:
@@ -59,6 +60,7 @@ on:
       - "runtime-overrides/assets/v9/**"
       - "tests/belgium-nap-safe-pricing.test.mjs"
       - "tests/energyvision-belgium-source.test.mjs"
+      - "tests/energyvision-complex-duration-oracles.test.mjs"
       - "config/snapshots/2026-10-13-be-energyvision-official-cpo-candidate.json"
       - "v9-production-shell/**"
       - "scripts/build_snapshot.py"
@@ -172,6 +174,7 @@ jobs:
           node tests/uk-connected-kerb-guest-integration.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz
           node tests/belgium-nap-safe-pricing.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/BE/pages
           node tests/energyvision-belgium-source.test.mjs ../dist/v9-dev-snapshot
+          node tests/energyvision-complex-duration-oracles.test.mjs
 
       - name: Multi-country runtime smoke
         env:
