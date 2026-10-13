@@ -42,6 +42,6 @@
     "sourceMode": "pinned-snapshot-only",
     "currentSnapshot": "2026-10-13-be-energyvision-official-cpo-candidate",
     "dataLabSha": "94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3",
-    "rule": "Pin nine-country current validated baseline and France BUMP 21/39; append source-native EnergyVision Belgium public CPO inventory with 3795 exact PDC and 1228 source-level adHoc rates, only 776 operational homogeneous single-component VAT-included kWh rates eligible for direct pricing. All complex rate and unknown status remain fail-closed; no automatic Pages/Cloudflare deployment."
+    "rule": "Pin nine-country current validated baseline and France BUMP 21/39; append source-native EnergyVision Belgium public CPO inventory with 3795 exact PDC and 1228 source-level adHoc rates, 778 operational homogeneous complete VAT-included Direct rates (776 kWh-only + 2 kWh plus single session fixed fee) eligible for direct pricing. All complex rate and unknown status remain fail-closed; no automatic Pages/Cloudflare deployment."
   }
 }
