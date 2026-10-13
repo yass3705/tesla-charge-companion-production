@@ -56,13 +56,14 @@
     const nl=adapters?.netherlandsDotnl||root?.TCCV9Adapters?.netherlandsDotnl;
     const be=adapters?.belgiumNap||root?.TCCV9Adapters?.belgiumNap;
     const ev=adapters?.energyvisionBelgium||root?.TCCV9Adapters?.energyvisionBelgium;
+    const e55c=adapters?.e55cExact||root?.TCCV9Adapters?.e55cExact;
     const original=target.createRegistryLoaders.bind(target);
     target.createRegistryLoaders=function(opts={}){
       const registry=opts.registry||{sources:[]};
       const basePath=opts.basePath??'..';
       const dataCache=new Map();
       const baseRegistry={...registry,sources:(registry.sources||[]).filter(s=>{
-        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1','atlante-italy-exact-v1','netherlands-dotnl-v1','belgium-nap-v1','energyvision-be-v1'].includes(s.adapter))return false;
+        if(['germany-national-v1','uk-open-feeds-v1','switzerland-avia-v1','italy-ionity-exact-v1','france-ionity-exact-v1','atlante-italy-exact-v1','netherlands-dotnl-v1','belgium-nap-v1','energyvision-be-v1','e55c-exact-v1'].includes(s.adapter))return false;
         if(s.adapter==='uk-pcpr-v1'&&s.path&&s.auditPath)return false;
         if(s.adapter==='morocco-public-v1'&&['evgo-production-local','kilowatt-native-local'].includes(s.profile))return false;
         return true;
@@ -122,6 +123,9 @@
             await fetchJsonMaybeGzip(join(basePath,source.path),opts.fetchImpl),
             source
           );
+        }else if(source.adapter==='e55c-exact-v1'){
+          if(!e55c?.normalizePayload)throw new Error('E55C exact adapter missing');
+          loaders[source.id]=async()=>e55c.normalizePayload(await fetchJsonMaybeGzip(join(basePath,source.path),opts.fetchImpl),source);
         }else if(source.adapter==='france-ionity-exact-v1'){
           if(!frIonity?.normalizePayload)throw new Error('France IONITY exact adapter missing');
           loaders[source.id]=async()=>frIonity.normalizePayload(
