@@ -54,7 +54,7 @@ def main():
     # Gradual source migration: Production owns the listed engine modules.
     # The remaining historical runtime stays pinned until coverage parity is proven.
     owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"
-    for relative in ("assets/v9/access-router-engine.js", "assets/v9/offer-engine.js", "assets/v9/data-engine.js"):
+    for relative in ("assets/v9/access-router-engine.js", "assets/v9/offer-engine.js", "assets/v9/data-engine.js", "assets/v9/pricing-engine.js", "assets/v9/runtime-engine.js", "assets/v9/session-engine.js"):
         src=owned_runtime/relative
         if not src.is_file():
             raise FileNotFoundError(f"Production runtime-owned module missing: {relative}")
