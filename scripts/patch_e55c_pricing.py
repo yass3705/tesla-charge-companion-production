@@ -63,7 +63,11 @@ extension=r"""
       }
       return{totalEur:money(total),dayEur:money(day),nightEur:money(night)};
     }
-    const charging=charge>0?segment(startAt,charge,'charging'):{totalEur:0,dayEur:0,nightEur:0};
+    const perKwh=num(pricing.energyEurPerKwh),kwh=num(session.energyKwh);
+    if(perKwh!=null&&(perKwh<0||perKwh>5||kwh==null||kwh<0))
+      return{complete:false,reason:'e55c_invalid_or_missing_energy'};
+    const charging=perKwh!=null?{totalEur:money(perKwh*kwh),energyKwh:kwh,eurPerKwh:perKwh}:
+      (charge>0?segment(startAt,charge,'charging'):{totalEur:0,dayEur:0,nightEur:0});
     const post=parking>0?segment(postAt,parking,'parking'):{totalEur:0,dayEur:0,nightEur:0};
     if(!charging||!post)return{complete:false,reason:'e55c_window_resolution_failed'};
     return{complete:true,totalEur:money(fee+charging.totalEur+post.totalEur),currency:'EUR',
