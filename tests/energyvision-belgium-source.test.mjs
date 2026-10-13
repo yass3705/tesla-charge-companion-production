@@ -26,6 +26,27 @@ assert.equal(verified[0].offers[0].pricing.rules[0].chargePerMinute,0);
 assert.equal(verified[0].offers[0].pricing.rules[0].connectionFee,0);
 assert.equal(verified[0].offers[0].pricing.rules[0].afterMinutesRate,0);
 assert.equal(adapter.normalizePayload(payload(),{bounds:{minLat:50,maxLat:51,minLon:3,maxLon:4}}).length,0);
+const withFixedFee=payload();
+withFixedFee.sites[0].stations[0].sourceStationRatesUnassignedToPdc[0].priceComponents=[
+ {...rate.priceComponents[0],groupIndex:'1',amountSource:'0.37'},
+ {priceType:'basePrice',amountSource:'2.04',taxIncluded:'true',taxRateSource:'21',
+  groupIndex:'1',rawApplicabilityLeaves:[{path:'energyPrice/value',value:'2.04'}]}
+];
+assert.equal(withFixedFee.sites[0].stations[0].sourceStationRatesUnassignedToPdc[0].priceComponents.length,2);
+const fixedOffers=adapter.normalizePayload(withFixedFee)[0].offers;
+assert.equal(fixedOffers.length,1);
+assert.equal(fixedOffers[0].pricing.rules[0].pricePerKwh,0.37);
+assert.equal(fixedOffers[0].pricing.rules[0].connectionFee,2.04);
+assert.equal(+(fixedOffers[0].pricing.rules[0].pricePerKwh*20+fixedOffers[0].pricing.rules[0].connectionFee).toFixed(2),9.44,
+ 'Independent oracle: one session fixed fee + twenty kWh, never per-minute');
+const mismatchedGroups=structuredClone(withFixedFee);
+mismatchedGroups.sites[0].stations[0].sourceStationRatesUnassignedToPdc[0].priceComponents[1].groupIndex='2';
+assert.equal(adapter.normalizePayload(mismatchedGroups)[0].offers.length,0,'Different groups never combined');
+const extraFee=structuredClone(withFixedFee);
+extraFee.sites[0].stations[0].sourceStationRatesUnassignedToPdc[0].priceComponents[1].rawApplicabilityLeaves.push(
+ {path:'energyPrice/timeBasedApplicability/fromMinute',value:'45'});
+assert.equal(adapter.normalizePayload(extraFee)[0].offers.length,0,'Conditional session fee fails closed');
+
 const changed=mut=>{const x=payload();mut(x);return adapter.normalizePayload(x)[0];};
 for(const mutate of [
  x=>x.sites[0].sourceSiteEnergyRateCount=1,
@@ -55,7 +76,7 @@ if(process.argv[2]){
   assert.equal(raw.counts.unassignedStationRates,1228);
   assert.equal(raw.napCrosswalk.unmatchedIds,3795);
   assert.equal(pdc,raw.counts.activePDC);
-  assert.equal(offers,776,'Only exact operational, homogeneous single-component direct CPO rates');
+  assert.equal(offers,778,'Only exact operational homogeneous complete kWh or kWh+session-fee CPO rates');
   assert.ok(sites.every(s=>s.countryCode==='BE'&&s.physicalOperator.name==='EnergyVision'));
   assert.ok(sites.flatMap(s=>s.offers).every(o=>o.kind==='direct'&&o.provider==='EnergyVision'&&o.evseIds.length===1));
   console.log('EnergyVision official pinned CPO runtime:',{sites:sites.length,pdc,offers});
