@@ -22,6 +22,7 @@ on:
       - "tests/runtime-browser-journey.mjs"
       - "tests/runtime-browser-journey-pinned-dev.mjs"
       - "runtime-overrides/assets/v9/**"
+      - "tests/france-direct-offer-kind.test.mjs"
       - "tests/belgium-nap-safe-pricing.test.mjs"
       - "v9-production-shell/**"
   push:
@@ -108,6 +109,7 @@ jobs:
         run: |
           python production/scripts/validate_electra_platform_overlay.py datalab
           node production/tests/belgium-nap-safe-pricing.test.mjs
+          node production/tests/france-direct-offer-kind.test.mjs
           TCC_STABLE_ROOT=stable TCC_DATALAB_ROOT=datalab node production/tests/belib-exact-evse.test.mjs
 
       - name: Build self-contained refreshed candidate
