@@ -46,6 +46,8 @@ on:
 
       - "tests/v9-tesla-global-layout.test.mjs"
       - "tests/belgium-nap-safe-pricing.test.mjs"
+      - "tests/energyvision-belgium-source.test.mjs"
+      - "config/snapshots/2026-10-13-be-energyvision-official-cpo-candidate.json"
       - "v9-production-shell/**"
   push:
     branches: [main]
@@ -56,6 +58,8 @@ on:
       - "tests/runtime-browser-journey-pinned-dev.mjs"
       - "runtime-overrides/assets/v9/**"
       - "tests/belgium-nap-safe-pricing.test.mjs"
+      - "tests/energyvision-belgium-source.test.mjs"
+      - "config/snapshots/2026-10-13-be-energyvision-official-cpo-candidate.json"
       - "v9-production-shell/**"
       - "scripts/build_snapshot.py"
       - "scripts/build_bump_exact_override.py"
@@ -146,6 +150,7 @@ jobs:
           python production/scripts/validate_electra_platform_overlay.py datalab
           python production/scripts/audit_france_emsp_assignments.py --stable stable --datalab datalab --min-electra-joined 92850 --min-electroverse-joined 86782
           node production/tests/belgium-nap-safe-pricing.test.mjs
+          node production/tests/energyvision-belgium-source.test.mjs
           node production/tests/france-direct-offer-kind.test.mjs
           TCC_STABLE_ROOT=stable TCC_EXPECT_FR_IRVE_LEGACY_WATT_GROUPS=675 node production/tests/france-irve-power-units.test.mjs
           node production/tests/v9-common-station-links.test.mjs
@@ -166,6 +171,7 @@ jobs:
           python tests/test_france_bump_active_supplement.py ../datalab ../dist/v9-dev-snapshot
           node tests/uk-connected-kerb-guest-integration.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz
           node tests/belgium-nap-safe-pricing.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/BE/pages
+          node tests/energyvision-belgium-source.test.mjs ../dist/v9-dev-snapshot
 
       - name: Multi-country runtime smoke
         env:
