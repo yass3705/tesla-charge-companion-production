@@ -9,20 +9,35 @@
  const connectors={TYPE2:'AC',CCS:'DC'};
  const allowedLeaves=new Set(['energyPrice/priceGroupIndex','energyPrice/priceType',
   'energyPrice/value','energyPrice/taxIncluded','energyPrice/taxRate']);
- // DATEX 3.7 hierarchical station energyRate applies to refill points where
- // there is no more specific site or point override. Only a single additive
- // kWh component, explicit adHoc VAT-included, is numerically priceable.
+ // DATEX hierarchical adHoc station energyRate applies to child refill points
+ // only where there are no site/point overrides. Accept exact VAT-included
+ // kWh-only, or exactly kWh + one per-session basePrice. Every component must
+ // share the one price group and have no clock/minute applicability.
  function safeKwh(site,station){
    if(site.sourceSiteEnergyRateCount!==0||station.sourceStationEnergyRateCount!==1)return null;
    const rs=station.sourceStationRatesUnassignedToPdc||[];
    if(rs.length!==1)return null;
    const rate=rs[0],ps=rate?.priceComponents||[];
-   if(rate?.ratePolicy!=='adHoc'||text(rate.currency)!=='EUR'||!text(rate.sourceRateId)||ps.length!==1)return null;
-   const p=ps[0],value=numeric(p.amountSource);
-   if(p.priceType!=='pricePerKWh'||p.taxIncluded!=='true'||numeric(p.taxRateSource)!==21||
-      value==null||value<0||value>3)return null;
-   if((p.rawApplicabilityLeaves||[]).some(l=>!allowedLeaves.has(text(l.path))))return null;
-   return {value,rateId:text(rate.sourceRateId),sourceUpdatedAt:text(rate.sourceLastUpdated)};
+   if(rate?.ratePolicy!=='adHoc'||text(rate.currency)!=='EUR'||!text(rate.sourceRateId)||
+      !(ps.length===1||ps.length===2))return null;
+   const kinds=ps.map(x=>text(x.priceType)).sort();
+   const single=kinds.length===1&&kinds[0]==='pricePerKWh';
+   const withFee=kinds.length===2&&kinds[0]==='basePrice'&&kinds[1]==='pricePerKWh';
+   if(!single&&!withFee)return null;
+   const groups=new Set(ps.map(x=>text(x.groupIndex)));
+   // The official source groups these one-time and kWh charges together;
+   // two unrelated price groups must not be silently compounded.
+   if(groups.size!==1||!groups.has('1'))return null;
+   for(const p of ps){
+     const value=numeric(p.amountSource);
+     if(p.taxIncluded!=='true'||numeric(p.taxRateSource)!==21||value==null||value<0||
+        (p.priceType==='pricePerKWh'&&value>3)||
+        (p.priceType==='basePrice'&&value>100)||
+        (p.rawApplicabilityLeaves||[]).some(l=>!allowedLeaves.has(text(l.path))))return null;
+   }
+   return {value:numeric(ps.find(x=>x.priceType==='pricePerKWh').amountSource),
+     sessionFee:withFee?numeric(ps.find(x=>x.priceType==='basePrice').amountSource):0,
+     rateId:text(rate.sourceRateId),sourceUpdatedAt:text(rate.sourceLastUpdated)};
  }
  function normalizeSite(site,{sourceId='energyvision-be-official'}={}){
    const id=text(site.sourceSiteId),lat=numeric(site.latitude),lon=numeric(site.longitude);
@@ -52,13 +67,13 @@
          countries:['BE'],currency:'EUR',evseIds:[eid],connectorKinds:[kind],
          pricing:{type:'rules',timeZone:'Europe/Brussels',rules:[{
            scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',
-           pricePerKwh:safe.value,chargePerMinute:0,connectionFee:0,idlePerMinute:0,
+           pricePerKwh:safe.value,chargePerMinute:0,connectionFee:safe.sessionFee,idlePerMinute:0,
            afterMinutesRate:0,afterMinutesThreshold:0,days:null,ocpiDurationBands:[]
          }]},priority:125,metadata:{
            source:'EnergyVision official AFIR/DATEX II 3.7 (adHoc CPO)',
            sourceStationId:text(station.sourceStationId),
            rateId:safe.rateId,sourceUpdatedAt:safe.sourceUpdatedAt,
-           scope:'single inherited station kWh rule, no point/site override',
+           scope:safe.sessionFee?'one inherited station kWh + fixed session fee, no overrides':'single inherited station kWh rule, no point/site override',
            vat:'21% included',verification:'official-source-adHoc-not-checkout-observation'
          }
        });
