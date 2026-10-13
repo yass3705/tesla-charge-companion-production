@@ -74,6 +74,6 @@ extension=r"""
       }};
   }
 """
-code=code.replace(needle,extension+needle.replace("{","{\n    if(offer?.pricing?.type==='e55c_exact')return evaluateE55cExact(offer,session);",1),1)
+code=code.replace(needle,extension+needle+"\n    if(offer?.pricing?.type==='e55c_exact')return evaluateE55cExact(offer,session);",1)
 path.write_text(code,encoding="utf-8")
 print("E55C exact charging + post-charge window pricing installed")
