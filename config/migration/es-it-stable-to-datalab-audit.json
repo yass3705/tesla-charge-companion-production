@@ -8,7 +8,10 @@
     "ES": {
       "currentPrimarySource": "stable",
       "stableRuntimePrefix": "v9-production-runtime/data/v9/",
-      "stablePrefixes": ["spain-static/", "spain-reve-offers/"],
+      "stablePrefixes": [
+        "spain-static/",
+        "spain-reve-offers/"
+      ],
       "stableTreeObservedFiles": 170,
       "stableTreeObservedBytes": 5684327,
       "dataLabCandidates": [
@@ -17,12 +20,32 @@
       ],
       "dataLabRefreshWorkflow": ".github/workflows/spain-reve-v9-stream-refresh.yml",
       "readyForSourceSwitch": false,
-      "blockers": ["Verify Data Lab full station/EVSE inventory, static tiles and REVE offer tiles against pinned Stable runtime", "Confirm exact ID/power/status/tariff parity and immutable Data Lab manifest"]
+      "blockers": [
+        "Verify Data Lab full station/EVSE inventory, static tiles and REVE offer tiles against pinned Stable runtime",
+        "Confirm exact ID/power/status/tariff parity and immutable Data Lab manifest",
+        "REVE stream is incomplete (397/468 tariff and 265/454 status pages) and explicitly marked PRE_INTEGRATION_ONLY; do not mistake raw tariff/status feeds for full ES location/EVSE tiles"
+      ],
+      "dataLabReveStream": {
+        "observedAt": "2026-10-13T19:23:20.327029Z",
+        "integrationStatus": "PRE_INTEGRATION_ONLY",
+        "complete": false,
+        "tariffPagesCollected": 397,
+        "tariffTotalPages": 468,
+        "statusPagesCollected": 265,
+        "statusTotalPages": 454,
+        "tariffRowsStored": 31149,
+        "statusRowsStored": 21742,
+        "source": "data/spain_reve/tariff_status_stream_last_run.json"
+      }
     },
     "IT": {
       "currentPrimarySource": "stable",
       "stableRuntimePrefix": "v9-production-runtime/data/v9/",
-      "stablePrefixes": ["italy-static/", "italy-offers.json", "italy-build-report.json"],
+      "stablePrefixes": [
+        "italy-static/",
+        "italy-offers.json",
+        "italy-build-report.json"
+      ],
       "stableTreeObservedFiles": 76,
       "stableTreeObservedBytes": 90323159,
       "dataLabCandidates": [
@@ -30,7 +53,10 @@
         "data/national/ionity_direct_stations_italy.json.gz"
       ],
       "readyForSourceSwitch": false,
-      "blockers": ["Rebuild the complete Italian national static inventory and tiles rather than replacing them with partial CPO feeds", "Verify source offer coverage and EVSE/power/tariff parity with pinned Stable runtime"]
+      "blockers": [
+        "Rebuild the complete Italian national static inventory and tiles rather than replacing them with partial CPO feeds",
+        "Verify source offer coverage and EVSE/power/tariff parity with pinned Stable runtime"
+      ]
     }
   },
   "guards": [
