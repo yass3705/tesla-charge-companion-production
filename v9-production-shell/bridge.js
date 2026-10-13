@@ -212,6 +212,7 @@
     };
     const hasPricedWindow=rules.some(rule=>rule?.scope!=='allDay'&&positive(rule));
     const add=(value,unit,currency,qualifier='')=>{
+      if((num(value)??0)<=0)return;
       const label=formatRate(value,currency,unit);if(!label)return;
       const full=label+qualifier;if(!seen.has(full)){seen.add(full);labels.push(full);}
     };
@@ -259,7 +260,32 @@
       const label=formatRate(longFee.eurPerHourAfterThreshold,pricing.currency||offer?.currency,'h')+' après '+longFee.thresholdMinutes+' min';
       if(!seen.has(label)){seen.add(label);labels.push(label);}
     }
+    if(!labels.length&&rules.some(rule=>num(rule?.pricePerKwh)===0))labels.push(formatRate(0,pricing.currency||offer?.currency,'kWh'));
     return labels;
+  }
+  function appliedTariffRateLabels(item,offer){
+    const result=item?.result||{},components=result.components||{};
+    const charged=(value,key)=>{
+      if(!value||typeof value!=='object')return false;
+      if((num(value[key])??num(value[key]?.totalEur)??0)>0)return true;
+      return Object.values(value).some(child=>Array.isArray(child)?child.some(part=>charged(part,key)):charged(child,key));
+    };
+    const groups=(components.componentGroups||[]).filter(group=>group?.matched);
+    const segments=[
+      ...(components.segmentedPricing?.segments||[]),
+      ...(components.energyTimeline?.segments||[]),
+      ...groups.flatMap(group=>group?.components?.segmentedPricing?.segments||[])
+    ];
+    const rules=segments.map(segment=>segment?.rule).filter(Boolean);
+    if(!rules.length)rules.push(...groups.map(group=>group?.rule).filter(Boolean));
+    if(!rules.length&&result.matchedRule)rules.push(result.matchedRule);
+    if(!rules.length)return[];
+    const used=rules.map(rule=>({
+      ...rule,
+      idlePerMinute:charged(components,'parkingTime')?rule.idlePerMinute:null,
+      congestionTimePerMinute:charged(components,'congestionTime')?rule.congestionTimePerMinute:null
+    }));
+    return tariffRateLabels({currency:item?.currency||offer?.currency,pricing:{rules:used}});
   }
   function baseTariffsForPower(row,line){
     const station=row?.station||{},out=[],seen=new Set(),connectors=[];
@@ -514,14 +540,22 @@
       const totalAttr=state.status==='priced'&&num(total)!=null?' data-v9-effective-total="'+esc(total)+'"':'';
       const names=[...new Set(state.offers.map(offer=>text(offer.provider)).filter(Boolean))];
       const detail=item&&station?.offers?.find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
-      const rateLabels=detail?tariffRateLabels(detail):[];
+      const rateLabels=detail?appliedTariffRateLabels(item,detail):[];
       const label=names.join(', ')+(state.status==='priced'&&rateLabels.length?' · '+rateLabels.join(' · '):'');
+      const fullLabels=detail?tariffRateLabels(detail):[];
+      const source=text(detail?.metadata?.source||detail?.source||detail?.sourceId);
+      const sourceDate=text(detail?.metadata?.fetchedAt||detail?.metadata?.validatedAt||detail?.metadata?.collectedAt||detail?.generatedAt);
+      const history=detail?'<details class="v9-tariff-detail" style="grid-column:1/-1;font-size:12px"><summary>Détail du tarif</summary>'+
+        (fullLabels.length?'<div>Grilles et conditions : '+esc(fullLabels.join(' · '))+'</div>':'')+
+        (source?'<div>Source : '+esc(source)+'</div>':'')+(sourceDate?'<div>Date : '+esc(sourceDate)+'</div>':'')+
+        '<div>Offre : '+esc(detail.id||item?.offerId||'')+'</div></details>':'';
       return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
         '<strong class="v9-lane-heading" style="font-size:14px;line-height:1.3">'+esc(category.label)+(best?' · MEILLEUR TARIF':'')+'</strong>'+
         '<span style="font-size:15px;line-height:1.3;text-align:right"><span class="v9-lane-amount">'+esc(amount)+'</span></span>'+
         (hasCongestion?'<button type="button" class="v9-congestion-toggle" data-v9-congestion-key="'+esc(key)+'" aria-pressed="'+String(including)+'" title="Basculer les frais de congestion pour cette offre seulement" style="grid-column:1/-1;justify-self:end;background:#fff;color:#15171b;border:1px solid #555;border-radius:6px;padding:4px 8px;min-height:32px;font-size:12px;width:auto;cursor:pointer">'+(including?'Congestion incluse':'Congestion exclue')+'</button>':'')+
         (hasCongestion?'<span style="grid-column:1/-1;font-size:11px;line-height:1.3">À partir de '+esc(item.congestion.thresholdSoc)+' % de batterie'+(item.congestion.thresholdSource==='default_soc80'?' (hypothèse V9)':' (source)')+' · '+esc(num(item.congestion.minutes)?.toFixed(1)||'—')+' min au-delà du seuil</span>':'')+
         (label?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(label)+(category.subscription?' · abonnement':'')+'</span>':'')+
+        history+
       '</div>';
     }).join('')+'</div>';
   }
@@ -1123,5 +1157,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
