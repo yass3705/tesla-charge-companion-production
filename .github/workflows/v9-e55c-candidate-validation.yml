@@ -1,0 +1,68 @@
+name: V9 E55C exact EVSE candidate validation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "runtime-overrides/assets/v9/adapters/e55c-exact.js"
+      - "runtime-overrides/assets/v9/production-loader-extension.js"
+      - "scripts/patch_e55c_pricing.py"
+      - "scripts/build_snapshot.py"
+      - "scripts/build_runtime_registry.py"
+      - "tests/v9-e55c-exact.test.mjs"
+      - "config/snapshots/2026-10-14-fr-e55c-exact-candidate.json"
+      - ".github/workflows/v9-e55c-candidate-validation.yml"
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: v9-e55c-candidate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Production candidate branch
+        uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Frozen Stable baseline
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - name: Frozen Data Lab development baseline
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: 94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3
+          path: datalab
+          persist-credentials: false
+      - name: Frozen validated E55C source
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: 3a49cc95537dc0a7771251b51e88caa44f8b74de
+          path: datalab-e55c
+          persist-credentials: false
+      - name: Validate pinned source SHA and compile builders
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C datalab-e55c rev-parse HEAD)" = "3a49cc95537dc0a7771251b51e88caa44f8b74de"
+          python -m py_compile production/scripts/build_snapshot.py production/scripts/build_runtime_registry.py production/scripts/patch_e55c_pricing.py
+          node --check production/runtime-overrides/assets/v9/adapters/e55c-exact.js
+          node --check production/runtime-overrides/assets/v9/production-loader-extension.js
+      - name: Build isolated pinned E55C V9 candidate
+        run: |
+          python production/scripts/build_snapshot.py --stable stable --datalab datalab --e55c-datalab datalab-e55c --config production/config/snapshots/2026-10-14-fr-e55c-exact-candidate.json --out dist/v9-e55c-candidate
+      - name: Exact EVSE, clock and parking pricing oracles
+        run: |
+          node production/tests/v9-e55c-exact.test.mjs dist/v9-e55c-candidate
+          python production/scripts/validate_built_snapshot.py dist/v9-e55c-candidate 2026-10-14-fr-e55c-exact-candidate
+          python production/scripts/validate_browser_asset_graph.py dist/v9-e55c-candidate
+      - name: Multi-country smoke (no deployment)
+        run: |
+          node production/tests/runtime-e2e-smoke.mjs dist/v9-e55c-candidate
