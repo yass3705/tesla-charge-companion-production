@@ -31,6 +31,15 @@ The candidate preserves the public source pins and data mappings. No Pages or Cl
 
 ## Coverage losses and candidate gates
 
+| Source path | Collected / compiled | Attached to pinned national identity | Evaluation and public visibility |
+| --- | --- | --- | --- |
+| Electra direct FR | 724 official exact rules in the compiled overlay | 717 rules reference 514 stations in the pinned IRVE; seven rules have no national join | The published adapter discarded all 724 by interpreting `direct` as a connector type. #66 restores loading in the candidate. A station with multiple grids remains non-comparable until a tariff-to-EVSE mapping is proven. |
+| Electra eMSP FR | 97,371 source offers | 92,850 unique-station joins, 4,521 unjoined | The checked Lidl and Electric 55 offers are EVSE-specific. Unjoined offers are not displayed as matched prices. |
+| Electroverse eMSP FR | 89,991 source offers | 86,782 unique-station joins, 3,209 unjoined | The checked Electric 55 offers are EVSE-specific. Unjoined offers are not displayed as matched prices. |
+| Electric 55 direct | A direct file exists in Data Lab with `publicationReady:false` | No candidate attachment | The direct lane remains unavailable by policy, not because the renderer lost a published price. |
+
+The global evaluated-offer and visible-card totals depend on country, radius, session and power. No national UI count is inferred from these source and identity counts. The Firefox scenario below records the observable cards for its declared inputs.
+
 The public FR IRVE base has 48,058 stations / 165,792 EVSE. A more recent Data Lab base has 49,211 / 164,368. On the public base, 92,850 of 97,371 Electra overlay offers and 86,782 of 89,991 Electroverse overlay offers retain an exact EVSE identity. Simply replacing the IRVE base would restore 4,521 Electra links but lose 3,932 currently matched Electroverse links while restoring 3,086 others. The replacement was built and validated only as a local experiment; it was **not** promoted. This is an unresolved identity reconciliation, not a reason to fabricate matches.
 
 The automated full-overlay audit `scripts/audit_france_emsp_assignments.py` checked all 187,362 FR eMSP source offers against all 165,792 published national EVSE IDs. It found zero national EVSE IDs shared by two stations and zero eMSP offers whose EVSE IDs resolve to more than one national station. The joined counts are 92,850 Electra and 86,782 Electroverse, with 4,521 and 3,209 unmatched respectively; unmatched offers are not assigned by CPO or power. Thus **zero false positives are confirmed or corrected in the reported eMSP examples**, and zero ambiguous multi-station joins are detected by this exact-identity audit. Pricing completeness and tariff-to-connector attribution remain separate checks. The pinned workflow now fails if a multi-station identity appears or these validated joined counts decrease silently.
@@ -63,5 +72,6 @@ Matosinhos was tested separately at 41.20845, −8.688498 within 10 km, using th
 | #72 Tesla links/currency | `e18e58e7aa62b7657f32b131bca85a01f0ba1a5c` | `38332296395` / `38332296420` |
 | #73 Development pin / full FR eMSP identity audit | `269811f97f42eae1676cc464971ba4fc5b9b5f3b` | `38332686039` / `38332686044` |
 | #74 FR IRVE power units and browser captures | `0ecb47db2bf47f580bf6e5a8b406881e8c131015` | `38333976174` / `38333976229` |
+| #75 Sourced technical station titles | `3a0c6ae5cb770ea8f9be206359902e207c3bca81` | `38334235851` / `38334235902` |
 
-All listed runs completed successfully, with the Pages deployment jobs skipped. The development pin passed its own validation. PR #75 updates technical station titles, with its CI tracked separately before merge.
+All listed runs completed successfully, with the Pages deployment jobs skipped. The development pin passed its own validation. The live Pages site still serves the first public snapshot; none of these merged changes has been deployed to Pages or Cloudflare.
