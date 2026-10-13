@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-13-fr-belib-exact-supplement-candidate",
+    "currentSnapshot": "2026-10-13-fr-belib-tesla-congestion-evidence-candidate",
     "dataLabSha": "2cc230af128b316bf980d9e7cd7fc5408301b6a4",
-    "rule": "Development candidate supplements four exact active Belib stations and pins the 13 October Data Lab source. First public Pages pin remains immutable and unchanged; no automatic deployment."
+    "rule": "Development candidate adds exact active Belib stations and preserves unverified Tesla congestion amounts as metadata. Source SHAs remain explicit. First public Pages pin stays immutable; no automatic deployment."
   }
 }

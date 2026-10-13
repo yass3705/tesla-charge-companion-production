@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import {runInNewContext} from 'node:vm';
 import zlib from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
@@ -46,7 +47,7 @@ const snapshotManifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.json'
 const historicalR9=snapshotManifest.snapshotId==='2026-09-30-r9-electra-fr'
   && snapshotManifest.sources?.dataLab?.sha==='fece067bd58916d493a9479ff9db31bcc94bef6b'
   && snapshotManifest.sources?.stable?.sha==='0a6d2c3415504397310d3dc92fae40be843b2435';
-const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl-national','belgium-nap-national','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl-national','belgium-nap-national','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','france-belib-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
 const electric55ExactActive=registry.sources.some(s=>s.id==='france-e55c-offers'&&s.active===true);
 if(!historicalR9)assert.ok(electric55ExactActive,'pinned Electric 55 exact direct source missing');
 if(electric55ExactActive)wanted.add('france-e55c-offers');
@@ -237,6 +238,28 @@ if(beActive){
 
 const frResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.8566,lon:2.3522},radiusKm:25,routingBudget:20});
 assert.ok(frResult.stations.length>0,'FR returned no stations');
+const frStaticManifest=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/france-static/manifest.json'),'utf8'));
+if(frStaticManifest.exactSupplement){
+  const belibIds=['FRV75PPX0750','FRV75PPX1633','FRV75PPX1634','FRV75PPX1817'];
+  const calculationContext={TCCV9OfferEngine:{eligibleOffers:station=>station.offers||[]},TCCV9PricingEngine:require(path.join(runtime,'assets/v9/pricing-engine.js'))};
+  runInNewContext(fs.readFileSync(path.join(runtime,'assets/v9/session-engine.js'),'utf8'),calculationContext);
+  let electraOffers=0,electroverseOffers=0;
+  for(const id of belibIds){
+    const station=frResult.stations.find(s=>s.id==='FR:national:'+id);
+    assert.ok(station,`Exact active Belib station ${id} missing at runtime`);
+    const direct=(station.offers||[]).filter(o=>o.kind==='direct'&&String(o.id).includes(':'+id+':'));
+    assert.equal(direct.length,1,`Belib ${id} direct offer did not attach uniquely`);
+    const stationEvse=new Set((station.evses||[]).flatMap(e=>e.pdcIds||[]));
+    assert.ok(direct[0].evseIds?.every(value=>stationEvse.has(value)),`Belib ${id} direct offer leaked to another EVSE`);
+    const quote=calculationContext.TCCV9SessionEngine.evaluateStation(station,{energyKwh:5,durationMinutes:60,connectionMinutes:60,startDateTime:'2026-10-13T12:00:00+02:00',targetCurrency:'EUR'});
+    const directQuote=[quote.best,...quote.alternatives].find(item=>item?.offerId===direct[0].id);
+    assert.ok(directQuote?.total>0,`Belib ${id} direct offer attached but not calculable`);
+    electraOffers+=(station.offers||[]).filter(o=>o.provider==='Electra').length;
+    electroverseOffers+=(station.offers||[]).filter(o=>o.provider==='Electroverse').length;
+  }
+  assert.equal(electraOffers,17,'Exact Belib EVSEs lost Electra eMSP coverage');
+  assert.equal(electroverseOffers,12,'Exact Belib EVSEs lost Electroverse eMSP coverage');
+}
 if(electric55ExactActive){
   const lons=await engine.queryArea({countryCode:'FR',origin:{lat:46.67493,lon:5.54852},radiusKm:0.2,routingBudget:20});
   assert.equal(lons.diagnostics.sources['france-e55c-offers']?.loaded,true);

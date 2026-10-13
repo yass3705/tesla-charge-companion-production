@@ -17,7 +17,7 @@ Comparaison de deux builds avec le **même code Production de la PR #82** et Sta
 | Maroc Kilowatt / TotalEnergies | 43 sites / 87 lignes ; 18 sites / 38 prises | Identique | Les fichiers source changent, mais les décomptes restent stables. |
 | ES, BE, Tesla | Fichiers inchangés | Fichiers inchangés | Aucun nouveau tarif de ces catalogues dans ce changement de SHA. |
 
-Les overlays **compilés** Electra eMSP FR (97 371 offres) et Electroverse eMSP FR (89 991) sont identiques entre les deux Data Lab SHA. Leur jointure sur le pin FR ne recule pas, et le complément Belib peut seulement offrir de nouveaux EVSE exacts. Le remplacement complet de l'IRVE reste interdit tant que ses pertes Electroverse ne sont pas résolues.
+Les overlays **compilés** Electra eMSP FR (97 371 offres) et Electroverse eMSP FR (89 991) sont identiques entre les deux Data Lab SHA. Sur le pin FR enrichi, Electra passe de **92 850 à 92 867** offres jointes et Electroverse de **86 782 à 86 794**, sans jointure à plusieurs stations. Les 17 nouvelles offres Electra sont en mode `exact_national_irve_evse` ; les 12 Electroverse proviennent des modes déjà validés `strict_station_ordinal_suffix_bijection` (8) et `strict_station_homogeneous_price_broadcast` (4). Le test runtime charge les quatre stations Belib, confirme une offre directe exacte **calculable** sur chacune pour 5 kWh / 60 min, et vérifie les 17/12 offres eMSP effectivement attachées. Ces chiffres distinguent offre source, jointure et calcul dans un scénario ; ils ne généralisent pas un prix au CPO. Le remplacement complet de l'IRVE reste interdit tant que ses pertes Electroverse ne sont pas résolues.
 
 ## Résidu DOT-NL à ne pas masquer
 

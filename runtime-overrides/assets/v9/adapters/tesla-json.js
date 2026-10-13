@@ -15,6 +15,15 @@
     const currencies=[...new Set((pricing?.rules||[]).map(rule=>text(rule?.currency).toUpperCase()).filter(Boolean))];
     return currencies.length===1?currencies[0]:null;
   }
+  function potentialCongestionFee(raw,currency){
+    const amount=Number(raw?.teslaCongestionFeePerMinute);
+    if(!Number.isFinite(amount)||amount<=0)return null;
+    // A site-level amount does not prove that the site is busy for a session.
+    // Keep the evidence separate from the billable pricing rules.
+    return {amountPerMinute:amount,currency:currency||null,
+      condition:'busy_site_and_soc_threshold_or_session_ended',conditionVerified:false,
+      sourceField:'teslaCongestionFeePerMinute'};
+  }
 
   function normalizeStation(raw){
     if(!raw||!text(raw.id))return null;
@@ -28,12 +37,13 @@
         connectors:[{id:`${evseId}:connector`,kind:text(cfg?.kind||raw?.kind||'DC').toUpperCase(),powerKw:Number(cfg?.powerKw||raw?.powerKw||0)}]
       });
       if(cfg?.pricing||raw?.pricing){
-        const pricing=cfg?.pricing||raw?.pricing,currency=pricingCurrency(pricing);
+        const pricing=cfg?.pricing||raw?.pricing,currency=pricingCurrency(pricing),potentialFee=potentialCongestionFee(raw,currency);
         offers.push({
         id:`tesla-direct:${evseId}`,
         provider:'Tesla',kind:'direct',subscriptionId:null,countries:[text(raw?.countryCode).toUpperCase()||'*'],currency:currency||'EUR',
         evseIds:[evseId],pricing:clone(pricing),priority:100,
         metadata:{source:'Tesla canonical catalogue',sourceUpdatedAt:raw.lastUpdated||null,
+          ...(potentialFee?{potentialCongestionFee:potentialFee}:{}),
           ...(currency?{}:{incompletePricingReason:'tesla_source_currency_ambiguous'})}
       });
       }
@@ -65,5 +75,5 @@
     };
   }
 
-  return{normalizeStation,normalizePayload,createLoader,pricingCurrency};
+  return{normalizeStation,normalizePayload,createLoader,pricingCurrency,potentialCongestionFee};
 });
