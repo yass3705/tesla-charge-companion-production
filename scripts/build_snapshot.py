@@ -77,6 +77,29 @@ def main():
         for src in overrides.rglob("*"):
             if src.is_file():
                 copy_file(src,out/"runtime"/src.relative_to(overrides))
+    bump_override=cfg.get("franceBumpExactOverride")
+    if bump_override:
+        from build_bump_exact_override import validate as validate_bump_override
+        artifact=production_root/bump_override["path"]
+        if sha256(artifact)!=bump_override["artifactSha256"]:
+            raise AssertionError("Pinned BUMP override artifact hash mismatch")
+        payload=load_json(artifact)
+        evidence=payload.get("sourceEvidence") or {}
+        if evidence.get("sourceDataLabCommit")!=bump_override["sourceDataLabCommit"] or evidence.get("sourceArtifactSha256")!=bump_override["sourceArtifactSha256"]:
+            raise AssertionError("Pinned BUMP source provenance mismatch")
+        proof=validate_bump_override(payload,out/"runtime/data/v9/france-static/all.json.gz",
+                                     stable/"v9-production-runtime/data/v9/france-bump-offers.json")
+        expected={"sourcePricedEvse":"expectedSourcePricedEvse", "attachedEvse":"expectedAttachedEvse",
+                  "unjoinedCurrentSourceEvse":"expectedUnjoinedEvse", "retainedOldEvse":"expectedRetainedOldEvse",
+                  "removedOldEvse":"expectedRemovedOldEvse", "newAttachedEvse":"expectedNewAttachedEvse"}
+        for observed_key,config_key in expected.items():
+            if proof[observed_key]!=bump_override[config_key]:
+                raise AssertionError(f"Pinned BUMP override count drift: {observed_key}")
+        copy_file(artifact,out/"runtime/data/v9/france-bump-offers.json")
+        write_json(out/"snapshot-inputs/FR/bump-exact-current-audit.json",{
+            **proof,"sourceDataLabCommit":evidence["sourceDataLabCommit"],
+            "sourceArtifactSha256":evidence["sourceArtifactSha256"],
+            "overrideArtifactSha256":bump_override["artifactSha256"]})
     # Apply the scoped OCPI 2.2.1 first-match/segmentation fix to the
     # immutable compiled pricing runtime; other tariffs retain their rules.
     subprocess.run([
