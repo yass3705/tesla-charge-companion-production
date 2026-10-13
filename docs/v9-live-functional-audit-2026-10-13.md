@@ -37,7 +37,7 @@ The automated full-overlay audit `scripts/audit_france_emsp_assignments.py` chec
 
 Pinned CI after #70 successfully built 2,442 files / 743,666,847 bytes and verified all SHA-256 entries. The nine-country runtime smoke returned FR 3,767 local area stations (3,309 priced), IT 1,828 (1,179), CH 40 (33), DE 67 (1 in the selected probe), ES 752, NL 3,298, GB 47 (33), MA 175 (175), BE 2,880 (905). These are **probe areas**, not national totals. The global preview may use a newer Data Lab SHA; its counts must not be reported as those of the pinned public data.
 
-The corrected development ID is `2026-10-13-live-audit-corrected-candidate`. Its dataset SHAs and all ten dataset paths equal the public snapshot. PR #73 passed pinned CI, browser and manifest gates and advanced the development pointer on `main`; PR #74 requires fresh CI for its power correction. The first public Pages snapshot and its rollback remain untouched. The screenshots originally supplied as `blob:` references could not be fetched from the repository.
+The corrected development ID is `2026-10-13-live-audit-corrected-candidate`. Its dataset SHAs and all ten dataset paths equal the public snapshot. PR #73 passed pinned CI, browser and manifest gates and advanced the development pointer on `main`; #74 passed global and pinned CI with Pages deployment skipped. The first public Pages snapshot and its rollback remain untouched. The screenshots originally supplied as `blob:` references could not be fetched from the repository.
 
 ## Firefox before/after captures
 
@@ -47,7 +47,7 @@ Matosinhos was tested separately at 41.20845, −8.688498 within 10 km, using th
 
 | Station | Public before | Corrected candidate after | Visible change |
 | --- | --- | --- | --- |
-| Lidl `LFR3148EVCP01` | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-lidl.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-lidl.png) | Zero-minute and zero-congestion components are absent from the compact summary; direct, Electra and Electroverse remain separate. |
+| Lidl `LFR3148EVCP01` | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-lidl.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-lidl.png) | Zero-minute and zero-congestion components are absent from the compact summary; direct, Electra and Electroverse remain separate. A later display fix uses the source IRVE address `Rue de l'Aérostation Maritime` with operator `Lidl France` instead of this technical title, keeping its original IDs for pricing. |
 | Ze-Watt Safran Vélizy | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-safran.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-safran.png) | AC 7,360 kW becomes AC 7.36 kW; charge time and the minute-based Electra quote are recalculated using the corrected power. |
 | Tesla Matosinhos, Portugal | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-pt.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-pt.png) | The special legacy Tesla card becomes the shared V9 Direct / Electra / Electroverse card with navigation, source date and official Tesla link. The €15.16 legacy and €14.40 V9 totals come from different default vehicle/session models; they are **not** treated as a verified tariff correction. |
 
@@ -61,5 +61,7 @@ Matosinhos was tested separately at 41.20845, −8.688498 within 10 km, using th
 | #70 Electra+ | `ed4d34accbb167eda69a17818f90e739e2bf2c89` | `38331807487` / `38331807703` |
 | #71 Strict ranking | `323645a141e281462f373a2782647d5284940e22` | `38332098854` / `38332098931` |
 | #72 Tesla links/currency | `e18e58e7aa62b7657f32b131bca85a01f0ba1a5c` | `38332296395` / `38332296420` |
+| #73 Development pin / full FR eMSP identity audit | `269811f97f42eae1676cc464971ba4fc5b9b5f3b` | `38332686039` / `38332686044` |
+| #74 FR IRVE power units and browser captures | `0ecb47db2bf47f580bf6e5a8b406881e8c131015` | `38333976174` / `38333976229` |
 
-All listed runs completed successfully, with the Pages deployment jobs skipped. They validate the code changes against the prior pinned data. The new development pin requires its own CI run before promotion is complete.
+All listed runs completed successfully, with the Pages deployment jobs skipped. The development pin passed its own validation. PR #75 updates technical station titles, with its CI tracked separately before merge.
