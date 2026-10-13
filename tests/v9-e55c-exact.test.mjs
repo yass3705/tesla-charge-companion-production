@@ -17,6 +17,11 @@ assert.equal(data.stats.chargePointCount,1977);
 assert.equal(data.stats.chargePointCountWithMachineReadablePricing,1923);
 assert.equal(data.source.directTariff.nationalOwnEmspOnlyVerified,true);
 const normalized=adapter.normalizePayload(data,source);
+if(normalized.offerRules.length!==1923){
+ const sample=data.stations.flatMap(s=>s.chargePoints||[]).find(p=>p?.pricing?.profileId);
+ const profile=data.directTariffProfiles.find(p=>p.profileId===sample?.pricing?.profileId);
+ console.log('E55C_DIAG',JSON.stringify({rejected:normalized.metadata.rejected,sample,profile}).slice(0,9500));
+}
 assert.equal(normalized.offerRules.length,1923);
 assert.equal(new Set(normalized.offerRules.map(o=>o.id)).size,1923);
 assert(normalized.offerRules.every(o=>o.pricing.type==='e55c_exact'&&o.evseIds.length>=1&&o.metadata.exactEvseOnly===true));
