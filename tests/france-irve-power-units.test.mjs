@@ -8,6 +8,7 @@ const adapter=require('../runtime-overrides/assets/v9/adapters/national-compact.
 const shell=require('../v9-production-shell/bridge.js');
 
 const stable=process.env.TCC_STABLE_ROOT||'/private/tmp/tcc-live-audit-stable';
+const expectedLegacyGroups=Number(process.env.TCC_EXPECT_FR_IRVE_LEGACY_WATT_GROUPS||0);
 const file=path.join(stable,'v9-production-runtime/data/v9/france-static/all.json.gz');
 const rows=JSON.parse(zlib.gunzipSync(fs.readFileSync(file)));
 let correctedGroups=0,uncertainDcGroups=0;const correctedStations=new Set(),uncertainDcStations=new Set();
@@ -26,14 +27,15 @@ for(const row of rows){
     correctedGroups++;
   }
 }
-assert.equal(correctedGroups,675);
-assert.equal(correctedStations.size,663);
-assert.equal(uncertainDcGroups,9);
-assert.equal(uncertainDcStations.size,6);
+assert.equal(correctedGroups,expectedLegacyGroups,'pinned and current Stable have distinct, explicit IRVE power baselines');
+assert.equal(correctedStations.size,expectedLegacyGroups?663:0);
+assert.equal(uncertainDcGroups,expectedLegacyGroups?9:0);
+assert.equal(uncertainDcStations.size,expectedLegacyGroups?6:0);
 const safran=rows.find(row=>row[0]==='FRZWOEZW02962');
 const normalized=adapter.normalizeRow(safran,{countryCode:'FR',sourceId:'france-national'});
-assert.equal(normalized.evses[0].connectors[0].powerKw,7.36);
+assert.equal(normalized.evses[0].connectors[0].powerKw,expectedLegacyGroups?7.36:7);
 assert.equal(normalized.evses[0].pdcIds[0],'FRZWOEZW029621');
+assert.equal(adapter.francePowerKw('AC',7360),7.36,'legacy watt sample always converts exactly');
 assert.equal(adapter.francePowerKw('DC',1200),1200,'uncertain DC anomalies require separate source proof');
 assert.equal(adapter.francePowerKw('AC',22),22);
 const station={id:'FR:national:UNCERTAIN',countryCode:'FR',physicalOperator:{id:'test',name:'Test'},evses:[{id:'BAD-DC',connectors:[{id:'DC-1',kind:'DC',powerKw:1200}]}]};
@@ -50,4 +52,4 @@ if(process.argv[2]){
     {targetCurrency:'EUR',fxRates:{EUR:1}});
   assert.equal(quote.comparableOfferCount,0,'uncertain DC power must not enter ranking');
 }
-console.log(JSON.stringify({ok:true,correctedGroups,correctedStations:correctedStations.size,safranKw:7.36,uncertainDcGroups}));
+console.log(JSON.stringify({ok:true,correctedGroups,correctedStations:correctedStations.size,safranKw:normalized.evses[0].connectors[0].powerKw,uncertainDcGroups}));

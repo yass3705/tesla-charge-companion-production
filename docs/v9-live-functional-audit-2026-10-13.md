@@ -27,6 +27,7 @@ The candidate preserves the public source pins and data mappings. No Pages or Cl
 | Subscription | Electra+ was selectable but did not change quotes. | #70 derives Essential −€0.10/kWh and Smart −€0.20/kWh only from one verified exact direct Electra grid at an Electra-operated FR station. 320/521 stations qualify; 201 multi-grid stations do not. Monthly fees are separate. The selector is compact and multiselect; distinct providers may be selected together. |
 | Ranking | Price and distance labels used a 70/30 weighted score, and total time had no mode. | #71 makes price, routed distance, total time and cost/km strict sorts. Unpriced stations remain visible after priced ones; balanced remains weighted. |
 | Tesla adapter | Currency was hardcoded EUR for all offers, while source has 906 EUR, 216 GBP, 38 CHF and 6 MAD station-level pricing records. Maps and official Tesla URLs were dropped. | #72 preserves source currency per charging configuration, retains URLs, and marks ambiguous/missing currency non-comparable. It also exposes navigation and date in the shared card. Congestion amounts appear separately on 1,112 source stations; their occupancy/trigger conditions are not yet safe to add to a calculated charge. |
+| FR national power | A real public Firefox search ranked `SAFRAN VELIZY` as AC 7,360 kW; the pinned IRVE compact source carried watts in a kW field. | #74 converts 675 AC groups / 663 stations when the conversion gives a plausible AC rating, preserves EVSE IDs, and retains two-decimal power grouping. Nine uncertain DC groups / six stations remain visible but non-comparable pending exact source proof. |
 
 ## Coverage losses and candidate gates
 
@@ -36,7 +37,16 @@ The automated full-overlay audit `scripts/audit_france_emsp_assignments.py` chec
 
 Pinned CI after #70 successfully built 2,442 files / 743,666,847 bytes and verified all SHA-256 entries. The nine-country runtime smoke returned FR 3,767 local area stations (3,309 priced), IT 1,828 (1,179), CH 40 (33), DE 67 (1 in the selected probe), ES 752, NL 3,298, GB 47 (33), MA 175 (175), BE 2,880 (905). These are **probe areas**, not national totals. The global preview may use a newer Data Lab SHA; its counts must not be reported as those of the pinned public data.
 
-The corrected development ID is `2026-10-13-live-audit-corrected-candidate`. Its dataset SHAs and all ten dataset paths equal the public snapshot. It requires the pinned CI, browser and manifest gates before it can be called validated. The first public Pages snapshot and its rollback remain untouched. Screenshots supplied as `blob:` references could not be fetched from the repository; before/after UI captures remain to attach from an accessible browser or CI artifact.
+The corrected development ID is `2026-10-13-live-audit-corrected-candidate`. Its dataset SHAs and all ten dataset paths equal the public snapshot. PR #73 passed pinned CI, browser and manifest gates and advanced the development pointer on `main`; PR #74 requires fresh CI for its power correction. The first public Pages snapshot and its rollback remain untouched. The screenshots originally supplied as `blob:` references could not be fetched from the repository.
+
+## Firefox before/after captures
+
+The public Pages URL and local corrected candidate were both opened in headless Firefox from `60 rue Gabriel Péri, 78210 Saint-Cyr-l’École`, 20 km, on 2026-10-13 at 12:00 local, 20→80% SOC, all operators and price sort. The address geocode was pinned to 48.810, 2.060 in both browsers. Routing still used the available OSRM service, so these captures establish rendering and tariff-source behavior; minor route and calculated total differences are not an independent routing oracle. Both searches returned 20 ranked cards with no V9 source or routing error.
+
+| Station | Public before | Corrected candidate after | Visible change |
+| --- | --- | --- | --- |
+| Lidl `LFR3148EVCP01` | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-lidl.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-lidl.png) | Zero-minute and zero-congestion components are absent from the compact summary; direct, Electra and Electroverse remain separate. |
+| Ze-Watt Safran Vélizy | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-safran.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-safran.png) | AC 7,360 kW becomes AC 7.36 kW; charge time and the minute-based Electra quote are recalculated using the corrected power. |
 
 ## Merged code and CI evidence
 

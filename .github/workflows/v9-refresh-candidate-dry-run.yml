@@ -119,7 +119,7 @@ jobs:
           python production/scripts/audit_france_emsp_assignments.py --stable stable --datalab datalab --min-electra-joined 92850 --min-electroverse-joined 86782
           node production/tests/belgium-nap-safe-pricing.test.mjs
           node production/tests/france-direct-offer-kind.test.mjs
-          TCC_STABLE_ROOT=stable node production/tests/france-irve-power-units.test.mjs
+          TCC_STABLE_ROOT=stable TCC_EXPECT_FR_IRVE_LEGACY_WATT_GROUPS=675 node production/tests/france-irve-power-units.test.mjs
           node production/tests/v9-common-station-links.test.mjs
           node production/tests/v9-electra-plus-direct.test.mjs
 
@@ -142,7 +142,7 @@ jobs:
         run: |
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
-          TCC_STABLE_ROOT=stable node production/tests/france-irve-power-units.test.mjs dist/v9-dev-snapshot
+          TCC_STABLE_ROOT=stable TCC_EXPECT_FR_IRVE_LEGACY_WATT_GROUPS=675 node production/tests/france-irve-power-units.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-tesla-matosinhos-runtime.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-strict-ranking.test.mjs
           node production/tests/v9-electra-plus-direct.test.mjs dist/v9-dev-snapshot
