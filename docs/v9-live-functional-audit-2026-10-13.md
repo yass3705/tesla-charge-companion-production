@@ -43,10 +43,13 @@ The corrected development ID is `2026-10-13-live-audit-corrected-candidate`. Its
 
 The public Pages URL and local corrected candidate were both opened in headless Firefox from `60 rue Gabriel Péri, 78210 Saint-Cyr-l’École`, 20 km, on 2026-10-13 at 12:00 local, 20→80% SOC, all operators and price sort. The address geocode was pinned to 48.810, 2.060 in both browsers. Routing still used the available OSRM service, so these captures establish rendering and tariff-source behavior; minor route and calculated total differences are not an independent routing oracle. Both searches returned 20 ranked cards with no V9 source or routing error.
 
+Matosinhos was tested separately at 41.20845, −8.688498 within 10 km, using the same SOC target and date/time inputs. The published site returned one legacy Tesla card; the corrected local candidate returned one common V9 card.
+
 | Station | Public before | Corrected candidate after | Visible change |
 | --- | --- | --- | --- |
 | Lidl `LFR3148EVCP01` | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-lidl.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-lidl.png) | Zero-minute and zero-congestion components are absent from the compact summary; direct, Electra and Electroverse remain separate. |
 | Ze-Watt Safran Vélizy | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-fr-safran.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-fr-safran.png) | AC 7,360 kW becomes AC 7.36 kW; charge time and the minute-based Electra quote are recalculated using the corrected power. |
+| Tesla Matosinhos, Portugal | [Capture PNG](evidence/v9-live-audit-2026-10-13/published-pt.png) | [Capture PNG](evidence/v9-live-audit-2026-10-13/corrected-pt.png) | The special legacy Tesla card becomes the shared V9 Direct / Electra / Electroverse card with navigation, source date and official Tesla link. The €15.16 legacy and €14.40 V9 totals come from different default vehicle/session models; they are **not** treated as a verified tariff correction. |
 
 ## Merged code and CI evidence
 
