@@ -108,7 +108,7 @@
     {
       "id": "BE",
       "kind": "national",
-      "coverage": "partial-selected-cpo-plus-energyvision",
+      "coverage": "partial-selected-cpo",
       "primarySource": "dataLab",
       "path": "data/belgium/nap-belgium-manifest.json",
       "pages": "data/belgium/pages",
