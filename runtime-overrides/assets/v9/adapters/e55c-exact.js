@@ -43,6 +43,9 @@
   for(const st of payload.stations||[])for(const p of st.chargePoints||[]){
    const profileId=p?.pricing?.profileId,profile=profiles.get(profileId),value=tariff(profile);
    const evse=t(p.localEvseId||p.evseId);
+   if(!Array.isArray(p.connectors)||!p.connectors.some(k=>['EF','TYPE_2','CCS'].includes(k))){
+    rejected.unverifiedConnector=(rejected.unverifiedConnector||0)+1;continue;
+   }
    if(p?.pricing?.status!=='resolved_e55c_scan_pay'||!value||!evse||!/^FR\*55C\*/i.test(evse)){
     rejected.noSafeTariff=(rejected.noSafeTariff||0)+1;continue;
    }
