@@ -53,6 +53,8 @@ on:
       - "tests/test_germany_ionity_supplement_provenance.py"
       - "scripts/validate_built_snapshot.py"
       - "tests/runtime-e2e-smoke.mjs"
+      - "tests/v9-spie-neuilly-post-charge.test.mjs"
+      - "tests/v9-applied-tariff-description.test.mjs"
       - "scripts/build_runtime_registry.py"
       - "scripts/validate_built_snapshot.py"
       - "runtime-overrides/assets/v9/adapters/uk-open-feeds.js"
@@ -353,6 +355,8 @@ jobs:
           TCC_STABLE_ROOT=stable node production/tests/france-irve-power-units.test.mjs dist/v9-global-preview
           node production/tests/v9-common-station-links.test.mjs
           node production/tests/v9-pricing-time-zone.test.mjs
+          node production/tests/v9-spie-neuilly-post-charge.test.mjs
+          node production/tests/v9-applied-tariff-description.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
           node production/tests/v9-tesla-matosinhos-runtime.test.mjs dist/v9-global-preview
           node production/tests/v9-strict-ranking.test.mjs

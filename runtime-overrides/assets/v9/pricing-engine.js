@@ -441,6 +441,47 @@
     const duration=span.duration,grace=span.grace,billable=span.billableMinutes,exemptMinutes=span.exemptMinutes;
     const baseComponent={postChargeMinutes:duration,graceMinutes:grace,billableMinutes:billable,exemptMinutes,costEur:0};
     if(billable<=0)return{totalEur:0,component:baseComponent};
+    if(Array.isArray(fee.localRateWindows)){
+      if(!timeZone)
+        return{complete:false,totalEur:0,component:null,reason:'post_charge_rate_windows_require_time_zone'};
+      if(Array.isArray(fee.exemptLocalWindows)&&fee.exemptLocalWindows.length)
+        return{complete:false,totalEur:0,component:null,reason:'post_charge_rate_and_exemption_windows_conflict'};
+      const windows=fee.localRateWindows;
+      if(!windows.length||windows.some(w=>hm(w?.start,null)==null||hm(w?.end,null)==null||
+        num(w?.eurPerMinute)==null||num(w.eurPerMinute)<0))
+        return{complete:false,totalEur:0,component:null,reason:'invalid_post_charge_rate_windows'};
+      const explicit=session.postChargeStartAt;
+      const charging=num(session.chargingMinutes),start=new Date(session.startAt||'');
+      const derived=!explicit&&charging!=null&&charging>=0&&!Number.isNaN(start.getTime())
+        ?new Date(start.getTime()+charging*60000):null;
+      const postStart=new Date(explicit||derived||'');
+      if(Number.isNaN(postStart.getTime()))
+        return{complete:false,totalEur:0,component:null,reason:'post_charge_rate_windows_require_start_time'};
+      const minuteCount=Math.ceil(billable-1e-9);
+      if(minuteCount>10080)
+        return{complete:false,totalEur:0,component:null,reason:'post_charge_duration_out_of_range'};
+      const billableStart=postStart.getTime()+grace*60000,used=new Map();let total=0;
+      const matchingRate=instant=>{
+        const minute=minuteOfDay(new Date(instant),timeZone);
+        if(minute==null)return null;
+        const matches=windows.filter(w=>exemptWindowContains(w,minute));
+        return matches.length===1?matches[0]:null;
+      };
+      for(let i=0;i<minuteCount;i++){
+        const from=billableStart+i*60000,to=from+Math.min(1,billable-i)*60000;
+        const first=matchingRate(from),last=matchingRate(Math.max(from,to-1));
+        if(!first||!last||first!==last)
+          return{complete:false,totalEur:0,component:null,reason:'post_charge_rate_boundary_within_started_minute'};
+        const rate=num(first.eurPerMinute);
+        total+=rate;
+        const key=`${first.start}|${first.end}|${rate}`;
+        const item=used.get(key)||{start:first.start,end:first.end,eurPerMinute:rate,billedMinutes:0,costEur:0};
+        item.billedMinutes+=1;item.costEur=money(item.billedMinutes*rate);used.set(key,item);
+      }
+      const costEur=money(total);
+      return{totalEur:costEur,component:{...baseComponent,billedStartedMinutes:minuteCount,
+        appliedRateWindows:[...used.values()],costEur}};
+    }
     const blockMinutes=num(fee.blockMinutes),blockEur=num(fee.blockEur);
     if(blockMinutes>0&&blockEur!=null){
       const blocks=fee.rounding==='started_block'?Math.ceil(billable/blockMinutes):billable/blockMinutes,costEur=money(blocks*blockEur);

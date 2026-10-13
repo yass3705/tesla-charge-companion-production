@@ -243,8 +243,9 @@ assert.ok(frResult.stations.length>0,'FR returned no stations');
 if(spieDirectActive){
   const spiePayload=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/FR/direct/metropolis_spie_direct_offers.json'),'utf8'));
   assert.equal(spiePayload.stats.sourceExact,740,'Metropolis source pin changed without audit');
-  assert.equal(spiePayload.directOffers.length,726,'Metropolis exact standard offers lost');
-  assert.equal(spiePayload.stats.excluded.post_charge_schedule_unsupported,14,'Neuilly schedule exclusion changed');
+  assert.equal(spiePayload.directOffers.length,740,'Metropolis exact offers lost');
+  assert.equal(spiePayload.stats.specialRateWindowOffers,14,'Neuilly rate-window scope changed');
+  assert.deepEqual(spiePayload.stats.excluded,{},'A sourced Metropolis offer was silently excluded');
   const rawStatic=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(runtime,'data/v9/france-static/all.json.gz'))));
   const staticById=new Map(rawStatic.map(row=>[row[0],row]));
   const spieRules=directOffers.normalizePayload(spiePayload).offerRules;
@@ -259,8 +260,12 @@ if(spieDirectActive){
     assert.equal(matchedEvse.length,1,`Metropolis ${rule.id} no longer has one matching EVSE`);
     const quote=pricing.evaluateOffer(rule,{energyKwh:10.1,durationMinutes:60,chargingMinutes:60,
       postChargeMinutes:11.2,startAt:'2026-10-13T10:00:00Z'});
-    const expected=Math.round((11*rule.pricing.rules[0].pricePerKwh+
-      2*rule.pricing.postChargeFee.blockEur)*100)/100;
+    const postFee=rule.pricing.postChargeFee;
+    const postRate=postFee.localRateWindows
+      ?postFee.localRateWindows.find(window=>window.start==='08:00')?.eurPerMinute
+      :postFee.blockEur;
+    assert.ok(Number.isFinite(postRate),`Metropolis ${rule.id} has no applicable post-charge rate`);
+    const expected=Math.round((11*rule.pricing.rules[0].pricePerKwh+2*postRate)*100)/100;
     assert.equal(quote.complete,true,`Metropolis ${rule.id} became incalculable`);
     assert.equal(quote.totalEur,expected,`Metropolis ${rule.id} diverges from independent fee arithmetic`);
   }

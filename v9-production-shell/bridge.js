@@ -310,7 +310,13 @@
       idlePerMinute:charged(part,'parkingTime')?rule.idlePerMinute:null,
       congestionTimePerMinute:charged(part,'congestionTime')?rule.congestionTimePerMinute:null
     }));
-    return tariffRateLabels({currency:item?.currency||offer?.currency,pricing:{rules:used}});
+    const labels=tariffRateLabels({currency:item?.currency||offer?.currency,pricing:{rules:used}});
+    for(const window of components.postCharge?.appliedRateWindows||[]){
+      if((num(window?.billedMinutes)??0)<=0||(num(window?.costEur)??0)<=0)continue;
+      const rate=formatRate(window.eurPerMinute,item?.currency||offer?.currency,'min après charge');
+      if(rate)labels.push(rate+' ('+text(window.start)+'–'+text(window.end)+')');
+    }
+    return[...new Set(labels)];
   }
   function baseTariffsForPower(row,line){
     const station=row?.station||{},out=[],seen=new Set(),connectors=[];
