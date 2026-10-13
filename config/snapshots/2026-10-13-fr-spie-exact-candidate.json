@@ -119,7 +119,7 @@
   "progressIndex": "docs/v9-country-progress-2026-09-30.json",
   "sourceSelection": {
     "selectedDataLabCommit": "e39a4466096b520b3c459e75539bf9b112235165",
-    "reason": "Development candidate based on the same validated Data Lab, Stable and Updater pins as the first public nine-country snapshot. Production code repairs direct Electra attachment, applied tariff display, Electra+ eligibility, strict ranking, global Tesla card and source currency. Public Pages pin remains unchanged.",
+    "reason": "New immutable development candidate pins Data Lab e39a44660 for the official Metropolis exact-EVSE direct grid, keeps Stable and historical rollback pins, and excludes the 14 Neuilly post-charge schedules that the runtime cannot yet price safely. The Pages public snapshot remains on Data Lab 047e1911; no automatic deployment.",
     "safeguards": [
       "France arithmetic 94 treated + 27 setAside + 170 active = 291.",
       "AVIA Switzerland 583/583 national EVSE matched.",
