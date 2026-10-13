@@ -190,11 +190,10 @@ def main():
         # DOT-NL is loaded from snapshot-inputs by the dedicated adapter; avoid duplicate inventory.
 
     for name in ("manifest.webmanifest","app-version.json","service-worker.js"):
-        # Migration phase 1: Production owns the PWA identity manifest.
-        # Keep the legacy version and service worker untouched until their runtime migration.
-        src=(production_root/"deployment/manifest.webmanifest" if name=="manifest.webmanifest" else stable/name)
-        if name=="manifest.webmanifest" and not src.exists():
-            raise FileNotFoundError("Production-owned PWA manifest missing: deployment/manifest.webmanifest")
+        # Migration phase 1: Production owns its pinned PWA deployment files.
+        src=production_root/"deployment"/name
+        if not src.exists():
+            raise FileNotFoundError(f"Production-owned PWA file missing: deployment/{name}")
         if src.exists():
             copy_file(src,out/name)
 
