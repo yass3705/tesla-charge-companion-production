@@ -22,6 +22,14 @@ class ProductionOwnedManifestTests(unittest.TestCase):
         for name in ("index.html", "shell-config.json", "bridge.js"):
             self.assertTrue((ROOT / "v9-production-shell" / name).exists())
 
+    def test_production_owned_core_engines(self):
+        builder = (ROOT / "scripts/build_snapshot.py").read_text(encoding="utf-8")
+        self.assertIn('owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"', builder)
+        for name in ("access-router-engine.js", "offer-engine.js", "data-engine.js"):
+            with self.subTest(name=name):
+                self.assertTrue((ROOT / "runtime-owned/assets/v9" / name).is_file())
+                self.assertIn(name, builder)
+
     def test_manifest_is_present(self):
         manifest = json.loads((ROOT / "deployment/manifest.webmanifest").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "Tesla Charge Companion")
