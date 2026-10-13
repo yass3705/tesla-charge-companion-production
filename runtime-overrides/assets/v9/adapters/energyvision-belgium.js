@@ -1,0 +1,95 @@
+(function(root,factory){
+  const api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  if(root){root.TCCV9Adapters=root.TCCV9Adapters||{};root.TCCV9Adapters.energyvisionBelgium=api;}
+})(typeof globalThis!=='undefined'?globalThis:this,function(){'use strict';
+ const text=v=>String(v==null?'':v).trim();
+ const numeric=v=>{if(v==null||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
+ const statuses=new Set(['available','charging']);
+ const connectors={TYPE2:'AC',CCS:'DC'};
+ const allowedLeaves=new Set(['energyPrice/priceGroupIndex','energyPrice/priceType',
+  'energyPrice/value','energyPrice/taxIncluded','energyPrice/taxRate']);
+ // DATEX 3.7 hierarchical station energyRate applies to refill points where
+ // there is no more specific site or point override. Only a single additive
+ // kWh component, explicit adHoc VAT-included, is numerically priceable.
+ function safeKwh(site,station){
+   if(site.sourceSiteEnergyRateCount!==0||station.sourceStationEnergyRateCount!==1)return null;
+   const rs=station.sourceStationRatesUnassignedToPdc||[];
+   if(rs.length!==1)return null;
+   const rate=rs[0],ps=rate?.priceComponents||[];
+   if(rate?.ratePolicy!=='adHoc'||text(rate.currency)!=='EUR'||!text(rate.sourceRateId)||ps.length!==1)return null;
+   const p=ps[0],value=numeric(p.amountSource);
+   if(p.priceType!=='pricePerKWh'||p.taxIncluded!=='true'||numeric(p.taxRateSource)!==21||
+      value==null||value<0||value>3)return null;
+   if((p.rawApplicabilityLeaves||[]).some(l=>!allowedLeaves.has(text(l.path))))return null;
+   return {value,rateId:text(rate.sourceRateId),sourceUpdatedAt:text(rate.sourceLastUpdated)};
+ }
+ function normalizeSite(site,{sourceId='energyvision-be-official'}={}){
+   const id=text(site.sourceSiteId),lat=numeric(site.latitude),lon=numeric(site.longitude);
+   if(!id||lat==null||lon==null||Math.abs(lat)>90||Math.abs(lon)>180||site.sourceSiteType!=='openSpace')return null;
+   const evses=[],offers=[],allKnown=new Set();
+   for(const station of site.stations||[]){
+     const src=station.pdc||[],eligible=[];
+     const specs=new Set(src.map(p=>[text(p.connectorType),numeric(p.powerW)].join(':')));
+     for(const pt of src){
+       const eid=text(pt.externalEvseId),kind=connectors[text(pt.connectorType)],powerW=numeric(pt.powerW);
+       if(!eid||allKnown.has(eid))throw new Error('EnergyVision duplicated or empty exact EVSE');
+       allKnown.add(eid);
+       if(!kind||!powerW||powerW<=0||!statuses.has(text(pt.status)))continue;
+       const powerKw=powerW/1000;
+       evses.push({id:eid,aliases:[eid],connectors:[{id:eid+':'+kind,kind,powerKw}]});
+       eligible.push(pt);
+     }
+     // Never interpret mixed connector/power station as one common EVSE quote.
+     const safe=specs.size===1&&src.length>0&&src.every(pt=>pt.sourcePointEnergyRateCount===0)
+       ?safeKwh(site,station):null;
+     if(!safe)continue;
+     for(const pt of eligible){
+       const eid=text(pt.externalEvseId),kind=connectors[text(pt.connectorType)];
+       offers.push({
+         id:sourceId+':'+id+':'+eid+':'+safe.rateId,
+         provider:'EnergyVision',kind:'direct',subscriptionId:null,
+         countries:['BE'],currency:'EUR',evseIds:[eid],connectorKinds:[kind],
+         pricing:{type:'rules',timeZone:'Europe/Brussels',rules:[{
+           scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',
+           pricePerKwh:safe.value,chargePerMinute:0,connectionFee:0,idlePerMinute:0,
+           afterMinutesRate:0,afterMinutesThreshold:0,days:null,ocpiDurationBands:[]
+         }]},priority:125,metadata:{
+           source:'EnergyVision official AFIR/DATEX II 3.7 (adHoc CPO)',
+           sourceStationId:text(station.sourceStationId),
+           rateId:safe.rateId,sourceUpdatedAt:safe.sourceUpdatedAt,
+           scope:'single inherited station kWh rule, no point/site override',
+           vat:'21% included',verification:'official-source-adHoc-not-checkout-observation'
+         }
+       });
+     }
+   }
+   if(!evses.length)return null; // Only positive source statuses are shown.
+   return {canonicalId:'BE:energyvision:'+id,
+     aliases:['energyvision:'+id],sourceStationId:id,countryCode:'BE',
+     name:text(site.name)||'EnergyVision',
+     address:[text(site.postalCode),text(site.city)].filter(Boolean).join(' '),
+     latitude:lat,longitude:lon,physicalOperator:{name:'EnergyVision'},
+     networkBrand:'EnergyVision',evses,offers,
+     access:{kind:'public-network',limited:false,source:'EnergyVision AFIR source'},
+     status:{state:'available',sourceId},updatedAt:null,
+     metadata:{source:'EnergyVision DATEX',siteType:site.sourceSiteType,
+       rateScope:'station',unpricedActivePdc:evses.length-offers.length}
+   };
+ }
+ function normalizePayload(payload,{sourceId='energyvision-be-official',bounds=null}={}){
+   if(payload?.provider!=='EnergyVision'||payload?.country!=='BE'||payload?.v9PublicationReady!==false||
+      payload?.v9PricedPDC!==0||payload?.counts?.distinctExternalEvseIds<3500||
+      payload?.counts?.sourcePDC!==payload?.counts?.distinctExternalEvseIds||
+      payload?.napCrosswalk?.unmatchedIds!==payload?.counts?.sourcePDC||
+      !/^[a-f0-9]{64}$/.test(text(payload.sourceSha256)))throw new Error('Unverified EnergyVision CPO source');
+   const rows=(payload.sites||[]).filter(s=>{
+     if(!bounds)return true;
+     const lat=numeric(s.latitude),lon=numeric(s.longitude);
+     return lat!=null&&lon!=null&&lat>=bounds.minLat&&lat<=bounds.maxLat&&
+       lon>=bounds.minLon&&lon<=bounds.maxLon;
+   });
+   return rows.map(s=>normalizeSite(s,{sourceId})).filter(Boolean);
+ }
+ return {safeKwh,normalizeSite,normalizePayload};
+});
