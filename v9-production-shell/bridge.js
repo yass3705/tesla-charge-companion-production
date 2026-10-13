@@ -23,7 +23,7 @@
   const num=v=>{if(v==null||String(v).trim()==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const pricedItem=item=>Boolean(item&&item.comparable!==false&&item.result?.complete===true&&num(item.total)!=null);
   const pricedBest=evaluation=>pricedItem(evaluation?.best)?evaluation.best:null;
-  const floorPower=v=>{const n=num(v);return n==null?null:Math.floor(n);};
+  const floorPower=v=>{const n=num(v);return n==null?null:Math.round(n*100)/100;};
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const V7_DC_POINTS=[[0,175],[10,175],[20,170],[30,160],[40,145],[50,125],[60,105],[70,85],[80,60],[85,42],[90,28],[95,16],[98,10],[100,6]];
   const SUBSCRIPTION_KEY='tccV9SelectedSubscriptionsV1';
