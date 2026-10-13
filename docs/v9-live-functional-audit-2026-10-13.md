@@ -39,6 +39,8 @@ The candidate preserves the public source pins and data mappings. No Pages or Cl
 | Electroverse eMSP FR | 89,991 source offers | 86,782 unique-station joins, 3,209 unjoined | The checked Electric 55 offers are EVSE-specific. Unjoined offers are not displayed as matched prices. |
 | Electric 55 direct | A direct file exists in Data Lab with `publicationReady:false` | No candidate attachment | The direct lane remains unavailable by policy, not because the renderer lost a published price. |
 
+For a fixed 2026-10-13 22:45 Europe/Paris session (45 charging minutes, 10 parked minutes, 10 kWh), a before/after engine comparison scanned all 89,991 pinned FR Electroverse offers. The 3,859 offers with a paid parking rate and at least one clock window remained calculable; **2,222** totals increased with the parking correction, **1,637** were unchanged, and **zero** decreased. This measures affected *offer/scenario evaluations*, not real charging sessions or unique stations. The two Electric 55 exact EVSE examples above are included in the independently checked regression.
+
 The global evaluated-offer and visible-card totals depend on country, radius, session and power. No national UI count is inferred from these source and identity counts. The Firefox scenario below records the observable cards for its declared inputs.
 
 The public FR IRVE base has 48,058 stations / 165,792 EVSE. A more recent Data Lab base has 49,211 / 164,368. On the public base, 92,850 of 97,371 Electra overlay offers and 86,782 of 89,991 Electroverse overlay offers retain an exact EVSE identity. Simply replacing the IRVE base would restore 4,521 Electra links but lose 3,932 currently matched Electroverse links while restoring 3,086 others. The replacement was built and validated only as a local experiment; it was **not** promoted. This is an unresolved identity reconciliation, not a reason to fabricate matches.
@@ -74,5 +76,6 @@ Matosinhos was tested separately at 41.20845, −8.688498 within 10 km, using th
 | #73 Development pin / full FR eMSP identity audit | `269811f97f42eae1676cc464971ba4fc5b9b5f3b` | `38332686039` / `38332686044` |
 | #74 FR IRVE power units and browser captures | `0ecb47db2bf47f580bf6e5a8b406881e8c131015` | `38333976174` / `38333976229` |
 | #75 Sourced technical station titles | `3a0c6ae5cb770ea8f9be206359902e207c3bca81` | `38334235851` / `38334235902` |
+| #77 Segmented post-charge parking | `fabeda672309cba8c1683219c44329be7015308f` | Global `38334933475`, pinned `38334935941`, NL/IZIVIA `38334933459` / `38334933464` / `38334933493` / `38334933490` |
 
 All listed runs completed successfully, with the Pages deployment jobs skipped. The development pin passed its own validation. The live Pages site still serves the first public snapshot; none of these merged changes has been deployed to Pages or Cloudflare.
