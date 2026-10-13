@@ -42,4 +42,22 @@ assert.throws(()=>adapter.normalizePayload({...payload(),v9PublicationReady:true
 assert.throws(()=>adapter.normalizePayload({...payload(),napCrosswalk:{unmatchedIds:3794}}),/Unverified/);
 assert.throws(()=>adapter.normalizePayload({...payload(),sourceSha256:''}),/Unverified/);
 assert.throws(()=>adapter.normalizePayload({...payload(),sites:[{...site(),stations:[{...site().stations[0],pdc:[point('BE*NRG*P1'),point('BE*NRG*P1')]}]}]}),/duplicated/);
+if(process.argv[2]){
+  const fs=await import('node:fs');
+  const path=await import('node:path');
+  const zlib=await import('node:zlib');
+  const srcPath=path.join(process.argv[2],'snapshot-inputs/BE/energyvision-official.json.gz');
+  const raw=JSON.parse(zlib.gunzipSync(fs.readFileSync(srcPath)));
+  const sites=adapter.normalizePayload(raw);
+  const pdc=sites.reduce((n,site)=>n+site.evses.length,0);
+  const offers=sites.reduce((n,site)=>n+site.offers.length,0);
+  assert.equal(raw.counts.sourcePDC,3795);
+  assert.equal(raw.counts.unassignedStationRates,1228);
+  assert.equal(raw.napCrosswalk.unmatchedIds,3795);
+  assert.equal(pdc,raw.counts.activePDC);
+  assert.equal(offers,776,'Only exact operational, homogeneous single-component direct CPO rates');
+  assert.ok(sites.every(s=>s.countryCode==='BE'&&s.physicalOperator.name==='EnergyVision'));
+  assert.ok(sites.flatMap(s=>s.offers).every(o=>o.kind==='direct'&&o.provider==='EnergyVision'&&o.evseIds.length===1));
+  console.log('EnergyVision official pinned CPO runtime:',{sites:sites.length,pdc,offers});
+}
 console.log('EnergyVision public CPO 22-kW PDC, no double price, source guards: PASS');
