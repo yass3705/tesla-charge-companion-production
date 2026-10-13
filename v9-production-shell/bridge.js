@@ -757,6 +757,11 @@
       ...(input?.maxPowerKw!=null?{maxPowerKw:Number(input.maxPowerKw)}:{})
     };
   }
+  function countryQueryMode(countryCode,scope,operatorIds=[]){
+    if(!scope?.length||scope.includes(countryCode))return'full';
+    if(operatorIds.some(id=>text(id).toLowerCase()!=='tesla'))throw new Error(`country outside V9 shell scope: ${countryCode}`);
+    return'tesla-only';
+  }
   function variantMatchesFilters(row,input={}){
     const line=row?.powerLine||{},kind=text(line.kind).toUpperCase(),power=num(line.powerKw);
     return(!input.connectorKinds?.length||input.connectorKinds.includes(kind))&&
@@ -767,10 +772,12 @@
     if(!(input.targetSoc>input.startSoc))throw new Error('invalid SOC target');if(!input.originText)throw new Error('origin required');
     if(cfg.mode==='candidate'&&!(input.radiusKm>0))throw new Error('unbounded radius not production-equivalent');
     if(typeof w.resolveOrigin!=='function')throw new Error('stable origin resolver unavailable');const origin=await w.resolveOrigin(input.originText),countryCode=await countryCodeForOrigin(w,origin),scope=cfg.engineScopeCountries||[];
-    if(scope.length&&!scope.includes(countryCode))throw new Error(`country outside V9 shell scope: ${countryCode}`);
+    const queryMode=countryQueryMode(countryCode,scope,input.operatorIds||[]);
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input,countryCode);session.fxRates=engine.__tccFxRates||{};
+    if(queryMode==='tesla-only')filters.operatorIds=['tesla'];
     const selected=selectedSubscriptions(w);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
+    if(queryMode==='tesla-only'&&!area.stations?.some(isTeslaStation))throw new Error(`no Tesla V9 station in ${countryCode}`);
     area.selectedSubscriptions=selected;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),grouped=groupRows(eligible).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
@@ -1157,5 +1164,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });
