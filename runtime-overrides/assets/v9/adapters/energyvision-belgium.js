@@ -102,7 +102,7 @@
      ];
      if(initial.length!==1||windows.some(([start,end])=>
         energy.filter(p=>eligibleWindow(p,start,end)).length!==1)||
-        !eligibleWindow(idle,'09:00:00','21:59:00'))return null;
+        !eligibleWindow(idle[0],'09:00:00','21:59:00'))return null;
      return {value:kwhValue,sessionFee:0,
        postChargeFee:{graceMinutes:360,localRateWindows:[
          {start:'09:00',end:'22:00',eurPerMinute:0.06},
