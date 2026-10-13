@@ -24,6 +24,11 @@
   const pricedItem=item=>Boolean(item&&item.comparable!==false&&item.result?.complete===true&&num(item.total)!=null);
   const pricedBest=evaluation=>pricedItem(evaluation?.best)?evaluation.best:null;
   const floorPower=v=>{const n=num(v);return n==null?null:Math.round(n*100)/100;};
+  const unverifiedFranceDcPower=(station,kind,power)=>text(station?.countryCode).toUpperCase()==='FR'&&text(kind).toUpperCase()==='DC'&&num(power)>1000;
+  function guardUnverifiedPowerOffers(station,kind,power,offers){
+    if(!unverifiedFranceDcPower(station,kind,power))return offers;
+    return(offers||[]).map(offer=>({...offer,metadata:{...offer.metadata,incompletePricingReason:'irve_dc_nominal_power_unverified'}}));
+  }
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const V7_DC_POINTS=[[0,175],[10,175],[20,170],[30,160],[40,145],[50,125],[60,105],[70,85],[80,60],[85,42],[90,28],[95,16],[98,10],[100,6]];
   const SUBSCRIPTION_KEY='tccV9SelectedSubscriptionsV1';
@@ -381,7 +386,7 @@
         :row?.evaluation?.best
           ?'<div class="small" style="color:#c7d0d9">Tarif unitaire appliqué non détaillé · prix final ci-dessous</div>'
           :'<div class="small" style="color:#c7d0d9">Tarif de base non disponible</div>';
-      return '<div class="small" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><span>'+esc(line.kind)+' · <b>'+line.powerKw+' kW</b>'+baseLine+'</span><span>'+line.count+' point(s)</span></div>';
+      return '<div class="small" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><span>'+esc(line.kind)+' · <b>'+(unverifiedFranceDcPower(row?.station,line.kind,line.powerKw)?'Puissance à vérifier':line.powerKw+' kW')+'</b>'+baseLine+'</span><span>'+line.count+' point(s)</span></div>';
     }).join('')+'</div>';
   }
   function renderMapSummary(w,area,rows){
@@ -604,7 +609,7 @@
        ![text(station?.physicalOperator?.id),text(station?.physicalOperator?.name)].some(value=>value.toLowerCase()==='electra'))return[];
     const bases=(station.offers||[]).filter(offer=>text(offer.id).startsWith('electra-direct-exact:')&&
       text(offer.kind)==='direct'&&text(offer.currency).toUpperCase()==='EUR'&&
-      offer.metadata?.verified===true&&!offer.metadata?.tariffAmbiguous);
+      offer.metadata?.verified===true&&!offer.metadata?.tariffAmbiguous&&!offer.metadata?.incompletePricingReason);
     if(bases.length!==1)return[]; // A station-level choice between tariffs has no EVSE attribution.
     const base=bases[0],groups=base.pricing?.componentGroups;
     if(!Array.isArray(groups)||!groups.length)return[];
@@ -665,7 +670,8 @@
           evses.push({...original,connectors:connectors.map(item=>item.connector)});
         }
         const scopedOffers=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,group.evseTokens,group.connectorIds));
-        const variant={...station,evses,offers:scopedOffers.concat(electraPlusOffers({...station,offers:scopedOffers},selectedSubscriptions))},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
+        const guardedOffers=guardUnverifiedPowerOffers(station,group.kind,group.powerKw,scopedOffers);
+        const variant={...station,evses,offers:guardedOffers.concat(electraPlusOffers({...station,offers:guardedOffers},selectedSubscriptions))},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
         const plan=planner.planStation(variant,session,{route:{byStationId:routeMap}});
         const rawEvaluation=sessionEngine.evaluateStation(variant,plan.effectiveSession,{selectedSubscriptions,targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}});
         const evaluation=consistentLaneEvaluation(rawEvaluation,variant,selectedSubscriptions);
@@ -795,7 +801,7 @@
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderStationLinks(st)+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st,area?.displayFxRates,area?.selectedSubscriptions)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+(row.distanceEstimated?' km à vol d’oiseau':' km'):'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderStationLinks(st)+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st,area?.displayFxRates,area?.selectedSubscriptions)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+(row.distanceEstimated?' km à vol d’oiseau':' km'):'')+'</div>'+renderCostPerKm(row)+(score&&!unverifiedFranceDcPower(st,row.powerLine?.kind,row.displayPowerKw)?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
 
     renderMapSummary(w,area,rows);
   }
@@ -1219,6 +1225,6 @@ results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puis
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 
 });

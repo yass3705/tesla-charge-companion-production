@@ -350,7 +350,7 @@ jobs:
           REQUIRE_ELECTRA_PLATFORM: "1"
         run: |
           node production/tests/v9-shell-grouping.test.mjs
-          TCC_STABLE_ROOT=stable node production/tests/france-irve-power-units.test.mjs
+          TCC_STABLE_ROOT=stable node production/tests/france-irve-power-units.test.mjs dist/v9-global-preview
           node production/tests/v9-common-station-links.test.mjs
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs

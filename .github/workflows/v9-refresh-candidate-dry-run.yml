@@ -142,6 +142,7 @@ jobs:
         run: |
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
+          TCC_STABLE_ROOT=stable node production/tests/france-irve-power-units.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-tesla-matosinhos-runtime.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-strict-ranking.test.mjs
           node production/tests/v9-electra-plus-direct.test.mjs dist/v9-dev-snapshot
