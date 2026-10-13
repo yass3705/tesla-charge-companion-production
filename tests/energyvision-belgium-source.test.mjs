@@ -4,7 +4,7 @@ const require=createRequire(import.meta.url);
 const adapter=require('../runtime-overrides/assets/v9/adapters/energyvision-belgium.js');
 const rate={sourceRateId:'station-ad-hoc-1',ratePolicy:'adHoc',currency:'EUR',
  sourceLastUpdated:'2026-04-02T11:00:00Z',priceComponents:[{
- priceType:'pricePerKWh',amountSource:'0.38',taxIncluded:'true',taxRateSource:'21',
+ priceType:'pricePerKWh',amountSource:'0.38',groupIndex:'1',taxIncluded:'true',taxRateSource:'21',
  rawApplicabilityLeaves:[{path:'energyPrice/value',value:'0.38'}]}]};
 const point=(id,status='available')=>({externalEvseId:id,sourcePointId:id+':source',
  connectorType:'TYPE2',powerW:22000,status,sourcePointEnergyRateCount:0,
