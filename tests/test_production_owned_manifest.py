@@ -25,7 +25,7 @@ class ProductionOwnedManifestTests(unittest.TestCase):
     def test_production_owned_core_engines(self):
         builder = (ROOT / "scripts/build_snapshot.py").read_text(encoding="utf-8")
         self.assertIn('owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"', builder)
-        for name in ("access-router-engine.js", "offer-engine.js", "data-engine.js", "pricing-engine.js", "runtime-engine.js", "session-engine.js", "charge-model-engine.js", "session-planner-engine.js", "station-score-engine.js", "routing-engine.js", "device-scenario-engine.js", "vehicle-profile-engine.js", "readiness-engine.js", "parity-engine.js"):
+        for name in ("access-router-engine.js", "offer-engine.js", "data-engine.js", "pricing-engine.js", "runtime-engine.js", "session-engine.js", "charge-model-engine.js", "session-planner-engine.js", "station-score-engine.js", "routing-engine.js", "device-scenario-engine.js", "vehicle-profile-engine.js", "readiness-engine.js", "parity-engine.js", "device-test-engine.js", "device-test-window-engine.js", "parity-scenario-engine.js", "rollout-engine.js"):
             with self.subTest(name=name):
                 self.assertTrue((ROOT / "runtime-owned/assets/v9" / name).is_file())
                 self.assertIn(name, builder)
