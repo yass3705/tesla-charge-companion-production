@@ -29,7 +29,7 @@
   return {fee,windows};
  }
  function normalizePayload(payload,source={}){
-  if(payload?.dataset!=='electric55-operated-stations-france'||payload?.country!=='FR'||payload?.operator!=='Electric 55 Charging (E55C)'||payload?.tccIntegration?.operatorDirectTariffsReady!==true)throw Error('E55C candidate source identity invalid');
+  if(payload?.source?.directTariff?.nationalOwnEmspOnlyVerified!==true||payload?.dataset!=='electric55-operated-stations-france'||payload?.country!=='FR'||payload?.operator!=='Electric 55 Charging (E55C)'||payload?.tccIntegration?.operatorDirectTariffsReady!==true)throw Error('E55C candidate source identity invalid');
   const profiles=new Map((payload.directTariffProfiles||[]).map(p=>[p.profileId,p]));
   const offers=[],ids=new Set(),rejected={};
   for(const st of payload.stations||[])for(const p of st.chargePoints||[]){
@@ -47,15 +47,8 @@
     id:'e55c-exact:'+id,sourceId:source.id||'france-e55c-exact',provider:'Electric 55 Charging',kind:'direct',offerKind:'direct',subscriptionId:null,
     countries:['FR'],currency:'EUR',operatorIds:['electric-55-charging-e55c','electric-55-charging','e55c'],evseIds:unique([evse,id]),
     ...(p.kind==='AC'||p.kind==='DC'?{connectorKinds:[p.kind]}:{}),
-    pricing:{type:'rules',timeZone:'Europe/Paris',
-      postChargeFee:{graceMinutes:0,localRateWindows:[
-       {start:'07:00',end:'23:00',eurPerMinute:day.parkingPerMinute},
-       {start:'23:00',end:'07:00',eurPerMinute:night.parkingPerMinute}
-      ]},
-      rules:value.windows.map(w=>({scope:'timeWindow',start:w.start,end:w.end,billing:'minute',currency:'EUR',
-        pricePerKwh:0,chargePerMinute:w.chargePerMinute,connectionFee:value.fee,
-        idlePerMinute:0,afterMinutesRate:0,afterMinutesThreshold:0,days:null,ocpiDurationBands:[]}))
-    },
+    pricing:{type:'e55c_exact',timeZone:'Europe/Paris',sessionFeeEur:value.fee,
+      localRateWindows:value.windows.map(w=>({start:w.start,end:w.end,chargingTimeEurPerMinute:w.chargePerMinute,parkingTimeEurPerMinute:w.parkingPerMinute}))},
     priority:138,metadata:{source:'E55C public Scan Pay exact connector',sourceEvseId:evse,profileId,
      classificationBasis:profile.classificationBasis||null,exactEvseOnly:true,postChargeBeginsAtEnd:true,
      defaultDepartureAtChargeEnd:true,powerKw:power}
