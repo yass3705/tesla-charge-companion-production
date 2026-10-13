@@ -11,6 +11,10 @@
     if(Array.isArray(raw?.chargingConfigurations)&&raw.chargingConfigurations.length)return raw.chargingConfigurations;
     return [{id:`${raw?.id||'tesla'}:default`,label:'Tesla',kind:raw?.kind||'DC',powerKw:Number(raw?.powerKw||0),stalls:Number(raw?.stalls||0),pricing:raw?.pricing||null}];
   }
+  function pricingCurrency(pricing){
+    const currencies=[...new Set((pricing?.rules||[]).map(rule=>text(rule?.currency).toUpperCase()).filter(Boolean))];
+    return currencies.length===1?currencies[0]:null;
+  }
 
   function normalizeStation(raw){
     if(!raw||!text(raw.id))return null;
@@ -23,11 +27,16 @@
         stalls:Number(cfg?.stalls||raw?.stalls||0),
         connectors:[{id:`${evseId}:connector`,kind:text(cfg?.kind||raw?.kind||'DC').toUpperCase(),powerKw:Number(cfg?.powerKw||raw?.powerKw||0)}]
       });
-      if(cfg?.pricing||raw?.pricing)offers.push({
+      if(cfg?.pricing||raw?.pricing){
+        const pricing=cfg?.pricing||raw?.pricing,currency=pricingCurrency(pricing);
+        offers.push({
         id:`tesla-direct:${evseId}`,
-        provider:'Tesla',kind:'direct',subscriptionId:null,countries:[text(raw?.countryCode).toUpperCase()||'*'],currency:'EUR',
-        evseIds:[evseId],pricing:clone(cfg?.pricing||raw?.pricing),priority:100
+        provider:'Tesla',kind:'direct',subscriptionId:null,countries:[text(raw?.countryCode).toUpperCase()||'*'],currency:currency||'EUR',
+        evseIds:[evseId],pricing:clone(pricing),priority:100,
+        metadata:{source:'Tesla canonical catalogue',sourceUpdatedAt:raw.lastUpdated||null,
+          ...(currency?{}:{incompletePricingReason:'tesla_source_currency_ambiguous'})}
       });
+      }
     }
     return{
       canonicalId:text(raw.id),
@@ -56,5 +65,5 @@
     };
   }
 
-  return{normalizeStation,normalizePayload,createLoader};
+  return{normalizeStation,normalizePayload,createLoader,pricingCurrency};
 });

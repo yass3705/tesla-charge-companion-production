@@ -20,4 +20,10 @@ assert.match(links,/rel="noopener noreferrer"/);
 assert.doesNotMatch(shell.renderStationLinks({...station,teslaUrl:'javascript:alert(1)'}),/Fiche Tesla/);
 assert.doesNotMatch(shell.renderStationLinks({...station,teslaUrl:'https://evil.example/tesla'}),/Fiche Tesla/);
 assert.match(shell.renderStationLinks({...station,teslaUrl:null}),/Itinéraire Google Maps/,'all CPOs have the same navigation slot');
+for(const [country,currency] of [['GB','GBP'],['CH','CHF'],['MA','MAD']]){
+  const foreign=tesla.normalizeStation({...raw,id:'tesla-test-'+country,countryCode:country,pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0.5,currency}]},chargingConfigurations:[]});
+  assert.equal(foreign.offers[0].currency,currency,`Tesla ${country} must retain its source currency`);
+}
+const mixed=tesla.normalizeStation({...raw,pricing:{type:'rules',rules:[{currency:'EUR',pricePerKwh:0.4},{currency:'GBP',pricePerKwh:0.5}]},chargingConfigurations:[]});
+assert.equal(mixed.offers[0].metadata.incompletePricingReason,'tesla_source_currency_ambiguous');
 console.log(JSON.stringify({ok:true,station:station.id,links:['maps','officialTesla'],date:'2026-07-22'}));
