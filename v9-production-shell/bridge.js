@@ -782,11 +782,21 @@
     return [...groups.values()].map(group=>{group.pointCount+=group.pointIds.size;delete group.pointIds;group.evaluation=combinedEvaluation(group);delete group.evaluations;return group;});
   }
 
+  function renderStationLinks(station){
+    const lat=num(station?.latitude),lon=num(station?.longitude),date=text(station?.status?.updatedAt);
+    const maps=lat!=null&&lon!=null?'https://maps.google.com/maps?daddr='+encodeURIComponent(lat+','+lon):null;
+    let tesla=null;
+    try{const url=new URL(text(station?.teslaUrl));if(url.protocol==='https:'&&/^(www\.)?tesla\.com$/i.test(url.hostname))tesla=url.href;}catch(_){ }
+    return'<div class="small v9-station-links">'+(date?'MAJ '+esc(date)+' · ':'')+
+      (maps?'<a href="'+esc(maps)+'" target="_blank" rel="noopener noreferrer">Itinéraire Google Maps</a>':'')+
+      (tesla?' · <a href="'+esc(tesla)+'" target="_blank" rel="noopener noreferrer">Fiche Tesla</a>':'')+'</div>';
+  }
   function renderCandidate(w,area,rows,originLabel){
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st,area?.displayFxRates,area?.selectedSubscriptions)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+(row.distanceEstimated?' km à vol d’oiseau':' km'):'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderStationLinks(st)+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st,area?.displayFxRates,area?.selectedSubscriptions)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+(row.distanceEstimated?' km à vol d’oiseau':' km'):'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+
     renderMapSummary(w,area,rows);
   }
 
@@ -1209,5 +1219,6 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+
 });
