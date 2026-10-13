@@ -47,6 +47,9 @@ const historicalR9=snapshotManifest.snapshotId==='2026-09-30-r9-electra-fr'
   && snapshotManifest.sources?.dataLab?.sha==='fece067bd58916d493a9479ff9db31bcc94bef6b'
   && snapshotManifest.sources?.stable?.sha==='0a6d2c3415504397310d3dc92fae40be843b2435';
 const wanted=new Set(['germany-production-snapshot','germany-ionity-isolated-r8','uk-production-open-feeds','spain-reve','spain-reve-offers','netherlands-dotnl-national','belgium-nap-national','netherlands-direct-offers','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts','france-national','france-canonical-direct-offers','atlante-direct-france','france-electra-platform','france-electroverse-r8','italy-pun','italy-verified-offers','italy-ionity-r8','france-ionity-r8','italy-atlante-r8','switzerland-national','switzerland-verified-offers','switzerland-avia-r8']);
+const electric55ExactActive=registry.sources.some(s=>s.id==='france-e55c-offers'&&s.active===true);
+if(!historicalR9)assert.ok(electric55ExactActive,'pinned Electric 55 exact direct source missing');
+if(electric55ExactActive)wanted.add('france-e55c-offers');
 const sourceEvActive=registry.sources.some(s=>s.id==='uk-source-ev-pcpr-direct'&&s.active===true);
 if(sourceEvActive)wanted.add('uk-source-ev-pcpr-direct');
 const allegoActive=registry.sources.some(s=>s.id==='allego-uk-pcpr-direct'&&s.active===true);
@@ -234,6 +237,17 @@ if(beActive){
 
 const frResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.8566,lon:2.3522},radiusKm:25,routingBudget:20});
 assert.ok(frResult.stations.length>0,'FR returned no stations');
+if(electric55ExactActive){
+  const lons=await engine.queryArea({countryCode:'FR',origin:{lat:46.67493,lon:5.54852},radiusKm:0.2,routingBudget:20});
+  assert.equal(lons.diagnostics.sources['france-e55c-offers']?.loaded,true);
+  const station=lons.stations.find(s=>s.id==='FR:national:FR55CP39000LSAP7PPFG');
+  assert.ok(station,'Electric 55 Lons exact national station missing');
+  const direct=(station.offers||[]).filter(o=>o.id==='e55c-lons-le-saunier-lecourbe-direct'&&o.kind==='direct');
+  assert.equal(direct.length,1,'collected Electric 55 direct offer was lost before EVSE attachment');
+  assert.ok(direct[0].evseIds?.includes('FR55CEFR39000P7PPFG1'));
+  assert.equal(lons.stations.filter(s=>(s.offers||[]).some(o=>o.id===direct[0].id)).length,1,
+    'the exact site offer must not spread to nearby Electric 55 stations');
+}
 const frPriced=frResult.stations.filter(s=>(s.offers||[]).length>0);
 const frElectroverse=frResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='Electroverse'));
 const frElectra=frResult.stations.filter(s=>(s.offers||[]).some(o=>o.provider==='Electra'));
