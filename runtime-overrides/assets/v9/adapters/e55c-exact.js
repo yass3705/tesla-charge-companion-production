@@ -15,7 +15,10 @@
   if(!Array.isArray(profile.rules))return null;
   const flat=profile.rules.filter(r=>r.billingDimensions?.length===1&&r.billingDimensions[0]==='flat'&&r.scope==='allDay');
   const windowed=profile.rules.filter(r=>r.billingDimensions?.includes('charging_time')&&r.billingDimensions?.includes('parking_time'));
-  if(flat.length!==1||windowed.length!==2||profile.rules.length!==3)return null;
+  const energy=profile.rules.filter(r=>r.scope==='allDay'&&r.billingDimensions?.includes('energy')&&r.billingDimensions?.includes('parking_time'));
+  const minuteFamily=windowed.length===2&&profile.rules.length===3;
+  const energyFamily=energy.length===1&&profile.rules.length===2&&windowed.length===0;
+  if(flat.length!==1||(!minuteFamily&&!energyFamily))return null;
   const fee=n(flat[0].flatEur);
   if(fee===null||fee<0||fee>100)return null;
   const windows=[];
@@ -23,6 +26,11 @@
    const charge=n(r.chargingTimeEurPerMinute),parking=n(r.parkingTimeEurPerMinute);
    if(r.scope!=='timeWindow'||charge===null||parking===null||charge<0||parking<0||charge>10||parking>10||!/^\d{2}:\d{2}$/.test(t(r.start))||!/^\d{2}:\d{2}$/.test(t(r.end)))return null;
    windows.push({start:r.start,end:r.end,chargePerMinute:charge,parkingPerMinute:parking});
+  }
+  if(energyFamily){
+   const kwh=n(energy[0].energyEurPerKwh),parking=n(energy[0].parkingTimeEurPerMinute);
+   if(kwh===null||parking===null||kwh<0||parking<0||kwh>5||parking>10)return null;
+   return {fee,energyEurPerKwh:kwh,windows:[{start:'07:00',end:'23:00',chargePerMinute:0,parkingPerMinute:parking},{start:'23:00',end:'07:00',chargePerMinute:0,parkingPerMinute:parking}]};
   }
   if(!windows.some(r=>r.start==='07:00'&&r.end==='23:00')||!windows.some(r=>r.start==='23:00'&&r.end==='07:00'))return null;
   windows.sort((a,b)=>a.start.localeCompare(b.start));
@@ -48,6 +56,7 @@
     countries:['FR'],currency:'EUR',operatorIds:['electric-55-charging-e55c','electric-55-charging','e55c'],evseIds:unique([evse,id]),
     ...(p.kind==='AC'||p.kind==='DC'?{connectorKinds:[p.kind]}:{}),
     pricing:{type:'e55c_exact',timeZone:'Europe/Paris',sessionFeeEur:value.fee,
+      ...(value.energyEurPerKwh!=null?{energyEurPerKwh:value.energyEurPerKwh}:{}),
       localRateWindows:value.windows.map(w=>({start:w.start,end:w.end,chargingTimeEurPerMinute:w.chargePerMinute,parkingTimeEurPerMinute:w.parkingPerMinute}))},
     priority:138,metadata:{source:'E55C public Scan Pay exact connector',sourceEvseId:evse,profileId,
      classificationBasis:profile.classificationBasis||null,exactEvseOnly:true,postChargeBeginsAtEnd:true,
