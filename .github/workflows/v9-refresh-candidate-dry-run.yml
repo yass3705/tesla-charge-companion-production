@@ -12,6 +12,11 @@ on:
       - "config/electra-legacy-source-provenance.json"
       - "scripts/build_snapshot.py"
       - "scripts/build_bump_exact_override.py"
+      - "scripts/supplement_france_bump_active.py"
+      - "data/overlays/france-bump-active-supplement-evidence-2026-10-13.json"
+      - "data/overlays/france-bump-exact-active-2026-10-13.json"
+      - "config/snapshots/2026-10-13-fr-bump-active-supplement-candidate.json"
+      - "tests/test_france_bump_active_supplement.py"
       - "data/overlays/france-bump-exact-current-2026-10-13.json"
       - "config/snapshots/2026-10-13-fr-bump-exact-current-candidate.json"
       - "tests/v9-bump-current-exact.test.mjs"
@@ -54,6 +59,11 @@ on:
       - "v9-production-shell/**"
       - "scripts/build_snapshot.py"
       - "scripts/build_bump_exact_override.py"
+      - "scripts/supplement_france_bump_active.py"
+      - "data/overlays/france-bump-active-supplement-evidence-2026-10-13.json"
+      - "data/overlays/france-bump-exact-active-2026-10-13.json"
+      - "config/snapshots/2026-10-13-fr-bump-active-supplement-candidate.json"
+      - "tests/test_france_bump_active_supplement.py"
       - "data/overlays/france-bump-exact-current-2026-10-13.json"
       - "config/snapshots/2026-10-13-fr-bump-exact-current-candidate.json"
       - "tests/v9-bump-current-exact.test.mjs"
@@ -153,6 +163,7 @@ jobs:
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
           python tests/test_france_belib_exact_supplement.py ../stable ../datalab ../dist/v9-dev-snapshot
           python tests/test_bump_exact_override.py ../stable ../dist/v9-dev-snapshot
+          python tests/test_france_bump_active_supplement.py ../datalab ../dist/v9-dev-snapshot
           node tests/uk-connected-kerb-guest-integration.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz
           node tests/belgium-nap-safe-pricing.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/BE/pages
 

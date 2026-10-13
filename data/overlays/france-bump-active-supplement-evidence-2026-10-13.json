@@ -1,0 +1,521 @@
+{
+  "schemaVersion": 1,
+  "country": "FR",
+  "policy": "unique_exact_evse_public_bump_positive_dynamic_status",
+  "sourceDataLabCommit": "e22c23b1ce6e59a3d834145624c78ea88803e7bb",
+  "sourceArtifactSha256": "8995ac4b077d92a4840dc2244787baba064ecb47c13ae1b11abeaf4951974978",
+  "newerIrveSha256": "7113daf751ff34922474d8c9ead10c8e998ca651400d56a08f4964d3e66cf94f",
+  "dynamicArtifactSha256": "d42e12ea4bdf8e4eb00ee57844f6257c430d8398ed446b64ad39a1af39388463",
+  "dynamicSourceSha256": "92c0d6dc57396c6ccab3d2dc580b1d2d3385f52b79add46d7e26f3d46df6327b",
+  "dynamicGeneratedAt": "2026-10-13T10:39:11Z",
+  "counts": {
+    "unjoinedSourceEvse": 543,
+    "absentNewerIrve": 485,
+    "notPositivelyActive": 16,
+    "rejectedGeoOrName": 3,
+    "approvedStations": 21,
+    "approvedEvse": 39
+  },
+  "rejectedGeoOrName": [
+    {
+      "evseId": "FRBMPE5631",
+      "nationalStationId": "FRBMPP779265P",
+      "bumpStationId": "FRBMPS836509",
+      "reason": "name_or_coordinates_disagree"
+    },
+    {
+      "evseId": "FRBMPEBMP9368",
+      "nationalStationId": "FRBMPP779265P",
+      "bumpStationId": "FRBMPS836509",
+      "reason": "name_or_coordinates_disagree"
+    },
+    {
+      "evseId": "FRBMPEBMP9369",
+      "nationalStationId": "FRBMPP779265P",
+      "bumpStationId": "FRBMPS836509",
+      "reason": "name_or_coordinates_disagree"
+    }
+  ],
+  "stations": [
+    {
+      "nationalStationId": "FRBMPP750037P500110671593290",
+      "name": "AVIA VOLT - Mantry - Mairie - 651",
+      "latitude": 46.79663,
+      "longitude": 5.55935,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP6961",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS833489",
+          "appLocationId": 750037,
+          "tariffId": "883c3bf6-3eb4-9f38-5415-1d721f92bbe0"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP752936P",
+      "name": "Bump - Val de Loire Automobile Auto - Tours - RES Driveco",
+      "latitude": 47.41777,
+      "longitude": 0.71789,
+      "evses": [
+        {
+          "evseId": "FRBMPE8648",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS833241",
+          "appLocationId": 752936,
+          "tariffId": "43affe96-3578-59ac-5331-a3d7c793d48a"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP752963P",
+      "name": "Bump - Groupe Vulcain - Vénissieux - RES Driveco",
+      "latitude": 45.70034,
+      "longitude": 4.87769,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP6958",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS811107",
+          "appLocationId": 752963,
+          "tariffId": "c459c485-8d20-c2d4-df0b-c0ecb5f7cc58"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP752964P",
+      "name": "Bump - Groupe Vulcain - Saint-Étienne - RES Driveco",
+      "latitude": 45.44828,
+      "longitude": 4.3909,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP4900",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS815042",
+          "appLocationId": 752964,
+          "tariffId": "c459c485-8d20-c2d4-df0b-c0ecb5f7cc58"
+        },
+        {
+          "evseId": "FRBMPEBMP4922",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS815041",
+          "appLocationId": 752964,
+          "tariffId": "c459c485-8d20-c2d4-df0b-c0ecb5f7cc58"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP753047P",
+      "name": "Bump - General Automobile - Orvault - RES Driveco",
+      "latitude": 47.25596,
+      "longitude": -1.63152,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP7080",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS814312",
+          "appLocationId": 753047,
+          "tariffId": "86e3a149-ab4b-f51c-39d8-28c593dda029"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP753082P",
+      "name": "Bump - Terres du Sud - Clairac - RES Driveco",
+      "latitude": 44.3604,
+      "longitude": 0.37577,
+      "evses": [
+        {
+          "evseId": "FRBMPE4303",
+          "kind": "AC",
+          "powerKw": 3.7,
+          "bumpStationId": "FRBMPS833268",
+          "appLocationId": 753082,
+          "tariffId": "233b716c-a8ef-b6f2-e368-9128f70cb163"
+        },
+        {
+          "evseId": "FRBMPE7522",
+          "kind": "AC",
+          "powerKw": 3.7,
+          "bumpStationId": "FRBMPS833266",
+          "appLocationId": 753082,
+          "tariffId": "233b716c-a8ef-b6f2-e368-9128f70cb163"
+        },
+        {
+          "evseId": "FRBMPEBMP9165",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS833266",
+          "appLocationId": 753082,
+          "tariffId": "233b716c-a8ef-b6f2-e368-9128f70cb163"
+        },
+        {
+          "evseId": "FRBMPEBMP9166",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS833266",
+          "appLocationId": 753082,
+          "tariffId": "233b716c-a8ef-b6f2-e368-9128f70cb163"
+        },
+        {
+          "evseId": "FRBMPEBMP9167",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS833268",
+          "appLocationId": 753082,
+          "tariffId": "233b716c-a8ef-b6f2-e368-9128f70cb163"
+        },
+        {
+          "evseId": "FRBMPEBMP9168",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS833268",
+          "appLocationId": 753082,
+          "tariffId": "233b716c-a8ef-b6f2-e368-9128f70cb163"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP753146P",
+      "name": "Bump - Atlanten - Les Sables-d'Olonne - RES Driveco",
+      "latitude": 46.49111,
+      "longitude": -1.749,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP7067",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS813372",
+          "appLocationId": 753146,
+          "tariffId": "86e3a149-ab4b-f51c-39d8-28c593dda029"
+        },
+        {
+          "evseId": "FRBMPEBMP7068",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS813372",
+          "appLocationId": 753146,
+          "tariffId": "86e3a149-ab4b-f51c-39d8-28c593dda029"
+        },
+        {
+          "evseId": "FRBMPEBMP7074",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS813370",
+          "appLocationId": 753146,
+          "tariffId": "86e3a149-ab4b-f51c-39d8-28c593dda029"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP762610P",
+      "name": "Bump - Groupe Lecluse - Cesson-Sévigné - RES Driveco",
+      "latitude": 48.10497,
+      "longitude": -1.6162,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP4634",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS819688",
+          "appLocationId": 762610,
+          "tariffId": "b2d1fbb3-4444-558f-43e0-e05457fc7bc8"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP762660P",
+      "name": "Bump - ABVV - Saint-Ouen-l'Aumône - RES Driveco",
+      "latitude": 49.03667,
+      "longitude": 2.12281,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP7269",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS830579",
+          "appLocationId": 762660,
+          "tariffId": "3419c3d0-7030-f6df-3061-b13ea11474b2"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP762675P",
+      "name": "Bump - KEOL - SAINT PIERRE LES NEMOURS - keol",
+      "latitude": 48.2698,
+      "longitude": 2.67553,
+      "evses": [
+        {
+          "evseId": "FRBMPE1060",
+          "kind": "AC",
+          "powerKw": 3.7,
+          "bumpStationId": "FRBMPS834639",
+          "appLocationId": 762675,
+          "tariffId": "42f113d4-8463-d4fc-519e-41f1d6995e44"
+        },
+        {
+          "evseId": "FRBMPEBMP8500",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS834639",
+          "appLocationId": 762675,
+          "tariffId": "42f113d4-8463-d4fc-519e-41f1d6995e44"
+        },
+        {
+          "evseId": "FRBMPEBMP8501",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS834639",
+          "appLocationId": 762675,
+          "tariffId": "42f113d4-8463-d4fc-519e-41f1d6995e44"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP763214P",
+      "name": "Bump - SOVIMAR - SAINT VICTORET - GSVI MARSEILLE",
+      "latitude": 43.41953,
+      "longitude": 5.23063,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP9326",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS836708",
+          "appLocationId": 763214,
+          "tariffId": "d08d31d8-41b8-bd7a-c600-4f75bfc43b8d"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP763217P",
+      "name": "Bump - OTERA - Amiens - OTERA AMIENS",
+      "latitude": 49.89406,
+      "longitude": 2.29575,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP9303",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS837720",
+          "appLocationId": 763217,
+          "tariffId": "e99d12c0-91a1-3e67-0d11-ec65ac53fa93"
+        },
+        {
+          "evseId": "FRBMPEBMP9304",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS837720",
+          "appLocationId": 763217,
+          "tariffId": "e99d12c0-91a1-3e67-0d11-ec65ac53fa93"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP764658P",
+      "name": "Bump - Groupe Lecluse - Lanester - RES Driveco",
+      "latitude": 47.77954,
+      "longitude": -3.33971,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP3903",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS819593",
+          "appLocationId": 764658,
+          "tariffId": "e39b9a5f-793d-e636-163c-0afd04bbbfb8"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP764661P",
+      "name": "Bump - Groupe Lecluse - Avrainville - RES Driveco",
+      "latitude": 48.56404,
+      "longitude": 2.2289,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP3941",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS819588",
+          "appLocationId": 764661,
+          "tariffId": "fbfb04e8-ce42-d46e-daf0-cd9a2a263bf1"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP765303P",
+      "name": "Bump - Cardona - Istres - RES Driveco",
+      "latitude": 43.49956,
+      "longitude": 4.97751,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP9364",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS836500",
+          "appLocationId": 765303,
+          "tariffId": "3710585d-4059-d0d2-802e-41867368189c"
+        },
+        {
+          "evseId": "FRBMPEBMP9379",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS836500",
+          "appLocationId": 765303,
+          "tariffId": "3710585d-4059-d0d2-802e-41867368189c"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP769180P",
+      "name": "Bump - General Automobile - Les Sorinières - Les Sorinieres",
+      "latitude": 47.15191,
+      "longitude": -1.53539,
+      "evses": [
+        {
+          "evseId": "FRBMPE7665",
+          "kind": "AC",
+          "powerKw": 3.7,
+          "bumpStationId": "FRBMPS830487",
+          "appLocationId": 769180,
+          "tariffId": "ad9421ca-9d06-cfe4-1a70-c79e062ec6b0"
+        },
+        {
+          "evseId": "FRBMPEBMP7790",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS830490",
+          "appLocationId": 769180,
+          "tariffId": "ad9421ca-9d06-cfe4-1a70-c79e062ec6b0"
+        },
+        {
+          "evseId": "FRBMPEBMP7791",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS830490",
+          "appLocationId": 769180,
+          "tariffId": "ad9421ca-9d06-cfe4-1a70-c79e062ec6b0"
+        },
+        {
+          "evseId": "FRBMPEBMP7792",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS830487",
+          "appLocationId": 769180,
+          "tariffId": "ad9421ca-9d06-cfe4-1a70-c79e062ec6b0"
+        },
+        {
+          "evseId": "FRBMPEBMP7793",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS830487",
+          "appLocationId": 769180,
+          "tariffId": "ad9421ca-9d06-cfe4-1a70-c79e062ec6b0"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP769464P",
+      "name": "Bump - Groupe Maurin Automobiles - Aix-en-Provence - Volvo",
+      "latitude": 43.51199,
+      "longitude": 5.4214,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP8311",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS833114",
+          "appLocationId": 769464,
+          "tariffId": "4cccc5a3-7ab6-4118-06e7-fa17b77bb9f3"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP774893P",
+      "name": "Bump - Groupe Maurin Automobiles - Avignon - Volvo",
+      "latitude": 43.9179,
+      "longitude": 4.87081,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP8377",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS825887",
+          "appLocationId": 774893,
+          "tariffId": "4cccc5a3-7ab6-4118-06e7-fa17b77bb9f3"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP781203P",
+      "name": "Bump - Groupe Maurin Automobiles - La Garde - Volvo Jaguar Land Rover Suzuki",
+      "latitude": 43.13897,
+      "longitude": 6.02722,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP8394",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS833155",
+          "appLocationId": 781203,
+          "tariffId": "4cccc5a3-7ab6-4118-06e7-fa17b77bb9f3"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP781386P",
+      "name": "AVIA VOLT- Portes-lès-Valence - Aire de Porte-Les-Valence",
+      "latitude": 44.87502,
+      "longitude": 4.87701,
+      "evses": [
+        {
+          "evseId": "FRBMPEBMP9076",
+          "kind": "DC",
+          "powerKw": 43.0,
+          "bumpStationId": "FRBMPS836278",
+          "appLocationId": 781386,
+          "tariffId": "ea865a43-a998-a52d-b2be-a432347e874c"
+        }
+      ]
+    },
+    {
+      "nationalStationId": "FRBMPP782250P",
+      "name": "AVIA VOLT - Couternon - Parking Echangeur Arc-sur-Tille",
+      "latitude": 47.32137,
+      "longitude": 5.20259,
+      "evses": [
+        {
+          "evseId": "FRBMPE1892",
+          "kind": "AC",
+          "powerKw": 3.7,
+          "bumpStationId": "FRBMPS836164",
+          "appLocationId": 782250,
+          "tariffId": "c09b9a79-c46d-7dc2-fa1e-a8b9ab0ac305"
+        },
+        {
+          "evseId": "FRBMPEBMP9070",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS836164",
+          "appLocationId": 782250,
+          "tariffId": "c09b9a79-c46d-7dc2-fa1e-a8b9ab0ac305"
+        },
+        {
+          "evseId": "FRBMPEBMP9071",
+          "kind": "AC",
+          "powerKw": 22.0,
+          "bumpStationId": "FRBMPS836164",
+          "appLocationId": 782250,
+          "tariffId": "c09b9a79-c46d-7dc2-fa1e-a8b9ab0ac305"
+        }
+      ]
+    }
+  ]
+}

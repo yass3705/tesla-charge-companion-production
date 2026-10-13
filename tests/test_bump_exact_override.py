@@ -20,9 +20,10 @@ class BumpExactOverrideTest(unittest.TestCase):
 
     def test_exact_accounting_and_operator(self):
         proof = validate(self.payload, self.inventory, self.stable_catalogue)
-        self.assertEqual((proof["attachedEvse"], proof["unjoinedCurrentSourceEvse"]), (1744, 543))
+        expected = (1783, 504) if self.payload["sourceEvidence"]["unjoinedCurrentSourceEvse"] == 504 else (1744, 543)
+        self.assertEqual((proof["attachedEvse"], proof["unjoinedCurrentSourceEvse"]), expected)
         self.assertEqual((proof["retainedOldEvse"], proof["removedOldEvse"], proof["newAttachedEvse"]),
-                         (1690, 60, 54))
+                         (1690, 60, 93 if expected[0] == 1783 else 54))
 
     def test_foreign_evse_and_duplicate_are_rejected(self):
         foreign = copy.deepcopy(self.payload)
