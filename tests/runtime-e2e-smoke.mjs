@@ -58,6 +58,8 @@ if(allegoActive)wanted.add('allego-uk-pcpr-direct');
 const ukPcpr=allegoActive?require(path.join(runtime,'assets/v9/adapters/uk-pcpr.js')):null;
 const ckGuestActive=registry.sources.some(s=>s.id==='uk-connected-kerb-guest-direct'&&s.active===true);
 if(ckGuestActive)wanted.add('uk-connected-kerb-guest-direct');
+const spieDirectActive=registry.sources.some(s=>s.id==='france-spie-metropolis-direct-exact'&&s.active===true);
+if(spieDirectActive)wanted.add('france-spie-metropolis-direct-exact');
 const subRegistry={...registry,sources:(registry.sources||[]).filter(s=>wanted.has(s.id))};
 
 extension.install({
@@ -238,6 +240,41 @@ if(beActive){
 
 const frResult=await engine.queryArea({countryCode:'FR',origin:{lat:48.8566,lon:2.3522},radiusKm:25,routingBudget:20});
 assert.ok(frResult.stations.length>0,'FR returned no stations');
+if(spieDirectActive){
+  const spiePayload=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/FR/direct/metropolis_spie_direct_offers.json'),'utf8'));
+  assert.equal(spiePayload.stats.sourceExact,740,'Metropolis source pin changed without audit');
+  assert.equal(spiePayload.directOffers.length,726,'Metropolis exact standard offers lost');
+  assert.equal(spiePayload.stats.excluded.post_charge_schedule_unsupported,14,'Neuilly schedule exclusion changed');
+  const rawStatic=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(runtime,'data/v9/france-static/all.json.gz'))));
+  const staticById=new Map(rawStatic.map(row=>[row[0],row]));
+  const spieRules=directOffers.normalizePayload(spiePayload).offerRules;
+  const pricing=require(path.join(runtime,'assets/v9/pricing-engine.js'));
+  for(const rule of spieRules){
+    const raw=staticById.get(rule.stationIds[0]);
+    assert.ok(raw,`Metropolis ${rule.id} lost its exact national station`);
+    const fragment=nationalCompact.normalizeRow(raw,{countryCode:'FR',sourceId:'france-national',queryDate:'2026-10-13'});
+    const station=dataEngine.resolveEntities([{source:registry.sources.find(s=>s.id==='france-national'),fragment}])[0];
+    assert.ok(dataEngine.ruleMatchesStation(rule,station),`Metropolis ${rule.id} failed actual runtime identity rules`);
+    const matchedEvse=station.evses.filter(evse=>(evse.pdcIds||[]).some(id=>rule.evseIds.includes(id)));
+    assert.equal(matchedEvse.length,1,`Metropolis ${rule.id} no longer has one matching EVSE`);
+    const quote=pricing.evaluateOffer(rule,{energyKwh:10.1,durationMinutes:60,chargingMinutes:60,
+      postChargeMinutes:11.2,startAt:'2026-10-13T10:00:00Z'});
+    const expected=Math.round((11*rule.pricing.rules[0].pricePerKwh+
+      2*rule.pricing.postChargeFee.blockEur)*100)/100;
+    assert.equal(quote.complete,true,`Metropolis ${rule.id} became incalculable`);
+    assert.equal(quote.totalEur,expected,`Metropolis ${rule.id} diverges from independent fee arithmetic`);
+  }
+  const spieArea=await engine.queryArea({countryCode:'FR',origin:{lat:48.69076,lon:2.37082},radiusKm:2,routingBudget:20});
+  const station=spieArea.stations.find(s=>s.id==='FR:national:FRMGPP91326A');
+  assert.ok(station,'Metropolis Juvisy station absent from national runtime');
+  const offer=(station.offers||[]).find(o=>o.id==='metropolis-direct:FRMGPE91326AB1P5');
+  assert.ok(offer,'Exact Metropolis direct offer failed to attach to Juvisy EVSE');
+  assert.ok(offer.evseIds.includes('FRMGPE91326AB1P5'),'Metropolis offer lost exact EVSE identity');
+  const quote=pricing.evaluateOffer(offer,{energyKwh:10.1,durationMinutes:60,chargingMinutes:60,
+    postChargeMinutes:11.2,startAt:'2026-10-13T10:00:00Z'});
+  assert.equal(quote.complete,true,'Metropolis public standard price became incalculable');
+  assert.equal(quote.totalEur,6.23,'Metropolis started kWh and post-charge minutes billed incorrectly');
+}
 const frStaticManifest=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/france-static/manifest.json'),'utf8'));
 if(frStaticManifest.exactSupplement){
   const belibIds=['FRV75PPX0750','FRV75PPX1633','FRV75PPX1634','FRV75PPX1817'];

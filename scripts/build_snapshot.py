@@ -938,6 +938,32 @@ def main():
             local.append("france-electra-direct-exact")
         write_json(registry,reg)
 
+    # The Metropolis subnetwork has an official public 2026 grid and exact
+    # national EVSE identities. The separate compiler excludes special
+    # Neuilly post-charge schedules until their time-window fee is supported.
+    if cfg.get("franceSpieMetropolisDirect") is True:
+        spie_exact=dl/"data/operator_direct/metropolis_spie_official_france.json"
+        if not spie_exact.exists():
+            raise FileNotFoundError(spie_exact)
+        subprocess.run([
+            sys.executable,str(production_root/"scripts/build_spie_metropolis_direct_offers.py"),
+            str(spie_exact),str(out/"runtime/data/v9/france-static/all.json.gz"),
+            str(fr_direct/"metropolis_spie_direct_offers.json")
+        ],check=True)
+        copy_file(spie_exact,fr_direct/"metropolis_spie_official_france.json")
+        reg=load_json(registry)
+        for source in reg.get("sources",[]):
+            if source.get("id")=="france-spie-metropolis-direct-exact":
+                source["active"]=True
+                source["optional"]=False
+                break
+        else:
+            raise AssertionError("Metropolis direct registry source missing")
+        local=reg.setdefault("productionIntegration",{}).setdefault("snapshotLocalSources",[])
+        if "france-spie-metropolis-direct-exact" not in local:
+            local.append("france-spie-metropolis-direct-exact")
+        write_json(registry,reg)
+
     # Italy validated direct overlays beside the compiled static baseline.
     it_dst=overlays/"IT/direct"
     it_dst.mkdir(parents=True,exist_ok=True)
