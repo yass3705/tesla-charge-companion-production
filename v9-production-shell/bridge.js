@@ -59,11 +59,11 @@
       const metadata=offer?.metadata||{},label=text(metadata.subscriptionName||metadata.subscriptionLabel||offer?.subscriptionName||offer?.provider||id);
       const promotionEnd=text(offer?.monthlyFeePromotionEnd||metadata.promotionEnd),feeCurrent=!promotionEnd||promotionEnd>=new Date().toISOString().slice(0,10);
       const monthlyFeeEur=feeCurrent?num(offer?.monthlyFeeEur??metadata.monthlyFeeEur):null,annualFeeEur=num(offer?.annualFeeEur??metadata.annualFeeEur);
-      if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur,annualFeeEur,feeNote:feeCurrent?'':'Mensualité à vérifier après promotion'});
+      if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur,annualFeeEur,feeNote:feeCurrent?'':'Mensualité à vérifier après promotion',coverageNote:text(metadata.coverageNote||offer?.coverageNote),source:text(metadata.source||offer?.source),validationDate:text(metadata.validationDate||metadata.validatedAt)});
     }
     const localElectra=stations.some(st=>/electra/i.test(text(st.physicalOperator?.id)+' '+text(st.physicalOperator?.name)))||allOperators.some(op=>/electra/i.test(text(op.id)+' '+text(op.name)));
     if(country==='FR'&&localElectra)for(const plan of ELECTRA_PLUS_PLANS){
-      if(!options.has(plan.id))options.set(plan.id,{...plan,countries:['FR'],coverageNote:'Remise sur les bornes Electra. Le prix de la session exige un tarif direct vérifié pour la borne.'});
+      if(!options.has(plan.id))options.set(plan.id,{...plan,countries:['FR'],coverageNote:'Bornes Electra avec tarif direct unique vérifié · −'+plan.discountPerKwhEur.toFixed(2)+' €/kWh',source:'Electra+',validationDate:'2026-10-13'});
     }
     return [...options.values()].sort((a,b)=>subscriptionLabel(a).localeCompare(subscriptionLabel(b),'fr'));
   }
@@ -86,11 +86,11 @@
       .filter(offer=>/^(emsp|roaming)$/i.test(text(offer?.kind))||/electra|electroverse/i.test(text(offer?.provider)))
       .map(offer=>text(offer?.provider)).filter(name=>/electra|electroverse/i.test(name)))];
     const emspMessage=emspProviders.length?' Les tarifs '+emspProviders.join(', ')+' affichés dans les résultats sont des prix eMSP, distincts d’un abonnement.':'';
-    const choices=rows.map(row=>'<label style="display:flex;align-items:flex-start;gap:8px;margin:0;padding:5px 2px"><input type="checkbox" value="'+esc(row.id)+'"'+(selected.has(text(row.id))?' checked':'')+' style="width:auto;margin:2px 0 0"><span><b>'+esc(subscriptionLabel(row))+'</b>'+(row.monthlyFeeEur!=null?' · '+esc(formatCurrencyAmount(row.monthlyFeeEur,'EUR'))+'/mois':row.annualFeeEur!=null?' · '+esc(formatCurrencyAmount(row.annualFeeEur,'EUR'))+'/an':row.feeNote?' · '+esc(row.feeNote):'')+'<span class="small" style="display:block">'+esc(row.coverageNote||row.provider)+'</span></span></label>').join('');
+    const choices=rows.map(row=>'<label style="display:flex;align-items:flex-start;gap:8px;margin:0;padding:5px 2px"><input type="checkbox" value="'+esc(row.id)+'"'+(selected.has(text(row.id))?' checked':'')+' style="width:auto;margin:2px 0 0"><span><b>'+esc(subscriptionLabel(row))+'</b>'+(row.monthlyFeeEur!=null?' · '+esc(formatCurrencyAmount(row.monthlyFeeEur,'EUR'))+'/mois':row.annualFeeEur!=null?' · '+esc(formatCurrencyAmount(row.annualFeeEur,'EUR'))+'/an':row.feeNote?' · '+esc(row.feeNote):'')+'<span class="small" style="display:block">'+esc(row.coverageNote||row.provider)+'</span>'+(row.source||row.validationDate?'<span class="small" style="display:block">'+esc([row.source,row.validationDate].filter(Boolean).join(' · '))+'</span>':'')+'</span></label>').join('');
     box.innerHTML='<b>Abonnements recharge</b> <span class="small">('+rows.length+' offre(s) vérifiée(s) en '+esc(countryCode)+')</span>'+
       '<div class="small" style="margin-top:6px">Choisis les abonnements que tu possèdes. Le tarif intervient seulement sur les bornes auxquelles il s’applique; les frais mensuels sont indiqués séparément.</div>'+
-      (rows.length?'<div id="v9SubscriptionChoices" role="group" aria-label="Abonnements recharge, sélection multiple" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:3px;max-height:180px;overflow:auto;margin-top:8px">'+choices+'</div>'+
-        '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button></div>':
+      (rows.length?'<details class="v9-subscription-list" style="margin-top:8px"><summary>Choisir mes abonnements ('+selected.size+' actif(s))</summary><div id="v9SubscriptionChoices" role="group" aria-label="Abonnements recharge, sélection multiple" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:3px;max-height:180px;overflow:auto;margin-top:8px">'+choices+'</div>'+
+        '<div class="row" style="margin-top:8px"><button type="button" class="secondary v9-sub-none" style="width:auto">Aucun abonnement</button></div></details>':
         '<div class="small" style="margin-top:8px">Aucun tarif d’abonnement vérifié pour les bornes de cette zone.'+esc(emspMessage)+'</div>');
     const selectedIds=()=>[...box.querySelectorAll('#v9SubscriptionChoices input:checked')].map(input=>text(input.value));
     box.querySelector('#v9SubscriptionChoices')?.addEventListener('change',event=>{
@@ -586,6 +586,35 @@
     if(offerConnectorIds.length&&![...connectorIds||[]].some(id=>offerConnectorIds.includes(text(id))))return false;
     return true;
   }
+  function electraPlusOffers(station,selected=[]){
+    if(text(station?.countryCode).toUpperCase()!=='FR'||
+       ![text(station?.physicalOperator?.id),text(station?.physicalOperator?.name)].some(value=>value.toLowerCase()==='electra'))return[];
+    const bases=(station.offers||[]).filter(offer=>text(offer.id).startsWith('electra-direct-exact:')&&
+      text(offer.kind)==='direct'&&text(offer.currency).toUpperCase()==='EUR'&&
+      offer.metadata?.verified===true&&!offer.metadata?.tariffAmbiguous);
+    if(bases.length!==1)return[]; // A station-level choice between tariffs has no EVSE attribution.
+    const base=bases[0],groups=base.pricing?.componentGroups;
+    if(!Array.isArray(groups)||!groups.length)return[];
+    return ELECTRA_PLUS_PLANS.filter(plan=>selected.includes(plan.id)).flatMap(plan=>{
+      const pricing=JSON.parse(JSON.stringify(base.pricing));let energyRules=0;
+      for(const group of pricing.componentGroups){
+        if(!Array.isArray(group.rules)||!group.rules.length)return[];
+        for(const rule of group.rules){
+          const price=num(rule.pricePerKwh);
+          if(price==null)continue; // Other OCPI elements (for example congestion) keep their original rate.
+          if(price<plan.discountPerKwhEur)return[];
+          rule.pricePerKwh=Math.round((price-plan.discountPerKwhEur)*1e6)/1e6;
+          energyRules++;
+        }
+      }
+      if(!energyRules)return[];
+      return[{...base,id:base.id+':'+plan.id,kind:'subscription',subscriptionId:plan.id,
+        pricing,metadata:{...base.metadata,source:'Electra+ official France terms',
+          sourceUrl:'https://www.go-electra.com/fr/electra-plus/',baseOfferId:base.id,
+          discountPerKwhEur:plan.discountPerKwhEur,monthlyFeeEur:plan.monthlyFeeEur,
+          validationDate:'2026-10-13'}}];
+    });
+  }
 
   // Never rank a contradictory tariff as though it were a verified best price.
   // Keep its evidence in the alternatives so its own lane still says ambiguous.
@@ -623,7 +652,7 @@
           evses.push({...original,connectors:connectors.map(item=>item.connector)});
         }
         const scopedOffers=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,group.evseTokens,group.connectorIds));
-        const variant={...station,evses,offers:scopedOffers},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
+        const variant={...station,evses,offers:scopedOffers.concat(electraPlusOffers({...station,offers:scopedOffers},selectedSubscriptions))},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
         const plan=planner.planStation(variant,session,{route:{byStationId:routeMap}});
         const rawEvaluation=sessionEngine.evaluateStation(variant,plan.effectiveSession,{selectedSubscriptions,targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}});
         const evaluation=consistentLaneEvaluation(rawEvaluation,variant,selectedSubscriptions);
@@ -744,7 +773,7 @@
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st,area?.displayFxRates)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+(row.distanceEstimated?' km à vol d’oiseau':' km'):'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(st.name||'Borne')+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st,area?.displayFxRates,area?.selectedSubscriptions)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+(row.distanceEstimated?' km à vol d’oiseau':' km'):'')+'</div>'+renderCostPerKm(row)+(score?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
     renderMapSummary(w,area,rows);
   }
 
@@ -1164,5 +1193,5 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 });

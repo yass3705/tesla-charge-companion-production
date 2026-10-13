@@ -12,6 +12,7 @@ on:
       - "tests/v9-congestion-soc80.test.mjs"
       - "tests/test_electra_direct_ocpi.py"
       - "tests/france-direct-offer-kind.test.mjs"
+      - "tests/v9-electra-plus-direct.test.mjs"
       - "tests/v9-tesla-global-layout.test.mjs"
       - "runtime-overrides/assets/v9/adapters/direct-offers.js"
       - "scripts/build_electra_direct_offers.py"
@@ -161,6 +162,7 @@ jobs:
           python3 -m unittest discover -s production/tests -p 'test_uk_geniepoint_tariff_choice.py'
           node production/tests/belgium-nap-safe-pricing.test.mjs
           node production/tests/france-direct-offer-kind.test.mjs
+          node production/tests/v9-electra-plus-direct.test.mjs
           node production/tests/v9-tesla-global-layout.test.mjs
       - uses: actions/checkout@v4
         with:
@@ -344,6 +346,7 @@ jobs:
           node production/tests/v9-shell-grouping.test.mjs
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
+          node production/tests/v9-electra-plus-direct.test.mjs dist/v9-global-preview
           node production/tests/v9-ocpi-component-coverage.test.mjs dist/v9-global-preview
           node production/tests/v9-congestion-soc80.test.mjs dist/v9-global-preview
           python -m unittest discover -s production/tests -p "test_electra_direct_ocpi.py"
