@@ -35,4 +35,34 @@ assert.equal(offer([part('pricePerKWh',0.61),part('pricePerMinute',0.33,46)]),nu
 assert.equal(offer([part('pricePerKWh',0.61),part('pricePerMinute',0.32,45)]),null);
 const fake=part('pricePerMinute',0.33,45);fake.rawApplicabilityLeaves.push({path:'energyPrice/unknown',value:'x'});
 assert.equal(offer([part('pricePerKWh',0.61),fake]),null);
-console.log('EnergyVision exact 45 post-charge / 1080 connected tariff family oracles PASS');
+
+const timePaths=[
+ 'energyPrice/overallPeriod/overallStartTime',
+ 'energyPrice/overallPeriod/validPeriod/recurringTimePeriodOfDay/startTimeOfPeriod',
+ 'energyPrice/overallPeriod/validPeriod/recurringTimePeriodOfDay/endTimeOfPeriod'
+];
+function timedPart(type,amount,start,end){
+ const p=part(type,amount,360);
+ p.rawApplicabilityLeaves.push(
+ {path:timePaths[0],value:'2026-03-09T08:18:55.000000Z'},
+ {path:timePaths[1],value:start},{path:timePaths[2],value:end});
+ return p;
+}
+const early=part('pricePerKWh',0.28);
+early.rawApplicabilityLeaves.push({path:'energyPrice/timeBasedApplicability/toMinute',value:'360'});
+const daytime=offer([early,timedPart('pricePerKWh',0.28,'09:00:00','21:59:00'),
+ timedPart('pricePerKWh',0.28,'22:00:00','23:59:00'),
+ timedPart('pricePerKWh',0.28,'00:00:00','08:59:00'),
+ timedPart('pricePerMinute',0.06,'09:00:00','21:59:00')]);
+assert.ok(daytime);
+assert.equal(daytime.pricing.postChargeFee.graceMinutes,360);
+const daySession={energyKwh:20,durationMinutes:480,chargingMinutes:60,postChargeMinutes:420};
+assert.equal(engine.evaluateOffer(daytime,{...daySession,startAt:'2026-10-13T09:00:00+02:00'}).totalEur,9.2);
+assert.equal(engine.evaluateOffer(daytime,{...daySession,startAt:'2026-10-13T15:00:00+02:00'}).totalEur,5.6);
+assert.equal(engine.evaluateOffer(daytime,{...daySession,startAt:'2026-10-13T14:30:00+02:00'}).totalEur,7.4);
+const conflictPart=timedPart('pricePerMinute',0.06,'09:00:00','21:58:00');
+assert.equal(offer([early,timedPart('pricePerKWh',0.28,'09:00:00','21:59:00'),
+ timedPart('pricePerKWh',0.28,'22:00:00','23:59:00'),
+ timedPart('pricePerKWh',0.28,'00:00:00','08:59:00'),conflictPart]),null);
+
+console.log('EnergyVision strict 45/360 post-charge and 1080 connected family oracles PASS');
