@@ -134,6 +134,12 @@ def main():
         if evidence.get("source",{}).get("directTariff",{}).get("nationalOwnEmspOnlyVerified") is not True:
             raise AssertionError("E55C national sole source is not verified")
         copy_file(e55c_src,out/"snapshot-inputs/FR/direct/e55c-exact-france.json")
+    if e55c_cfg:
+        subprocess.run([
+            sys.executable,
+            str(production_root/"scripts/patch_e55c_pricing.py"),
+            str(out/"runtime/assets/v9/pricing-engine.js"),
+        ],check=True)
     registry=out/"runtime/data/v9/source-registry.json"
     subprocess.run([sys.executable,str(production_root/"scripts/build_runtime_registry.py"),str(registry)],check=True)
 
