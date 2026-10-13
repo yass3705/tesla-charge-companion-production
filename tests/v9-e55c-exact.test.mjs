@@ -52,6 +52,17 @@ const parking=calc(premium[0],'2026-10-13T20:00:00Z',30,60,'2026-10-13T20:30:00Z
 close(parking.totalEur,0.6+30*0.084+30*0.084+30*0.0624);
 close(calc(premium[0],'2026-10-13T20:00:00Z',30).components.postCharge.totalEur,0);
 close(calc(low[0][0],'2026-10-13T10:00:00Z',60).totalEur,2.904);
+const energyOffers=normalized.offerRules.filter(o=>o.pricing.energyEurPerKwh!=null);
+assert.equal(energyOffers.length,2);
+assert(energyOffers.every(o=>o.metadata.sourceEvseId.startsWith('FR*55C*EFR83310*A1RESTP0NS*')));
+assert(energyOffers.every(o=>o.connectorKinds?.includes('DC')));
+const dc=energyOffers[0];
+assert.equal(dc.pricing.energyEurPerKwh,0.576);
+const dcCost=engine.evaluateOffer(dc,{startAt:'2026-10-13T10:00:00Z',durationMinutes:30,chargingMinutes:30,energyKwh:10,postChargeMinutes:60});
+assert.equal(dcCost.complete,true,JSON.stringify(dcCost));
+close(dcCost.totalEur,0.6+10*0.576+60*0.0996);
+const dcNoEnergy=engine.evaluateOffer(dc,{startAt:'2026-10-13T10:00:00Z',durationMinutes:30,chargingMinutes:30});
+assert.equal(dcNoEnergy.complete,false);
 const malicious=structuredClone(data);
 malicious.source.directTariff.nationalOwnEmspOnlyVerified=false;
 assert.throws(()=>adapter.normalizePayload(malicious,source));
