@@ -4,7 +4,7 @@
 
 | Rôle | Référence vérifiée |
 | --- | --- |
-| Production `main` | `56dc2f7a2730aff284c4aa7d15881c0f83fa2cc3` |
+| Production `main` (dernier changement du candidat ; rapport mis à jour ensuite) | `56dc2f7a2730aff284c4aa7d15881c0f83fa2cc3` ; documentation `b49ece6fad265d336131f00503f4b57f173c390c` |
 | Pin de développement | `2026-10-13-fr-spie-neuilly-timewindow-candidate` |
 | Data Lab / Stable épinglés | `e39a4466096b520b3c459e75539bf9b112235165` / `0a6d2c3415504397310d3dc92fae40be843b2435` |
 | Pages public contrôlé par HTTP | `2026-10-13-nine-country-be-belib-exact-candidate`, depuis `v9-production-shell/shell-config.json` |
@@ -45,6 +45,14 @@ Ces mesures couvrent respectivement la **source**, la **jointure** ou la **calcu
 - **Italie, Suisse, Allemagne, Espagne, Maroc, Belgique :** les entrées épinglées et les adaptateurs passent le smoke, sans revendication de couverture nationale intégrale. AVIA CH 589 connecteurs tarifés stable ; Atlante IT 1 831 → 1 833 ; BE NAP 16 961 sites / 70 523 EVSE dont 57 548 avec prix ad-hoc dans l'entrée source (la calculabilité runtime est un niveau distinct). Le Maroc reste une consolidation CPO partielle, sans base exhaustive. ES/BE/Tesla n'ont pas changé de fichier source entre les deux pins comparés.
 
 Le pin actuel inclut le nouveau fichier SPIE Metropolis : 740 IDs EVSE uniques, dont 740 offres directes exactes avec toutes les composantes représentées. L'ancien fichier en comptait 1 651 lignes mais seulement 911 IDs uniques ; ces anciens doublons ne sont pas publiés. Les collectes brutes BUMP, ETotem, WAAT et REVE changées entre les deux SHA Data Lab ne deviennent pas automatiquement des offres du candidat : la comparaison des manifests n'ajoute que deux fichiers Métropolis et ne supprime aucun fichier. Les PR Production #28, #17 et #4 ainsi que Data Lab #219/#197 restent ouvertes ou brouillons ; aucune n'est utilisée comme nouvelle source sans revue.
+
+## Collectes et corrections postérieures au pin de développement
+
+- **BUMP France :** Data Lab [#241](https://github.com/yass3705/tesla-charge-companion-data-lab/pull/241) à [#246](https://github.com/yass3705/tesla-charge-companion-data-lab/pull/246) ont distingué l'inventaire sans prix du tarif GraphQL, réparé le parseur de 1 039 règles variables et corrigé l'export qui recopiait des champs internes illisibles par le moteur V9. Dans la source du 13 octobre, 2 295/2 500 points français ont un tarif source classable ; 2 287 EVSE exacts sont maintenant couverts par 65 offres runtime Data Lab représentables. Huit EVSE à grilles horaires restent en quarantaine, 205 points n'ont aucun tarif source classable. Les tests d'identité et de schéma, les seuils stricts et les oracles du vrai moteur ont été exécutés. Ces offres **ne sont pas présentes dans le candidat Production épinglé**. [Preuve détaillée](https://github.com/yass3705/tesla-charge-companion-data-lab/blob/main/docs/v9-france-post-pin-direct-source-gate-2026-10-13.md).
+- **WAAT et ETotem France :** la collecte WAAT Monta rapproche 550 stations mais aucun des 407 groupes directs n'a d'EVSE explicite et aucun n'est classable ; QualiCharge ne retrouve aucune station WAAT. ETotem fournit 641 stations et 3 350 points sans texte tarifaire. Aucun prix n'est promu à partir de ces seules données.
+- **Douze flux UK ouverts :** le run [38400775080](https://github.com/yass3705/tesla-charge-companion-data-lab/actions/runs/38400775080) a publié 11 205 sites/22 588 EVSE, contre 11 171/22 538 dans le pin. Deux sources sont désormais partielles : `char.gy` conserve cinq IDs tarifaires absents couvrant 1 128 EVSE, et ChargePlace Scotland manque deux objets tarifaires encore référencés par 116 EVSE (95 actifs `AVAILABLE`/`CHARGING`). Les anciens objets ChargePlace datent de novembre 2024 et ne sont pas reconduits sans preuve actuelle. **Aucun repin UK** ; les données de collecte ne sont pas des prix validés. [Différentiel détaillé](https://github.com/yass3705/tesla-charge-companion-data-lab/blob/main/docs/v9-uk-open-feeds-post-pin-diff-2026-10-13.md).
+
+L'état de publication est toujours le même : candidat de développement `2026-10-13-fr-spie-neuilly-timewindow-candidate`, public Pages `2026-10-13-nine-country-be-belib-exact-candidate`. Aucun déploiement Pages ou Cloudflare n'a été exécuté pour ces travaux post-pin.
 
 ## Décision de publication future
 
