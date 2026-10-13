@@ -53,9 +53,9 @@ lully.station.evses = [
 lully.evaluation = { chargingConnectorId: 'high-connector', best: { total: 5, result:{complete:true} } };
 const mixedPowers = groupRows([lully]);
 assert.equal(mixedPowers.length, 2);
-assert.equal(mixedPowers.find(x => x.displayPowerKw === 7).pointCount, 3);
-assert.equal(mixedPowers.find(x => x.displayPowerKw === 22).pointCount, 1);
-assert.equal(mixedPowers.find(x => x.displayPowerKw === 7).total, null, 'price for 22 kW must not appear on 7 kW row');
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 7.4).pointCount, 3);
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 22.1).pointCount, 1);
+assert.equal(mixedPowers.find(x => x.displayPowerKw === 7.4).total, null, 'price for 22.1 kW must not appear on 7.4 kW row');
 
 const electra = row('bois-d-arcy', 600, 'ELECTRA', "Bois-d'Arcy - E.Leclerc");
 electra.station.evses = [
