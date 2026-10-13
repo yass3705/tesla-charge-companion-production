@@ -120,7 +120,7 @@
   "progressIndex": "docs/v9-country-progress-2026-09-30.json",
   "sourceSelection": {
     "selectedDataLabCommit": "94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3",
-    "reason": "Retain exact BUMP 21/39 and nine-country validated baseline; add official EnergyVision Belgium public CPO inventory as independent ID namespace (no NAP overwrite), 3795 native PDC, 1228 station adHoc tariff grids, only homogeneous single-rate TTC kWh quoted on exact positive PDC. Historic public Pages unchanged.",
+    "reason": "Retain exact BUMP 21/39 and nine-country validated baseline; add official EnergyVision Belgium public CPO inventory as independent ID namespace (no NAP overwrite), 3795 native PDC, 1228 station adHoc tariff grids, only homogeneous single-rate TTC kWh quoted on exact positive PDC. Historic public Pages unchanged. The one additional homogeneous AC station with a complete 0.37 EUR/kWh plus fixed 2.04 EUR per session rate contributes two active exact PDC; one fee per session.",
     "safeguards": [
       "France arithmetic 94 treated + 27 setAside + 170 active = 291.",
       "AVIA Switzerland 583/583 national EVSE matched.",
@@ -173,7 +173,7 @@
     "expectedSourceSites": 1238,
     "expectedSourcePdc": 3795,
     "expectedStationRates": 1228,
-    "expectedActiveSimpleDirectPdc": 776,
+    "expectedActiveSimpleDirectPdc": 778,
     "sourceDataLabCommit": "94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3",
     "noAutomaticPagesOrCloudflare": true
   }
