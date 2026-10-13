@@ -106,6 +106,19 @@
     const rankable=x=>Number.isFinite(x.total)&&(!x.evaluation||pricedBest(x.evaluation));
     const available=(rows||[]).filter(x=>rankable(x)&&Number.isFinite(x.distanceKm));
     const unknown=(rows||[]).filter(x=>!rankable(x)&&Number.isFinite(x.distanceKm)).sort((a,b)=>a.distanceKm-b.distanceKm);
+    const nameTie=(a,b)=>text(a.station?.name).localeCompare(text(b.station?.name),'fr');
+    if(mode==='price'){
+      available.sort((a,b)=>a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
+      return available.concat(unknown).slice(0,limit);
+    }
+    if(mode==='distance'){
+      available.sort((a,b)=>Number(Boolean(a.distanceEstimated))-Number(Boolean(b.distanceEstimated))||a.distanceKm-b.distanceKm||a.total-b.total||nameTie(a,b));
+      return available.concat(unknown).slice(0,limit);
+    }
+    if(mode==='totalTime'){
+      available.sort((a,b)=>(num(a.score?.totalTimeMinutes)??Infinity)-(num(b.score?.totalTimeMinutes)??Infinity)||a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
+      return available.concat(unknown).slice(0,limit);
+    }
     if(mode==='costPerKm'){
       const withCost=available.filter(x=>Number.isFinite(x.costPerKm)),withoutCost=available.filter(x=>!Number.isFinite(x.costPerKm));
       withCost.sort((a,b)=>a.costPerKm-b.costPerKm||a.total-b.total||a.distanceKm-b.distanceKm||text(a.station?.name).localeCompare(text(b.station?.name),'fr'));
@@ -1069,8 +1082,11 @@
   }
 
   function installRankingOption(w){
-    const select=w.document.getElementById('simRanking');if(!select||[...select.options].some(option=>option.value==='costPerKm'))return;
-    const option=w.document.createElement('option');option.value='costPerKm';option.textContent='Coût au km récupéré';select.appendChild(option);
+    const select=w.document.getElementById('simRanking');if(!select)return;
+    for(const [value,label] of [['costPerKm','Coût au km récupéré'],['totalTime','Temps total trajet + charge']]){
+      if([...select.options].some(option=>option.value===value))continue;
+      const option=w.document.createElement('option');option.value=value;option.textContent=label;select.appendChild(option);
+    }
   }
 
   function installProgressiveSearchForm(w){
