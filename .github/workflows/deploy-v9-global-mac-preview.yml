@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/deploy-v9-global-mac-preview.yml"
+      - "tests/test_v9_pages_publish_gate.py"
       - "v9-production-shell/bridge.js"
       - "tests/v9-shell-grouping.test.mjs"
       - "tests/v9-pricing-time-zone.test.mjs"
