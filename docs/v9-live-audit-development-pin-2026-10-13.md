@@ -1,0 +1,5 @@
+# Development candidate after the public V9 audit
+
+`2026-10-13-live-audit-corrected-candidate` is a new immutable development snapshot identifier. It retains the exact Data Lab, Stable and Updater SHAs and all ten dataset mappings from the first public `2026-10-13-nine-country-be-belib-exact-candidate`. The new identifier is required to test corrected Production code without modifying or redeploying the public snapshot.
+
+The candidate includes the merged Production fixes for direct Electra offer attachment, applied tariff descriptions, Tesla's common card, verified Electra+ discounts and strict ranking. It should also include the Tesla source-link and currency fix after its PR passes. The 2026-10-13 France IRVE replacement is intentionally absent: its identity churn would restore some Electra offers but lose previously valid Electroverse links. Existing public Pages and rollback pins remain intact. Development promotion requires pinned CI, browser journey and SHA-256 manifest validation; `publish-v9-pinned-pages.yml` must remain manually guarded and must not be run with `publish=true` here.

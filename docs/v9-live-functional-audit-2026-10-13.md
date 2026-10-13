@@ -1,0 +1,52 @@
+# Functional audit of the first public V9
+
+## Reference and method
+
+The published Pages site was checked over HTTP on 2026-10-13. It serves Production `6e3eaef101d72bf6d4855a819bcc2e4408e94528`, snapshot `2026-10-13-nine-country-be-belib-exact-candidate`, Data Lab `047e1911a5dfd4dcce741ad9b461c6096effb9cd` and Stable `0a6d2c3415504397310d3dc92fae40be843b2435`. Its deployment ID is `7026921334`. The user’s full battery, SOC and time settings were not recoverable from the six described screenshots, so they have not been inferred. Local quote checks use declared deterministic inputs: 2026-10-13 12:00 Europe/Paris, 30 kWh, 45 charging minutes and zero post-charge minutes. Actual road routing and vehicle curve can change the displayed session totals; screenshot amounts are reference observations, not recalculated oracle results.
+
+The candidate preserves the public source pins and data mappings. No Pages or Cloudflare publication was triggered for the corrections. Production code and source overlays were traced independently; a source record is not equivalent to a calculated and displayed offer.
+
+## Six reported stations
+
+| Site | Exact evidence and finding | Resolution |
+| --- | --- | --- |
+| Lidl `LFR3148EVCP01`, FR | National station `FRLDLPLFR3148EVCP`; CCS EVSE `FRLDLE00002411/12` match Electra GraphQL EVSE IDs exactly at 48.80923, 2.0553. Electra eMSP 0.39 €/kWh and Lidl Plus direct 0.29 €/kWh are distinct. The Electra GraphQL CPO label is inconsistent, but the EVSE and location prove this specific station. | No false-positive eMSP demonstrated. Deterministic 30 kWh energy terms: €11.70 Electra, €8.70 direct. Do not globally exclude Lidl or Electra. |
+| Electric 55, Place Lully, Saint-Cyr-l’École | National `FR55CP78210SA1P21PL`; 7.4 kW EVSE `FR55CEFR78210P21PL1/2/3` have exact Electroverse source location `4402250`, day 0.04 €/min and night 0.03 €/min. EVSE 0 is a separate 22.1 kW price. No matching Electra eMSP offer was found in the pinned overlay. | Electroverse attach is justified. Deterministic 45-minute daytime charge = €1.80 before any other applicable component. The collected direct Electric 55 file is `publicationReady:false`; no direct price is promoted. |
+| Electric 55, allée des Chevreuils, Bois-d’Arcy | National `FR55CP78390BDACHEVREU1LS`; `FR55CEFR78390CHEVREU1LS0/1` match Electra source `792a7fa4-334c-4848-961a-49c38b587176` and Electroverse source `2333492`. Daytime charging rates are 0.084 and 0.08 €/min respectively. | Both eMSP paths are specific to the EVSE. Deterministic 45-minute charge/zero post-charge = €3.78 Electra and €3.60 Electroverse. No unverified direct Electric 55 price is inferred. |
+| Electra Vélizy, Carré Vélizy | Official location `d17140ee...`, national station `FRELCP12954229`, ten EVSE at 22/300 kW. Two distinct station-level direct grids are collected. | The Production `kind: direct` adapter bug discarded both before evaluation; #66 restores attachment. Neither grid has verified tariff-to-EVSE attribution, so the price lane must remain ambiguous instead of picking the cheaper grid. |
+| Electra Le Plessis-Robinson, La Boursidière | Official location `f4bb9f44...`, national station `FRELCP12953869`, seven EVSE at 22/150/400 kW; same two-grid attribution gap. | #66 restores the direct records. A unique connector price still requires official tariff-to-EVSE evidence. |
+| Tesla Matosinhos, Portugal | Global pinned Tesla catalogue contains `tesla-matosinhos-portugal`, 20 stalls, 250 kW, direct offer, official Tesla URL and GBP/CHF/MAD peers. The published shell rejects PT before V9 rendering. | #69 routes outside-scope Tesla through the common V9 card. #72 carries links and exact source currencies through normalization; its post-build runtime test queries the actual Matosinhos record. |
+
+## Cross-cutting defects and fixes
+
+| Stage | Defect or control | Evidence / change |
+| --- | --- | --- |
+| Direct adapter | `kind: direct` became the fictitious connector kind `DIRECT`, rejecting all 724 exact Electra direct rules. | #66 fixes adapter and asserts exact station scope. 717 source rules reference 514 stations present in the published IRVE; 7 source rules remain unjoined. |
+| eMSP identity | No wrong eMSP assignment was confirmed in the three reported Lidl/Electric 55 examples. | Pinned Electra overlay: 88,886 `exact_national_irve_evse` and 8,485 curated location joins. Electroverse uses exact/unique national identity modes. No operator/power-only inheritance is accepted. This is an inventory of source modes, not proof that every individual offer was manually reviewed. |
+| Descriptions | Full day/night grids and zero congestion were printed in compact cards. | #67 shows applied segments/components in the summary and full terms in a disclosure; targeted day/night/post-charge regression. |
+| Subscription | Electra+ was selectable but did not change quotes. | #70 derives Essential −€0.10/kWh and Smart −€0.20/kWh only from one verified exact direct Electra grid at an Electra-operated FR station. 320/521 stations qualify; 201 multi-grid stations do not. Monthly fees are separate. The selector is compact and multiselect; distinct providers may be selected together. |
+| Ranking | Price and distance labels used a 70/30 weighted score, and total time had no mode. | #71 makes price, routed distance, total time and cost/km strict sorts. Unpriced stations remain visible after priced ones; balanced remains weighted. |
+| Tesla adapter | Currency was hardcoded EUR for all offers, while source has 906 EUR, 216 GBP, 38 CHF and 6 MAD station-level pricing records. Maps and official Tesla URLs were dropped. | #72 preserves source currency per charging configuration, retains URLs, and marks ambiguous/missing currency non-comparable. It also exposes navigation and date in the shared card. Congestion amounts appear separately on 1,112 source stations; their occupancy/trigger conditions are not yet safe to add to a calculated charge. |
+
+## Coverage losses and candidate gates
+
+The public FR IRVE base has 48,058 stations / 165,792 EVSE. A more recent Data Lab base has 49,211 / 164,368. On the public base, 92,850 of 97,371 Electra overlay offers and 86,782 of 89,991 Electroverse overlay offers retain an exact EVSE identity. Simply replacing the IRVE base would restore 4,521 Electra links but lose 3,932 currently matched Electroverse links while restoring 3,086 others. The replacement was built and validated only as a local experiment; it was **not** promoted. This is an unresolved identity reconciliation, not a reason to fabricate matches.
+
+The automated full-overlay audit `scripts/audit_france_emsp_assignments.py` checked all 187,362 FR eMSP source offers against all 165,792 published national EVSE IDs. It found zero national EVSE IDs shared by two stations and zero eMSP offers whose EVSE IDs resolve to more than one national station. The joined counts are 92,850 Electra and 86,782 Electroverse, with 4,521 and 3,209 unmatched respectively; unmatched offers are not assigned by CPO or power. Thus **zero false positives are confirmed or corrected in the reported eMSP examples**, and zero ambiguous multi-station joins are detected by this exact-identity audit. Pricing completeness and tariff-to-connector attribution remain separate checks. The pinned workflow now fails if a multi-station identity appears or these validated joined counts decrease silently.
+
+Pinned CI after #70 successfully built 2,442 files / 743,666,847 bytes and verified all SHA-256 entries. The nine-country runtime smoke returned FR 3,767 local area stations (3,309 priced), IT 1,828 (1,179), CH 40 (33), DE 67 (1 in the selected probe), ES 752, NL 3,298, GB 47 (33), MA 175 (175), BE 2,880 (905). These are **probe areas**, not national totals. The global preview may use a newer Data Lab SHA; its counts must not be reported as those of the pinned public data.
+
+The corrected development ID is `2026-10-13-live-audit-corrected-candidate`. Its dataset SHAs and all ten dataset paths equal the public snapshot. It requires the pinned CI, browser and manifest gates before it can be called validated. The first public Pages snapshot and its rollback remain untouched. Screenshots supplied as `blob:` references could not be fetched from the repository; before/after UI captures remain to attach from an accessible browser or CI artifact.
+
+## Merged code and CI evidence
+
+| PR | Merge SHA | Global CI / pinned CI |
+| --- | --- | --- |
+| #66 Direct Electra | `21070b17be921b1e45725271e3885dfc556d250e` | `38330916176` / `38330916172` |
+| #67 Applied tariff display | `e3aa6ea402cf1b121168e892d17b53cd62f45362` | `38330924891` / `38330924854` |
+| #69 Tesla common card | `04b27e288a6061d5089c1f330dee6263e7072385` | `38331242520` / `38331242524` |
+| #70 Electra+ | `ed4d34accbb167eda69a17818f90e739e2bf2c89` | `38331807487` / `38331807703` |
+| #71 Strict ranking | `323645a141e281462f373a2782647d5284940e22` | `38332098854` / `38332098931` |
+| #72 Tesla links/currency | `e18e58e7aa62b7657f32b131bca85a01f0ba1a5c` | `38332296395` / `38332296420` |
+
+All listed runs completed successfully, with the Pages deployment jobs skipped. They validate the code changes against the prior pinned data. The new development pin requires its own CI run before promotion is complete.
