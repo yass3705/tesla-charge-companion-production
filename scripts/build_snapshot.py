@@ -61,6 +61,20 @@ def main():
                          belib_supplement["stationIds"],belib_supplement["staticSha256"],
                          belib_supplement["dynamicSourceSha256"])
         write_json(out/"snapshot-inputs/FR/belib-exact-supplement.json",proof)
+    bump_supplement=cfg.get("franceBumpActiveSupplement")
+    if bump_supplement:
+        from supplement_france_bump_active import supplement as supplement_bump
+        evidence=pathlib.Path(__file__).resolve().parents[1]/bump_supplement["evidencePath"]
+        if sha256(evidence)!=bump_supplement["evidenceSha256"]:
+            raise AssertionError("Pinned BUMP active supplement evidence hash mismatch")
+        proof=supplement_bump(out/"runtime/data/v9/france-static",
+                              dl/"data/national/france-irve-static-v9/all.json.gz",
+                              dl/"data/national/france-irve-dynamic-status-v9.json.gz",
+                              evidence,bump_supplement["staticSha256"],
+                              bump_supplement["dynamicSha256"])
+        if proof["stationCount"]!=bump_supplement["expectedStationCount"] or proof["evseCount"]!=bump_supplement["expectedEvseCount"]:
+            raise AssertionError("Pinned BUMP active supplement count drift")
+        write_json(out/"snapshot-inputs/FR/bump-active-supplement.json",proof)
     belib_offers=out/"runtime/data/v9/france-belib-offers.json"
     if belib_offers.exists():
         belib_catalogue=dl/"data/national/belib_stations_paris.json"

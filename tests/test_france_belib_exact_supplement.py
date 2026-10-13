@@ -21,7 +21,13 @@ def main(stable, datalab, candidate):
     old_by_id = {row[0]: row for row in old}
     new_by_id = {row[0]: row for row in new}
     expected = {"FRV75PPX0750": 5, "FRV75PPX1633": 4, "FRV75PPX1634": 5, "FRV75PPX1817": 3}
-    assert set(new_by_id) - set(old_by_id) == set(expected)
+    bump = candidate / "snapshot-inputs/FR/bump-active-supplement.json"
+    bump_ids = set()
+    if bump.exists():
+        evidence = json.loads((Path(__file__).resolve().parents[1] / "data/overlays/france-bump-active-supplement-evidence-2026-10-13.json").read_text())
+        bump_ids = {station["nationalStationId"] for station in evidence["stations"]}
+        assert len(bump_ids) == json.loads(bump.read_text())["stationCount"]
+    assert set(new_by_id) - set(old_by_id) == set(expected) | bump_ids
     assert all(new_by_id[key] == row for key, row in old_by_id.items()), "Pinned FR row was altered"
     dynamic = read_gzip(datalab / "data/national/france-irve-dynamic-status-v9.json.gz")
     active = {norm(value) for value in dynamic["enServicePdcIds"]}
@@ -37,7 +43,7 @@ def main(stable, datalab, candidate):
         assert len(scoped) == 1
         assert {norm(value) for offer in scoped for value in offer["evseIds"]} == ids
         assert all(offer["verifiedScope"] == "exact_evse" for offer in scoped)
-    assert len(new) == len(old) + 4
+    assert len(new) == len(old) + 4 + len(bump_ids)
     print(json.dumps({"preservedPinnedStations": len(old), "addedBelibStations": 4,
                       "addedExactActiveEvse": sum(expected.values())}))
 

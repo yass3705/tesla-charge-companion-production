@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-13-fr-bump-exact-current-candidate",
+    "currentSnapshot": "2026-10-13-fr-bump-active-supplement-candidate",
     "dataLabSha": "e39a4466096b520b3c459e75539bf9b112235165",
-    "rule": "Development candidate keeps the validated nine-country, Belib, Tesla and Metropolis pins and adds a scoped Bump direct override from immutable Data Lab e22c23b1c: 1744 exact Bump EVSE in the pinned France inventory, with missing identities and hourly bands fail-closed. Older candidates and public Pages remain immutable; no automatic deployment."
+    "rule": "Development candidate retains the validated nine-country Data Lab and Stable pins, adds only 21 positively active Bump stations / 39 exact EVSE from newer France IRVE, and scopes 1783 exact current Bump direct tariffs. Three geolocation conflicts, inactive and absent identities remain unjoined. Public Pages stays immutable; no automatic deployment."
   }
 }
