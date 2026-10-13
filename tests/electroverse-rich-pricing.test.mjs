@@ -12,12 +12,15 @@ assert.ok(expected>=5000,'full Electroverse EVSE overlay must be present');
 assert.equal(manifest.policy?.evseLevelPricing,true);
 assert.equal(manifest.policy?.stationLevelFlattening,false);
 let seen=0,bandOffers=0,weekdayOffers=0,feeOffers=0;
+const electric55Offers=new Map();
 for(const tile of manifest.tiles||[]){
   const payload=JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(evRoot,tile.file))).toString('utf8'));
   assert.equal(payload.country,'FR');
   assert.equal(payload.emspOffers.length,tile.count);
   for(const offer of payload.emspOffers){
     seen++;
+    for(const evseId of ['FR55CEFR78210P21PL1','FR55CEFR78390CHEVREU1LS0'])
+      if(offer.evseIds?.includes(evseId))electric55Offers.set(evseId,offer);
     assert.ok(offer.evseIds?.length,'every published tariff must retain EVSE identity');
     assert.equal(offer.pricing?.type,'rules','rich rule tariff must remain intact');
     const rules=offer.pricing.rules||[];
@@ -32,6 +35,43 @@ const require=createRequire(import.meta.url);
 const pricing=require(path.join(root,'runtime/assets/v9/pricing-engine.js'));
 const adapter=require(path.join(root,'runtime/assets/v9/adapters/france-emsp-compact.js'));
 const bridge=require(path.join(root,'v9-production-shell/bridge.js'));
+for(const [evseId,dayRate,nightRate] of [
+  ['FR55CEFR78210P21PL1',0.04,0.03],
+  ['FR55CEFR78390CHEVREU1LS0',0.08,0.06]
+]){
+  const exact=electric55Offers.get(evseId);
+  assert.ok(exact,`pinned Electric 55 EVSE tariff ${evseId} must exist`);
+  const rule=(start)=>exact.pricing.rules.find(row=>row.start===start);
+  assert.equal(rule('07:00')?.chargePerMinute,dayRate);
+  assert.equal(rule('23:00')?.idlePerMinute,nightRate);
+  const session={timeZone:'Europe/Paris',energyKwh:10,durationMinutes:55,
+    chargingMinutes:45,postChargeMinutes:10,powerKw:7.4};
+  const quote=startAt=>pricing.evaluateOffer(exact,{...session,startAt});
+  const near=(actual,want)=>assert.ok(Math.abs(actual-want)<1e-6,
+    `${evseId}: expected ${want}, received ${actual}`);
+  const day=quote('2026-10-13T12:00:00+02:00');
+  assert.equal(day.complete,true);near(day.totalEur,55*dayRate);
+  const night=quote('2026-10-13T23:30:00+02:00');
+  assert.equal(night.complete,true);near(night.totalEur,55*nightRate);
+  const crossing=quote('2026-10-13T22:45:00+02:00');
+  assert.equal(crossing.complete,true);near(crossing.totalEur,15*dayRate+40*nightRate);
+  assert.equal(crossing.components.segmentedPricing.segments[1].components.parkingTime,10*nightRate);
+  const visible=bridge.appliedTariffRateLabels({currency:'EUR',result:crossing},exact);
+  assert.ok(visible.some(label=>label.includes(`${nightRate.toFixed(2).replace('.',',')} EUR/min après charge`)));
+  assert.ok(!visible.some(label=>label.includes(`${dayRate.toFixed(2).replace('.',',')} EUR/min après charge`)),
+    'the compact summary must not claim daytime parking when only the night segment charged it');
+  const parkingCross=pricing.evaluateOffer(exact,{...session,startAt:'2026-10-13T22:55:00+02:00',
+    durationMinutes:13,chargingMinutes:3,postChargeMinutes:10});
+  assert.equal(parkingCross.complete,true);
+  near(parkingCross.totalEur,5*dayRate+8*nightRate);
+  const withConnectionFee={...exact,pricing:{...exact.pricing,rules:exact.pricing.rules.map(row=>({...row,connectionFee:1}))}};
+  const once=pricing.evaluateOffer(withConnectionFee,{...session,startAt:'2026-10-13T22:45:00+02:00'});
+  assert.equal(once.complete,true);
+  near(once.totalEur,15*dayRate+40*nightRate+1);
+  const roundedParking={...exact,pricing:{...exact.pricing,rules:exact.pricing.rules.map(row=>({...row,parkingTimeStepSeconds:300}))}};
+  const guarded=pricing.evaluateOffer(roundedParking,{...session,startAt:'2026-10-13T22:45:00+02:00'});
+  assert.equal(guarded.complete,false,'rounded parking cannot be segmented without a proven whole-session rule');
+}
 const exactPlatformOffers=adapter.offerRulesFromPlatformOffers([
   {id:'evr-choisey-200',provider:'Electroverse',evseIds:['FRPD1EASCCHOBBC200011'],verifiedScope:'exact_evse_group',pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0.56}]},metadata:{verified:true,identityMode:'strict_generic_single_operator_homogeneous_exact_set'}},
   {id:'evr-choisey-240',provider:'Electroverse',evseIds:['FRPD1EASCCHOBBC300011'],verifiedScope:'exact_evse_group',pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0.56}]},metadata:{verified:true,identityMode:'strict_pd1_official_technical_homogeneous_group'}},

@@ -250,7 +250,7 @@
     const parkingMinutes=Math.max(0,num(postChargeMinutes)??0);
     const parkingStep=num(rule?.parkingTimeStepSeconds);
     const billedParking=parkingStep>0&&parkingMinutes>0?Math.ceil(parkingMinutes*60/parkingStep)*parkingStep/60:parkingMinutes;
-    if(includeOneTimeFees&&parkingRate!=null&&parkingRate!==0&&parkingMinutes>0){
+    if(parkingRate!=null&&parkingRate!==0&&parkingMinutes>0){
       components.parkingTime=money(billedParking*parkingRate);total+=components.parkingTime;
       if(billedParking!==parkingMinutes)components.parkingTimeBilling={actualMinutes:parkingMinutes,billedMinutes:billedParking,stepSeconds:parkingStep};
     }
@@ -308,8 +308,10 @@
       ((energyCharge??0)!==0||hasBands('ENERGY'));
     const billableChargingStep=num(rule.chargingTimeStepSeconds)>0&&
       ((timeCharge??0)!==0||hasBands('TIME'));
+    const billableParkingStep=num(rule.parkingTimeStepSeconds)>0&&
+      ((num(rule.idlePerMinute)??0)!==0||hasBands('PARKING_TIME'));
     if(rule.energyRounding==='started_kwh'||billableEnergyStep||
-       num(rule.connectedTimeStepSeconds)>0||billableChargingStep)return false;
+       num(rule.connectedTimeStepSeconds)>0||billableChargingStep||billableParkingStep)return false;
     if(num(rule.connectedTimeBlockMinutes)>0||num(rule.connectedTimeBlockEur)!=null)return false;
     if(num(rule.connectedTimeFreeMinutes)!=null||num(rule.connectedTimePerMinuteAfterFreeEur)!=null)return false;
     if(num(rule.connectedTimeInitialMinutes)!=null||num(rule.connectedTimeInitialFlatEur)!=null||num(rule.connectedTimeAfterInitialPerMinuteEur)!=null)return false;
@@ -348,7 +350,7 @@
     return matchingRule(pricing,session.startAt,timeZone,session)===rule?rule:null;
   }
   function evaluateSegmentedRules(pricing,session={},timeZone=null){
-    const duration=Math.max(0,num(session.durationMinutes)??0),energy=Math.max(0,num(session.energyKwh)??0),charging=Math.max(0,Math.min(duration,num(session.chargingMinutes)??duration));
+    const duration=Math.max(0,num(session.durationMinutes)??0),energy=Math.max(0,num(session.energyKwh)??0),charging=Math.max(0,Math.min(duration,num(session.chargingMinutes)??duration)),postCharge=Math.max(0,num(session.postChargeMinutes)??0);
     if(!session.startAt)return{complete:false,reason:'segmentation_requires_start_time'};
     const invariant=duration>0?invariantBillableStepRule(pricing,session,timeZone):null;
     if(invariant){
@@ -368,6 +370,7 @@
       if(evaluated.complete===false)return evaluated;
       return{complete:true,totalEur:evaluated.totalEur,components:{segmentedPricing:{segments:[{startAt:new Date(session.startAt).toISOString(),durationMinutes:0,energyKwh:energy,totalEur:evaluated.totalEur,rule}]}}};
     }
+    if(postCharge>duration-charging+1e-9)return{complete:false,reason:'post_charge_duration_exceeds_session'};
     let elapsed=0,total=0;const segments=[];
     while(elapsed<duration-1e-9){
       const at=addMinutes(session.startAt,elapsed);if(!at)return{complete:false,reason:'invalid_segmentation_start_time'};
@@ -377,7 +380,8 @@
       if(!Number.isFinite(boundary))boundary=duration-elapsed;
       const slice=Math.min(duration-elapsed,Math.max(boundary,1e-6));
       const chargeOverlap=Math.max(0,Math.min(charging,elapsed+slice)-elapsed),segmentEnergy=charging>0?energy*(chargeOverlap/charging):0;
-      const isLast=elapsed+slice>=duration-1e-9;const evaluated=evaluateRule(rule,{...session,energyKwh:segmentEnergy,durationMinutes:slice,chargingMinutes:chargeOverlap,tariffDurationMinutes:duration,postChargeMinutes:isLast?(session.postChargeMinutes||0):0,includeOneTimeFees:elapsed===0,congestionSegmentOffsetMinutes:elapsed,congestionSegmentDurationMinutes:slice});
+      const postChargeOverlap=Math.max(0,Math.min(elapsed+slice,charging+postCharge)-Math.max(elapsed,charging));
+      const evaluated=evaluateRule(rule,{...session,energyKwh:segmentEnergy,durationMinutes:slice,chargingMinutes:chargeOverlap,tariffDurationMinutes:duration,postChargeMinutes:postChargeOverlap,includeOneTimeFees:elapsed===0,congestionSegmentOffsetMinutes:elapsed,congestionSegmentDurationMinutes:slice});
        if(evaluated.complete===false)return evaluated;
       total+=evaluated.totalEur;
       segments.push({startAt:at.toISOString(),durationMinutes:money(slice),chargingMinutes:money(chargeOverlap),energyKwh:money(segmentEnergy),totalEur:evaluated.totalEur,components:evaluated.components,rule});
