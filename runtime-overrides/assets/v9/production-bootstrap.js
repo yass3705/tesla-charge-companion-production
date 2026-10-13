@@ -31,7 +31,8 @@
         switzerlandAvia:root.TCCV9Adapters.switzerlandAvia,
         italyIonityExact:root.TCCV9Adapters.italyIonityExact,
         franceIonityExact:root.TCCV9Adapters.franceIonityExact,
-        atlanteItalyExact:root.TCCV9Adapters.atlanteItalyExact
+        atlanteItalyExact:root.TCCV9Adapters.atlanteItalyExact,
+        energyvisionBelgium:root.TCCV9Adapters.energyvisionBelgium
       }
     });
     root.__TCC_V9_PRODUCTION_INTEGRATION_INSTALLED__=true;
