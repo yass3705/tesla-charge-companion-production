@@ -56,6 +56,10 @@ for(const [evseId,dayRate,nightRate] of [
   const crossing=quote('2026-10-13T22:45:00+02:00');
   assert.equal(crossing.complete,true);near(crossing.totalEur,15*dayRate+40*nightRate);
   assert.equal(crossing.components.segmentedPricing.segments[1].components.parkingTime,10*nightRate);
+  const visible=bridge.appliedTariffRateLabels({currency:'EUR',result:crossing},exact);
+  assert.ok(visible.some(label=>label.includes(`${nightRate.toFixed(2).replace('.',',')} EUR/min après charge`)));
+  assert.ok(!visible.some(label=>label.includes(`${dayRate.toFixed(2).replace('.',',')} EUR/min après charge`)),
+    'the compact summary must not claim daytime parking when only the night segment charged it');
   const parkingCross=pricing.evaluateOffer(exact,{...session,startAt:'2026-10-13T22:55:00+02:00',
     durationMinutes:13,chargingMinutes:3,postChargeMinutes:10});
   assert.equal(parkingCross.complete,true);

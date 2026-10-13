@@ -301,14 +301,14 @@
       ...(components.energyTimeline?.segments||[]),
       ...groups.flatMap(group=>group?.components?.segmentedPricing?.segments||[])
     ];
-    const rules=segments.map(segment=>segment?.rule).filter(Boolean);
-    if(!rules.length)rules.push(...groups.map(group=>group?.rule).filter(Boolean));
-    if(!rules.length&&result.matchedRule)rules.push(result.matchedRule);
-    if(!rules.length)return[];
-    const used=rules.map(rule=>({
+    const entries=segments.filter(segment=>segment?.rule).map(segment=>({rule:segment.rule,components:segment.components||{}}));
+    if(!entries.length)entries.push(...groups.filter(group=>group?.rule).map(group=>({rule:group.rule,components:group.components||{}})));
+    if(!entries.length&&result.matchedRule)entries.push({rule:result.matchedRule,components});
+    if(!entries.length)return[];
+    const used=entries.map(({rule,components:part})=>({
       ...rule,
-      idlePerMinute:charged(components,'parkingTime')?rule.idlePerMinute:null,
-      congestionTimePerMinute:charged(components,'congestionTime')?rule.congestionTimePerMinute:null
+      idlePerMinute:charged(part,'parkingTime')?rule.idlePerMinute:null,
+      congestionTimePerMinute:charged(part,'congestionTime')?rule.congestionTimePerMinute:null
     }));
     return tariffRateLabels({currency:item?.currency||offer?.currency,pricing:{rules:used}});
   }
