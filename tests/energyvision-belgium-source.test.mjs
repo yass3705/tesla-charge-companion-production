@@ -76,10 +76,10 @@ if(process.argv[2]){
   assert.equal(raw.counts.unassignedStationRates,1228);
   assert.equal(raw.napCrosswalk.unmatchedIds,3795);
   assert.equal(pdc,raw.counts.activePDC);
-  assert.equal(offers,1940,'Pinned snapshot: 778 simple Direct plus 1162 strictly parsed complex Direct EVSE offers');
+  assert.equal(offers,3530,'Pinned snapshot: 778 simple Direct plus 2752 strictly parsed complex Direct EVSE offers');
   const all=sites.flatMap(s=>s.offers);
   assert.equal(all.filter(o=>o.metadata.tariffFamily==='simple').length,778,'No regression in the previously validated 778 Direct');
-  assert.equal(all.filter(o=>o.metadata.tariffFamily!=='simple').length,1162,'Complex price promotion is exact and pinned');
+  assert.equal(all.filter(o=>o.metadata.tariffFamily!=='simple').length,2752,'Complex price promotion is exact and pinned');
   const families=Object.fromEntries([...new Set(all.map(o=>o.metadata.tariffFamily))].map(f=>[f,all.filter(o=>o.metadata.tariffFamily===f).length]));
   console.log('EnergyVision candidate tariff family counts',families);
   assert.ok(sites.every(s=>s.countryCode==='BE'&&s.physicalOperator.name==='EnergyVision'));
