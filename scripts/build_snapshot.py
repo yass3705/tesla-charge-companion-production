@@ -54,7 +54,7 @@ def main():
     # Gradual source migration: Production owns the listed engine modules.
     # The remaining historical runtime stays pinned until coverage parity is proven.
     owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"
-    for relative in ("assets/v9/access-router-engine.js", "assets/v9/offer-engine.js", "assets/v9/data-engine.js", "assets/v9/pricing-engine.js", "assets/v9/runtime-engine.js", "assets/v9/session-engine.js", "assets/v9/charge-model-engine.js", "assets/v9/session-planner-engine.js", "assets/v9/station-score-engine.js", "assets/v9/routing-engine.js", "assets/v9/device-scenario-engine.js", "assets/v9/vehicle-profile-engine.js", "assets/v9/readiness-engine.js", "assets/v9/parity-engine.js"):
+    for relative in ("assets/v9/access-router-engine.js", "assets/v9/offer-engine.js", "assets/v9/data-engine.js", "assets/v9/pricing-engine.js", "assets/v9/runtime-engine.js", "assets/v9/session-engine.js", "assets/v9/charge-model-engine.js", "assets/v9/session-planner-engine.js", "assets/v9/station-score-engine.js", "assets/v9/routing-engine.js", "assets/v9/device-scenario-engine.js", "assets/v9/vehicle-profile-engine.js", "assets/v9/readiness-engine.js", "assets/v9/parity-engine.js", "assets/v9/device-test-engine.js", "assets/v9/device-test-window-engine.js", "assets/v9/parity-scenario-engine.js", "assets/v9/rollout-engine.js"):
         src=owned_runtime/relative
         if not src.is_file():
             raise FileNotFoundError(f"Production runtime-owned module missing: {relative}")
