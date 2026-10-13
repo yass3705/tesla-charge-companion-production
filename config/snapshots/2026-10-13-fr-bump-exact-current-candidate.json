@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "snapshotId": "2026-10-13-fr-bump-exact-current-candidate",
+  "policy": "fail-closed",
+  "sources": {
+    "dataLab": {
+      "repo": "yass3705/tesla-charge-companion-data-lab",
+      "sha": "e39a4466096b520b3c459e75539bf9b112235165"
+    },
+    "stable": {
+      "repo": "yass3705/tesla-charge-companion-stable",
+      "sha": "0a6d2c3415504397310d3dc92fae40be843b2435"
+    },
+    "legacyUpdater": {
+      "repo": "yass3705/tesla-stations-updater-test",
+      "sha": "3e4c26b679617f82aae5b6de52a64a4cdbd20581"
+    },
+    "germanyRecovery": {
+      "repo": "yass3705/tesla-stations-updater-test",
+      "sha": "59573b851fd9ee015f6edac6a9302b07e09cc71e",
+      "branch": "work/germany-v9-cpo-recovery",
+      "pr": 6
+    }
+  },
+  "datasets": [
+    {
+      "id": "TESLA",
+      "kind": "tesla",
+      "coverage": "current",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/tesla_stations.json"
+    },
+    {
+      "id": "ES",
+      "kind": "national",
+      "coverage": "complete",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/v9/spain-static"
+    },
+    {
+      "id": "NL",
+      "kind": "national",
+      "coverage": "complete",
+      "primarySource": "dataLab",
+      "path": "data/national/netherlands_dotnl/runtime",
+      "manifest": "data/national/netherlands_dotnl/runtime/manifest.json"
+    },
+    {
+      "id": "CH",
+      "kind": "national",
+      "coverage": "complete-with-fail-closed-residuals",
+      "primarySource": "dataLab",
+      "path": "data/national/switzerland_public_charging_v9.json",
+      "directEvidence": "data/switzerland/avia-guest-direct-tariffs.json"
+    },
+    {
+      "id": "MA",
+      "kind": "cpo-consolidated",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "reports/morocco",
+      "statusLedger": "docs/morocco-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "FR",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "data/national/france_public_charging_canonical.json",
+      "statusLedger": "docs/france-cpo-progress-2026-09.json",
+      "electraPlatform": "data/platforms/electra/france",
+      "platformArchitecture": "France national station/EVSE baseline is the sole identity hub; Electra and Electroverse attach independently."
+    },
+    {
+      "id": "IT",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "stable",
+      "path": "v9-production-runtime/data/v9/italy-static",
+      "statusLedger": "docs/italy-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "DE",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "snapshot-inputs/DE",
+      "statusLedger": "docs/germany-cpo-progress-2026-09.json",
+      "nationalBaseArtifact": {
+        "repository": "yass3705/tesla-charge-companion-data-lab",
+        "artifactId": 9866595035,
+        "artifactName": "germany-national-direct-cpo-staging",
+        "digest": "sha256:9aada4804c1e95b5ad734560ec7a5c83cb4e5a3cf70b7e7a6817f22d87dacc0e",
+        "sites": 63405,
+        "directCpoSites": 5471
+      },
+      "resolutionLedger": "docs/germany-cpo-second-pass-resolution-180.json",
+      "directOverlay": "data/national/ionity_direct_stations_germany.json.gz"
+    },
+    {
+      "id": "UK",
+      "kind": "national",
+      "coverage": "partial",
+      "primarySource": "dataLab",
+      "path": "data/national/uk_validated_open_feeds.json.gz",
+      "statusLedger": "docs/uk-cpo-progress-2026-09.json"
+    },
+    {
+      "id": "BE",
+      "kind": "national",
+      "coverage": "partial-selected-cpo",
+      "primarySource": "dataLab",
+      "path": "data/belgium/nap-belgium-manifest.json",
+      "pages": "data/belgium/pages",
+      "statusLedger": "docs/belgium-cpo-progress-2026-09.json",
+      "platformArchitecture": "Eco-Movement NAP selected-CPO baseline; exact energy-only ad-hoc gross EUR quotes, complex fees unavailable."
+    }
+  ],
+  "progressIndex": "docs/v9-country-progress-2026-09-30.json",
+  "sourceSelection": {
+    "selectedDataLabCommit": "e39a4466096b520b3c459e75539bf9b112235165",
+    "reason": "New immutable development candidate preserves the exact Metropolis source pin and computes the 14 Neuilly post-charge day/night grids only when charge-end time and started-minute tariff attribution are unambiguous. Previous development and public Pages snapshots remain immutable; no automatic deployment.",
+    "safeguards": [
+      "France arithmetic 94 treated + 27 setAside + 170 active = 291.",
+      "AVIA Switzerland 583/583 national EVSE matched.",
+      "IONITY FR/IT/DE direct datasets retain zero unpriced connectors.",
+      "Germany durable national baseline remains primary; expiring Actions artifact is not required.",
+      "NL runtime is Tesla-excluded and uses fail-closed tariff handling.",
+      "Non-EUR and missing direct prices retain station inventory without a numeric EUR offer.",
+      "DOT-NL runtime manifest 2026-10-12T10:56:10.446523Z, 73557 stations.",
+      "IZIVIA FAST national 620 official priced stations, 616 Type2/CCS sites, CHAdeMO excluded from V9 offers; published Data Lab source remains 2026-10-06 with same audited 616-site coverage.",
+      "UK direct batch remains enabled; GeniePoint 281/1138 exact connector offers and 857 unpriced require full candidate, browser, manifest and UK audits before development pin promotion.",
+      "Belgium NAP 16,961 public sites, 70,043 supported EVSEs, 41,706 exact energy-only ad-hoc offers with 21% VAT; minute/flat and incomplete tariffs unpriced."
+    ]
+  },
+  "franceIziviaFastDirect": true,
+  "franceBelibExactSupplement": {
+    "staticSha256": "7113daf751ff34922474d8c9ead10c8e998ca651400d56a08f4964d3e66cf94f",
+    "dynamicSourceSha256": "92c0d6dc57396c6ccab3d2dc580b1d2d3385f52b79add46d7e26f3d46df6327b",
+    "stationIds": [
+      "FRV75PPX0750",
+      "FRV75PPX1633",
+      "FRV75PPX1634",
+      "FRV75PPX1817"
+    ]
+  },
+  "franceSpieMetropolisDirect": true,
+  "franceBumpExactOverride": {
+    "path": "data/overlays/france-bump-exact-current-2026-10-13.json",
+    "artifactSha256": "1dca5b03243462762c7eac54a7d3fd579294d601aa6156d24c0fc916328464a9",
+    "sourceDataLabCommit": "e22c23b1ce6e59a3d834145624c78ea88803e7bb",
+    "sourceArtifactSha256": "63aa413a14e4c9511596a180ca2988f6822e32c228f859518af61ef5acc3e229",
+    "expectedSourcePricedEvse": 2287,
+    "expectedAttachedEvse": 1744,
+    "expectedUnjoinedEvse": 543,
+    "expectedRetainedOldEvse": 1690,
+    "expectedRemovedOldEvse": 60,
+    "expectedNewAttachedEvse": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "sourcePricedEvse": 2287,
+  "attachedEvse": 1744,
+  "unjoinedCurrentSourceEvse": 543,
+  "oldStableEvse": 1750,
+  "retainedOldEvse": 1690,
+  "removedOldEvse": 60,
+  "newAttachedEvse": 54,
+  "offerGroups": 55,
+  "operatorCounts": {
+    "Bump": 1744
+  }
+}

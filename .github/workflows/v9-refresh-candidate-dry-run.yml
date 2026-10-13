@@ -11,6 +11,11 @@ on:
       - "config/germany-ionity-supplement-provenance.json"
       - "config/electra-legacy-source-provenance.json"
       - "scripts/build_snapshot.py"
+      - "scripts/build_bump_exact_override.py"
+      - "data/overlays/france-bump-exact-current-2026-10-13.json"
+      - "config/snapshots/2026-10-13-fr-bump-exact-current-candidate.json"
+      - "tests/v9-bump-current-exact.test.mjs"
+      - "tests/test_bump_exact_override.py"
       - "scripts/supplement_france_irve_exact.py"
       - "tests/test_france_belib_exact_supplement.py"
       - "scripts/scope_belib_offers.py"
@@ -48,6 +53,11 @@ on:
       - "tests/belgium-nap-safe-pricing.test.mjs"
       - "v9-production-shell/**"
       - "scripts/build_snapshot.py"
+      - "scripts/build_bump_exact_override.py"
+      - "data/overlays/france-bump-exact-current-2026-10-13.json"
+      - "config/snapshots/2026-10-13-fr-bump-exact-current-candidate.json"
+      - "tests/v9-bump-current-exact.test.mjs"
+      - "tests/test_bump_exact_override.py"
       - "scripts/supplement_france_irve_exact.py"
       - "tests/test_france_belib_exact_supplement.py"
       - "config/refresh-policy.json"
@@ -142,6 +152,7 @@ jobs:
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
           python tests/test_france_belib_exact_supplement.py ../stable ../datalab ../dist/v9-dev-snapshot
+          python tests/test_bump_exact_override.py ../stable ../dist/v9-dev-snapshot
           node tests/uk-connected-kerb-guest-integration.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz
           node tests/belgium-nap-safe-pricing.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/BE/pages
 
@@ -161,6 +172,7 @@ jobs:
           node production/tests/v9-congestion-soc80.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-spie-neuilly-post-charge.test.mjs
           node production/tests/v9-applied-tariff-description.test.mjs
+          node production/tests/v9-bump-current-exact.test.mjs dist/v9-dev-snapshot
           node production/tests/runtime-e2e-smoke.mjs dist/v9-dev-snapshot
 
       - name: Install browser test dependency
