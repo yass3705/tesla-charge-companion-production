@@ -18,6 +18,7 @@ def compile_offers(source_path: Path, static_path: Path):
     seen = set()
     offers = []
     excluded = collections.Counter()
+    special = 0
     for row in source["exact"]:
         evse = row["id_pdc_itinerance"]
         if evse in seen:
@@ -37,15 +38,30 @@ def compile_offers(source_path: Path, static_path: Path):
         if not power_match or group[2] not in ("AC", "DC"):
             excluded["power_or_connector_mismatch"] += 1
             continue
-        if row.get("postChargeSchedule") or row.get("postChargeEurPerMinute") is None:
-            excluded["post_charge_schedule_unsupported"] += 1
-            continue
         energy = float(row["energyEurPerKwh"])
-        idle = float(row["postChargeEurPerMinute"])
         grace = row["postChargeGraceMinutes"]
-        if energy not in (0.44, 0.53, 0.63) or idle not in (0.1, 0.2) or grace != 10:
+        if energy not in (0.44, 0.53, 0.63) or grace != 10:
             excluded["unexpected_tariff_component"] += 1
             continue
+        schedule = row.get("postChargeSchedule")
+        if schedule:
+            expected = [("08:00", "20:00", 0.2), ("20:00", "08:00", 0.1)]
+            actual = [(w.get("start"), w.get("end"), w.get("eurPerMinute")) for w in schedule]
+            if actual != expected or row.get("postChargeEurPerMinute") is not None or "Neuilly-sur-Seine" not in row["station"]:
+                excluded["unexpected_post_charge_schedule"] += 1
+                continue
+            post_fee = {"graceMinutes": 10, "localRateWindows": schedule}
+            special += 1
+        else:
+            if row.get("postChargeEurPerMinute") is None:
+                excluded["missing_post_charge_rate"] += 1
+                continue
+            idle = float(row["postChargeEurPerMinute"])
+            if idle not in (0.1, 0.2):
+                excluded["unexpected_tariff_component"] += 1
+                continue
+            post_fee = {"graceMinutes": 10, "blockMinutes": 1,
+                        "blockEur": idle, "rounding": "started_block"}
         offers.append({
             "id": f"metropolis-direct:{evse}", "provider": "Métropolis Recharge",
             "kind": "direct", "country": "FR", "currency": "EUR",
@@ -57,9 +73,9 @@ def compile_offers(source_path: Path, static_path: Path):
                         "rules": [{"scope": "allDay", "start": "00:00", "end": "24:00",
                                    "currency": "EUR", "pricePerKwh": energy,
                                    "energyRounding": "started_kwh"}],
-                        "postChargeFee": {"graceMinutes": 10, "blockMinutes": 1,
-                                          "blockEur": idle, "rounding": "started_block"}},
-            "note": f"{row['rule']}; exact EVSE; 10-minute post-charge grace",
+                        "postChargeFee": post_fee},
+            "note": f"{row['rule']}; exact EVSE; 10-minute post-charge grace"
+                    + ("; Neuilly local day/night rates" if schedule else ""),
         })
     if len(seen) != len(source["exact"]):
         raise ValueError("Metropolis source exact list contains duplicate EVSE IDs")
@@ -67,9 +83,10 @@ def compile_offers(source_path: Path, static_path: Path):
         raise AssertionError("Metropolis source accounting mismatch")
     return {"schemaVersion": 1, "country": "FR", "generatedAt": source["generatedAt"],
             "dataset": "metropolis-spie-direct-exact-v9",
-            "policy": "Only unique exact EVSE, same national station/operator/power and complete standard post-charge rule; Neuilly schedule excluded",
+            "policy": "Only unique exact EVSE, same national station/operator/power and complete official post-charge rule; Neuilly local day/night rates evaluated by session time",
             "directOffers": offers,
             "stats": {"sourceExact": len(source["exact"]), "compiled": len(offers),
+                      "specialRateWindowOffers": special,
                       "excluded": dict(sorted(excluded.items()))}}
 
 

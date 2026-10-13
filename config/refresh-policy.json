@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-13-fr-spie-exact-candidate",
+    "currentSnapshot": "2026-10-13-fr-spie-neuilly-timewindow-candidate",
     "dataLabSha": "e39a4466096b520b3c459e75539bf9b112235165",
-    "rule": "Development candidate adds exact Metropolis direct tariffs with complete public fee terms; Neuilly time-window exceptions remain unavailable. Older candidates and first public Pages pin stay immutable; no automatic deployment."
+    "rule": "Development candidate includes 740 exact Metropolis direct EVSE offers, including 14 Neuilly local post-charge schedules with fail-closed time-boundary handling. Older candidates and public Pages pin remain immutable; no automatic deployment."
   }
 }
