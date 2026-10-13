@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea } = require('../v9-production-shell/bridge.js');
+const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea, stationDisplayName } = require('../v9-production-shell/bridge.js');
+
+assert.equal(stationDisplayName({name:'LFR3148EVCP01',address:"Rue de l'Aérostation Maritime, 78210, SAINT CYR L'ECOLE, 78545",physicalOperator:{name:'Lidl France'}}),"Lidl France · Rue de l'Aérostation Maritime");
+assert.equal(stationDisplayName({name:'LFR3148EVCP01',physicalOperator:{name:'Lidl France'}}),'LFR3148EVCP01','without a verified address keep the technical name');
+assert.equal(stationDisplayName({name:'Electra Vélizy',address:'1 Avenue',physicalOperator:{name:'Electra'}}),'Electra Vélizy');
 
 const emptyFrancePlans=subscriptionOptionsForArea({stations:[]},'FR');
 assert.equal(emptyFrancePlans.length,0,'no subscription can be claimed to be available without a station in radius');
