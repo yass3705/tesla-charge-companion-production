@@ -48,7 +48,7 @@
    if(rs.length!==1)return null;
    const rate=rs[0],parts=rate?.priceComponents||[];
    if(rate?.ratePolicy!=='adHoc'||text(rate.currency)!=='EUR'||!text(rate.sourceRateId)||
-      ![2,3].includes(parts.length)||new Set(parts.map(p=>text(p.groupIndex))).size!==1||
+      ![2,3,5].includes(parts.length)||new Set(parts.map(p=>text(p.groupIndex))).size!==1||
       text(parts[0]?.groupIndex)!=='1')return null;
    const all=new Set(['energyPrice/priceGroupIndex','energyPrice/priceType',
      'energyPrice/value','energyPrice/taxIncluded','energyPrice/taxRate']);
@@ -64,6 +64,51 @@
    for(const p of parts){
      const amt=numeric(p.amountSource);
      if(p.taxIncluded!=='true'||numeric(p.taxRateSource)!==21||amt==null||amt<0)return null;
+   }
+   // Family with identical kWh components split across 360-minute applicability
+   // and three complementary local windows. The minute component has one
+   // daytime window; per user clarification its clock starts at charge completion.
+   if(parts.length===5){
+     const energy=parts.filter(p=>p.priceType==='pricePerKWh');
+     const idle=parts.filter(p=>p.priceType==='pricePerMinute');
+     if(energy.length!==4||idle.length!==1)return null;
+     const kwhValue=numeric(energy[0].amountSource);
+     if(![0.28,0.38].includes(kwhValue)||energy.some(p=>numeric(p.amountSource)!==kwhValue)||
+        numeric(idle[0].amountSource)!==0.06)return null;
+     const windowPaths=[
+       'energyPrice/overallPeriod/overallStartTime',
+       'energyPrice/overallPeriod/validPeriod/recurringTimePeriodOfDay/startTimeOfPeriod',
+       'energyPrice/overallPeriod/validPeriod/recurringTimePeriodOfDay/endTimeOfPeriod',
+       'energyPrice/timeBasedApplicability/fromMinute'
+     ];
+     const leaf=(p,path)=>text((p.rawApplicabilityLeaves||[]).find(l=>l.path===path)?.value);
+     const eligibleWindow=(p,start,end)=>{
+       const leaves=p.rawApplicabilityLeaves||[];
+       const wanted=new Set([...all,...windowPaths]);
+       return leaves.length===wanted.size&&new Set(leaves.map(l=>l.path)).size===wanted.size&&
+         leaves.every(l=>wanted.has(l.path))&&
+         leaf(p,'energyPrice/timeBasedApplicability/fromMinute')==='360'&&
+         leaf(p,windowPaths[1])===start&&leaf(p,windowPaths[2])===end&&
+         !Number.isNaN(Date.parse(leaf(p,windowPaths[0])));
+     };
+     const toMinute='energyPrice/timeBasedApplicability/toMinute';
+     const initial=energy.filter(p=>{
+       const leaves=p.rawApplicabilityLeaves||[],wanted=new Set([...all,toMinute]);
+       return leaves.length===wanted.size&&leaves.every(l=>wanted.has(l.path))&&
+          new Set(leaves.map(l=>l.path)).size===wanted.size&&leaf(p,toMinute)==='360';
+     });
+     const windows=[
+       ['09:00:00','21:59:00'],['22:00:00','23:59:00'],['00:00:00','08:59:00']
+     ];
+     if(initial.length!==1||windows.some(([start,end])=>
+        energy.filter(p=>eligibleWindow(p,start,end)).length!==1)||
+        !eligibleWindow(idle,'09:00:00','21:59:00'))return null;
+     return {value:kwhValue,sessionFee:0,
+       postChargeFee:{graceMinutes:360,localRateWindows:[
+         {start:'09:00',end:'22:00',eurPerMinute:0.06},
+         {start:'22:00',end:'09:00',eurPerMinute:0}]},
+       rateId:text(rate.sourceRateId),sourceUpdatedAt:text(rate.sourceLastUpdated),
+       tariffFamily:'energyvision-post-charge-360-local-day'};
    }
    const kwh=parts.filter(p=>p.priceType==='pricePerKWh');
    const minute=parts.filter(p=>p.priceType==='pricePerMinute');
