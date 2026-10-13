@@ -51,6 +51,14 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    # Gradual source migration: Production owns the listed engine modules.
+    # The remaining historical runtime stays pinned until coverage parity is proven.
+    owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"
+    for relative in ("assets/v9/access-router-engine.js", "assets/v9/offer-engine.js", "assets/v9/data-engine.js"):
+        src=owned_runtime/relative
+        if not src.is_file():
+            raise FileNotFoundError(f"Production runtime-owned module missing: {relative}")
+        copy_file(src, out/"runtime"/relative)
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:
         from supplement_france_irve_exact import supplement
