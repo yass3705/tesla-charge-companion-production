@@ -104,7 +104,8 @@ try{
     ],'FR',[]);
   });
   const subscriptions=page.locator('#v9SubscriptionChoices input[type=checkbox]');
-  assert.equal(await subscriptions.count(),2,'subscription plans appear as a visible multiple-choice list');
+  assert.equal(await subscriptions.count(),2,'subscription plans appear in the compact multiple-choice list');
+  await page.locator('.v9-subscription-list > summary').click();
   await subscriptions.nth(0).check();await subscriptions.nth(1).check();
   assert.deepEqual(await page.evaluate(()=>window.TCCV9ProductionShell.selectedSubscriptions(window)),['fastned-gold','atlante-go']);
   await page.waitForFunction(()=>window.__subscriptionApplyCalls>=1);
@@ -114,6 +115,7 @@ try{
     document:window.document,localStorage:window.localStorage,
     setTimeout:window.setTimeout.bind(window),clearTimeout:window.clearTimeout.bind(window),compare:()=>{}
   },window.TCCV9ProductionShell.subscriptionOptionsForArea({stations:[{physicalOperator:{id:'electra',name:'Electra'},offers:[]}]},'FR'),'FR',[]));
+  await page.locator('.v9-subscription-list > summary').click();
   await page.locator('#v9SubscriptionChoices input[value="electra-plus-essential"]').check();
   await page.locator('#v9SubscriptionChoices input[value="electra-plus-smart"]').check();
   assert.equal(await page.locator('#v9SubscriptionChoices input[value="electra-plus-essential"]').isChecked(),false,'Electra+ plans are mutually exclusive');

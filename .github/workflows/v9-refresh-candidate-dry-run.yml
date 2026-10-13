@@ -24,6 +24,7 @@ on:
       - "runtime-overrides/assets/v9/**"
       - "tests/france-direct-offer-kind.test.mjs"
       - "tests/v9-strict-ranking.test.mjs"
+      - "tests/v9-electra-plus-direct.test.mjs"
       - "tests/v9-tesla-global-layout.test.mjs"
       - "tests/belgium-nap-safe-pricing.test.mjs"
       - "v9-production-shell/**"
@@ -112,6 +113,7 @@ jobs:
           python production/scripts/validate_electra_platform_overlay.py datalab
           node production/tests/belgium-nap-safe-pricing.test.mjs
           node production/tests/france-direct-offer-kind.test.mjs
+          node production/tests/v9-electra-plus-direct.test.mjs
           node production/tests/v9-tesla-global-layout.test.mjs
           TCC_STABLE_ROOT=stable TCC_DATALAB_ROOT=datalab node production/tests/belib-exact-evse.test.mjs
 
@@ -132,6 +134,7 @@ jobs:
           node production/tests/v9-pricing-time-zone.test.mjs
           node production/tests/v9-tariff-lanes.test.mjs
           node production/tests/v9-strict-ranking.test.mjs
+          node production/tests/v9-electra-plus-direct.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-ocpi-component-coverage.test.mjs dist/v9-dev-snapshot
           node production/tests/v9-congestion-soc80.test.mjs dist/v9-dev-snapshot
           node production/tests/runtime-e2e-smoke.mjs dist/v9-dev-snapshot
