@@ -11,6 +11,8 @@ on:
       - "tests/v9-ocpi-component-coverage.test.mjs"
       - "tests/v9-congestion-soc80.test.mjs"
       - "tests/test_electra_direct_ocpi.py"
+      - "tests/france-direct-offer-kind.test.mjs"
+      - "runtime-overrides/assets/v9/adapters/direct-offers.js"
       - "scripts/build_electra_direct_offers.py"
       - "runtime-overrides/assets/v9/pricing-engine.js"
       - "runtime-overrides/assets/v9/session-engine.js"
@@ -157,6 +159,7 @@ jobs:
           python3 -m unittest discover -s production/tests -p 'test_germany_ionity_supplement_provenance.py'
           python3 -m unittest discover -s production/tests -p 'test_uk_geniepoint_tariff_choice.py'
           node production/tests/belgium-nap-safe-pricing.test.mjs
+          node production/tests/france-direct-offer-kind.test.mjs
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-stable
