@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const root=path.resolve(process.argv[2]||'dist/v9-e55c-candidate');
+const adapter=require(path.join(root,'runtime/assets/v9/adapters/e55c-exact.js'));
+const engine=require(path.join(root,'runtime/assets/v9/pricing-engine.js'));
+const registry=JSON.parse(fs.readFileSync(path.join(root,'runtime/data/v9/source-registry.json'),'utf8'));
+const source=registry.sources.find(s=>s.id==='france-e55c-exact');
+assert(source?.active===true);
+assert.equal(source.adapter,'e55c-exact-v1');
+assert.equal(source.capabilities.join(','),'tariff');
+const data=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/FR/direct/e55c-exact-france.json'),'utf8'));
+assert.equal(data.stats.stationCount,649);
+assert.equal(data.stats.chargePointCount,1977);
+assert.equal(data.stats.chargePointCountWithMachineReadablePricing,1923);
+assert.equal(data.source.directTariff.nationalOwnEmspOnlyVerified,true);
+const normalized=adapter.normalizePayload(data,source);
+assert.equal(normalized.offerRules.length,1923);
+assert.equal(new Set(normalized.offerRules.map(o=>o.id)).size,1923);
+assert(normalized.offerRules.every(o=>o.pricing.type==='e55c_exact'&&o.evseIds.length>=1&&o.metadata.exactEvseOnly===true));
+const matches=needle=>normalized.offerRules.filter(o=>o.evseIds.some(x=>x===needle));
+const premium=matches('FR*55C*EFR84160*178MA1*0');
+const low=[1,2,3].map(i=>matches('FR*55C*EFR84160*178MA1*'+i));
+assert.equal(premium.length,1);
+assert(low.every(a=>a.length===1));
+assert.equal(premium[0].pricing.sessionFeeEur,0.6);
+const rate=offer=>offer.pricing.localRateWindows.find(w=>w.start==='07:00');
+const night=offer=>offer.pricing.localRateWindows.find(w=>w.start==='23:00');
+assert.equal(rate(premium[0]).chargingTimeEurPerMinute,0.084);
+assert.equal(night(premium[0]).chargingTimeEurPerMinute,0.0624);
+assert(low.every(a=>Math.abs(rate(a[0]).chargingTimeEurPerMinute-0.0384)<1e-10));
+function calc(offer,startAt,mins,parking=0,postChargeStartAt){
+  const result=engine.evaluateOffer(offer,{startAt,durationMinutes:mins,chargingMinutes:mins,postChargeMinutes:parking,
+    ...(postChargeStartAt?{postChargeStartAt}:{})});
+  assert.equal(result.complete,true,JSON.stringify(result));
+  return result;
+}
+const close=(got,want)=>assert(Math.abs(got-want)<0.000001,`${got} != ${want}`);
+close(calc(premium[0],'2026-10-13T10:00:00Z',60).totalEur,5.64);
+close(calc(premium[0],'2026-10-13T22:00:00Z',60).totalEur,4.344);
+const cross=calc(premium[0],'2026-10-13T20:30:00Z',60);
+close(cross.totalEur,4.992);
+close(cross.components.sessionFee,0.6);
+const parking=calc(premium[0],'2026-10-13T20:00:00Z',30,60,'2026-10-13T20:30:00Z');
+close(parking.totalEur,0.6+30*0.084+30*0.084+30*0.0624);
+close(calc(premium[0],'2026-10-13T20:00:00Z',30).components.postCharge.totalEur,0);
+close(calc(low[0][0],'2026-10-13T10:00:00Z',60).totalEur,2.904);
+const malicious=structuredClone(data);
+malicious.source.directTariff.nationalOwnEmspOnlyVerified=false;
+assert.throws(()=>adapter.normalizePayload(malicious,source));
+const noClock=engine.evaluateOffer(premium[0],{durationMinutes:60,chargingMinutes:60});
+assert.equal(noClock.complete,false);
+const shell=fs.readFileSync(path.join(root,'v9-production-shell/index.html'),'utf8');
+assert(shell.includes('assets/v9/adapters/e55c-exact.js'));
+console.log(JSON.stringify({status:'validated',tariffedExactEvse:normalized.offerRules.length,profiles:data.directTariffProfiles.length,
+  verifiedSamples:['Lourmarin premium *0','Lourmarin standard *1/*2/*3'],dayNightCrossing:cross.totalEur,postChargeCrossing:parking.totalEur}));
