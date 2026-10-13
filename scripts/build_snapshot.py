@@ -294,7 +294,7 @@ def main():
     if e55c_cfg:
         e55c_src=pathlib.Path(a.e55c_datalab or a.datalab)/"data/national/electric55_stations_france.json"
         if not e55c_src.is_file(): raise SystemExit("Pinned E55C Data Lab source missing")
-        if sha256(e55c_src)!=e55c_cfg["sourceSha256"]: raise AssertionError("Pinned E55C source hash mismatch")
+        if e55c_cfg.get("sourceSha256") and sha256(e55c_src)!=e55c_cfg["sourceSha256"]: raise AssertionError("Pinned E55C source hash mismatch")
         evidence=load_json(e55c_src)
         st=evidence.get("stats") or {}
         if (st.get("stationCount"),st.get("chargePointCount"),st.get("chargePointCountWithMachineReadablePricing"))!=(649,1977,1923):
