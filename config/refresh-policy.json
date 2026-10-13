@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-13-nine-country-be-belib-exact-candidate",
+    "currentSnapshot": "2026-10-13-live-audit-corrected-candidate",
     "dataLabSha": "047e1911a5dfd4dcce741ad9b461c6096effb9cd",
-    "rule": "Nine-country candidate retains Belgium 41,706 safe offers, GeniePoint 281 and IZIVIA FAST 616/616; Belib's existing tariffs are scoped to official EVSE identities by Production builder #59. Earlier pins remain rollback baselines. No Pages deployment."
+    "rule": "Live-audit corrected development candidate reuses the first public snapshot source SHAs and adds validated Production code fixes. First public Pages pin remains immutable and unchanged; no automatic deployment."
   }
 }
