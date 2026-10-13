@@ -62,10 +62,24 @@ class PagesPublishGateTest(unittest.TestCase):
         self.assertIn("group: v9-global-pages-publish", concurrency)
         self.assertIn("cancel-in-progress: false", concurrency)
 
+    def test_exact_pinned_snapshot_requires_manual_publish(self):
+        source = (WORKFLOWS / "publish-v9-pinned-pages.yml").read_text()
+        self.assertEqual(events(source), {"workflow_dispatch", "pull_request"})
+        self.assertTrue(publish_input(source))
+        candidate = block(block(source, "jobs:"), "candidate:", 2)
+        deploy = block(block(source, "jobs:"), "deploy:", 2)
+        for name in ("Configure GitHub Pages", "Upload exact pinned snapshot"):
+            step = block(candidate, "- name: " + name, 6)
+            self.assertIn("        if: " + PUBLISH_GUARD, step)
+        self.assertIn("    if: " + PUBLISH_GUARD, deploy)
+        self.assertIn("python scripts/validate_built_snapshot.py", candidate)
+        self.assertIn("python production/scripts/verify_candidate_manifest.py", candidate)
+        self.assertIn("artifact_name: v9-pinned-pages-${{ github.run_attempt }}", deploy)
+
     def test_all_pages_actions_are_covered(self):
         pages = {path.name for path in WORKFLOWS.glob("*.yml")
                  if "actions/deploy-pages@" in path.read_text()}
-        self.assertEqual(pages, {"deploy-v9-global-mac-preview.yml", "deploy-v9-iphone-preview.yml"})
+        self.assertEqual(pages, {"deploy-v9-global-mac-preview.yml", "deploy-v9-iphone-preview.yml", "publish-v9-pinned-pages.yml"})
 
 
 if __name__ == "__main__":
