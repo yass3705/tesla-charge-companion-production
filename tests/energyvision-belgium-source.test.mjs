@@ -76,7 +76,12 @@ if(process.argv[2]){
   assert.equal(raw.counts.unassignedStationRates,1228);
   assert.equal(raw.napCrosswalk.unmatchedIds,3795);
   assert.equal(pdc,raw.counts.activePDC);
-  assert.equal(offers,778,'Only exact operational homogeneous complete kWh or kWh+session-fee CPO rates');
+  assert.equal(offers,1940,'Pinned snapshot: 778 simple Direct plus 1162 strictly parsed complex Direct EVSE offers');
+  const all=sites.flatMap(s=>s.offers);
+  assert.equal(all.filter(o=>o.metadata.tariffFamily==='simple').length,778,'No regression in the previously validated 778 Direct');
+  assert.equal(all.filter(o=>o.metadata.tariffFamily!=='simple').length,1162,'Complex price promotion is exact and pinned');
+  const families=Object.fromEntries([...new Set(all.map(o=>o.metadata.tariffFamily))].map(f=>[f,all.filter(o=>o.metadata.tariffFamily===f).length]));
+  console.log('EnergyVision candidate tariff family counts',families);
   assert.ok(sites.every(s=>s.countryCode==='BE'&&s.physicalOperator.name==='EnergyVision'));
   assert.ok(sites.flatMap(s=>s.offers).every(o=>o.kind==='direct'&&o.provider==='EnergyVision'&&o.evseIds.length===1));
   console.log('EnergyVision official pinned CPO runtime:',{sites:sites.length,pdc,offers});
