@@ -141,6 +141,25 @@ def main():
             "sourceArtifactSha256":evidence["sourceArtifactSha256"],
             "overrideArtifactSha256":bump_override["artifactSha256"]})
     if fr_direct and bump_override:
+        # Preserve the already reviewed exact BUMP tariff catalogue. The
+        # migration only swaps the France IRVE station inventory, not the
+        # independently pinned pricing evidence.
+        pinned_bump=production_root/bump_override["path"]
+        if sha256(pinned_bump)!=bump_override["artifactSha256"]:
+            raise AssertionError("Pinned BUMP tariff artifact SHA mismatch")
+        pinned_payload=load_json(pinned_bump)
+        pinned_evidence=pinned_payload.get("sourceEvidence") or {}
+        if (pinned_evidence.get("sourceDataLabCommit")!=bump_override["sourceDataLabCommit"]
+            or pinned_evidence.get("sourceArtifactSha256")!=bump_override["sourceArtifactSha256"]):
+            raise AssertionError("Pinned BUMP tariff evidence mismatch")
+        copy_file(pinned_bump,out/"runtime/data/v9/france-bump-offers.json")
+        write_json(out/"snapshot-inputs/FR/france-direct-bump-preservation.json",{
+            "strategy":"preserve-prevalidated-pinned-exact-EVSE-offers",
+            "artifactSha256":bump_override["artifactSha256"],
+            "pricingRecomputed":False,
+            "newEvseMatchingPerformed":False,
+            "tariffParityCertified":False,
+            "productionPromotionAllowed":False})
         write_json(out/"snapshot-inputs/FR/france-direct-bump-override-guard.json",{
             "reason":"Current BUMP exact EVSE offer overlay expects Stable-specific IRVE identities",
             "status":"not-reconciled",
