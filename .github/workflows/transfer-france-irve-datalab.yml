@@ -71,8 +71,17 @@ jobs:
           p=pathlib.Path("candidate/france-stable-parity.json")
           comparisons=json.loads(p.read_text())
           mismatch=[k for k,v in comparisons.items() if not v["same"]]
+          import hashlib
+          direct=pathlib.Path("candidate/v9-production-runtime/data/v9/france-static")
+          legacy=pathlib.Path("stable/v9-production-runtime/data/v9/france-static")
+          tiles=json.loads((direct/"manifest.json").read_text())["tiles"]
+          difference=[t["file"] for t in tiles if not (legacy/"tiles"/t["file"]).exists() or hashlib.sha256((direct/"tiles"/t["file"]).read_bytes()).digest()!=hashlib.sha256((legacy/"tiles"/t["file"]).read_bytes()).digest()]
+          payload_same=hashlib.sha256((direct/"all.json.gz").read_bytes()).digest()==hashlib.sha256((legacy/"all.json.gz").read_bytes()).digest()
           pathlib.Path("candidate/transfer-readiness.json").write_text(json.dumps({
             "franceStableManifestSame":len(mismatch)==0,
+            "allStationsPayloadSame":payload_same,
+            "differentTileCount":len(difference),
+            "differentTilesSample":difference[:20],
             "differingFields":mismatch,
             "requiresPromotionApproval":True,
             "legacyRelayDisableAllowed":False
