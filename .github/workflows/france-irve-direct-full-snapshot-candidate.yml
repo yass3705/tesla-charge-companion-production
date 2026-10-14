@@ -1,0 +1,82 @@
+name: France IRVE direct Data Lab full V9 snapshot candidate
+on:
+  pull_request:
+    paths:
+      - scripts/build_snapshot.py
+      - scripts/import_france_irve_from_datalab.py
+      - .github/workflows/france-irve-direct-full-snapshot-candidate.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Resolve existing pinned development snapshot
+        id: pin
+        run: |
+          python - <<'PY'
+          import json,os
+          policy=json.load(open("production/config/refresh-policy.json"))["development"]
+          snap=json.load(open("production/config/snapshots/"+policy["currentSnapshot"]+".json"))
+          with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+              f.write("snapshot="+policy["currentSnapshot"]+"\n")
+              f.write("datalab="+policy["dataLabSha"]+"\n")
+              f.write("stable="+snap["sources"]["stable"]["sha"]+"\n")
+          PY
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ steps.pin.outputs.datalab }}
+          path: datalab
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: ${{ steps.pin.outputs.stable }}
+          path: stable
+          persist-credentials: false
+      - name: Construct temporary pinned direct-France configuration
+        run: |
+          python - <<'PY'
+          import json,hashlib,pathlib
+          source=pathlib.Path("datalab/data/national/france-irve-static-v9/manifest.json")
+          policy=pathlib.Path("production/config/refresh-policy.json")
+          dev=json.loads(policy.read_text())["development"]
+          original=pathlib.Path("production/config/snapshots")/(dev["currentSnapshot"]+".json")
+          cfg=json.loads(original.read_text())
+          cfg["franceIrveDirectFromDataLab"]={"manifestSha256":hashlib.sha256(source.read_bytes()).hexdigest()}
+          pathlib.Path("production/candidate-france-direct.json").write_text(json.dumps(cfg,indent=2)+"\n")
+          print("Pinned Data Lab manifest:",cfg["franceIrveDirectFromDataLab"]["manifestSha256"])
+          PY
+      - name: Validate and build complete V9 with direct France Data Lab dataset
+        run: |
+          cd production
+          python scripts/validate_snapshot.py candidate-france-direct.json
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config candidate-france-direct.json --out ../dist/v9-direct-fr
+          python scripts/validate_built_snapshot.py ../dist/v9-direct-fr "${{ steps.pin.outputs.snapshot }}"
+          python scripts/validate_browser_asset_graph.py ../dist/v9-direct-fr
+      - name: Verify direct France provenance and identical input bytes
+        run: |
+          python - <<'PY'
+          import json,pathlib,hashlib
+          out=pathlib.Path("dist/v9-direct-fr")
+          proof=json.loads((out/"snapshot-inputs/FR/france-irve-direct-handoff.json").read_text())
+          assert proof["stableFranceMirrorUsed"] is False
+          a=pathlib.Path("datalab/data/national/france-irve-static-v9/all.json.gz")
+          b=out/"runtime/data/v9/france-static/all.json.gz"
+          assert hashlib.sha256(a.read_bytes()).digest()==hashlib.sha256(b.read_bytes()).digest()
+          print("Direct Data Lab France confirmed and complete V9 snapshot built")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: v9-france-direct-full-snapshot-candidate
+          path: |
+            dist/v9-direct-fr/snapshot-inputs/FR/france-irve-direct-handoff.json
+            production/candidate-france-direct.json
+          retention-days: 14
