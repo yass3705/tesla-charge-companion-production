@@ -64,6 +64,21 @@ jobs:
         run: |
           diff -r candidate/v9-production-runtime/data/v9/france-static candidate/v9-test/data/v9/france-static
           test -s candidate/source-datalab-sha.txt
+      - name: Check France source manifest parity with Stable before promotion
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          p=pathlib.Path("candidate/france-stable-parity.json")
+          comparisons=json.loads(p.read_text())
+          mismatch=[k for k,v in comparisons.items() if not v["same"]]
+          pathlib.Path("candidate/transfer-readiness.json").write_text(json.dumps({
+            "franceStableManifestSame":len(mismatch)==0,
+            "differingFields":mismatch,
+            "requiresPromotionApproval":True,
+            "legacyRelayDisableAllowed":False
+          },indent=2)+"\\n")
+          print("Stable comparison differing fields:",mismatch)
+          PY
       - name: Upload validated production-ready source bundle
         uses: actions/upload-artifact@v4
         with:
