@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-10-14",
+  "productionSnapshot": "2026-10-13-be-energyvision-official-cpo-candidate",
+  "stableSha": "0a6d2c3415504397310d3dc92fae40be843b2435",
+  "migrationState": "inventory-only-no-source-switch",
+  "countries": {
+    "ES": {
+      "currentPrimarySource": "stable",
+      "stableRuntimePrefix": "v9-production-runtime/data/v9/",
+      "stablePrefixes": [
+        "spain-static/",
+        "spain-reve-offers/"
+      ],
+      "stableTreeObservedFiles": 170,
+      "stableTreeObservedBytes": 5684327,
+      "dataLabCandidates": [
+        "data/spain_reve/reve_connector_tariffs_raw.json.gz",
+        "data/spain_reve/reve_operational_status_raw.json.gz"
+      ],
+      "dataLabRefreshWorkflow": ".github/workflows/spain-reve-v9-stream-refresh.yml",
+      "readyForSourceSwitch": false,
+      "blockers": [
+        "Verify Data Lab full station/EVSE inventory, static tiles and REVE offer tiles against pinned Stable runtime",
+        "Confirm exact ID/power/status/tariff parity and immutable Data Lab manifest",
+        "REVE stream is incomplete (397/468 tariff and 265/454 status pages) and explicitly marked PRE_INTEGRATION_ONLY; do not mistake raw tariff/status feeds for full ES location/EVSE tiles"
+      ],
+      "dataLabReveStream": {
+        "observedAt": "2026-10-13T19:23:20.327029Z",
+        "integrationStatus": "PRE_INTEGRATION_ONLY",
+        "complete": false,
+        "tariffPagesCollected": 397,
+        "tariffTotalPages": 468,
+        "statusPagesCollected": 265,
+        "statusTotalPages": 454,
+        "tariffRowsStored": 31149,
+        "statusRowsStored": 21742,
+        "source": "data/spain_reve/tariff_status_stream_last_run.json"
+      }
+    },
+    "IT": {
+      "currentPrimarySource": "stable",
+      "stableRuntimePrefix": "v9-production-runtime/data/v9/",
+      "stablePrefixes": [
+        "italy-static/",
+        "italy-offers.json",
+        "italy-build-report.json"
+      ],
+      "stableTreeObservedFiles": 76,
+      "stableTreeObservedBytes": 90323159,
+      "dataLabCandidates": [
+        "data/national/atlante_direct_stations_italy_latest.json.gz",
+        "data/national/ionity_direct_stations_italy.json.gz"
+      ],
+      "readyForSourceSwitch": false,
+      "blockers": [
+        "Rebuild the complete Italian national static inventory and tiles rather than replacing them with partial CPO feeds",
+        "Verify source offer coverage and EVSE/power/tariff parity with pinned Stable runtime"
+      ]
+    }
+  },
+  "guards": [
+    "Never change the active development pin or publish on an inventory-only migration",
+    "Do not move or delete Tesla Mac acquisition in updater-test",
+    "Do not drop stations or EVSEs when tariffs are missing or incalculable",
+    "Tariff matching must preserve direct versus eMSP and EVSE/power granularity",
+    "Require successful complete snapshot build and runtime tests before source switch"
+  ]
+}

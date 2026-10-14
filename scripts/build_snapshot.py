@@ -52,6 +52,14 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    # Gradual source migration: Production owns the listed engine modules.
+    # The remaining historical runtime stays pinned until coverage parity is proven.
+    owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"
+    for relative in ("assets/v9/access-router-engine.js", "assets/v9/offer-engine.js", "assets/v9/data-engine.js", "assets/v9/pricing-engine.js", "assets/v9/runtime-engine.js", "assets/v9/session-engine.js", "assets/v9/charge-model-engine.js", "assets/v9/session-planner-engine.js", "assets/v9/station-score-engine.js", "assets/v9/routing-engine.js", "assets/v9/device-scenario-engine.js", "assets/v9/vehicle-profile-engine.js", "assets/v9/readiness-engine.js", "assets/v9/parity-engine.js", "assets/v9/device-test-engine.js", "assets/v9/device-test-window-engine.js", "assets/v9/parity-scenario-engine.js", "assets/v9/rollout-engine.js", "assets/v9/enrollment-engine.js", "assets/v9/self-enrollment-engine.js", "assets/v9/whitelist-engine.js", "assets/v9/canary-policy-engine.js", "assets/v9/canary-identity.js", "assets/v9/canary-telemetry.js", "assets/v9/browser-loaders.js", "assets/v9/browser-routing.js", "assets/v9/v8-shadow-adapter.js", "assets/v9/adapters/france-crosswalk.js", "assets/v9/adapters/france-irve-status.js", "assets/v9/adapters/legacy-direct-stations.js", "assets/v9/adapters/legacy-direct-tariffs.js", "assets/v9/adapters/morocco-evone-policy.js", "assets/v9/adapters/morocco-kilowatt-tariff.js", "assets/v9/adapters/tesla-json.js", "assets/v9/adapters/direct-offers.js", "assets/v9/adapters/national-compact.js", "assets/v9/adapters/morocco-shell-vivo-diagnostic.js", "assets/v9/adapters/morocco-public.js"):
+        src=owned_runtime/relative
+        if not src.is_file():
+            raise FileNotFoundError(f"Production runtime-owned module missing: {relative}")
+        copy_file(src, out/"runtime"/relative)
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:
         from supplement_france_irve_exact import supplement
@@ -148,7 +156,8 @@ def main():
     # as an explicit local fallback under /control/.
     copy_tree(stable/"assets", out/"assets")
     copy_tree(stable/"data", out/"data")
-    copy_tree(stable/"v9-production-shell", out/"v9-production-shell")
+    # Production owns the V9 shell (index, bridge and configuration); Stable is no longer its source.
+    copy_tree(production_root/"v9-production-shell", out/"v9-production-shell")
     # Production-owned shell override: keep stable as fallback baseline while
     # allowing V9 UI behavior to evolve without mutating the stable repository.
     shell_override=production_root/"v9-production-shell"
@@ -209,7 +218,10 @@ def main():
         # DOT-NL is loaded from snapshot-inputs by the dedicated adapter; avoid duplicate inventory.
 
     for name in ("manifest.webmanifest","app-version.json","service-worker.js"):
-        src=stable/name
+        # Migration phase 1: Production owns its pinned PWA deployment files.
+        src=production_root/"deployment"/name
+        if not src.exists():
+            raise FileNotFoundError(f"Production-owned PWA file missing: deployment/{name}")
         if src.exists():
             copy_file(src,out/name)
 
@@ -265,7 +277,7 @@ def main():
             raise AssertionError(f"stable shell runtime dependency rewrite missing: {required}")
     shell_path.write_text(shell_text,encoding="utf-8")
 
-    shell_cfg=load_json(stable/"v9-production-shell/shell-config.json")
+    shell_cfg=load_json(production_root/"v9-production-shell/shell-config.json")
     shell_cfg.update({
       "mode":"candidate",
       "controlIndex":"../control/index.html",

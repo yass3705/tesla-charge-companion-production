@@ -18,6 +18,7 @@ def main():
     allow_country_tesla_priority="--allow-country-tesla-priority" in sys.argv[3:]
     allow_nl_override="--allow-nl-override" in sys.argv[3:]
     allow_pricing_engine_override="--allow-pricing-engine-override" in sys.argv[3:]
+    allow_production_owned_runtime="--allow-production-owned-runtime" in sys.argv[3:]
     critical=[
       "data/tesla_stations.json",
       "data/v9/spain-static/manifest.json",
@@ -64,6 +65,22 @@ def main():
             nl_all=snap/"data/non_tesla_netherlands/all.json.gz"
         assert nl_manifest.exists() and nl_manifest.stat().st_size>0, "Data Lab NL override manifest missing/empty"
         assert nl_all.exists() and nl_all.stat().st_size>0, "Data Lab NL override runtime missing/empty"
+    if allow_production_owned_runtime:
+        # Compare migrated modules with Production's immutable own sources,
+        # retaining baseline equality for all other critical files.
+        prod_root=pathlib.Path(__file__).resolve().parents[1]
+        owned_paths={
+            "assets/v9/runtime-engine.js",
+            "assets/v9/routing-engine.js",
+            "assets/v9/browser-loaders.js",
+            "assets/v9/browser-routing.js",
+        }
+        critical=[rel for rel in critical if rel not in owned_paths]
+        for rel in sorted(owned_paths):
+            owned=prod_root/"runtime-owned"/rel
+            live=snap/rel
+            assert owned.is_file() and owned.stat().st_size>0, f"Production-owned source absent: {rel}"
+            assert live.is_file() and sha(live)==sha(owned), f"Production-owned runtime mismatch: {rel}"
     checked=0
     for rel in critical:
         a=stable/rel

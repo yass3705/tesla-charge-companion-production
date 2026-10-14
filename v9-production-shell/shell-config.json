@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "mode": "candidate",
+  "controlIndex": "../index.html",
+  "expectedControlBuild": "7310",
+  "runtimeBase": "v9-production-runtime",
+  "observedCandidateSha": "8d2c20b7c76004389edd8f4a3b80d6b314900ba0",
+  "runtimeFingerprint": "sha256:455b371c14342a83d55fdfde0e3f2a63e7e3f967c2c84fb3fc31b6fe7bffd697",
+  "engineScopeCountries": [
+    "FR",
+    "NL",
+    "IT",
+    "ES",
+    "CH"
+  ],
+  "fallback": "legacy-compare",
+  "notes": "Candidate production shell. Stable V7.3 UI remains the shell; V9 compare is enabled for FR, NL, IT, ES and CH. Switzerland uses the BFE/OICP national baseline plus exact verified CPO tariff overlays; unresolved EVSEs remain visible without an invented direct price."
+}
