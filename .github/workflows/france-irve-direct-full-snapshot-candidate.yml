@@ -70,13 +70,21 @@ jobs:
           a=pathlib.Path("datalab/data/national/france-irve-static-v9/all.json.gz")
           b=out/"runtime/data/v9/france-static/all.json.gz"
           assert hashlib.sha256(a.read_bytes()).digest()==hashlib.sha256(b.read_bytes()).digest()
-          print("Direct Data Lab France confirmed and complete V9 snapshot built")
+          guards=list((out/"snapshot-inputs/FR").glob("*transition.json"))+list((out/"snapshot-inputs/FR").glob("*override-guard.json"))
+          unresolved=[]
+          for path in guards:
+              entry=json.loads(path.read_text())
+              if entry.get("productionPromotionAllowed") is False:
+                  unresolved.append({"file":path.name,"reason":entry.get("reason"),"pricingParityCertified":entry.get("pricingParityCertified",entry.get("priceParityCertified"))})
+          readiness={"fullBuildSucceeded":True,"dataLabDirectProvenanceValid":True,"promotionAllowed":not unresolved,"unresolvedLegacyPricing":unresolved}
+          (out/"snapshot-inputs/FR/direct-cutover-readiness.json").write_text(json.dumps(readiness,indent=2)+"\\n")
+          print("Direct Data Lab France build finished. Publication eligible:",readiness["promotionAllowed"])
           PY
       - uses: actions/upload-artifact@v4
         if: success()
         with:
           name: v9-france-direct-full-snapshot-candidate
           path: |
-            dist/v9-direct-fr/snapshot-inputs/FR/france-irve-direct-handoff.json
+            dist/v9-direct-fr/snapshot-inputs/FR/*.json
             production/candidate-france-direct.json
           retention-days: 14
