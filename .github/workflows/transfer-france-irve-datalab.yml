@@ -1,0 +1,35 @@
+name: Transfer France IRVE Data Lab to Production candidate
+on:
+  pull_request:
+    paths:
+      - scripts/import_france_irve_from_datalab.py
+      - .github/workflows/transfer-france-irve-datalab.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: main
+          path: datalab
+          persist-credentials: false
+      - name: Record exact Data Lab source SHA
+        run: git -C datalab rev-parse HEAD > datalab-source-sha.txt
+      - name: Import canonical France IRVE directly into Production runtime layout
+        run: |
+          python production/scripts/import_france_irve_from_datalab.py --datalab datalab --output candidate/v9-production-runtime/data/v9/france-static
+          cp datalab-source-sha.txt candidate/source-datalab-sha.txt
+      - name: Upload validated production-ready source bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-france-irve-from-datalab
+          path: candidate/
+          retention-days: 14
