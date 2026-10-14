@@ -167,6 +167,25 @@ jobs:
           cd production
           python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
+      - name: France IRVE direct source handoff candidate (strict byte and pricing parity)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd production
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-france-direct-parity --france-irve-direct-parity
+          python scripts/validate_built_snapshot.py ../dist/v9-france-direct-parity "${{ steps.pin.outputs.snapshot_id }}"
+          python - <<'PY'
+          import hashlib,pathlib
+          base=pathlib.Path("../dist/v9-dev-snapshot/runtime/data/v9")
+          direct=pathlib.Path("../dist/v9-france-direct-parity/runtime/data/v9")
+          for name in ("france-static","france-bump-offers.json","france-belib-offers.json"):
+              a=base/name;b=direct/name
+              def index(p):
+                  if p.is_file():return {"":hashlib.sha256(p.read_bytes()).hexdigest()}
+                  return {str(x.relative_to(p)):hashlib.sha256(x.read_bytes()).hexdigest() for x in p.rglob("*") if x.is_file()}
+              if index(a)!=index(b):raise SystemExit("France runtime parity failed: "+name)
+              print("France runtime identical:",name)
+          PY
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
           python tests/test_france_belib_exact_supplement.py ../stable ../datalab ../dist/v9-dev-snapshot
