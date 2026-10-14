@@ -73,6 +73,13 @@ def main():
             absent=sorted(set(old_hashes)-set(new_hashes))
             extra=sorted(set(new_hashes)-set(old_hashes))
             different=sorted(k for k in set(old_hashes)&set(new_hashes) if old_hashes[k]!=new_hashes[k])
+            write_json(out/"snapshot-inputs/FR/france-irve-handoff-parity-blocker.json", {
+                "status":"blocked",
+                "missingCount":len(absent),"extraCount":len(extra),"differentCount":len(different),
+                "missingExamples":absent[:10],"extraExamples":extra[:10],"differentExamples":different[:10],
+                "pinnedStableAllSha256":old_hashes.get("all.json.gz"),
+                "pinnedDataLabAllSha256":new_hashes.get("all.json.gz"),
+            })
             raise AssertionError(f"France source handoff blocked: missing={absent[:8]}, extra={extra[:8]}, bytesDiffer={different[:8]}")
         copy_tree(imported,out/"runtime/data/v9/france-static")
         write_json(out/"snapshot-inputs/FR/france-irve-source-handoff.json",{
