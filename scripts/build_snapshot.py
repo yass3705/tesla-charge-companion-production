@@ -39,6 +39,7 @@ def main():
     ap.add_argument("--datalab",required=True)
     ap.add_argument("--germany-source")
     ap.add_argument("--e55c-datalab")
+    ap.add_argument("--france-irve-direct-parity",action="store_true",help="Use Data Lab France IRVE only if byte-for-byte identical to the pinned Stable input")
     ap.add_argument("--out",required=True)
     ap.add_argument("--config",default="config/snapshots/2026-09-30.json")
     a=ap.parse_args()
@@ -52,6 +53,33 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    if a.france_irve_direct_parity:
+        # Source handoff only. Preserve the *entire* existing supplement,
+        # direct-offer and price calculation chain below untouched.
+        from pathlib import Path
+        source=dl/"data/national/france-irve-static-v9"
+        stable_fr=stable/"v9-production-runtime/data/v9/france-static"
+        if not source.is_dir() or not stable_fr.is_dir():
+            raise AssertionError("France IRVE source or Stable parity reference is missing")
+        # Build the exact historical runtime layout using the already validated importer.
+        imported=out/"snapshot-inputs/FR/handoff-import"
+        importer=pathlib.Path(__file__).resolve().parents[1]/"scripts/import_france_irve_from_datalab.py"
+        subprocess.run([sys.executable,str(importer),"--datalab",str(dl),"--output",str(imported)],check=True)
+        def hashes(root):
+            return {str(p.relative_to(root)):sha256(p) for p in root.rglob("*") if p.is_file()}
+        old_hashes=hashes(stable_fr)
+        new_hashes=hashes(imported)
+        if old_hashes!=new_hashes:
+            absent=sorted(set(old_hashes)-set(new_hashes))
+            extra=sorted(set(new_hashes)-set(old_hashes))
+            different=sorted(k for k in set(old_hashes)&set(new_hashes) if old_hashes[k]!=new_hashes[k])
+            raise AssertionError(f"France source handoff blocked: missing={absent[:8]}, extra={extra[:8]}, bytesDiffer={different[:8]}")
+        copy_tree(imported,out/"runtime/data/v9/france-static")
+        write_json(out/"snapshot-inputs/FR/france-irve-source-handoff.json",{
+            "mode":"Data Lab exact-byte parity verified against pinned Stable relay",
+            "fileCount":len(new_hashes),"allSha256":new_hashes.get("all.json.gz"),
+            "stationPricingLogicChanged":False,"sourcePromotionAllowed":True})
+
     # Gradual source migration: Production owns the listed engine modules.
     # The remaining historical runtime stays pinned until coverage parity is proven.
     owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"
