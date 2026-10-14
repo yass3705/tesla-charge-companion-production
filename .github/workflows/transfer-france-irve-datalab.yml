@@ -76,7 +76,7 @@ jobs:
             "differingFields":mismatch,
             "requiresPromotionApproval":True,
             "legacyRelayDisableAllowed":False
-          },indent=2)+"\\n")
+          },indent=2)+"\n")
           print("Stable comparison differing fields:",mismatch)
           PY
       - name: Upload validated production-ready source bundle
