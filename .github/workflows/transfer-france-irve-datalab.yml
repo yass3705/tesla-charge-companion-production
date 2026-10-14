@@ -55,7 +55,7 @@ jobs:
           a=json.loads(source.read_text());b=json.loads(prior.read_text())
           keys=("stationCount","pdcCount","sourceSha256","allSha256")
           comparison={k:{"datalab":a.get(k),"stable":b.get(k),"same":a.get(k)==b.get(k)} for k in keys}
-          pathlib.Path("candidate/france-stable-parity.json").write_text(json.dumps(comparison,indent=2)+"\\n")
+          pathlib.Path("candidate/france-stable-parity.json").write_text(json.dumps(comparison,indent=2)+"\n")
           print(json.dumps(comparison,indent=2))
           # The static source can legitimately refresh before Stable sync; mismatches
           # are retained for review, never silently overwritten or auto-promoted.
