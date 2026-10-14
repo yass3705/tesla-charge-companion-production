@@ -1,0 +1,37 @@
+name: TCC V9 cutover shadow audit (no publish)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/audit_migration_cutover.py
+      - .github/workflows/v9-cutover-shadow-audit.yml
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          path: datalab
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          path: stable
+          persist-credentials: false
+      - name: Compare France canonical manifest and legacy mirror without writes
+        run: |
+          python production/scripts/audit_migration_cutover.py --production production --datalab datalab --stable stable --report cutover/france-provenance.json
+          test -s cutover/france-provenance.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v9-cutover-france-provenance
+          path: cutover/
+          retention-days: 14

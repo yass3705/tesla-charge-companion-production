@@ -5,6 +5,8 @@ on:
       - "scripts/inspect_v9_source_deltas.py"
       - "tests/test_v9_source_deltas.py"
       - ".github/workflows/v9-source-freshness-audit.yml"
+      - "config/refresh-policy.json"
+      - "config/snapshots/**"
   schedule:
     - cron: "23 23 * * *"
   workflow_dispatch:
@@ -18,12 +20,26 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check guard classifications
         run: python -m unittest discover -s tests -p test_v9_source_deltas.py -v
-      - name: Compare Data Lab source blobs with frozen RC1 pin
+      - name: Resolve the current pinned development snapshot
+        id: pin
+        run: |
+          python - <<'PY'
+          import json,os,pathlib
+          policy=json.loads(pathlib.Path("config/refresh-policy.json").read_text())
+          snap=policy["development"]["currentSnapshot"]
+          config=pathlib.Path("config/snapshots")/(snap+".json")
+          if not config.is_file():
+              raise SystemExit("Pinned development snapshot not found: "+str(config))
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:
+              out.write("config="+str(config)+"\n")
+          print("Auditing pinned snapshot:",config)
+          PY
+      - name: Compare Data Lab source blobs with current development pin
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           python scripts/inspect_v9_source_deltas.py \
-            --config config/snapshots/2026-09-30-r8.json \
+            --config "${{ steps.pin.outputs.config }}" \
             --output audit/v9-source-deltas.json \
             --summary audit/v9-source-summary.md
           cat audit/v9-source-summary.md >> "$GITHUB_STEP_SUMMARY"
