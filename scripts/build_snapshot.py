@@ -71,7 +71,7 @@ def main():
             "tariffAttributionChanged":False})
 
     belib_supplement=cfg.get("franceBelibExactSupplement")
-    if belib_supplement:
+    if belib_supplement and not fr_direct:
         from supplement_france_irve_exact import supplement
         source=dl/"data/national/france-irve-static-v9/all.json.gz"
         dynamic=dl/"data/national/france-irve-dynamic-status-v9.json.gz"
@@ -81,7 +81,7 @@ def main():
                          belib_supplement["dynamicSourceSha256"])
         write_json(out/"snapshot-inputs/FR/belib-exact-supplement.json",proof)
     bump_supplement=cfg.get("franceBumpActiveSupplement")
-    if bump_supplement:
+    if bump_supplement and not fr_direct:
         from supplement_france_bump_active import supplement as supplement_bump
         evidence=pathlib.Path(__file__).resolve().parents[1]/bump_supplement["evidencePath"]
         if sha256(evidence)!=bump_supplement["evidenceSha256"]:
@@ -94,6 +94,13 @@ def main():
         if proof["stationCount"]!=bump_supplement["expectedStationCount"] or proof["evseCount"]!=bump_supplement["expectedEvseCount"]:
             raise AssertionError("Pinned BUMP active supplement count drift")
         write_json(out/"snapshot-inputs/FR/bump-active-supplement.json",proof)
+    if fr_direct and (belib_supplement or bump_supplement):
+        write_json(out/"snapshot-inputs/FR/france-direct-supplement-transition.json",{
+            "reason":"Canonical Data Lab inventory already contains stations; additive supplements cannot run twice",
+            "belibSupplementSkipped":bool(belib_supplement),
+            "bumpSupplementSkipped":bool(bump_supplement),
+            "pricingParityCertified":False,
+            "productionPromotionAllowed":False})
     belib_offers=out/"runtime/data/v9/france-belib-offers.json"
     if belib_offers.exists():
         belib_catalogue=dl/"data/national/belib_stations_paris.json"
