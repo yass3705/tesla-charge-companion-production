@@ -96,7 +96,7 @@ jobs:
           state=json.loads(path.read_text())
           state["readyForSourceHandoff"]=bool(state["franceStableManifestSame"] and state["allStationsPayloadSame"] and state["differentTileCount"]==0)
           state["readyForPagesPromotion"]=False
-          path.write_text(json.dumps(state,indent=2)+"\\n")
+          path.write_text(json.dumps(state,indent=2)+"\n")
           print("France source handoff eligible:",state["readyForSourceHandoff"])
           PY
       - name: Upload validated production-ready source bundle
