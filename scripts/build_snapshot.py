@@ -52,6 +52,24 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    # Opt-in cutover: substitute the validated Data Lab France IRVE bundle
+    # without changing the legacy baseline for existing pinned snapshots.
+    fr_direct=cfg.get("franceIrveDirectFromDataLab")
+    if fr_direct:
+        source_manifest=dl/"data/national/france-irve-static-v9/manifest.json"
+        if not source_manifest.is_file():
+            raise SystemExit("Pinned Data Lab France IRVE manifest missing")
+        expected=fr_direct.get("manifestSha256") if isinstance(fr_direct,dict) else None
+        if not expected or sha256(source_manifest)!=expected:
+            raise AssertionError("France IRVE Data Lab manifest SHA mismatch")
+        subprocess.run([sys.executable,str(pathlib.Path(__file__).with_name("import_france_irve_from_datalab.py")),
+                        "--datalab",str(dl),
+                        "--output",str(out/"runtime/data/v9/france-static")],check=True)
+        write_json(out/"snapshot-inputs/FR/france-irve-direct-handoff.json",{
+            "source":"Data Lab","manifestSha256":expected,
+            "stableFranceMirrorUsed":False,
+            "tariffAttributionChanged":False})
+
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:
         from supplement_france_irve_exact import supplement
