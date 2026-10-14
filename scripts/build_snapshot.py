@@ -118,7 +118,7 @@ def main():
             if src.is_file():
                 copy_file(src,out/"runtime"/src.relative_to(overrides))
     bump_override=cfg.get("franceBumpExactOverride")
-    if bump_override:
+    if bump_override and not fr_direct:
         from build_bump_exact_override import validate as validate_bump_override
         artifact=production_root/bump_override["path"]
         if sha256(artifact)!=bump_override["artifactSha256"]:
@@ -140,6 +140,12 @@ def main():
             **proof,"sourceDataLabCommit":evidence["sourceDataLabCommit"],
             "sourceArtifactSha256":evidence["sourceArtifactSha256"],
             "overrideArtifactSha256":bump_override["artifactSha256"]})
+    if fr_direct and bump_override:
+        write_json(out/"snapshot-inputs/FR/france-direct-bump-override-guard.json",{
+            "reason":"Current BUMP exact EVSE offer overlay expects Stable-specific IRVE identities",
+            "status":"not-reconciled",
+            "priceParityCertified":False,
+            "productionPromotionAllowed":False})
     # Apply the scoped OCPI 2.2.1 first-match/segmentation fix to the
     # immutable compiled pricing runtime; other tariffs retain their rules.
     subprocess.run([
