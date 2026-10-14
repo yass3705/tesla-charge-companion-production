@@ -27,6 +27,8 @@ jobs:
         run: |
           python production/scripts/import_france_irve_from_datalab.py --datalab datalab --output candidate/v9-production-runtime/data/v9/france-static
           cp datalab-source-sha.txt candidate/source-datalab-sha.txt
+          mkdir -p candidate/v9-test/data/v9
+          cp -a candidate/v9-production-runtime/data/v9/france-static candidate/v9-test/data/v9/france-static
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-stable
@@ -46,6 +48,10 @@ jobs:
           # The static source can legitimately refresh before Stable sync; mismatches
           # are retained for review, never silently overwritten or auto-promoted.
           PY
+      - name: Assert both Production runtime and test bundles are identical
+        run: |
+          diff -r candidate/v9-production-runtime/data/v9/france-static candidate/v9-test/data/v9/france-static
+          test -s candidate/source-datalab-sha.txt
       - name: Upload validated production-ready source bundle
         uses: actions/upload-artifact@v4
         with:
