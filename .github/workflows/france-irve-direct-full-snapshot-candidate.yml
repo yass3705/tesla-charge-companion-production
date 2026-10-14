@@ -4,6 +4,7 @@ on:
     paths:
       - scripts/build_snapshot.py
       - scripts/import_france_irve_from_datalab.py
+      - scripts/audit_france_direct_bump_parity.py
       - .github/workflows/france-irve-direct-full-snapshot-candidate.yml
   workflow_dispatch:
 permissions:
@@ -60,6 +61,14 @@ jobs:
           python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config candidate-france-direct.json --out ../dist/v9-direct-fr
           python scripts/validate_built_snapshot.py ../dist/v9-direct-fr "${{ steps.pin.outputs.snapshot }}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-direct-fr
+      - name: Audit exact BUMP offers against canonical Data Lab France EVSEs
+        run: |
+          cd production
+          python scripts/audit_france_direct_bump_parity.py \
+            --offers data/overlays/france-bump-exact-active-2026-10-13.json \
+            --inventory ../dist/v9-direct-fr/runtime/data/v9/france-static/all.json.gz \
+            --stable-offers ../stable/v9-production-runtime/data/v9/france-bump-offers.json \
+            --out ../dist/v9-direct-fr/snapshot-inputs/FR/france-direct-bump-parity.json
       - name: Verify direct France provenance and identical input bytes
         run: |
           python - <<'PY'
