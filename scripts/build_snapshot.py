@@ -9,6 +9,12 @@ import subprocess
 import sys
 from tesla_tariff_priority import build_selected_catalogue
 from scope_belib_offers import scope_belib_offers
+from spain_reve_source import verify_bundle as verify_spain_reve_bundle
+from verify_zewatt_offer_source import verify_handoff as verify_zewatt_handoff
+from verify_zephyre_offer_source import verify_handoff as verify_zephyre_handoff
+from italy_last_good_source import verify_and_copy as copy_italy_last_good
+from fx_datalab_source import verify as verify_fx_source
+from france_last_good_source import verify_and_copy as copy_france_last_good
 
 def sha256(path):
     h=hashlib.sha256()
@@ -37,9 +43,14 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--stable",required=True)
     ap.add_argument("--datalab",required=True)
+    ap.add_argument("--spain-datalab")
+    ap.add_argument("--zephyre-datalab")
+    ap.add_argument("--italy-datalab")
+    ap.add_argument("--fx-datalab")
     ap.add_argument("--germany-source")
     ap.add_argument("--e55c-datalab")
     ap.add_argument("--france-irve-direct-parity",action="store_true",help="Use Data Lab France IRVE only if identical to a same-generation pinned Stable reference")
+    ap.add_argument("--france-last-good-datalab")
     ap.add_argument("--out",required=True)
     ap.add_argument("--config",default="config/snapshots/2026-09-30.json")
     a=ap.parse_args()
@@ -53,6 +64,20 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    last_good=cfg.get("franceIrveLastGoodDataLab")
+    if last_good:
+        if a.france_irve_direct_parity or not a.france_last_good_datalab:
+            raise ValueError("France last-good source requires its separate Data Lab checkout and excludes current-national parity mode")
+        relative=pathlib.PurePosixPath(last_good["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned France last-good path is invalid")
+        proof=copy_france_last_good(pathlib.Path(a.france_last_good_datalab)/relative,
+                                   stable/"v9-production-runtime/data/v9/france-static",
+                                   out/"runtime/data/v9/france-static",
+                                   last_good["provenanceSha256"],cfg["sources"]["stable"]["sha"])
+        write_json(out/"snapshot-inputs/FR/last-good-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["franceLastGoodDataLab"]["sha"],
+            "path":str(relative), **proof})
     if a.france_irve_direct_parity:
         # Source handoff only. Preserve the *entire* existing supplement,
         # direct-offer and price calculation chain below untouched.
@@ -101,6 +126,58 @@ def main():
         if not src.is_file():
             raise FileNotFoundError(f"Production runtime-owned module missing: {relative}")
         copy_file(src, out/"runtime"/relative)
+    es_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="ES"),{})
+    if es_cfg.get("primarySource") in ("dataLab","spainDataLab"):
+        relative=pathlib.PurePosixPath(es_cfg.get("path") or "")
+        if not relative.parts or relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned Data Lab REVE bundle path is invalid")
+        source_key=es_cfg["primarySource"]
+        if source_key=="spainDataLab" and not a.spain_datalab:
+            raise ValueError("Separate pinned Spain Data Lab checkout is required")
+        source_root=pathlib.Path(a.spain_datalab) if source_key=="spainDataLab" else dl
+        source=source_root/relative
+        proof=verify_spain_reve_bundle(source)
+        copy_tree(source/"spain-static",out/"runtime/data/v9/spain-static")
+        copy_tree(source/"spain-reve-offers",out/"runtime/data/v9/spain-reve-offers")
+        write_json(out/"snapshot-inputs/ES/reve-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"][source_key]["sha"],
+            "path":str(relative), **proof})
+    zewatt_cfg=cfg.get("franceZeWattDataLabOffers")
+    if zewatt_cfg:
+        source=dl/zewatt_cfg["path"]
+        historical=stable/"v9-production-runtime/data/v9/france-zewatt-offers.json"
+        proof=verify_zewatt_handoff(source,zewatt_cfg["sourceSha256"],historical)
+        copy_file(source,out/"runtime/data/v9/france-zewatt-offers.json")
+        write_json(out/"snapshot-inputs/FR/zewatt-offer-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["dataLab"]["sha"],
+            "path":zewatt_cfg["path"], **proof})
+    zephyre_cfg=cfg.get("franceZephyreDataLabOffers")
+    if zephyre_cfg:
+        if not a.zephyre_datalab:
+            raise ValueError("Separate pinned Zephyre Data Lab checkout is required")
+        relative=pathlib.PurePosixPath(zephyre_cfg["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned Zephyre offer path is invalid")
+        source=pathlib.Path(a.zephyre_datalab)/relative
+        historical=stable/"v9-production-runtime/data/v9/france-zephyre-offers.json"
+        proof=verify_zephyre_handoff(source,zephyre_cfg["sourceSha256"],historical)
+        copy_file(source,out/"runtime/data/v9/france-zephyre-offers.json")
+        write_json(out/"snapshot-inputs/FR/zephyre-offer-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["zephyreDataLab"]["sha"],
+            "path":str(relative), **proof})
+    it_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="IT"),{})
+    if it_cfg.get("primarySource")=="italyDataLab":
+        if not a.italy_datalab:
+            raise ValueError("Separate pinned Italy Data Lab checkout is required")
+        relative=pathlib.PurePosixPath(it_cfg["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned Italy bundle path is invalid")
+        proof=copy_italy_last_good(pathlib.Path(a.italy_datalab)/relative,
+                                   stable/"v9-production-runtime/data/v9",
+                                   out/"runtime/data/v9",it_cfg["bundleSha256"])
+        write_json(out/"snapshot-inputs/IT/last-good-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["italyDataLab"]["sha"],
+            "path":str(relative), **proof})
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:
         from supplement_france_irve_exact import supplement
@@ -197,6 +274,19 @@ def main():
     # as an explicit local fallback under /control/.
     copy_tree(stable/"assets", out/"assets")
     copy_tree(stable/"data", out/"data")
+    fx_cfg=cfg.get("fxDataLabRates")
+    if fx_cfg:
+        if not a.fx_datalab:
+            raise ValueError("Separate pinned FX Data Lab checkout is required")
+        relative=pathlib.PurePosixPath(fx_cfg["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned FX path is invalid")
+        source=pathlib.Path(a.fx_datalab)/relative
+        proof=verify_fx_source(source,fx_cfg["sourceSha256"])
+        copy_file(source,out/"data/exchange_rates.json")
+        write_json(out/"snapshot-inputs/FX/source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["fxDataLab"]["sha"],
+            "path":str(relative), **proof})
     # Production owns the V9 shell (index, bridge and configuration); Stable is no longer its source.
     copy_tree(production_root/"v9-production-shell", out/"v9-production-shell")
     # Production-owned shell override: keep stable as fallback baseline while
