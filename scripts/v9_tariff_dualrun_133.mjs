@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
-import {simpleOracle} from './v9_tariff_oracle_133.mjs';
+import crypto from 'node:crypto';
+import {independentOracle} from './v9_tariff_oracle_133.mjs';
 const require=createRequire(import.meta.url);
 const root=path.resolve(process.argv[2]||'');
 const runtime=path.join(root,'runtime');
@@ -21,6 +22,7 @@ const adapters={
   ukPcpr:asset('adapters/uk-pcpr.js'),moroccoPublic:asset('adapters/morocco-public.js'),
   nationalCompact:asset('adapters/national-compact.js'),directOffers:asset('adapters/direct-offers.js'),
   legacyDirectStations:asset('adapters/legacy-direct-stations.js'),
+  legacyDirectTariffs:asset('adapters/legacy-direct-tariffs.js'),
   switzerlandAvia:asset('adapters/switzerland-avia.js'),italyIonityExact:asset('adapters/italy-ionity-exact.js'),
   franceIonityExact:asset('adapters/france-ionity-exact.js'),atlanteItalyExact:asset('adapters/atlante-italy-exact.js'),
   netherlandsDotnl:asset('adapters/netherlands-dotnl.js'),belgiumNap:asset('adapters/belgium-nap.js')
@@ -31,13 +33,17 @@ async function fileFetch(url){
   catch(e){return new Response(String(e),{status:404});}
 }
 const wanted=new Set([
-  'tesla-global','france-national','france-canonical-direct-offers','france-e55c-offers','france-spie-metropolis-direct-exact',
+  'tesla-global','france-national','france-canonical-direct-offers','france-e55c-offers','e55c-direct-france','france-spie-metropolis-direct-exact',
   'france-electra-platform','france-electroverse-r8','germany-production-snapshot','uk-production-open-feeds',
+  'uk-connected-kerb-midhope-guest-verified',
   'spain-reve','spain-reve-offers','netherlands-dotnl','netherlands-dotnl-national','netherlands-direct-offers',
   'italy-pun','italy-verified-offers','switzerland-national','switzerland-verified-offers',
   'belgium-nap-national','morocco-evgo-native','morocco-fastvolt-public','morocco-kilowatt-public','morocco-totalenergies-hosts'
 ]);
-const subset={...registry,sources:registry.sources.filter(source=>wanted.has(source.id)&&source.active!==false)};
+// The legacy E55C file is intentionally inactive in Production. The dual run
+// loads it explicitly as evidence, without changing the published registry.
+const subset={...registry,sources:registry.sources.filter(source=>wanted.has(source.id)&&(source.active!==false||source.id==='e55c-direct-france'))
+  .map(source=>source.id==='e55c-direct-france'?{...source,active:true}:source)};
 const loaders=browserLoaders.createRegistryLoaders({registry:subset,basePath:pathToFileURL(runtime+path.sep).href,adapters,fetchImpl:fileFetch});
 const engine=dataEngine.createEngine({registry:subset,loaders});
 const scenarioConfig=JSON.parse(fs.readFileSync(new URL('../config/v9-tariff-dualrun-133-scenarios.json',import.meta.url)));
@@ -70,20 +76,24 @@ function evaluatePure(station,evse,connector,offer,session){
     return{status:'ineligible',reason:'above_offer_power'};
   if(offer.connectorKinds?.length&&!offer.connectorKinds.includes(connector.kind))
     return{status:'ineligible',reason:'connector_kind_mismatch'};
+  const oracle=independentOracle(offer,{...session,stationTimeZone:station.timeZone||station.metadata?.timeZone||session.stationTimeZone},
+    {connectorId:connector.id,powerKw:connector.powerKw});
   const raw=pricing.evaluateOffer(offer,{...session,powerKw:connector.powerKw,chargingKind:connector.kind,
     stationTimeZone:station.timeZone||station.metadata?.timeZone||session.stationTimeZone});
-  if(!raw?.complete)return{status:'uncomputable',reason:raw?.reason||'unknown',currency:raw?.currency||offer.currency||null};
+  if(!raw?.complete)return{status:'uncomputable',reason:raw?.reason||'unknown',currency:raw?.currency||offer.currency||null,oracle};
   const amount=Number(raw.totalEur);
-  if(!finite(amount))return{status:'uncomputable',reason:'non_numeric_total'};
+  if(!finite(amount))return{status:'uncomputable',reason:'non_numeric_total',oracle};
   const currency=raw.currency||offer.currency||null;
   const sameCurrency=currency&&currency===session.targetCurrency;
-  const datedRate=!sameCurrency&&session.fxAsOf&&/^\d{4}-\d{2}-\d{2}$/.test(session.fxAsOf)&&
-    finite(session.fxRates?.[currency])&&session.fxRates[currency]>0;
+  const verified=session.fxEvidence;
+  const datedRate=!sameCurrency&&verified?.date&&/^\d{4}-\d{2}-\d{2}$/.test(verified.date)&&
+    finite(verified.rates?.[currency])&&verified.rates[currency]>0&&
+    finite(verified.rates?.[session.targetCurrency])&&verified.rates[session.targetCurrency]>0;
   return{status:'priced',total:amount,currency,
-    targetTotal:sameCurrency?amount:datedRate?Math.round(amount*session.fxRates[currency]*1e6)/1e6:null,
-    fxStatus:sameCurrency?'same_currency':datedRate?'dated_rate':'missing_dated_rate',fxAsOf:datedRate?session.fxAsOf:null,
+    targetTotal:sameCurrency?amount:datedRate?Math.round(amount/verified.rates[currency]*verified.rates[session.targetCurrency]*1e6)/1e6:null,
+    fxStatus:sameCurrency?'same_currency':datedRate?'verified_dated_rate':'missing_dated_rate',fxAsOf:datedRate?verified.date:null,
     components:componentKeys(raw),source:offer.sourceId||offer.source||null,
-    oracle:simpleOracle(offer,session)};
+    oracle};
 }
 function compare(candidate,current){
   const old=current?.best?.offerId===candidate.offerId?current.best:
@@ -99,7 +109,7 @@ function compare(candidate,current){
   }
   const oldSource=old?.sourceId||null;
   if(oldSource&&candidate.source&&oldSource!==candidate.source)differences.push('provenance');
-  const oracle=candidate.oracle?.total;
+  const oracle=candidate.oracle?.status==='priced'?candidate.oracle.total:null;
   const candidateVerified=finite(oracle)&&candidate.status==='priced'&&Math.abs(oracle-candidate.total)<1e-5;
   const legacyVerified=finite(oracle)&&oldStatus==='priced'&&Math.abs(oracle-Number(old?.result?.totalEur))<1e-5;
   // A simple arithmetic oracle proves an amount, not the applicability of a
@@ -111,10 +121,18 @@ function compare(candidate,current){
   return{oldStatus,oldTotal:old?.result?.totalEur??null,oldCurrency:old?.currency??null,
     differences,classification};
 }
-const session=scenarioConfig.session;
+const fxSource=JSON.parse(fs.readFileSync(path.join(root,'snapshot-inputs/FX/source.json')));
+const fxBytes=fs.readFileSync(path.join(root,'data/exchange_rates.json'));
+if(crypto.createHash('sha256').update(fxBytes).digest('hex')!==fxSource.sourceSha256)
+  throw Error('pinned FX SHA mismatch');
+const fx=JSON.parse(fxBytes);
+if(fx.date!==fxSource.providerDate||fx.base!=='EUR')throw Error('pinned FX date or base mismatch');
+const session={...scenarioConfig.session,fxEvidence:{date:fx.date,base:fx.base,rates:fx.rates,
+  sourceSha256:fxSource.sourceSha256,providerDate:fxSource.providerDate}};
 const rows=[];
 for(const spec of scenarios){
   try{
+    const scenarioSession={...session,...(spec.session||{}),fxEvidence:session.fxEvidence};
     const area=await engine.queryArea({...spec,routingBudget:20});
     const pattern=spec.namePattern?new RegExp(spec.namePattern,'i'):null;
     const candidates=area.stations.filter(station=>spec.source==='tesla'
@@ -139,8 +157,8 @@ for(const spec of scenarios){
     const selected=(spec.key==='FR-bois-d-arcy'?combinations:combinations.filter(x=>x.station.id===chosen.station.id))
       .filter((x,index,all)=>all.findIndex(y=>y.station.id===x.station.id&&y.offer.id===x.offer.id)===index);
     for(const {station:sample,evse,connector,offer} of selected){
-      const legacyResult=legacy.evaluateStation({...sample,evses:[{...evse,connectors:[connector]}],offers:[offer]},session);
-      const next={offerId:offer.id||offer.offerId,...evaluatePure(sample,evse,connector,offer,session)};
+      const legacyResult=legacy.evaluateStation({...sample,evses:[{...evse,connectors:[connector]}],offers:[offer]},scenarioSession);
+      const next={offerId:offer.id||offer.offerId,...evaluatePure(sample,evse,connector,offer,scenarioSession)};
       const delta=compare(next,legacyResult);
       rows.push({key:spec.key,country:spec.countryCode,stationId:sample.id,stationName:sample.name,
         evseId:evse.id,connectorId:connector.id,powerKw:connector.powerKw,offerId:next.offerId,

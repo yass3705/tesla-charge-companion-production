@@ -1,0 +1,435 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "rawOffersBefore": 365066,
+  "rawOffersAfter": 578647,
+  "rawOffersAdded": 213581,
+  "scopeAssertionsAdded": 248156,
+  "sources": {
+    "tesla-global": {
+      "status": "already_enumerated_phase1",
+      "rawOffersAdded": 0,
+      "rawOffersAlreadyEnumerated": 1179
+    },
+    "ionity-direct-france": {
+      "status": "extracted",
+      "rawOffersAdded": 1853,
+      "paths": [
+        "data/ionity_direct_stations_france.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 1853,
+        "sourceCandidateOffers": 1853,
+        "semantic:source_raw": 1853,
+        "source_exact_join": 1853
+      },
+      "sourceCandidateOffers": 1853
+    },
+    "atlante-direct-france": {
+      "status": "extracted",
+      "rawOffersAdded": 1440,
+      "paths": [
+        "snapshot-inputs/FR/direct/atlante_direct_stations_france_latest.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 1440,
+        "sourceCandidateOffers": 1440,
+        "semantic:source_raw": 1440,
+        "source_exact_join": 1440
+      },
+      "sourceCandidateOffers": 1440
+    },
+    "powerdot-direct-france": {
+      "status": "extracted",
+      "rawOffersAdded": 7063,
+      "paths": [
+        "runtime/data/powerdot_direct_france.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 7063,
+        "sourceCandidateOffers": 7063,
+        "semantic:source_raw": 555,
+        "source_exact_join": 7050,
+        "semantic:ambiguous_pdc": 6508,
+        "unscoped": 13
+      },
+      "sourceCandidateOffers": 7063
+    },
+    "belib-direct-france": {
+      "status": "extracted",
+      "rawOffersAdded": 9,
+      "paths": [
+        "data/belib_station_tariffs_v1.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 9,
+        "sourceCandidateOffers": 9,
+        "semantic:profile_exact_references": 9,
+        "source_exact_join": 5220
+      },
+      "sourceCandidateOffers": 9
+    },
+    "e55c-direct-france": {
+      "status": "extracted",
+      "rawOffersAdded": 5,
+      "paths": [
+        "data/e55c_station_tariffs_v1.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 5,
+        "sourceCandidateOffers": 5,
+        "semantic:profile_exact_references": 5,
+        "source_exact_join": 1861
+      },
+      "sourceCandidateOffers": 5
+    },
+    "etotem-direct-france": {
+      "status": "extracted",
+      "rawOffersAdded": 545,
+      "paths": [
+        "data/etotem_direct_tariffs_france.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 545,
+        "sourceCandidateOffers": 545,
+        "semantic:hints_not_contract": 467,
+        "station_only_no_point_link": 467,
+        "semantic:profile_without_exact_reference": 78,
+        "unscoped": 78
+      },
+      "sourceCandidateOffers": 545
+    },
+    "morocco-evgo-native": {
+      "status": "extracted",
+      "rawOffersAdded": 43,
+      "paths": [
+        "snapshot-inputs/MA/sources/evgo-production.json"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 43,
+        "sourceCandidateOffers": 43,
+        "semantic:policy_derived_zero": 43,
+        "source_exact_join": 43
+      },
+      "sourceCandidateOffers": 43
+    },
+    "morocco-fastvolt-public": {
+      "status": "extracted",
+      "rawOffersAdded": 1,
+      "paths": [
+        "snapshot-inputs/MA/sources/fastvolt-public-map.json"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 1,
+        "sourceCandidateOffers": 1,
+        "semantic:network_policy_no_station_scope": 1,
+        "unscoped": 1
+      },
+      "sourceCandidateOffers": 1
+    },
+    "morocco-kilowatt-public": {
+      "status": "extracted",
+      "rawOffersAdded": 86,
+      "paths": [
+        "snapshot-inputs/MA/sources/kilowatt-public-station-inventory.json",
+        "snapshot-inputs/MA/sources/kilowatt-native-tariffs.json"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 86,
+        "sourceCandidateOffers": 86,
+        "semantic:source_raw": 86,
+        "source_exact_join": 86
+      },
+      "sourceCandidateOffers": 86
+    },
+    "morocco-totalenergies-hosts": {
+      "status": "extracted",
+      "rawOffersAdded": 38,
+      "paths": [
+        "snapshot-inputs/MA/sources/totalenergies-native-overlay.json"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 38,
+        "sourceCandidateOffers": 38,
+        "semantic:source_raw": 38,
+        "source_exact_join": 38
+      },
+      "sourceCandidateOffers": 38
+    },
+    "user-stations": {
+      "status": "not_pinned_runtime_user_data",
+      "rawOffersAdded": 0,
+      "sourceCandidateOffers": null
+    },
+    "morocco-shell-al-jazira": {
+      "status": "no_tariff_payload_in_pinned_source",
+      "rawOffersAdded": 0,
+      "paths": [
+        "runtime/data/v9/morocco-shell-al-jazira.json"
+      ],
+      "diagnostics": {},
+      "sourceCandidateOffers": 0
+    },
+    "germany-production-snapshot": {
+      "status": "extracted",
+      "rawOffersAdded": 28044,
+      "paths": [
+        "snapshot-inputs/DE/all.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 28044,
+        "sourceCandidateOffers": 28044,
+        "semantic:site_scope_only": 28044,
+        "station_only_no_point_link": 28044
+      },
+      "sourceCandidateOffers": 28044
+    },
+    "uk-production-open-feeds": {
+      "status": "extracted",
+      "rawOffersAdded": 10010,
+      "paths": [
+        "snapshot-inputs/UK/all.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 10010,
+        "sourceCandidateOffers": 10010,
+        "semantic:ocpi_tariff_unreferenced": 142,
+        "unscoped": 142,
+        "semantic:ocpi_tariff_with_exact_references": 8429,
+        "source_exact_join": 30077,
+        "semantic:connector_derived_rate": 809,
+        "semantic:connector_embedded_offer": 630
+      },
+      "sourceCandidateOffers": 10010
+    },
+    "uk-gridserve-pcpr-direct": {
+      "status": "extracted",
+      "rawOffersAdded": 5,
+      "paths": [
+        "snapshot-inputs/UK/sources/uk_gridserve_v9.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 5,
+        "sourceCandidateOffers": 5,
+        "semantic:ocpi_tariff_with_exact_references": 5,
+        "source_exact_join": 2569
+      },
+      "sourceCandidateOffers": 5
+    },
+    "uk-ubitricity-pcpr-payg": {
+      "status": "extracted",
+      "rawOffersAdded": 13620,
+      "paths": [
+        "snapshot-inputs/UK/sources/uk_ubitricity_v9.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 13620,
+        "sourceCandidateOffers": 13620,
+        "semantic:connector_embedded_offer": 13620,
+        "source_exact_join": 13620
+      },
+      "sourceCandidateOffers": 13620
+    },
+    "allego-uk-pcpr-direct": {
+      "status": "extracted",
+      "rawOffersAdded": 39,
+      "paths": [
+        "snapshot-inputs/UK/sources/uk_allego_uk_pcpr_v9.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 39,
+        "sourceCandidateOffers": 39,
+        "semantic:ocpi_tariff_with_exact_references": 39,
+        "source_exact_join": 240
+      },
+      "sourceCandidateOffers": 39
+    },
+    "uk-connected-kerb-guest-direct": {
+      "status": "extracted",
+      "rawOffersAdded": 7842,
+      "paths": [
+        "snapshot-inputs/UK/sources/uk_connected_kerb_v9.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 7842,
+        "sourceCandidateOffers": 7842,
+        "semantic:connector_embedded_offer": 7842,
+        "source_exact_join": 7842
+      },
+      "sourceCandidateOffers": 7842
+    },
+    "uk-connected-kerb-midhope-guest-verified": {
+      "status": "extracted",
+      "rawOffersAdded": 4,
+      "paths": [
+        "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 4,
+        "sourceCandidateOffers": 4,
+        "semantic:connector_embedded_offer": 4,
+        "source_exact_join": 4
+      },
+      "sourceCandidateOffers": 4
+    },
+    "uk-eco-movement-pcpr-cpo-direct": {
+      "status": "extracted",
+      "rawOffersAdded": 145,
+      "paths": [
+        "snapshot-inputs/UK/sources/uk_eco_movement_pcpr_v9.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 145,
+        "sourceCandidateOffers": 145,
+        "semantic:ocpi_tariff_with_exact_references": 145,
+        "source_exact_join": 1037
+      },
+      "sourceCandidateOffers": 145
+    },
+    "uk-blink-pcpr-direct": {
+      "status": "extracted",
+      "rawOffersAdded": 55,
+      "paths": [
+        "snapshot-inputs/UK/sources/uk_blink_pcpr_v9.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 55,
+        "sourceCandidateOffers": 55,
+        "semantic:ocpi_tariff_with_exact_references": 55,
+        "source_exact_join": 3599
+      },
+      "sourceCandidateOffers": 55
+    },
+    "uk-source-ev-pcpr-direct": {
+      "status": "extracted",
+      "rawOffersAdded": 2,
+      "paths": [
+        "snapshot-inputs/UK/sources/uk_source_ev_pcpr_v9.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 2,
+        "sourceCandidateOffers": 2,
+        "semantic:ocpi_tariff_with_exact_references": 2,
+        "source_exact_join": 321
+      },
+      "sourceCandidateOffers": 2
+    },
+    "france-ionity-r8": {
+      "status": "extracted",
+      "rawOffersAdded": 1850,
+      "paths": [
+        "snapshot-inputs/FR/direct/ionity_exact_france.json"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 1850,
+        "sourceCandidateOffers": 1850,
+        "semantic:source_raw": 1850,
+        "source_exact_join": 1850
+      },
+      "sourceCandidateOffers": 1850
+    },
+    "italy-atlante-r8": {
+      "status": "extracted",
+      "rawOffersAdded": 1833,
+      "paths": [
+        "snapshot-inputs/IT/direct/atlante_direct_stations_italy_latest.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 1833,
+        "sourceCandidateOffers": 1833,
+        "semantic:source_raw": 1833,
+        "source_exact_join": 1833
+      },
+      "sourceCandidateOffers": 1833
+    },
+    "italy-ionity-r8": {
+      "status": "extracted",
+      "rawOffersAdded": 325,
+      "paths": [
+        "snapshot-inputs/IT/direct/ionity_italy_exact_reconciliation_20260923.json"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 325,
+        "sourceCandidateOffers": 325,
+        "semantic:source_raw": 325,
+        "source_exact_join": 300,
+        "station_only_no_point_link": 7,
+        "unscoped": 18
+      },
+      "sourceCandidateOffers": 325
+    },
+    "switzerland-avia-r8": {
+      "status": "extracted",
+      "rawOffersAdded": 589,
+      "paths": [
+        "snapshot-inputs/CH/direct/avia-guest-direct-tariffs.json"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 589,
+        "sourceCandidateOffers": 589,
+        "semantic:source_raw": 589,
+        "source_exact_join": 589
+      },
+      "sourceCandidateOffers": 589
+    },
+    "netherlands-dotnl-national": {
+      "status": "extracted",
+      "rawOffersAdded": 45553,
+      "paths": [
+        "runtime/data/non_tesla_netherlands/all.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 45553,
+        "sourceCandidateOffers": 45553,
+        "semantic:compact_rules_exact_evse": 45553,
+        "source_exact_join": 45553
+      },
+      "sourceCandidateOffers": 45553
+    },
+    "belgium-nap-national": {
+      "status": "extracted",
+      "rawOffersAdded": 91354,
+      "paths": [
+        "snapshot-inputs/BE/pages/nap-belgium-000000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-001000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-002000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-003000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-004000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-005000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-006000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-007000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-008000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-009000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-010000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-011000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-012000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-013000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-014000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-015000.json.gz",
+        "snapshot-inputs/BE/pages/nap-belgium-016000.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 91354,
+        "sourceCandidateOffers": 91354,
+        "semantic:source_raw": 91354,
+        "source_exact_join": 91354
+      },
+      "sourceCandidateOffers": 91354
+    },
+    "energyvision-be-official": {
+      "status": "extracted",
+      "rawOffersAdded": 1228,
+      "paths": [
+        "snapshot-inputs/BE/energyvision-official.json.gz"
+      ],
+      "diagnostics": {
+        "rawOffersAdded": 1228,
+        "sourceCandidateOffers": 1228,
+        "semantic:station_rate_pdc_unverified": 1228,
+        "station_only_no_point_link": 1228
+      },
+      "sourceCandidateOffers": 1228
+    }
+  },
+  "sourceFilesInspected": 46,
+  "evidenceRecordsAdded": 21
+}

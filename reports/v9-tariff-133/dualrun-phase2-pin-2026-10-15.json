@@ -1,0 +1,3663 @@
+{
+  "summary": {
+    "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+    "scenarioCount": 67,
+    "byStatus": {
+      "uncomputable": 36,
+      "priced": 29,
+      "no_exact_offer": 2
+    },
+    "byClassification": {
+      "match": 56,
+      "data_insufficient": 11
+    },
+    "catalogueProof": {
+      "exact_catalogue_link": 47,
+      "no_exact_runtime_offer": 2,
+      "raw_offer_not_enumerated": 18
+    },
+    "catalogueProofByCountryChannel": [
+      {
+        "country": "BE",
+        "channel": "50five",
+        "states": {
+          "raw_offer_not_enumerated": 6
+        }
+      },
+      {
+        "country": "CH",
+        "channel": "Energie 360",
+        "states": {
+          "exact_catalogue_link": 2
+        }
+      },
+      {
+        "country": "DE",
+        "channel": "Unspecified",
+        "states": {
+          "no_exact_runtime_offer": 1
+        }
+      },
+      {
+        "country": "ES",
+        "channel": "ENDESA X WAY, S.L.",
+        "states": {
+          "exact_catalogue_link": 2
+        }
+      },
+      {
+        "country": "FR",
+        "channel": "Electra",
+        "states": {
+          "exact_catalogue_link": 12
+        }
+      },
+      {
+        "country": "FR",
+        "channel": "Electroverse",
+        "states": {
+          "exact_catalogue_link": 22
+        }
+      },
+      {
+        "country": "FR",
+        "channel": "Tesla",
+        "states": {
+          "exact_catalogue_link": 2
+        }
+      },
+      {
+        "country": "GB",
+        "channel": "Applegreen Fast Charge",
+        "states": {
+          "raw_offer_not_enumerated": 2
+        }
+      },
+      {
+        "country": "GB",
+        "channel": "Connected Kerb",
+        "states": {
+          "exact_catalogue_link": 4
+        }
+      },
+      {
+        "country": "GB",
+        "channel": "Unspecified",
+        "states": {
+          "no_exact_runtime_offer": 1
+        }
+      },
+      {
+        "country": "IT",
+        "channel": "Enel X Way",
+        "states": {
+          "exact_catalogue_link": 2
+        }
+      },
+      {
+        "country": "MA",
+        "channel": "Kilowatt direct",
+        "states": {
+          "raw_offer_not_enumerated": 2
+        }
+      },
+      {
+        "country": "MA",
+        "channel": "Tesla",
+        "states": {
+          "exact_catalogue_link": 1
+        }
+      },
+      {
+        "country": "NL",
+        "channel": "50five",
+        "states": {
+          "raw_offer_not_enumerated": 8
+        }
+      }
+    ],
+    "byScenario": [
+      {
+        "scenario": "BE",
+        "rows": 6,
+        "statuses": {
+          "priced": 6
+        },
+        "classifications": {
+          "match": 6
+        },
+        "proofStates": {
+          "raw_offer_not_enumerated": 6
+        },
+        "oracleStatuses": {
+          "priced": 6
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "CH",
+        "rows": 2,
+        "statuses": {
+          "priced": 2
+        },
+        "classifications": {
+          "match": 2
+        },
+        "proofStates": {
+          "exact_catalogue_link": 2
+        },
+        "oracleStatuses": {
+          "uncomputable": 2
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "DE",
+        "rows": 1,
+        "statuses": {
+          "no_exact_offer": 1
+        },
+        "classifications": {
+          "data_insufficient": 1
+        },
+        "proofStates": {
+          "no_exact_runtime_offer": 1
+        },
+        "oracleStatuses": {
+          "not_run": 1
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "ES",
+        "rows": 2,
+        "statuses": {
+          "uncomputable": 2
+        },
+        "classifications": {
+          "match": 2
+        },
+        "proofStates": {
+          "exact_catalogue_link": 2
+        },
+        "oracleStatuses": {
+          "uncomputable": 2
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "FR-bois-d-arcy",
+        "rows": 12,
+        "statuses": {
+          "uncomputable": 12
+        },
+        "classifications": {
+          "match": 12
+        },
+        "proofStates": {
+          "exact_catalogue_link": 12
+        },
+        "oracleStatuses": {
+          "uncomputable": 12
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "FR-metropolis",
+        "rows": 5,
+        "statuses": {
+          "priced": 5
+        },
+        "classifications": {
+          "match": 5
+        },
+        "proofStates": {
+          "exact_catalogue_link": 5
+        },
+        "oracleStatuses": {
+          "uncomputable": 5
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "FR-metropolis-long",
+        "rows": 5,
+        "statuses": {
+          "priced": 5
+        },
+        "classifications": {
+          "match": 5
+        },
+        "proofStates": {
+          "exact_catalogue_link": 5
+        },
+        "oracleStatuses": {
+          "uncomputable": 5
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "FR-place-lully",
+        "rows": 4,
+        "statuses": {
+          "uncomputable": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "uncomputable": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "FR-place-lully-dst",
+        "rows": 4,
+        "statuses": {
+          "uncomputable": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "uncomputable": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "FR-place-lully-night",
+        "rows": 4,
+        "statuses": {
+          "uncomputable": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "uncomputable": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "GB",
+        "rows": 2,
+        "statuses": {
+          "priced": 2
+        },
+        "classifications": {
+          "data_insufficient": 2
+        },
+        "proofStates": {
+          "raw_offer_not_enumerated": 2
+        },
+        "oracleStatuses": {
+          "uncomputable": 2
+        },
+        "differenceFields": {
+          "status": 2
+        }
+      },
+      {
+        "scenario": "GB-GeniePoint",
+        "rows": 1,
+        "statuses": {
+          "no_exact_offer": 1
+        },
+        "classifications": {
+          "data_insufficient": 1
+        },
+        "proofStates": {
+          "no_exact_runtime_offer": 1
+        },
+        "oracleStatuses": {
+          "not_run": 1
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "GB-Midhope",
+        "rows": 4,
+        "statuses": {
+          "priced": 4
+        },
+        "classifications": {
+          "data_insufficient": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "priced": 4
+        },
+        "differenceFields": {
+          "status": 4
+        }
+      },
+      {
+        "scenario": "IT",
+        "rows": 2,
+        "statuses": {
+          "priced": 2
+        },
+        "classifications": {
+          "match": 2
+        },
+        "proofStates": {
+          "exact_catalogue_link": 2
+        },
+        "oracleStatuses": {
+          "priced": 2
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "MA",
+        "rows": 2,
+        "statuses": {
+          "priced": 2
+        },
+        "classifications": {
+          "data_insufficient": 2
+        },
+        "proofStates": {
+          "raw_offer_not_enumerated": 2
+        },
+        "oracleStatuses": {
+          "uncomputable": 2
+        },
+        "differenceFields": {
+          "status": 2
+        }
+      },
+      {
+        "scenario": "NL",
+        "rows": 4,
+        "statuses": {
+          "uncomputable": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "raw_offer_not_enumerated": 4
+        },
+        "oracleStatuses": {
+          "uncomputable": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "NL-midnight",
+        "rows": 4,
+        "statuses": {
+          "uncomputable": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "raw_offer_not_enumerated": 4
+        },
+        "oracleStatuses": {
+          "uncomputable": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "TESLA-Mac",
+        "rows": 1,
+        "statuses": {
+          "priced": 1
+        },
+        "classifications": {
+          "data_insufficient": 1
+        },
+        "proofStates": {
+          "exact_catalogue_link": 1
+        },
+        "oracleStatuses": {
+          "uncomputable": 1
+        },
+        "differenceFields": {
+          "status": 1
+        }
+      },
+      {
+        "scenario": "TESLA-SuC",
+        "rows": 1,
+        "statuses": {
+          "uncomputable": 1
+        },
+        "classifications": {
+          "match": 1
+        },
+        "proofStates": {
+          "exact_catalogue_link": 1
+        },
+        "oracleStatuses": {
+          "uncomputable": 1
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "TESLA-SuC-congestion",
+        "rows": 1,
+        "statuses": {
+          "uncomputable": 1
+        },
+        "classifications": {
+          "match": 1
+        },
+        "proofStates": {
+          "exact_catalogue_link": 1
+        },
+        "oracleStatuses": {
+          "uncomputable": 1
+        },
+        "differenceFields": {}
+      }
+    ]
+  },
+  "rows": [
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE2EV6",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE2EV6",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:724",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*E2EV6"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE5MTY",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE5MTY",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:717",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*E5MTY"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE99GL",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE99GL",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:711",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*E99GL"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEBYWK",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEBYWK",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:719",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*EBYWK"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEJYDZ",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEJYDZ",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:720",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*EJYDZ"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCENUPV",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCENUPV",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:725",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*ENUPV"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEP7P4",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEP7P4",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:726",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*EP7P4"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEP9YQ",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEP9YQ",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:714",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*EP9YQ"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEQBQD",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEQBQD",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:713",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*EQBQD"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEVQD4",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEVQD4",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:715",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*EVQD4"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEX6W6",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEX6W6",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:710",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*EX6W6"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-bois-d-arcy",
+      "country": "FR",
+      "stationId": "FR:national:FRELCP12954082",
+      "stationName": "Electra Bois-d'Arcy - E.Leclerc",
+      "evseId": "irve-2-dc-400_0",
+      "connectorId": "irve-2-dc-400_0:connector",
+      "powerKw": 400,
+      "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEXJCK",
+      "channel": "Electra",
+      "sourceOffers": 12,
+      "new": {
+        "offerId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEXJCK",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz:emspOffers:721",
+        "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+        "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*ELC*EXJCK"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954434",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954434",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5037",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL2"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954436",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954436",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5038",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL1"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954438",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954438",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5039",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL3"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-1-ac-22_1",
+      "connectorId": "irve-1-ac-22_1:connector",
+      "powerKw": 22.1,
+      "offerId": "electroverse-evse:4402250:3954432",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954432",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5036",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL0"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully-night",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954434",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954434",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5037",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL2"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully-night",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954436",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954436",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5038",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL1"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully-night",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954438",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954438",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5039",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL3"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully-night",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-1-ac-22_1",
+      "connectorId": "irve-1-ac-22_1:connector",
+      "powerKw": 22.1,
+      "offerId": "electroverse-evse:4402250:3954432",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954432",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5036",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL0"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully-dst",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954434",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954434",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5037",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL2"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully-dst",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954436",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954436",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5038",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL1"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully-dst",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-0-ac-7_4",
+      "connectorId": "irve-0-ac-7_4:connector",
+      "powerKw": 7.4,
+      "offerId": "electroverse-evse:4402250:3954438",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954438",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5039",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL3"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-place-lully-dst",
+      "country": "FR",
+      "stationId": "FR:national:FR55CP78210SA1P21PL",
+      "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+      "evseId": "irve-1-ac-22_1",
+      "connectorId": "irve-1-ac-22_1:connector",
+      "powerKw": 22.1,
+      "offerId": "electroverse-evse:4402250:3954432",
+      "channel": "Electroverse",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "electroverse-evse:4402250:3954432",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:5036",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR55CEFR78210P21PL0"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-0-ac-2_3",
+      "connectorId": "irve-0-ac-2_3:connector",
+      "powerKw": 2.3,
+      "offerId": "electroverse-evse:1423722:3569397",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569397",
+        "status": "priced",
+        "total": 12.4,
+        "currency": "EUR",
+        "targetTotal": 12.4,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 12.4,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3979",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P5"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-1-ac-22_0",
+      "connectorId": "irve-1-ac-22_0:connector",
+      "powerKw": 22,
+      "offerId": "electroverse-evse:1423722:3569386",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569386",
+        "status": "priced",
+        "total": 12.1,
+        "currency": "EUR",
+        "targetTotal": 12.1,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy",
+          "parkingTime"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 12.1,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3975",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P1"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-1-ac-22_0",
+      "connectorId": "irve-1-ac-22_0:connector",
+      "powerKw": 22,
+      "offerId": "electroverse-evse:1423722:3569390",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569390",
+        "status": "priced",
+        "total": 12.1,
+        "currency": "EUR",
+        "targetTotal": 12.1,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy",
+          "parkingTime"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 12.1,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3976",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P2"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-1-ac-22_0",
+      "connectorId": "irve-1-ac-22_0:connector",
+      "powerKw": 22,
+      "offerId": "electroverse-evse:1423722:3569393",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569393",
+        "status": "priced",
+        "total": 12.1,
+        "currency": "EUR",
+        "targetTotal": 12.1,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy",
+          "parkingTime"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 12.1,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3977",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P3"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-1-ac-22_0",
+      "connectorId": "irve-1-ac-22_0:connector",
+      "powerKw": 22,
+      "offerId": "electroverse-evse:1423722:3569395",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569395",
+        "status": "priced",
+        "total": 12.1,
+        "currency": "EUR",
+        "targetTotal": 12.1,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy",
+          "parkingTime"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 12.1,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3978",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P4"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis-long",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-0-ac-2_3",
+      "connectorId": "irve-0-ac-2_3:connector",
+      "powerKw": 2.3,
+      "offerId": "electroverse-evse:1423722:3569397",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569397",
+        "status": "priced",
+        "total": 29.6,
+        "currency": "EUR",
+        "targetTotal": 29.6,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 29.6,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3979",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P5"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis-long",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-1-ac-22_0",
+      "connectorId": "irve-1-ac-22_0:connector",
+      "powerKw": 22,
+      "offerId": "electroverse-evse:1423722:3569386",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569386",
+        "status": "priced",
+        "total": 30.2,
+        "currency": "EUR",
+        "targetTotal": 30.2,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy",
+          "parkingTime"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 30.2,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3975",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P1"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis-long",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-1-ac-22_0",
+      "connectorId": "irve-1-ac-22_0:connector",
+      "powerKw": 22,
+      "offerId": "electroverse-evse:1423722:3569390",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569390",
+        "status": "priced",
+        "total": 30.2,
+        "currency": "EUR",
+        "targetTotal": 30.2,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy",
+          "parkingTime"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 30.2,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3976",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P2"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis-long",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-1-ac-22_0",
+      "connectorId": "irve-1-ac-22_0:connector",
+      "powerKw": 22,
+      "offerId": "electroverse-evse:1423722:3569393",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569393",
+        "status": "priced",
+        "total": 30.2,
+        "currency": "EUR",
+        "targetTotal": 30.2,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy",
+          "parkingTime"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 30.2,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3977",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P3"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "FR-metropolis-long",
+      "country": "FR",
+      "stationId": "FR:national:FRMGPP91027A",
+      "stationName": "Metropolis - Citadine - Athis-Mons - Verdun",
+      "evseId": "irve-1-ac-22_0",
+      "connectorId": "irve-1-ac-22_0:connector",
+      "powerKw": 22,
+      "offerId": "electroverse-evse:1423722:3569395",
+      "channel": "Electroverse",
+      "sourceOffers": 5,
+      "new": {
+        "offerId": "electroverse-evse:1423722:3569395",
+        "status": "priced",
+        "total": 30.2,
+        "currency": "EUR",
+        "targetTotal": 30.2,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy",
+          "parkingTime"
+        ],
+        "source": "france-electroverse-r8",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 30.2,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz:emspOffers:3978",
+        "sourcePath": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+        "sourceSha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "FR*MGP*E91027*A*B1*P4"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "CH",
+      "country": "CH",
+      "stationId": "CH:national:CH*360:69d1e456-43fe-11eb-823f-42010a840003",
+      "stationName": "Energie 360° Einkaufszentrum ceha",
+      "evseId": "CH*360*E242459",
+      "connectorId": "CH*360*E242459:connector",
+      "powerKw": 64,
+      "offerId": "ch:energie-360:CH-360-E242459:direct",
+      "channel": "Energie 360",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "ch:energie-360:CH-360-E242459:direct",
+        "status": "priced",
+        "total": 13.769305,
+        "currency": "EUR",
+        "targetTotal": 13.769305,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "connectedTimeAfterFree",
+          "energy"
+        ],
+        "source": "switzerland-verified-offers",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 13.769305,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/v9/switzerland-offers.json:directOffers:4830",
+        "sourcePath": "runtime/data/v9/switzerland-offers.json",
+        "sourceSha256": "30cd7215c10359610d25b61860227a9a017441b22169efae512bb0afb8d83e3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "CH*360*E242459"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "CH",
+      "country": "CH",
+      "stationId": "CH:national:CH*360:69d1e456-43fe-11eb-823f-42010a840003",
+      "stationName": "Energie 360° Einkaufszentrum ceha",
+      "evseId": "CH*360*E242460",
+      "connectorId": "CH*360*E242460:connector",
+      "powerKw": 64,
+      "offerId": "ch:energie-360:CH-360-E242460:direct",
+      "channel": "Energie 360",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "ch:energie-360:CH-360-E242460:direct",
+        "status": "priced",
+        "total": 13.769305,
+        "currency": "EUR",
+        "targetTotal": 13.769305,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "connectedTimeAfterFree",
+          "energy"
+        ],
+        "source": "switzerland-verified-offers",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 13.769305,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/v9/switzerland-offers.json:directOffers:4831",
+        "sourcePath": "runtime/data/v9/switzerland-offers.json",
+        "sourceSha256": "30cd7215c10359610d25b61860227a9a017441b22169efae512bb0afb8d83e3a",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "CH*360*E242460"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "IT",
+      "country": "IT",
+      "stationId": "IT:national:65e5ad219209f0686f7cc036",
+      "stationName": "ENEL X WAY ITALIA SRL – Via Nazionale Tiburtina 126 - CONAD",
+      "evseId": "IT*ENX*E21XP22T5HK4AM00076*1",
+      "connectorId": "IT*ENX*E21XP22T5HK4AM00076*1:connector",
+      "powerKw": 2.3,
+      "offerId": "it:direct:IT*ENX*E21XP22T5HK4AM00076*1",
+      "channel": "Enel X Way",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "it:direct:IT*ENX*E21XP22T5HK4AM00076*1",
+        "status": "priced",
+        "total": 13.4,
+        "currency": "EUR",
+        "targetTotal": 13.4,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy"
+        ],
+        "source": "italy-verified-offers",
+        "oracle": {
+          "status": "priced",
+          "total": 13.4,
+          "currency": "EUR",
+          "components": {
+            "energy": 13.4,
+            "connectedTime": 0,
+            "chargingTime": 0,
+            "parkingTime": 0,
+            "afterMinutes": 0,
+            "connectionFee": 0,
+            "sessionFee": 0,
+            "congestion": 0,
+            "postChargeFee": 0
+          },
+          "convertedTotal": 13.4,
+          "fxStatus": "same_currency",
+          "targetCurrency": "EUR",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 13.4,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/v9/italy-offers.json:directOffers:20882",
+        "sourcePath": "runtime/data/v9/italy-offers.json",
+        "sourceSha256": "a61fc2fb67901c1387a8af4d8e63e54a949a527f190448b5d88d07ff3caa26b8",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "IT*ENX*E21XP22T5HK4AM00076*1"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "IT",
+      "country": "IT",
+      "stationId": "IT:national:65e5ad219209f0686f7cc036",
+      "stationName": "ENEL X WAY ITALIA SRL – Via Nazionale Tiburtina 126 - CONAD",
+      "evseId": "IT*ENX*E21XP22T5HK4AM00076*2",
+      "connectorId": "IT*ENX*E21XP22T5HK4AM00076*2:connector",
+      "powerKw": 22,
+      "offerId": "it:direct:IT*ENX*E21XP22T5HK4AM00076*2",
+      "channel": "Enel X Way",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "it:direct:IT*ENX*E21XP22T5HK4AM00076*2",
+        "status": "priced",
+        "total": 13.4,
+        "currency": "EUR",
+        "targetTotal": 13.4,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy"
+        ],
+        "source": "italy-verified-offers",
+        "oracle": {
+          "status": "priced",
+          "total": 13.4,
+          "currency": "EUR",
+          "components": {
+            "energy": 13.4,
+            "connectedTime": 0,
+            "chargingTime": 0,
+            "parkingTime": 0,
+            "afterMinutes": 0,
+            "connectionFee": 0,
+            "sessionFee": 0,
+            "congestion": 0,
+            "postChargeFee": 0
+          },
+          "convertedTotal": 13.4,
+          "fxStatus": "same_currency",
+          "targetCurrency": "EUR",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 13.4,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/v9/italy-offers.json:directOffers:20883",
+        "sourcePath": "runtime/data/v9/italy-offers.json",
+        "sourceSha256": "a61fc2fb67901c1387a8af4d8e63e54a949a527f190448b5d88d07ff3caa26b8",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "IT*ENX*E21XP22T5HK4AM00076*2"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "DE",
+      "country": "DE",
+      "stationId": "DE:national:bnetza-site:009e09626ee7d2c74e1b",
+      "stationName": "Wirelane Public 1 GmbH",
+      "evseId": "DEWLNES000348",
+      "connectorId": "DEWLNES000348:connector",
+      "status": "no_exact_offer",
+      "sourceOffers": 0,
+      "catalogueProof": {
+        "state": "no_exact_runtime_offer"
+      },
+      "classification": "data_insufficient"
+    },
+    {
+      "key": "ES",
+      "country": "ES",
+      "stationId": "ES:national:00267c8a-e81e-478d-bb6b-b9380c9e52ec",
+      "stationName": "62020013930032",
+      "evseId": "ES*ESX*E62020013930032*1",
+      "connectorId": "ES*ESX*E62020013930032*1:connector",
+      "powerKw": 4.5,
+      "offerId": "es:reve:direct:315d0d34-b6e2-424f-b66c-7707af72758e",
+      "channel": "ENDESA X WAY, S.L.",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "es:reve:direct:315d0d34-b6e2-424f-b66c-7707af72758e",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_pricing_type"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/v9/spain-reve-offers/offers_40_-4.json.gz:directOffers:3",
+        "sourcePath": "runtime/data/v9/spain-reve-offers/offers_40_-4.json.gz",
+        "sourceSha256": "fc4a261dec4ebf23ef95f790909e3b1d9c5da72042640477cfd68acdc38bf175",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "ES*ESX*E62020013930032*1"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "ES",
+      "country": "ES",
+      "stationId": "ES:national:00267c8a-e81e-478d-bb6b-b9380c9e52ec",
+      "stationName": "62020013930032",
+      "evseId": "ES*ESX*E62020013930032*2",
+      "connectorId": "ES*ESX*E62020013930032*2:connector",
+      "powerKw": 4.5,
+      "offerId": "es:reve:direct:064c3df4-7ec7-460f-a96d-76be164bd337",
+      "channel": "ENDESA X WAY, S.L.",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "es:reve:direct:064c3df4-7ec7-460f-a96d-76be164bd337",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_pricing_type"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/v9/spain-reve-offers/offers_40_-4.json.gz:directOffers:4",
+        "sourcePath": "runtime/data/v9/spain-reve-offers/offers_40_-4.json.gz",
+        "sourceSha256": "fc4a261dec4ebf23ef95f790909e3b1d9c5da72042640477cfd68acdc38bf175",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "ES*ESX*E62020013930032*2"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "NL",
+      "country": "NL",
+      "stationId": "NL:national:NL:505:1408",
+      "stationName": "50five Exploitatie Kraanspoor",
+      "evseId": "dotnl-0-ac-11_0",
+      "connectorId": "dotnl-0-ac-11_0:connector",
+      "powerKw": 11,
+      "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-0-ac-11_0",
+      "channel": "50five",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-0-ac-11_0",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_calendar_restriction"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "NL",
+      "country": "NL",
+      "stationId": "NL:national:NL:505:1408",
+      "stationName": "50five Exploitatie Kraanspoor",
+      "evseId": "dotnl-1-ac-20_7",
+      "connectorId": "dotnl-1-ac-20_7:connector",
+      "powerKw": 20.7,
+      "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-1-ac-20_7",
+      "channel": "50five",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-1-ac-20_7",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_calendar_restriction"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "NL",
+      "country": "NL",
+      "stationId": "NL:national:NL:505:1408",
+      "stationName": "50five Exploitatie Kraanspoor",
+      "evseId": "dotnl-2-ac-20_7",
+      "connectorId": "dotnl-2-ac-20_7:connector",
+      "powerKw": 20.7,
+      "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-2-ac-20_7",
+      "channel": "50five",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-2-ac-20_7",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_calendar_restriction"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "NL",
+      "country": "NL",
+      "stationId": "NL:national:NL:505:1408",
+      "stationName": "50five Exploitatie Kraanspoor",
+      "evseId": "dotnl-3-ac-22_1",
+      "connectorId": "dotnl-3-ac-22_1:connector",
+      "powerKw": 22.1,
+      "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-3-ac-22_1",
+      "channel": "50five",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-3-ac-22_1",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_calendar_restriction"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "NL-midnight",
+      "country": "NL",
+      "stationId": "NL:national:NL:505:1408",
+      "stationName": "50five Exploitatie Kraanspoor",
+      "evseId": "dotnl-0-ac-11_0",
+      "connectorId": "dotnl-0-ac-11_0:connector",
+      "powerKw": 11,
+      "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-0-ac-11_0",
+      "channel": "50five",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-0-ac-11_0",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_calendar_restriction"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "NL-midnight",
+      "country": "NL",
+      "stationId": "NL:national:NL:505:1408",
+      "stationName": "50five Exploitatie Kraanspoor",
+      "evseId": "dotnl-1-ac-20_7",
+      "connectorId": "dotnl-1-ac-20_7:connector",
+      "powerKw": 20.7,
+      "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-1-ac-20_7",
+      "channel": "50five",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-1-ac-20_7",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_calendar_restriction"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "NL-midnight",
+      "country": "NL",
+      "stationId": "NL:national:NL:505:1408",
+      "stationName": "50five Exploitatie Kraanspoor",
+      "evseId": "dotnl-2-ac-20_7",
+      "connectorId": "dotnl-2-ac-20_7:connector",
+      "powerKw": 20.7,
+      "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-2-ac-20_7",
+      "channel": "50five",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-2-ac-20_7",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_calendar_restriction"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "NL-midnight",
+      "country": "NL",
+      "stationId": "NL:national:NL:505:1408",
+      "stationName": "50five Exploitatie Kraanspoor",
+      "evseId": "dotnl-3-ac-22_1",
+      "connectorId": "dotnl-3-ac-22_1:connector",
+      "powerKw": 22.1,
+      "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-3-ac-22_1",
+      "channel": "50five",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "netherlands-dotnl-national:NL:505:1408:dotnl-3-ac-22_1",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_calendar_restriction"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "GB",
+      "country": "GB",
+      "stationId": "GB:ocpi:AGF:188",
+      "stationName": "South Mimms 7",
+      "evseId": "GB*AGF*E188:407",
+      "connectorId": "407",
+      "powerKw": 360,
+      "offerId": "uk-production-open-feeds:AGF:188:GB*AGF*E188:407:407:applegreen:407",
+      "channel": "Applegreen Fast Charge",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "uk-production-open-feeds:AGF:188:GB*AGF*E188:407:407:applegreen:407",
+        "status": "priced",
+        "total": 16.6,
+        "currency": "GBP",
+        "targetTotal": 19.633028,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "energy"
+        ],
+        "source": "uk-production-open-feeds",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": 16.6,
+        "oldCurrency": "GBP",
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "GB",
+      "country": "GB",
+      "stationId": "GB:ocpi:AGF:188",
+      "stationName": "South Mimms 7",
+      "evseId": "GB*AGF*E188:408",
+      "connectorId": "408",
+      "powerKw": 360,
+      "offerId": "uk-production-open-feeds:AGF:188:GB*AGF*E188:408:408:applegreen:408",
+      "channel": "Applegreen Fast Charge",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "uk-production-open-feeds:AGF:188:GB*AGF*E188:408:408:applegreen:408",
+        "status": "priced",
+        "total": 16.6,
+        "currency": "GBP",
+        "targetTotal": 19.633028,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "energy"
+        ],
+        "source": "uk-production-open-feeds",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "unsupported_rule_dimension"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": 16.6,
+        "oldCurrency": "GBP",
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "GB-Midhope",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19825",
+      "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "channel": "Connected Kerb",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "status": "priced",
+        "total": 10.69932,
+        "currency": "GBP",
+        "targetTotal": 12.65422,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 11.530596,
+          "fxStatus": "verified_dated_rate",
+          "targetCurrency": "EUR",
+          "fxAsOf": "2026-10-15",
+          "fxSourceSha256": "3dcfdc149289a0d3ddbfc22ca2a93501bcce29dbe1a26e186f1141b260d1eda6"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": 10.69932,
+        "oldCurrency": "GBP",
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        }
+      }
+    },
+    {
+      "key": "GB-Midhope",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19865",
+      "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "channel": "Connected Kerb",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "status": "priced",
+        "total": 10.69932,
+        "currency": "GBP",
+        "targetTotal": 12.65422,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 11.530596,
+          "fxStatus": "verified_dated_rate",
+          "targetCurrency": "EUR",
+          "fxAsOf": "2026-10-15",
+          "fxSourceSha256": "3dcfdc149289a0d3ddbfc22ca2a93501bcce29dbe1a26e186f1141b260d1eda6"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": 10.69932,
+        "oldCurrency": "GBP",
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        }
+      }
+    },
+    {
+      "key": "GB-Midhope",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19716",
+      "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "channel": "Connected Kerb",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "status": "priced",
+        "total": 10.69932,
+        "currency": "GBP",
+        "targetTotal": 12.65422,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 11.530596,
+          "fxStatus": "verified_dated_rate",
+          "targetCurrency": "EUR",
+          "fxAsOf": "2026-10-15",
+          "fxSourceSha256": "3dcfdc149289a0d3ddbfc22ca2a93501bcce29dbe1a26e186f1141b260d1eda6"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": 10.69932,
+        "oldCurrency": "GBP",
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        }
+      }
+    },
+    {
+      "key": "GB-Midhope",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19707",
+      "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "channel": "Connected Kerb",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "status": "priced",
+        "total": 10.69932,
+        "currency": "GBP",
+        "targetTotal": 12.65422,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 11.530596,
+          "fxStatus": "verified_dated_rate",
+          "targetCurrency": "EUR",
+          "fxAsOf": "2026-10-15",
+          "fxSourceSha256": "3dcfdc149289a0d3ddbfc22ca2a93501bcce29dbe1a26e186f1141b260d1eda6"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": 10.69932,
+        "oldCurrency": "GBP",
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        }
+      }
+    },
+    {
+      "key": "GB-GeniePoint",
+      "country": "GB",
+      "stationId": "GB:ocpi:GPT:0f7d6969-ed60-4011-907d-a79700d2380f",
+      "stationName": "Memorial Park & Ride",
+      "evseId": "GB*GPT*EBCKSMWMZDXDJRKHE1L17QJQRU",
+      "connectorId": "1",
+      "status": "no_exact_offer",
+      "sourceOffers": 0,
+      "catalogueProof": {
+        "state": "no_exact_runtime_offer"
+      },
+      "classification": "data_insufficient"
+    },
+    {
+      "key": "BE",
+      "country": "BE",
+      "stationId": "BE:national:50five-88886855",
+      "stationName": "50five Belux Bruxelles, Boulevard Louis Mettewie 74-76",
+      "evseId": "1000014328*1945489",
+      "connectorId": "1000014328*1945489:0",
+      "powerKw": 7.36,
+      "offerId": "belgium-nap-national:50five-88886855:1000014328*1945489:169748402",
+      "channel": "50five",
+      "sourceOffers": 6,
+      "new": {
+        "offerId": "belgium-nap-national:50five-88886855:1000014328*1945489:169748402",
+        "status": "priced",
+        "total": 8.47,
+        "currency": "EUR",
+        "targetTotal": 8.47,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "belgium-nap-national",
+        "oracle": {
+          "status": "priced",
+          "total": 8.47,
+          "currency": "EUR",
+          "components": {
+            "energy": 8.47,
+            "connectedTime": 0,
+            "chargingTime": 0,
+            "parkingTime": 0,
+            "afterMinutes": 0,
+            "connectionFee": 0,
+            "sessionFee": 0,
+            "congestion": 0,
+            "postChargeFee": 0
+          },
+          "convertedTotal": 8.47,
+          "fxStatus": "same_currency",
+          "targetCurrency": "EUR",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.47,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "BE",
+      "country": "BE",
+      "stationId": "BE:national:50five-88886855",
+      "stationName": "50five Belux Bruxelles, Boulevard Louis Mettewie 74-76",
+      "evseId": "1000014328*2016611",
+      "connectorId": "1000014328*2016611:0",
+      "powerKw": 7.36,
+      "offerId": "belgium-nap-national:50five-88886855:1000014328*2016611:169748402",
+      "channel": "50five",
+      "sourceOffers": 6,
+      "new": {
+        "offerId": "belgium-nap-national:50five-88886855:1000014328*2016611:169748402",
+        "status": "priced",
+        "total": 8.47,
+        "currency": "EUR",
+        "targetTotal": 8.47,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "belgium-nap-national",
+        "oracle": {
+          "status": "priced",
+          "total": 8.47,
+          "currency": "EUR",
+          "components": {
+            "energy": 8.47,
+            "connectedTime": 0,
+            "chargingTime": 0,
+            "parkingTime": 0,
+            "afterMinutes": 0,
+            "connectionFee": 0,
+            "sessionFee": 0,
+            "congestion": 0,
+            "postChargeFee": 0
+          },
+          "convertedTotal": 8.47,
+          "fxStatus": "same_currency",
+          "targetCurrency": "EUR",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.47,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "BE",
+      "country": "BE",
+      "stationId": "BE:national:50five-88886855",
+      "stationName": "50five Belux Bruxelles, Boulevard Louis Mettewie 74-76",
+      "evseId": "1000014328*1944106",
+      "connectorId": "1000014328*1944106:0",
+      "powerKw": 7.36,
+      "offerId": "belgium-nap-national:50five-88886855:1000014328*1944106:169748402",
+      "channel": "50five",
+      "sourceOffers": 6,
+      "new": {
+        "offerId": "belgium-nap-national:50five-88886855:1000014328*1944106:169748402",
+        "status": "priced",
+        "total": 8.47,
+        "currency": "EUR",
+        "targetTotal": 8.47,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "belgium-nap-national",
+        "oracle": {
+          "status": "priced",
+          "total": 8.47,
+          "currency": "EUR",
+          "components": {
+            "energy": 8.47,
+            "connectedTime": 0,
+            "chargingTime": 0,
+            "parkingTime": 0,
+            "afterMinutes": 0,
+            "connectionFee": 0,
+            "sessionFee": 0,
+            "congestion": 0,
+            "postChargeFee": 0
+          },
+          "convertedTotal": 8.47,
+          "fxStatus": "same_currency",
+          "targetCurrency": "EUR",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.47,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "BE",
+      "country": "BE",
+      "stationId": "BE:national:50five-88886855",
+      "stationName": "50five Belux Bruxelles, Boulevard Louis Mettewie 74-76",
+      "evseId": "1000014328*2016124",
+      "connectorId": "1000014328*2016124:0",
+      "powerKw": 7.36,
+      "offerId": "belgium-nap-national:50five-88886855:1000014328*2016124:169748402",
+      "channel": "50five",
+      "sourceOffers": 6,
+      "new": {
+        "offerId": "belgium-nap-national:50five-88886855:1000014328*2016124:169748402",
+        "status": "priced",
+        "total": 8.47,
+        "currency": "EUR",
+        "targetTotal": 8.47,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "belgium-nap-national",
+        "oracle": {
+          "status": "priced",
+          "total": 8.47,
+          "currency": "EUR",
+          "components": {
+            "energy": 8.47,
+            "connectedTime": 0,
+            "chargingTime": 0,
+            "parkingTime": 0,
+            "afterMinutes": 0,
+            "connectionFee": 0,
+            "sessionFee": 0,
+            "congestion": 0,
+            "postChargeFee": 0
+          },
+          "convertedTotal": 8.47,
+          "fxStatus": "same_currency",
+          "targetCurrency": "EUR",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.47,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "BE",
+      "country": "BE",
+      "stationId": "BE:national:50five-88886855",
+      "stationName": "50five Belux Bruxelles, Boulevard Louis Mettewie 74-76",
+      "evseId": "1000014328*2016163",
+      "connectorId": "1000014328*2016163:0",
+      "powerKw": 7.36,
+      "offerId": "belgium-nap-national:50five-88886855:1000014328*2016163:169748402",
+      "channel": "50five",
+      "sourceOffers": 6,
+      "new": {
+        "offerId": "belgium-nap-national:50five-88886855:1000014328*2016163:169748402",
+        "status": "priced",
+        "total": 8.47,
+        "currency": "EUR",
+        "targetTotal": 8.47,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "belgium-nap-national",
+        "oracle": {
+          "status": "priced",
+          "total": 8.47,
+          "currency": "EUR",
+          "components": {
+            "energy": 8.47,
+            "connectedTime": 0,
+            "chargingTime": 0,
+            "parkingTime": 0,
+            "afterMinutes": 0,
+            "connectionFee": 0,
+            "sessionFee": 0,
+            "congestion": 0,
+            "postChargeFee": 0
+          },
+          "convertedTotal": 8.47,
+          "fxStatus": "same_currency",
+          "targetCurrency": "EUR",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.47,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "BE",
+      "country": "BE",
+      "stationId": "BE:national:50five-88886855",
+      "stationName": "50five Belux Bruxelles, Boulevard Louis Mettewie 74-76",
+      "evseId": "1000014328*2016580",
+      "connectorId": "1000014328*2016580:0",
+      "powerKw": 7.36,
+      "offerId": "belgium-nap-national:50five-88886855:1000014328*2016580:169748402",
+      "channel": "50five",
+      "sourceOffers": 6,
+      "new": {
+        "offerId": "belgium-nap-national:50five-88886855:1000014328*2016580:169748402",
+        "status": "priced",
+        "total": 8.47,
+        "currency": "EUR",
+        "targetTotal": 8.47,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "belgium-nap-national",
+        "oracle": {
+          "status": "priced",
+          "total": 8.47,
+          "currency": "EUR",
+          "components": {
+            "energy": 8.47,
+            "connectedTime": 0,
+            "chargingTime": 0,
+            "parkingTime": 0,
+            "afterMinutes": 0,
+            "connectionFee": 0,
+            "sessionFee": 0,
+            "congestion": 0,
+            "postChargeFee": 0
+          },
+          "convertedTotal": 8.47,
+          "fxStatus": "same_currency",
+          "targetCurrency": "EUR",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.47,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "MA",
+      "country": "MA",
+      "stationId": "MA:kilowatt:5f6d1cab31a6770a131db1bc",
+      "stationName": "Kilowatt.ma",
+      "evseId": "kilowatt-native:60c4dae864dcc30f343bd735",
+      "connectorId": "kilowatt-native:60c505ddb26f350f35af972e",
+      "powerKw": 22,
+      "offerId": "kilowatt-native:5f6d1cab31a6770a131db1bc:60c505ddb26f350f35af972e",
+      "channel": "Kilowatt direct",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "kilowatt-native:5f6d1cab31a6770a131db1bc:60c505ddb26f350f35af972e",
+        "status": "priced",
+        "total": 0,
+        "currency": "MAD",
+        "targetTotal": 0,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "energy"
+        ],
+        "source": "morocco-kilowatt-public",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "missing",
+        "oldTotal": null,
+        "oldCurrency": null,
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "MA",
+      "country": "MA",
+      "stationId": "MA:kilowatt:5f6d1cab31a6770a131db1bc",
+      "stationName": "Kilowatt.ma",
+      "evseId": "kilowatt-native:60c4dae864dcc30f343bd735",
+      "connectorId": "kilowatt-native:60e651075d3b150f3ebdf9a9",
+      "powerKw": 22,
+      "offerId": "kilowatt-native:5f6d1cab31a6770a131db1bc:60e651075d3b150f3ebdf9a9",
+      "channel": "Kilowatt direct",
+      "sourceOffers": 2,
+      "new": {
+        "offerId": "kilowatt-native:5f6d1cab31a6770a131db1bc:60e651075d3b150f3ebdf9a9",
+        "status": "priced",
+        "total": 0,
+        "currency": "MAD",
+        "targetTotal": 0,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "energy"
+        ],
+        "source": "morocco-kilowatt-public",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "missing",
+        "oldTotal": null,
+        "oldCurrency": null,
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "raw_offer_not_enumerated",
+        "reason": "embedded_adapter_or_runtime_derived_offer"
+      }
+    },
+    {
+      "key": "TESLA-SuC",
+      "country": "FR",
+      "stationId": "tesla-abbeville-france",
+      "stationName": "Tesla Abbeville, France",
+      "evseId": "main",
+      "connectorId": "main:connector",
+      "powerKw": 250,
+      "offerId": "tesla-direct:main",
+      "channel": "Tesla",
+      "sourceOffers": 1,
+      "new": {
+        "offerId": "tesla-direct:main",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/tesla_stations.json:493:pricing:0",
+        "sourcePath": "runtime/data/tesla_stations.json",
+        "sourceSha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "main"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "TESLA-SuC-congestion",
+      "country": "FR",
+      "stationId": "tesla-abbeville-france",
+      "stationName": "Tesla Abbeville, France",
+      "evseId": "main",
+      "connectorId": "main:connector",
+      "powerKw": 250,
+      "offerId": "tesla-direct:main",
+      "channel": "Tesla",
+      "sourceOffers": 1,
+      "new": {
+        "offerId": "tesla-direct:main",
+        "status": "uncomputable",
+        "reason": "missing_tariff_time_zone",
+        "currency": "EUR",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": null,
+        "oldCurrency": "EUR",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/tesla_stations.json:493:pricing:0",
+        "sourcePath": "runtime/data/tesla_stations.json",
+        "sourceSha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "main"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    },
+    {
+      "key": "TESLA-Mac",
+      "country": "MA",
+      "stationId": "tesla-agadir-morocco",
+      "stationName": "Tesla Agadir, Morocco",
+      "evseId": "main",
+      "connectorId": "main:connector",
+      "powerKw": 150,
+      "offerId": "tesla-direct:main",
+      "channel": "Tesla",
+      "sourceOffers": 1,
+      "new": {
+        "offerId": "tesla-direct:main",
+        "status": "priced",
+        "total": 0,
+        "currency": "MAD",
+        "targetTotal": 0,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15",
+        "components": [
+          "chargingTime",
+          "energy"
+        ],
+        "source": "tesla-global",
+        "oracle": {
+          "status": "uncomputable",
+          "reason": "missing_tariff_time_zone"
+        }
+      },
+      "legacy": {
+        "oldStatus": "uncomputable",
+        "oldTotal": 0,
+        "oldCurrency": "MAD",
+        "differences": [
+          "status"
+        ],
+        "classification": "data_insufficient"
+      },
+      "classification": "data_insufficient",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "runtime/data/tesla_stations.json:1072:pricing:0",
+        "sourcePath": "runtime/data/tesla_stations.json",
+        "sourceSha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5",
+        "exactAssertions": [
+          {
+            "scopeKind": "EVSE",
+            "sourceId": "main"
+          }
+        ],
+        "scopeStatuses": {
+          "exact_unique": 1
+        }
+      }
+    }
+  ]
+}
