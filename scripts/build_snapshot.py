@@ -9,6 +9,7 @@ import subprocess
 import sys
 from tesla_tariff_priority import build_selected_catalogue
 from scope_belib_offers import scope_belib_offers
+from spain_reve_source import verify_bundle as verify_spain_reve_bundle
 
 def sha256(path):
     h=hashlib.sha256()
@@ -60,6 +61,18 @@ def main():
         if not src.is_file():
             raise FileNotFoundError(f"Production runtime-owned module missing: {relative}")
         copy_file(src, out/"runtime"/relative)
+    es_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="ES"),{})
+    if es_cfg.get("primarySource")=="dataLab":
+        relative=pathlib.PurePosixPath(es_cfg.get("path") or "")
+        if not relative.parts or relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned Data Lab REVE bundle path is invalid")
+        source=dl/relative
+        proof=verify_spain_reve_bundle(source)
+        copy_tree(source/"spain-static",out/"runtime/data/v9/spain-static")
+        copy_tree(source/"spain-reve-offers",out/"runtime/data/v9/spain-reve-offers")
+        write_json(out/"snapshot-inputs/ES/reve-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["dataLab"]["sha"],
+            "path":str(relative), **proof})
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:
         from supplement_france_irve_exact import supplement

@@ -1,0 +1,37 @@
+name: Validate pinned Data Lab REVE source handoff
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_snapshot.py'
+      - 'scripts/spain_reve_source.py'
+      - 'tests/test_spain_reve_source.py'
+      - '.github/workflows/validate-reve-datalab-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable-reference
+          sparse-checkout: |
+            v9-production-runtime/data/v9/spain-static
+            v9-production-runtime/data/v9/spain-reve-offers
+      - name: Check source guard and current pinned bundle
+        run: |
+          python -m unittest discover -s tests -p 'test_spain_reve_source.py' -v
+          PYTHONPATH=scripts python - <<'PY'
+          from pathlib import Path
+          from spain_reve_source import verify_bundle
+          proof=verify_bundle(Path('stable-reference/v9-production-runtime/data/v9'))
+          assert (proof['stations'],proof['uniqueEvseIds'],proof['directOffers']) == (13980,42887,44281)
+          print(proof)
+          PY
