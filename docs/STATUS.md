@@ -1,5 +1,13 @@
 # TCC V9 production status
 
+## Current published GitHub Pages candidate — 15 October 2026
+
+Production `main` `29b0ae5428b4e5f7b858763601fdec2976765d48` was published to [Production GitHub Pages](https://yass3705.github.io/tesla-charge-companion-production/) by [run #38756331049](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38756331049). The live shell and manifest both identify `2026-10-15-v9-datalab-baseline-candidate`; the manifest lists 2,463 files. The preceding [full development run #38755773180](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38755773180) passed the 10-dataset build, source guards, France parity, asset graph and browser journey.
+
+The normal build now materializes the verified historical input archive from Data Lab commit `0181a0fbecbba02d96851aff0258503c51dc6717`; it does not checkout Stable. Runtime modules and shell are Production-owned. The archive remains an immutable last-good baseline, not proof that all current collectors are fresh. In particular, current Tesla/Mac exports still transit Stable and the Swiss daily runtime compiler remains there pending consumer migration. Stable Pages and its V7/V8 rollback remain active. No Cloudflare switch was made. The previous Production Pages deployment from 13 October and the independent Stable site remain rollback options.
+
+The sections below retain their dated historical evidence; they do not describe the latest published candidate.
+
 Updated: 2026-10-01
 
 ## Current immutable baseline
