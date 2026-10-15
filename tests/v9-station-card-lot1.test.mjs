@@ -106,6 +106,30 @@ assert.equal(teslaCard.pointCount,8);
 assert.equal(teslaCard.powerGroups[0].pointCount,8);
 assert.match(ui.renderStationCard(teslaCard,0,area),/identifiant individuel non fourni/);
 
+// Realistic production-shaped variants: a physical station has multiple EVSE,
+// and upstream power variants carry subsets of its complete inventory.
+const multiInventory={id:'shared-inventory',countryCode:'FR',name:'Multi EVSE',address:'Test',
+  latitude:48.1,longitude:2.1,physicalOperator:{name:'CPO'},evses:[
+    {id:'EVSE-AC',pdcIds:['PDC-AC'],connectors:[{id:'AC-22',kind:'AC',powerKw:22}]},
+    {id:'EVSE-DC',pdcIds:['PDC-DC'],connectors:[{id:'DC-150',kind:'DC',powerKw:150}]}
+  ]};
+const acScoped=variant('shared-inventory','PDC-AC',22,'AC',[direct('only-ac',2)]);
+const dcScoped=variant('shared-inventory','PDC-DC',150,'DC',[direct('only-dc',9)]);
+acScoped.station={...multiInventory,evses:[multiInventory.evses[0]]};
+dcScoped.station={...multiInventory,evses:[multiInventory.evses[1]]};
+const completeCard=ui.stationCards([acScoped,dcScoped])[0];
+assert.equal(completeCard.station.evses.length,2,'best-price selection must retain all station EVSE');
+assert.equal(completeCard.pointCount,2);
+assert.equal(completeCard.powerGroups.length,2);
+assert.deepEqual(completeCard.powerGroups.map(group=>group.pointCount),[1,1]);
+assert.equal(completeCard.bestChoice.pdc.id,'PDC-AC');
+assert.deepEqual(completeCard.powerGroups.map(group=>group.variants[0].pdcEntries.map(pdc=>pdc.id)),
+  [['PDC-AC'],['PDC-DC']],'power variants must never inherit other-power PDCs');
+const completeHtml=ui.renderStationCard(completeCard,0,area);
+assert.equal((completeHtml.match(/class="v9-pdc-detail"/g)||[]).length,2);
+assert.match(completeHtml,/2,00 €/);
+assert.match(completeHtml,/9,00 €/);
+
 // Identical names and coordinates must never merge unrelated station identities.
 const samePlace=[variant('physical-a','PDC-11',22),variant('physical-b','PDC-12',22)];
 assert.equal(ui.stationCards(samePlace).length,2);
