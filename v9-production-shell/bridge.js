@@ -574,6 +574,7 @@
       const calculated=value=>'Prix calculé · '+displayAmount(value,fxRates);
       const amount=state.status==='priced'?calculated(displayItem)
         :state.status==='missing'?'Prix non disponible':'Tarif incalculable';
+      const stateExplanation=state.status==='missing'?'Aucune offre exploitable trouvée pour cette voie tarifaire et ce PDC.':state.status==='incomplete'?'Offre identifiée, mais les conditions ne permettent pas un calcul fiable.':'';
       const congestionAttr=hasCongestion?' data-v9-congestion-key="'+esc(key)+'" data-v9-included-total="'+esc(item.total)+'" data-v9-excluded-total="'+esc(item.congestion.totalWithoutCongestion)+'" data-v9-included-amount="'+esc(calculated(item))+'" data-v9-excluded-amount="'+esc(calculated({...item,total:item.congestion.totalWithoutCongestion,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}))+'"':'';
       const totalAttr=state.status==='priced'&&num(total)!=null?' data-v9-effective-total="'+esc(total)+'"':'';
       const names=[...new Set(state.offers.map(offer=>text(offer.provider)).filter(Boolean))];
@@ -587,12 +588,13 @@
         (fullLabels.length?'<div>Grilles et conditions : '+esc(fullLabels.join(' · '))+'</div>':'')+
         (source?'<div>Source : '+esc(source)+'</div>':'')+(sourceDate?'<div>Date : '+esc(sourceDate)+'</div>':'')+
         '<div>Offre : '+esc(detail.id||item?.offerId||'')+'</div></details>':'';
-      return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
+      return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'" data-v9-tariff-state="'+esc(state.status)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
         '<strong class="v9-lane-heading" style="font-size:14px;line-height:1.3">'+esc(category.label)+(best?' · MEILLEUR TARIF':'')+'</strong>'+
         '<span style="font-size:15px;line-height:1.3;text-align:right"><span class="v9-lane-amount">'+esc(amount)+'</span></span>'+
         (hasCongestion?'<button type="button" class="v9-congestion-toggle" data-v9-congestion-key="'+esc(key)+'" aria-pressed="'+String(including)+'" title="Basculer les frais de congestion pour cette offre seulement" style="grid-column:1/-1;justify-self:end;background:#fff;color:#15171b;border:1px solid #555;border-radius:6px;padding:4px 8px;min-height:32px;font-size:12px;width:auto;cursor:pointer">'+(including?'Congestion incluse':'Congestion exclue')+'</button>':'')+
         (hasCongestion?'<span style="grid-column:1/-1;font-size:11px;line-height:1.3">À partir de '+esc(item.congestion.thresholdSoc)+' % de batterie'+(item.congestion.thresholdSource==='default_soc80'?' (hypothèse V9)':' (source)')+' · '+esc(num(item.congestion.minutes)?.toFixed(1)||'—')+' min au-delà du seuil</span>':'')+
         (label?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(label)+(category.subscription?' · abonnement':'')+'</span>':'')+
+        (stateExplanation?'<span class="v9-tariff-explanation" style="grid-column:1/-1;font-size:12px;line-height:1.4">'+esc(stateExplanation)+'</span>':'')+
         history+
       '</div>';
     }).join('')+'</div>';
@@ -950,7 +952,7 @@
     const maps=lat!=null&&lon!=null?'https://maps.google.com/maps?daddr='+encodeURIComponent(lat+','+lon):null;
     let tesla=null;
     try{const url=new URL(text(station?.teslaUrl));if(url.protocol==='https:'&&/^(www\.)?tesla\.com$/i.test(url.hostname))tesla=url.href;}catch(_){ }
-    return'<div class="small v9-station-links">'+(date?'MAJ '+esc(date)+' · ':'')+
+    return'<div class="small v9-station-links">'+(isTeslaStation(station)?'<span title="Source Tesla distincte des bases nationales">Réseau Tesla · '+esc(stationBaseSource(station))+'</span> · ':'')+(date?'MAJ '+esc(date)+' · ':'')+
       (maps?'<a href="'+esc(maps)+'" target="_blank" rel="noopener noreferrer">Itinéraire Google Maps</a>':'')+
       (tesla?' · <a href="'+esc(tesla)+'" target="_blank" rel="noopener noreferrer">Fiche Tesla</a>':'')+'</div>';
   }
