@@ -583,7 +583,7 @@
       const fullLabels=detail?tariffRateLabels(detail):[];
       const source=text(detail?.metadata?.source||detail?.source||detail?.sourceId);
       const sourceDate=text(detail?.metadata?.fetchedAt||detail?.metadata?.validatedAt||detail?.metadata?.collectedAt||detail?.generatedAt);
-      const history=detail?'<details class="v9-tariff-detail" style="grid-column:1/-1;font-size:12px"><summary>Détail du tarif</summary>'+
+      const history=detail?'<details class="v9-tariff-detail" style="grid-column:1/-1;font-size:12px"><summary>Détail du tarif · '+esc(category.label)+'</summary>'+
         (fullLabels.length?'<div>Grilles et conditions : '+esc(fullLabels.join(' · '))+'</div>':'')+
         (source?'<div>Source : '+esc(source)+'</div>':'')+(sourceDate?'<div>Date : '+esc(sourceDate)+'</div>':'')+
         '<div>Offre : '+esc(detail.id||item?.offerId||'')+'</div></details>':'';
@@ -1035,8 +1035,8 @@
       '<h3>1. Préparer la recherche</h3><p>Saisis une adresse de départ ou utilise « Position actuelle », puis règle le niveau de batterie, l’objectif et le profil de calcul.</p>'+
       '<h3>2. Choisir les réseaux</h3><p>Tous les réseaux sont sélectionnés au départ. « Tesla uniquement » limite la recherche au réseau Tesla. La liste Opérateurs permet de choisir plusieurs réseaux et applique chaque changement directement.</p>'+
       '<h3>3. Régler les filtres et lancer le calcul</h3><p>Choisis le type AC/DC, la puissance minimale et maximale, la distance et la priorité de classement. Appuie sur « Simuler » pour afficher les résultats.</p>'+
-      '<h3>4. Lire les prix</h3><p>Chaque puissance présente toujours Direct (ou l’abonnement sélectionné), Electra et Electroverse, dans cet ordre. « Prix non disponible » signifie qu’aucune offre tarifaire exploitable n’est identifiée dans cette catégorie; « Tarif incalculable » signale une offre identifiée sans calcul fiable. Le tarif le plus bas est mis en évidence.</p>'+
-      '<h3>5. Comprendre une fiche</h3><p>Chaque fiche précise la base source de la station et le tarif de base retenu pour le calcul. Les stations sont séparées par type et puissance. Le coût par kilomètre récupéré aide au classement; le routage détaillé se lance à la demande.</p>'+
+      '<h3>4. Lire les prix</h3><p>Chaque PDC présente les voies Direct, Electra et Electroverse, ainsi que les abonnements sélectionnés lorsqu’ils s’appliquent. « Prix non disponible » signifie qu’aucune offre tarifaire exploitable n’est identifiée dans cette catégorie; « Tarif incalculable » signale une offre identifiée sans calcul fiable. Le tarif calculable le plus bas est mis en évidence. Déplie « Détail du tarif » pour consulter la grille complète et la source.</p>'+
+      '<h3>5. Comprendre une fiche</h3><p>Chaque station occupe une fiche unique regroupant toutes ses puissances AC/DC et leurs PDC. Déplie une puissance, puis un PDC, pour consulter les tarifs qui lui correspondent et leurs conditions. Le coût par kilomètre récupéré aide au classement; le routage détaillé se lance à la demande.</p>'+
       '<h3>6. Fraîcheur des données</h3><p>En bas de page, consulte la dernière date fournie par les métadonnées de chaque base. Si la source ne donne pas de date, la page indique la date de révision du snapshot épinglé.</p>'+
       '<p class="small">Les états de disponibilité en temps réel ne sont pas utilisés. Les tarifs non validés ou non comparables restent signalés comme indisponibles.</p></div>';
     main.appendChild(panel);
