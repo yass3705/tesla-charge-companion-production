@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-15-v9-tesla-mac-datalab-candidate",
+    "currentSnapshot": "2026-10-15-v9-tesla-mac-ingress-verified",
     "dataLabSha": "94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3",
-    "rule": "Pinned Data Lab historical V9 baseline and exact last-good Mac catalogue at separate immutable Data Lab commits; all non-Tesla source pins unchanged. The Mac catalogue is validated byte-for-byte and no pricing or SuC substitution is applied by this seed promotion. Publication remains explicit."
+    "rule": "Pinned Data Lab historical V9 baseline and exact last-good Mac catalogue imported through immutable Production ingress; no Tesla pricing or SuC substitution. Publication remains explicit."
   }
 }
