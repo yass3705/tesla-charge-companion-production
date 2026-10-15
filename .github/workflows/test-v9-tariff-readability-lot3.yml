@@ -1,0 +1,21 @@
+name: V9 tariff readability Lot 3
+on:
+  pull_request:
+    paths:
+      - 'v9-production-shell/bridge.js'
+      - 'tests/v9-tariff-readability-lot3.test.mjs'
+      - '.github/workflows/test-v9-tariff-readability-lot3.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check v9-production-shell/bridge.js
+      - run: node --test tests/v9-tariff-readability-lot3.test.mjs tests/v9-tariff-lanes.test.mjs tests/v9-station-card-lot1.test.mjs tests/v9-compact-navigation-lot2.test.mjs

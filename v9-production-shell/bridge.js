@@ -574,6 +574,7 @@
       const calculated=value=>'Prix calculé · '+displayAmount(value,fxRates);
       const amount=state.status==='priced'?calculated(displayItem)
         :state.status==='missing'?'Prix non disponible':'Tarif incalculable';
+      const stateExplanation=state.status==='missing'?'Aucune offre exploitable trouvée pour cette voie tarifaire et ce PDC.':state.status!=='priced'?'Offre identifiée, mais les conditions ne permettent pas un calcul fiable.':'';
       const congestionAttr=hasCongestion?' data-v9-congestion-key="'+esc(key)+'" data-v9-included-total="'+esc(item.total)+'" data-v9-excluded-total="'+esc(item.congestion.totalWithoutCongestion)+'" data-v9-included-amount="'+esc(calculated(item))+'" data-v9-excluded-amount="'+esc(calculated({...item,total:item.congestion.totalWithoutCongestion,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}))+'"':'';
       const totalAttr=state.status==='priced'&&num(total)!=null?' data-v9-effective-total="'+esc(total)+'"':'';
       const names=[...new Set(state.offers.map(offer=>text(offer.provider)).filter(Boolean))];
@@ -583,16 +584,17 @@
       const fullLabels=detail?tariffRateLabels(detail):[];
       const source=text(detail?.metadata?.source||detail?.source||detail?.sourceId);
       const sourceDate=text(detail?.metadata?.fetchedAt||detail?.metadata?.validatedAt||detail?.metadata?.collectedAt||detail?.generatedAt);
-      const history=detail?'<details class="v9-tariff-detail" style="grid-column:1/-1;font-size:12px"><summary>Détail du tarif</summary>'+
+      const history=detail?'<details class="v9-tariff-detail" style="grid-column:1/-1;font-size:12px"><summary>Détail du tarif · '+esc(category.label)+'</summary>'+
         (fullLabels.length?'<div>Grilles et conditions : '+esc(fullLabels.join(' · '))+'</div>':'')+
         (source?'<div>Source : '+esc(source)+'</div>':'')+(sourceDate?'<div>Date : '+esc(sourceDate)+'</div>':'')+
         '<div>Offre : '+esc(detail.id||item?.offerId||'')+'</div></details>':'';
-      return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
+      return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'" data-v9-tariff-state="'+esc(state.status)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
         '<strong class="v9-lane-heading" style="font-size:14px;line-height:1.3">'+esc(category.label)+(best?' · MEILLEUR TARIF':'')+'</strong>'+
         '<span style="font-size:15px;line-height:1.3;text-align:right"><span class="v9-lane-amount">'+esc(amount)+'</span></span>'+
         (hasCongestion?'<button type="button" class="v9-congestion-toggle" data-v9-congestion-key="'+esc(key)+'" aria-pressed="'+String(including)+'" title="Basculer les frais de congestion pour cette offre seulement" style="grid-column:1/-1;justify-self:end;background:#fff;color:#15171b;border:1px solid #555;border-radius:6px;padding:4px 8px;min-height:32px;font-size:12px;width:auto;cursor:pointer">'+(including?'Congestion incluse':'Congestion exclue')+'</button>':'')+
         (hasCongestion?'<span style="grid-column:1/-1;font-size:11px;line-height:1.3">À partir de '+esc(item.congestion.thresholdSoc)+' % de batterie'+(item.congestion.thresholdSource==='default_soc80'?' (hypothèse V9)':' (source)')+' · '+esc(num(item.congestion.minutes)?.toFixed(1)||'—')+' min au-delà du seuil</span>':'')+
         (label?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(label)+(category.subscription?' · abonnement':'')+'</span>':'')+
+        (stateExplanation?'<span class="v9-tariff-explanation" style="grid-column:1/-1;font-size:12px;line-height:1.4">'+esc(stateExplanation)+'</span>':'')+
         history+
       '</div>';
     }).join('')+'</div>';
@@ -950,7 +952,7 @@
     const maps=lat!=null&&lon!=null?'https://maps.google.com/maps?daddr='+encodeURIComponent(lat+','+lon):null;
     let tesla=null;
     try{const url=new URL(text(station?.teslaUrl));if(url.protocol==='https:'&&/^(www\.)?tesla\.com$/i.test(url.hostname))tesla=url.href;}catch(_){ }
-    return'<div class="small v9-station-links">'+(date?'MAJ '+esc(date)+' · ':'')+
+    return'<div class="small v9-station-links">'+(isTeslaStation(station)?'<span title="Source Tesla distincte des bases nationales">Réseau Tesla · '+esc(stationBaseSource(station))+'</span> · ':'')+(date?'MAJ '+esc(date)+' · ':'')+
       (maps?'<a href="'+esc(maps)+'" target="_blank" rel="noopener noreferrer">Itinéraire Google Maps</a>':'')+
       (tesla?' · <a href="'+esc(tesla)+'" target="_blank" rel="noopener noreferrer">Fiche Tesla</a>':'')+'</div>';
   }
@@ -1035,8 +1037,8 @@
       '<h3>1. Préparer la recherche</h3><p>Saisis une adresse de départ ou utilise « Position actuelle », puis règle le niveau de batterie, l’objectif et le profil de calcul.</p>'+
       '<h3>2. Choisir les réseaux</h3><p>Tous les réseaux sont sélectionnés au départ. « Tesla uniquement » limite la recherche au réseau Tesla. La liste Opérateurs permet de choisir plusieurs réseaux et applique chaque changement directement.</p>'+
       '<h3>3. Régler les filtres et lancer le calcul</h3><p>Choisis le type AC/DC, la puissance minimale et maximale, la distance et la priorité de classement. Appuie sur « Simuler » pour afficher les résultats.</p>'+
-      '<h3>4. Lire les prix</h3><p>Chaque puissance présente toujours Direct (ou l’abonnement sélectionné), Electra et Electroverse, dans cet ordre. « Prix non disponible » signifie qu’aucune offre tarifaire exploitable n’est identifiée dans cette catégorie; « Tarif incalculable » signale une offre identifiée sans calcul fiable. Le tarif le plus bas est mis en évidence.</p>'+
-      '<h3>5. Comprendre une fiche</h3><p>Chaque fiche précise la base source de la station et le tarif de base retenu pour le calcul. Les stations sont séparées par type et puissance. Le coût par kilomètre récupéré aide au classement; le routage détaillé se lance à la demande.</p>'+
+      '<h3>4. Lire les prix</h3><p>Chaque PDC présente les voies Direct, Electra et Electroverse, ainsi que les abonnements sélectionnés lorsqu’ils s’appliquent. « Prix non disponible » signifie qu’aucune offre tarifaire exploitable n’est identifiée dans cette catégorie; « Tarif incalculable » signale une offre identifiée sans calcul fiable. Le tarif calculable le plus bas est mis en évidence. Déplie « Détail du tarif » pour consulter la grille complète et la source.</p>'+
+      '<h3>5. Comprendre une fiche</h3><p>Chaque station occupe une fiche unique regroupant toutes ses puissances AC/DC et leurs PDC. Déplie une puissance, puis un PDC, pour consulter les tarifs qui lui correspondent et leurs conditions. Le coût par kilomètre récupéré aide au classement; le routage détaillé se lance à la demande.</p>'+
       '<h3>6. Fraîcheur des données</h3><p>En bas de page, consulte la dernière date fournie par les métadonnées de chaque base. Si la source ne donne pas de date, la page indique la date de révision du snapshot épinglé.</p>'+
       '<p class="small">Les états de disponibilité en temps réel ne sont pas utilisés. Les tarifs non validés ou non comparables restent signalés comme indisponibles.</p></div>';
     main.appendChild(panel);
