@@ -10,6 +10,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from supplement_france_irve_exact import read_gzip, write_gzip
+from france_irve_existing_station import verify_existing_station
 
 
 def sha256(path):
@@ -110,15 +111,20 @@ def supplement(target, source, dynamic, evidence, expected_source_sha, expected_
     if proof["dynamicSourceSha256"] != active_payload["sourceSha256"]:
         raise AssertionError("BUMP dynamic source provenance drift")
     active = {str(value).upper() for value in active_payload["enServicePdcIds"]}
-    newer_by_id = {row[0]: row for row in read_gzip(source)}
+    newer_rows = read_gzip(source)
+    newer_by_id = {row[0]: row for row in newer_rows}
+    if len(newer_by_id) != len(newer_rows):
+        raise AssertionError("Duplicate station identity in new France IRVE source")
     old = read_gzip(Path(target) / "all.json.gz")
     old_ids = {row[0] for row in old}
-    old_evse = set(source_index(old))
+    old_index = source_index(old)
+    old_evse = set(old_index)
     additions, accepted = [], set()
+    already_present = []
     for station in proof["stations"]:
         sid = station["nationalStationId"]
-        if sid in old_ids or sid not in newer_by_id:
-            raise AssertionError(f"BUMP supplement station not new: {sid}")
+        if sid not in newer_by_id:
+            raise AssertionError(f"BUMP supplement station absent from source: {sid}")
         row = copy.deepcopy(newer_by_id[sid])
         if row[5].casefold() != "bump" or row[10].casefold() != "bump" or row[1] != station["name"]:
             raise AssertionError(f"BUMP station operator/name drift: {sid}")
@@ -139,13 +145,25 @@ def supplement(target, source, dynamic, evidence, expected_source_sha, expected_
                 group[4] = len(selected)
                 groups.append(group)
         current = {evse.upper() for group in groups for evse in group[6]}
-        if current != set(exact) or current - active or current & (old_evse | accepted):
+        if current != set(exact) or current - active or current & accepted:
             raise AssertionError(f"BUMP EVSE identity/status invalid: {sid}")
         row[8] = groups
         row[6] = len(current)
-        additions.append(row)
+        if sid in old_ids:
+            existing = [item for item in old if item[0] == sid]
+            if len(existing) != 1:
+                raise AssertionError(f"BUMP duplicate pinned station identity: {sid}")
+            verify_existing_station(existing[0], newer_by_id[sid], current, "BUMP")
+            for evse in current:
+                if any(linked[0][0] != sid for linked in old_index[evse]):
+                    raise AssertionError(f"BUMP approved EVSE pinned at another station: {evse}")
+            already_present.append(sid)
+        else:
+            if current & old_evse:
+                raise AssertionError(f"BUMP approved EVSE already pinned elsewhere: {sid}")
+            additions.append(row)
         accepted.update(current)
-    if len(additions) != 21 or len(accepted) != 39:
+    if len(additions) + len(already_present) != 21 or len(accepted) != 39:
         raise AssertionError("BUMP approved active supplement count drift")
     manifest_path = Path(target) / "manifest.json"
     manifest = json.loads(manifest_path.read_text())
@@ -167,18 +185,23 @@ def supplement(target, source, dynamic, evidence, expected_source_sha, expected_
         content.extend(rows)
         content.sort(key=lambda row: str(row[0]))
         entry.update({"count": len(content), **write_gzip(path, content)})
-    old.extend(additions)
-    old.sort(key=lambda row: str(row[0]))
-    result = write_gzip(Path(target) / "all.json.gz", old)
-    manifest.update({"stationCount": len(old), "pdcCount": int(manifest["pdcCount"]) + len(accepted),
-                     "allBytes": result["bytes"], "allSha256": result["sha256"],
-                     "tileCount": len(manifest["tiles"]),
-                     "bumpExactSupplement": {"stationCount": len(additions), "evseCount": len(accepted),
-                                              "evidenceSha256": sha256(evidence),
-                                              "dynamicSourceSha256": proof["dynamicSourceSha256"]}})
+    if additions:
+        old.extend(additions)
+        old.sort(key=lambda row: str(row[0]))
+        result = write_gzip(Path(target) / "all.json.gz", old)
+        manifest.update({"stationCount": len(old),
+                         "pdcCount": int(manifest["pdcCount"]) + sum(row[6] for row in additions),
+                         "allBytes": result["bytes"], "allSha256": result["sha256"]})
+    report = {"stationCount": len(additions) + len(already_present), "evseCount": len(accepted),
+              "evidenceSha256": sha256(evidence),
+              "dynamicSourceSha256": proof["dynamicSourceSha256"]}
+    if already_present:
+        report["alreadyPresentStationIds"] = sorted(already_present)
+        report["addedStationIds"] = sorted(row[0] for row in additions)
+    manifest.update({"tileCount": len(manifest["tiles"]), "bumpExactSupplement": report})
     manifest["tiles"].sort(key=lambda entry: entry["id"])
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
-    return manifest["bumpExactSupplement"]
+    return report
 
 
 def main():
