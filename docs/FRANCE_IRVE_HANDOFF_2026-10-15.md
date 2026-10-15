@@ -50,4 +50,17 @@ The current national Data Lab generation is **not** promoted while its 449 histo
 
 The development candidate uses the Data Lab seed at `fb1458566`, verifies its provenance SHA-256 `8721f4d2...`, compares every file hash against the pinned Stable historical reference, then runs the unchanged Belib/BUMP supplementation, offers and price pipeline. Its reference build uses the same configuration and all other Data Lab pins, with only France static tiles taken from the historical Stable copy. `compare_france_irve_builds.py` retains strict multiset checks for national rows, EVSE/connector/power/status, tiles and Belib/BUMP offers. The current-national strict build remains available only through explicit `check_current_national=true` dispatch and is expected to fail until the connector evidence is resolved; the diagnostic assertion has not been weakened.
 
-This qualifies a technical migration candidate for the **last validated France generation only**. It does not certify new national coverage, remove the Stable IRVE relay, or establish public V9 publication. CI results and any remaining differences must be recorded before promotion.
+The [CI run #38754448419](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38754448419) passed the full development build, selected snapshot validation, normalized two-build comparison, and downstream guards. The guarded Pages candidate validation passed separately without deployment. The selected last-good Data Lab and historical Stable builds produced the same France all-file SHA-256 `282590706bb901891bdc92db42e93e78995fdd688502823a47a7e04bb2a01af8` after the unchanged supplements:
+
+| Measure | Historical reference | Pinned Data Lab last-good | Business delta |
+| --- | ---: | ---: | ---: |
+| Stations | 48,083 | 48,083 | 0 |
+| Station/EVSE pairs | 165,848 | 165,848 | 0 |
+| Connector entries | 169,165 | 169,165 | 0 |
+| Normal / Type 2 / CCS entries | 17 / 55 / 1 | 17 / 55 / 1 | 0 / 0 / 0 |
+| Belib Direct / subscription offers | 475 / 950 | 475 / 950 | 0 / 0 |
+| BUMP Direct / subscription offers | 58 / 0 | 58 / 0 | 0 / 0 |
+
+The strict comparator also checked every station row and tile as multisets, including EVSE identities, connectors, power and status, and each approved Belib/BUMP offer object. Its `normalizedBusinessDifference` was 0. The idempotence test separately passed all 25 approved stations, retained the 11 additional new-national EVSE, and rejected divergent Belib and BUMP signatures. These are **two distinct source generations**: no parity is claimed between the selected last-good generation and the newer national generation, which adds 1,127 stations and still excludes the 449 connector-unproven BUMP EVSE.
+
+This qualifies the technical handoff for the **last validated France generation only**. It does not certify new national coverage, remove the Stable IRVE relay while Stable Pages still uses it, or establish public V9 publication. The unrelated historical `build-deploy` Blink assertion failed before deployment and is tracked separately.
