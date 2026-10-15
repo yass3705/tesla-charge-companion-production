@@ -180,5 +180,9 @@
     "expectedActiveSimpleDirectPdc": 778,
     "sourceDataLabCommit": "94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3",
     "noAutomaticPagesOrCloudflare": true
+  },
+  "franceZeWattDataLabOffers": {
+    "path": "v9-production-runtime/data/v9/france-zewatt-offers.json",
+    "sourceSha256": "a348e2ba192ac6a4f7448703ed088be02acd12904991c65b42532af39ea07b6d"
   }
 }

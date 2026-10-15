@@ -11,6 +11,8 @@ on:
   pull_request:
     paths:
       - ".github/workflows/publish-v9-pinned-pages.yml"
+      - "config/refresh-policy.json"
+      - "config/snapshots/2026-10-15-es-reve-datalab-seed-candidate.json"
 
 permissions:
   contents: read
@@ -44,6 +46,7 @@ jobs:
               out.write(f"snapshot_id={snapshot_id}\n")
               out.write(f"datalab_sha={dev['dataLabSha']}\n")
               out.write(f"stable_sha={cfg['sources']['stable']['sha']}\n")
+              out.write(f"spain_datalab_sha={cfg['sources'].get('spainDataLab',{}).get('sha','')}\n")
           PY
       - uses: actions/checkout@v4
         with:
@@ -58,6 +61,14 @@ jobs:
           path: datalab
           fetch-depth: 1
           persist-credentials: false
+      - uses: actions/checkout@v4
+        if: steps.pin.outputs.spain_datalab_sha != ''
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ steps.pin.outputs.spain_datalab_sha }}
+          path: spain-datalab
+          sparse-checkout: data/reve_v2/validated_runtime
+          persist-credentials: false
 
       - name: Validate future snapshot source-selection policy
         run: |
@@ -70,6 +81,9 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git -C datalab rev-parse HEAD)" = "${{ steps.pin.outputs.datalab_sha }}"
+          if [ -n "${{ steps.pin.outputs.spain_datalab_sha }}" ]; then
+            test "$(git -C spain-datalab rev-parse HEAD)" = "${{ steps.pin.outputs.spain_datalab_sha }}"
+          fi
           python production/scripts/validate_snapshot.py "production/config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json"
 
       - name: Validate source-specific guards
@@ -79,9 +93,12 @@ jobs:
           TCC_STABLE_ROOT=stable TCC_DATALAB_ROOT=datalab node production/tests/belib-exact-evse.test.mjs
 
       - name: Build self-contained refreshed candidate
+        shell: bash
         run: |
           cd production
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
+          spain_args=()
+          if [ -n "${{ steps.pin.outputs.spain_datalab_sha }}" ]; then spain_args=(--spain-datalab ../spain-datalab); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
