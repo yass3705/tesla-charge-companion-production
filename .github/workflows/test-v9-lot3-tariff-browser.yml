@@ -1,0 +1,29 @@
+name: V9 Lot 3 tariff visual regression
+on:
+  pull_request:
+    paths:
+      - 'tests/v9-lot3-tariff-browser.mjs'
+      - '.github/workflows/test-v9-lot3-tariff-browser.yml'
+      - 'v9-production-shell/bridge.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tariff-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/v9-tariff-readability-lot3.test.mjs tests/v9-tariff-lanes.test.mjs
+      - run: npm install --no-save --no-package-lock playwright@1.55.1
+      - run: node tests/v9-lot3-tariff-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v9-lot3-tariff-desktop-mobile
+          path: artifacts/lot3-tariff-*.png
+          if-no-files-found: ignore
+          retention-days: 14
