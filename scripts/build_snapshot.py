@@ -39,7 +39,7 @@ def main():
     ap.add_argument("--datalab",required=True)
     ap.add_argument("--germany-source")
     ap.add_argument("--e55c-datalab")
-    ap.add_argument("--france-irve-direct-parity",action="store_true",help="Use Data Lab France IRVE only if byte-for-byte identical to the pinned Stable input")
+    ap.add_argument("--france-irve-direct-parity",action="store_true",help="Use Data Lab France IRVE only if identical to a same-generation pinned Stable reference")
     ap.add_argument("--out",required=True)
     ap.add_argument("--config",default="config/snapshots/2026-09-30.json")
     a=ap.parse_args()
@@ -61,6 +61,12 @@ def main():
         stable_fr=stable/"v9-production-runtime/data/v9/france-static"
         if not source.is_dir() or not stable_fr.is_dir():
             raise AssertionError("France IRVE source or Stable parity reference is missing")
+        source_manifest=json.loads((source/"manifest.json").read_text())
+        stable_manifest=json.loads((stable_fr/"manifest.json").read_text())
+        generation_keys=("stationCount","pdcCount","allSha256")
+        if any(source_manifest.get(k)!=stable_manifest.get(k) for k in generation_keys):
+            raise AssertionError("France source handoff requires the same pinned generation: "
+                +str({k:{"stable":stable_manifest.get(k),"dataLab":source_manifest.get(k)} for k in generation_keys}))
         # Build the exact historical runtime layout using the already validated importer.
         imported=out/"snapshot-inputs/FR/handoff-import"
         importer=pathlib.Path(__file__).resolve().parents[1]/"scripts/import_france_irve_from_datalab.py"

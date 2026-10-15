@@ -167,16 +167,27 @@ jobs:
           cd production
           python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
-      - name: France IRVE direct source handoff candidate (strict byte and pricing parity)
+      - name: Checkout same-generation Stable France reference
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 6b1c62611d71ec96ea163b0dd1dc2df3003f292f
+          path: stable-france-reference
+      - name: France IRVE direct source handoff candidate (same-generation strict parity)
         shell: bash
         run: |
           set -euo pipefail
           cd production
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-france-direct-parity --france-irve-direct-parity
-          python scripts/validate_built_snapshot.py ../dist/v9-france-direct-parity "${{ steps.pin.outputs.snapshot_id }}"
+          config=config/snapshots/2026-10-13-be-energyvision-france-irve-handoff-candidate.json
+          test "$(git -C ../stable-france-reference rev-parse HEAD)" = 6b1c62611d71ec96ea163b0dd1dc2df3003f292f
+          python scripts/validate_snapshot.py "$config"
+          python scripts/build_snapshot.py --stable ../stable-france-reference --datalab ../datalab --config "$config" --out ../dist/v9-france-reference
+          python scripts/build_snapshot.py --stable ../stable-france-reference --datalab ../datalab --config "$config" --out ../dist/v9-france-direct-parity --france-irve-direct-parity
+          python scripts/validate_built_snapshot.py ../dist/v9-france-reference 2026-10-13-be-energyvision-france-irve-handoff-candidate
+          python scripts/validate_built_snapshot.py ../dist/v9-france-direct-parity 2026-10-13-be-energyvision-france-irve-handoff-candidate
           python - <<'PY'
           import hashlib,pathlib
-          base=pathlib.Path("../dist/v9-dev-snapshot/runtime/data/v9")
+          base=pathlib.Path("../dist/v9-france-reference/runtime/data/v9")
           direct=pathlib.Path("../dist/v9-france-direct-parity/runtime/data/v9")
           for name in ("france-static","france-bump-offers.json","france-belib-offers.json"):
               a=base/name;b=direct/name
