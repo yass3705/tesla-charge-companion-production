@@ -38,6 +38,7 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--stable",required=True)
     ap.add_argument("--datalab",required=True)
+    ap.add_argument("--spain-datalab")
     ap.add_argument("--germany-source")
     ap.add_argument("--e55c-datalab")
     ap.add_argument("--out",required=True)
@@ -62,16 +63,20 @@ def main():
             raise FileNotFoundError(f"Production runtime-owned module missing: {relative}")
         copy_file(src, out/"runtime"/relative)
     es_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="ES"),{})
-    if es_cfg.get("primarySource")=="dataLab":
+    if es_cfg.get("primarySource") in ("dataLab","spainDataLab"):
         relative=pathlib.PurePosixPath(es_cfg.get("path") or "")
         if not relative.parts or relative.is_absolute() or ".." in relative.parts:
             raise ValueError("Pinned Data Lab REVE bundle path is invalid")
-        source=dl/relative
+        source_key=es_cfg["primarySource"]
+        if source_key=="spainDataLab" and not a.spain_datalab:
+            raise ValueError("Separate pinned Spain Data Lab checkout is required")
+        source_root=pathlib.Path(a.spain_datalab) if source_key=="spainDataLab" else dl
+        source=source_root/relative
         proof=verify_spain_reve_bundle(source)
         copy_tree(source/"spain-static",out/"runtime/data/v9/spain-static")
         copy_tree(source/"spain-reve-offers",out/"runtime/data/v9/spain-reve-offers")
         write_json(out/"snapshot-inputs/ES/reve-source.json",{
-            "owner":"dataLab", "dataLabSha":cfg["sources"]["dataLab"]["sha"],
+            "owner":"dataLab", "dataLabSha":cfg["sources"][source_key]["sha"],
             "path":str(relative), **proof})
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:

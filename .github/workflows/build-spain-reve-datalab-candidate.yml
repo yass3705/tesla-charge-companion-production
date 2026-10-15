@@ -1,0 +1,70 @@
+name: Build Spain REVE from pinned Data Lab seed
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/build-spain-reve-datalab-candidate.yml'
+      - 'scripts/build_snapshot.py'
+      - 'scripts/spain_reve_source.py'
+      - 'config/snapshots/2026-10-15-es-reve-datalab-seed-candidate.json'
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: 94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3
+          path: datalab
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: d5bff031a95e96a76c765457e65ce1a2cc4a9524
+          path: spain-datalab
+          sparse-checkout: data/reve_v2/validated_runtime
+          persist-credentials: false
+      - name: Verify pins and build the existing V9 snapshot
+        run: |
+          set -euo pipefail
+          test "$(git -C datalab rev-parse HEAD)" = 94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3
+          test "$(git -C spain-datalab rev-parse HEAD)" = d5bff031a95e96a76c765457e65ce1a2cc4a9524
+          cd production
+          python scripts/validate_snapshot.py config/snapshots/2026-10-15-es-reve-datalab-seed-candidate.json
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab \
+            --spain-datalab ../spain-datalab \
+            --config config/snapshots/2026-10-15-es-reve-datalab-seed-candidate.json \
+            --out ../dist/es-reve-datalab-candidate
+          python scripts/validate_built_snapshot.py ../dist/es-reve-datalab-candidate 2026-10-15-es-reve-datalab-seed-candidate
+          python scripts/validate_stable_parity.py ../stable ../dist/es-reve-datalab-candidate --allow-nl-override --allow-pricing-engine-override
+          python scripts/validate_browser_asset_graph.py ../dist/es-reve-datalab-candidate
+          node tests/runtime-e2e-smoke.mjs ../dist/es-reve-datalab-candidate
+      - name: Require exact preserved Spain runtime and source provenance
+        run: |
+          set -euo pipefail
+          diff -qr stable/v9-production-runtime/data/v9/spain-static dist/es-reve-datalab-candidate/runtime/data/v9/spain-static
+          diff -qr stable/v9-production-runtime/data/v9/spain-reve-offers dist/es-reve-datalab-candidate/runtime/data/v9/spain-reve-offers
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('dist/es-reve-datalab-candidate')
+          proof=json.loads((root/'snapshot-inputs/ES/reve-source.json').read_text())
+          assert proof['dataLabSha']=='d5bff031a95e96a76c765457e65ce1a2cc4a9524'
+          assert (proof['stations'],proof['uniqueEvseIds'],proof['directOffers'])==(13980,42887,44281)
+          print(proof)
+          PY
