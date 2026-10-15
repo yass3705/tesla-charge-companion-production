@@ -4,6 +4,7 @@ on:
     paths:
       - 'v9-production-shell/bridge.js'
       - 'tests/v9-compact-navigation-lot2.test.mjs'
+      - 'tests/v9-compact-navigation-browser.mjs'
       - '.github/workflows/test-v9-compact-navigation-lot2.yml'
   workflow_dispatch:
 permissions:
@@ -19,3 +20,12 @@ jobs:
           node-version: '22'
       - run: node --check v9-production-shell/bridge.js
       - run: node --test tests/v9-compact-navigation-lot2.test.mjs tests/v9-station-card-lot1.test.mjs tests/v9-shell-grouping.test.mjs tests/v9-tariff-lanes.test.mjs
+      - run: npm install --no-save --no-package-lock playwright@1.55.1
+      - run: node tests/v9-compact-navigation-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v9-lot2-browser-screenshots
+          path: artifacts/lot2-*.png
+          if-no-files-found: ignore
+          retention-days: 14
