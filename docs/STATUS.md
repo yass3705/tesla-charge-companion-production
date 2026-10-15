@@ -4,7 +4,22 @@
 
 Production `main` `29b0ae5428b4e5f7b858763601fdec2976765d48` was published to [Production GitHub Pages](https://yass3705.github.io/tesla-charge-companion-production/) by [run #38756331049](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38756331049). The live shell and manifest both identify `2026-10-15-v9-datalab-baseline-candidate`; the manifest lists 2,463 files. The preceding [full development run #38755773180](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38755773180) passed the 10-dataset build, source guards, France parity, asset graph and browser journey.
 
-The normal build now materializes the verified historical input archive from Data Lab commit `0181a0fbecbba02d96851aff0258503c51dc6717`; it does not checkout Stable. Runtime modules and shell are Production-owned. The archive remains an immutable last-good baseline, not proof that all current collectors are fresh. In particular, current Tesla/Mac exports still transit Stable and the Swiss daily runtime compiler remains there pending consumer migration. Stable Pages and its V7/V8 rollback remain active. No Cloudflare switch was made. The previous Production Pages deployment from 13 October and the independent Stable site remain rollback options.
+The normal build now materializes the verified historical input archive from Data Lab commit `0181a0fbecbba02d96851aff0258503c51dc6717`; it does not checkout Stable. Runtime modules and shell are Production-owned. The archive remains an immutable last-good baseline, not proof that all current collectors are fresh. Current Tesla/Mac exports still transit Stable. The Swiss runtime compiler is now Production-owned (#114) and its Stable cron/push were retired (#147); its current candidate has not replaced the default last-good snapshot. Stable Pages and its V7/V8 rollback remain active. No Cloudflare switch was made. The previous Production Pages deployment from 13 October and the independent Stable site remain rollback options.
+
+## Switzerland process handoff — 15 October 2026
+
+Data Lab #316/#318/#319 schedules the national collection, preserves the last valid bundle, stores the exact OICP response at `5058290c20869c42939339dfbc37cb9a42efe2ee` (raw SHA-256 `63cac137430e9e1ac648601c4392d3ef9d3af9be50b9c9190692d2cda1006abf`) and dispatches canonical integration. The collector run #38758459777 succeeded. Production #114 `09b384a1` ports the existing Swiss compiler to local pinned inputs; [offline run #38758717393](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38758717393) succeeded and uploaded the candidate. It does not promote or publish it.
+
+| Measure | Latest Stable build | Pinned Production candidate |
+| --- | ---: | ---: |
+| Stations | 13,410 | 13,437 |
+| Distinct EVSE | 19,793 | 19,829 |
+| Station/EVSE pairs | 19,947 | 19,983 |
+| Direct offers | 17,116 | 17,110 |
+| Subscription offers | 2,712 | 2,714 |
+| CPO source errors | 0 | 0 |
+
+The new national response omits 15 historic EVSE IDs and adds 51; all 15 missing IDs are absent from the saved upstream response, so this is a source-generation difference rather than a compiler loss. Eight Direct-offer EVSEs disappear only with those absent IDs. Among 16,990 EVSEs with Direct offers in both generations and 2,712 with subscription offers, offer multiplicity is unchanged. One common EVSE, `CH*SUI*E6079`, changes from 7 to 22 kW in the upstream generation. Station identifiers also churn (941 old-only, 977 new-only station/EVSE pairs); the candidate remains separate from the published last-good snapshot while those source differences are recorded. No unit-price audit or tariff rule change was made.
 
 The sections below retain their dated historical evidence; they do not describe the latest published candidate.
 
