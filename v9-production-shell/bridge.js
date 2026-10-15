@@ -116,6 +116,12 @@
   function rankingWeights(mode){if(mode==='price')return{price:.7,distance:.3};if(mode==='distance')return{price:.3,distance:.7};return{price:.5,distance:.5};}
   function rankRows(rows,mode='balanced',limit=20){
     const rankable=x=>Number.isFinite(x.total)&&(!x.evaluation||pricedBest(x.evaluation));
+    const time=x=>x.rankingChoices?.length?
+      Math.min(...x.rankingChoices.map(choice=>num(choice.score?.totalTimeMinutes)??Infinity)):
+      (num(x.score?.totalTimeMinutes)??Infinity);
+    const cost=x=>x.rankingChoices?.length?
+      Math.min(...x.rankingChoices.map(choice=>num(choice.costPerKm)??Infinity)):
+      (num(x.costPerKm)??Infinity);
     const available=(rows||[]).filter(x=>rankable(x)&&Number.isFinite(x.distanceKm));
     const unknown=(rows||[]).filter(x=>!rankable(x)&&Number.isFinite(x.distanceKm)).sort((a,b)=>a.distanceKm-b.distanceKm);
     const nameTie=(a,b)=>text(a.station?.name).localeCompare(text(b.station?.name),'fr');
@@ -128,12 +134,12 @@
       return available.concat(unknown).slice(0,limit);
     }
     if(mode==='totalTime'){
-      available.sort((a,b)=>(num(a.score?.totalTimeMinutes)??Infinity)-(num(b.score?.totalTimeMinutes)??Infinity)||a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
+      available.sort((a,b)=>time(a)-time(b)||a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
       return available.concat(unknown).slice(0,limit);
     }
     if(mode==='costPerKm'){
-      const withCost=available.filter(x=>Number.isFinite(x.costPerKm)),withoutCost=available.filter(x=>!Number.isFinite(x.costPerKm));
-      withCost.sort((a,b)=>a.costPerKm-b.costPerKm||a.total-b.total||a.distanceKm-b.distanceKm||text(a.station?.name).localeCompare(text(b.station?.name),'fr'));
+      const withCost=available.filter(x=>Number.isFinite(cost(x))),withoutCost=available.filter(x=>!Number.isFinite(cost(x)));
+      withCost.sort((a,b)=>cost(a)-cost(b)||a.total-b.total||a.distanceKm-b.distanceKm||text(a.station?.name).localeCompare(text(b.station?.name),'fr'));
       return withCost.concat(withoutCost,unknown).slice(0,limit);
     }
     if(!available.length)return unknown.slice(0,limit);
@@ -827,7 +833,7 @@
       // A missing identifier must never merge two stations by name or location.
       const key=id?text(station.countryCode)+'|'+id:'unidentified:'+index;
       let card=cards.get(key);
-      if(!card){card={station,stationKey:key,variants:[],powerGroups:[],pdcIds:new Set(),bestChoice:null,
+      if(!card){card={station,stationKey:key,variants:[],powerGroups:[],pdcIds:new Set(),bestChoice:null,rankingChoices:[],
         evaluation:null,total:null,costPerKm:null,score:row.score,route:row.route,
         distanceKm:row.distanceKm,distanceEstimated:row.distanceEstimated};cards.set(key,card);}
       card.variants.push(row);
@@ -845,6 +851,7 @@
           if(state.status!=='priced'||!pricedItem(state.item))continue;
           const key=congestionLaneKey(scoped,row.evaluation,lane),total=congestionAdjustedTotal(state.item,key);
           if(total==null)continue;
+          card.rankingChoices.push({row,pdc,lane,total,costPerKm:num(state.item.costPerRecoveredKm),score:row.score});
           if(!card.bestChoice||total<card.bestChoice.total){
             card.bestChoice={row,pdc,station:scoped,item:state.item,lane,total};
             card.station=scoped;card.evaluation={...row.evaluation,best:state.item};

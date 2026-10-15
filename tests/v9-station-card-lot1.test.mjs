@@ -85,6 +85,18 @@ assert.equal(ui.rankRows(ui.stationCards([dearer,cheaper,variant('free','PDC-F',
 const changedScenario=[variant('dear','PDC-dear',150,'DC',[direct('dear-next',2)]),
   variant('cheap','PDC-cheap',150,'DC',[direct('cheap-next',7)])];
 assert.deepEqual(ui.rankRows(ui.stationCards(changedScenario),'price').map(card=>card.station.id),['dear','cheap']);
+const modeA=ui.stationCards([
+  variant('mode-a','PDC-slow',22,'AC',[offer('slow','direct','CPO',3,{costPerRecoveredKm:.5})],{score:{totalTimeMinutes:70}}),
+  variant('mode-a','PDC-fast',150,'DC',[offer('fast','direct','CPO',9,{costPerRecoveredKm:.1})],{score:{totalTimeMinutes:20}})
+])[0];
+const modeB=ui.stationCards([
+  variant('mode-b','PDC-medium',50,'DC',[offer('medium','direct','CPO',5,{costPerRecoveredKm:.2})],{score:{totalTimeMinutes:40}})
+])[0];
+assert.equal(modeA.total,3,'card summary keeps the cheapest eligible choice');
+assert.equal(ui.rankRows([modeB,modeA],'totalTime')[0].station.id,'mode-a',
+  'total-time ranking still examines the faster PDC');
+assert.equal(ui.rankRows([modeB,modeA],'costPerKm')[0].station.id,'mode-a',
+  'cost-per-km ranking still examines all PDCs');
 
 const tesla=variant('tesla-site','unused',250,'DC',[direct('tesla',12)]);
 tesla.station.physicalOperator.name='Tesla';
