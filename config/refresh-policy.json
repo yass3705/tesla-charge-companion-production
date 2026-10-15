@@ -40,8 +40,8 @@
   },
   "development": {
     "sourceMode": "pinned-snapshot-only",
-    "currentSnapshot": "2026-10-15-es-reve-zephyre-datalab-candidate",
+    "currentSnapshot": "2026-10-15-es-reve-zephyre-italy-datalab-candidate",
     "dataLabSha": "94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3",
-    "rule": "Pinned nine-country baseline plus official 3795-PDC EnergyVision Belgium CPO source. Development-only candidate allows 1940 active strict VAT-included exact Direct offers: prior 778 simple + 1162 exact conditional 45-minute post-charge, 360-minute daytime post-charge and 1080-minute connected-duration tariffs. User-confirmed semantic examples, strict DATEX source-shape guards, and independent oracles; no extrapolation to differently structured price groups, no automatic publication. Unknown/inoperative stations and any incomplete or ambiguous rules fail closed. Spain REVE uses a separately pinned Data Lab last-good bundle; Ze-Watt and Zephyre direct offers are pinned Data Lab inputs. The public site still requires an explicit Pages dispatch."
+    "rule": "Pinned nine-country baseline plus official 3795-PDC EnergyVision Belgium CPO source. Development-only candidate allows 1940 active strict VAT-included exact Direct offers: prior 778 simple + 1162 exact conditional 45-minute post-charge, 360-minute daytime post-charge and 1080-minute connected-duration tariffs. User-confirmed semantic examples, strict DATEX source-shape guards, and independent oracles; no extrapolation to differently structured price groups, no automatic publication. Unknown/inoperative stations and any incomplete or ambiguous rules fail closed. Spain REVE uses a separately pinned Data Lab last-good bundle; Ze-Watt and Zephyre direct offers and the byte-identical validated Italy runtime are pinned Data Lab inputs. The public site still requires an explicit Pages dispatch."
   }
 }

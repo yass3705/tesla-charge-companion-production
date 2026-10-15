@@ -14,6 +14,7 @@ on:
       - "config/refresh-policy.json"
       - "config/snapshots/2026-10-15-es-reve-datalab-seed-candidate.json"
       - "config/snapshots/2026-10-15-es-reve-zephyre-datalab-candidate.json"
+      - "config/snapshots/2026-10-15-es-reve-zephyre-italy-datalab-candidate.json"
 
 permissions:
   contents: read
@@ -49,6 +50,7 @@ jobs:
               out.write(f"stable_sha={cfg['sources']['stable']['sha']}\n")
               out.write(f"spain_datalab_sha={cfg['sources'].get('spainDataLab',{}).get('sha','')}\n")
               out.write(f"zephyre_datalab_sha={cfg['sources'].get('zephyreDataLab',{}).get('sha','')}\n")
+              out.write(f"italy_datalab_sha={cfg['sources'].get('italyDataLab',{}).get('sha','')}\n")
           PY
       - uses: actions/checkout@v4
         with:
@@ -80,6 +82,14 @@ jobs:
           sparse-checkout: v9-production-runtime/data/v9/france-zephyre-offers.json
           sparse-checkout-cone-mode: false
           persist-credentials: false
+      - uses: actions/checkout@v4
+        if: steps.pin.outputs.italy_datalab_sha != ''
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ steps.pin.outputs.italy_datalab_sha }}
+          path: italy-datalab
+          sparse-checkout: data/italy/validated_runtime
+          persist-credentials: false
 
       - name: Validate future snapshot source-selection policy
         run: |
@@ -98,6 +108,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.zephyre_datalab_sha }}" ]; then
             test "$(git -C zephyre-datalab rev-parse HEAD)" = "${{ steps.pin.outputs.zephyre_datalab_sha }}"
           fi
+          if [ -n "${{ steps.pin.outputs.italy_datalab_sha }}" ]; then
+            test "$(git -C italy-datalab rev-parse HEAD)" = "${{ steps.pin.outputs.italy_datalab_sha }}"
+          fi
           python production/scripts/validate_snapshot.py "production/config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json"
 
       - name: Validate source-specific guards
@@ -114,7 +127,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.spain_datalab_sha }}" ]; then spain_args=(--spain-datalab ../spain-datalab); fi
           zephyre_args=()
           if [ -n "${{ steps.pin.outputs.zephyre_datalab_sha }}" ]; then zephyre_args=(--zephyre-datalab ../zephyre-datalab); fi
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
+          italy_args=()
+          if [ -n "${{ steps.pin.outputs.italy_datalab_sha }}" ]; then italy_args=(--italy-datalab ../italy-datalab); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
