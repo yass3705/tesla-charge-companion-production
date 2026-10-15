@@ -17,6 +17,9 @@ on:
       - "config/germany-ionity-supplement-provenance.json"
       - "config/electra-legacy-source-provenance.json"
       - "scripts/build_snapshot.py"
+      - "scripts/tesla_mac_source.py"
+      - "tests/test_tesla_mac_source.py"
+      - "config/snapshots/2026-10-15-v9-tesla-mac-datalab-candidate.json"
       - "scripts/validate_snapshot.py"
       - "scripts/materialize_baseline.py"
       - "tests/test_materialize_baseline.py"
@@ -151,6 +154,7 @@ jobs:
               out.write(f"fx_datalab_sha={cfg['sources'].get('fxDataLab',{}).get('sha','')}\n")
               out.write(f"france_last_good_sha={cfg['sources'].get('franceLastGoodDataLab',{}).get('sha','')}\n")
               out.write(f"baseline_datalab_sha={cfg['sources'].get('baselineDataLab',{}).get('sha','')}\n")
+              out.write(f"tesla_mac_sha={cfg['sources'].get('teslaMacDataLab',{}).get('sha','')}\n")
               baseline=cfg.get('historicalBaselineDataLab',{})
               out.write(f"baseline_path={baseline.get('path','')}\n")
               out.write(f"baseline_archive_sha={baseline.get('archiveSha256','')}\n")
@@ -230,6 +234,14 @@ jobs:
           path: france-last-good
           sparse-checkout: data/france/validated_runtime
           persist-credentials: false
+      - uses: actions/checkout@v4
+        if: steps.pin.outputs.tesla_mac_sha != ''
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ steps.pin.outputs.tesla_mac_sha }}
+          path: tesla-mac-datalab
+          sparse-checkout: data/tesla/mac
+          persist-credentials: false
 
       - name: Validate future snapshot source-selection policy
         run: |
@@ -258,6 +270,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then
             test "$(git -C france-last-good rev-parse HEAD)" = "${{ steps.pin.outputs.france_last_good_sha }}"
           fi
+          if [ -n "${{ steps.pin.outputs.tesla_mac_sha }}" ]; then
+            test "$(git -C tesla-mac-datalab rev-parse HEAD)" = "${{ steps.pin.outputs.tesla_mac_sha }}"
+          fi
           python production/scripts/validate_snapshot.py "production/config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json"
 
       - name: Validate source-specific guards
@@ -283,6 +298,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_fx_datalab_source.py'
           python -m unittest discover -s tests -p 'test_france_last_good_source.py'
           python -m unittest discover -s tests -p 'test_materialize_baseline.py'
+          TCC_TESLA_MAC_ROOT=../tesla-mac-datalab python -m unittest tests.test_tesla_mac_source tests.test_tesla_tariff_priority
           spain_args=()
           if [ -n "${{ steps.pin.outputs.spain_datalab_sha }}" ]; then spain_args=(--spain-datalab ../spain-datalab); fi
           zephyre_args=()
@@ -295,7 +311,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then france_args=(--france-last-good-datalab ../france-last-good); fi
           baseline_args=()
           if [ -n "${{ steps.pin.outputs.baseline_datalab_sha }}" ]; then baseline_args=(--baseline-datalab ../baseline-datalab); fi
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${france_args[@]}" "${baseline_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
+          tesla_args=()
+          if [ -n "${{ steps.pin.outputs.tesla_mac_sha }}" ]; then tesla_args=(--tesla-mac-datalab ../tesla-mac-datalab); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${tesla_args[@]}" "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${france_args[@]}" "${baseline_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
       - name: Checkout same-generation Stable France reference
         if: github.event_name == 'workflow_dispatch' && inputs.check_current_national == true
@@ -331,7 +349,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.fx_datalab_sha }}" ]; then fx_args=(--fx-datalab ../fx-datalab); fi
           baseline_args=()
           if [ -n "${{ steps.pin.outputs.baseline_datalab_sha }}" ]; then baseline_args=(--baseline-datalab ../baseline-datalab); fi
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${baseline_args[@]}" --config ../france-reference-config.json --out ../dist/v9-france-last-good-reference
+          tesla_args=()
+          if [ -n "${{ steps.pin.outputs.tesla_mac_sha }}" ]; then tesla_args=(--tesla-mac-datalab ../tesla-mac-datalab); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${tesla_args[@]}" "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${baseline_args[@]}" --config ../france-reference-config.json --out ../dist/v9-france-last-good-reference
           python scripts/validate_built_snapshot.py ../dist/v9-france-last-good-reference "${{ steps.pin.outputs.snapshot_id }}"
           python scripts/compare_france_irve_builds.py ../dist/v9-france-last-good-reference ../dist/v9-dev-snapshot
       - name: Current national France candidate (manual strict diagnostic; 449 BUMP IDs unresolved)
@@ -353,7 +373,9 @@ jobs:
         run: |
           set -euo pipefail
           cd production
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
+          tesla_parity_args=()
+          if [ -n "${{ steps.pin.outputs.tesla_mac_sha }}" ]; then tesla_parity_args=(--allow-pinned-mac-handoff); fi
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override "${tesla_parity_args[@]}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
           python tests/test_france_belib_exact_supplement.py ../stable ../datalab ../dist/v9-dev-snapshot
           python tests/test_bump_exact_override.py ../stable ../dist/v9-dev-snapshot

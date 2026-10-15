@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 from tesla_tariff_priority import build_selected_catalogue
+from tesla_mac_source import verify as verify_tesla_mac
 from scope_belib_offers import scope_belib_offers
 from spain_reve_source import verify_bundle as verify_spain_reve_bundle
 from verify_zewatt_offer_source import verify_handoff as verify_zewatt_handoff
@@ -45,6 +46,7 @@ def main():
     ap.add_argument("--stable",required=True)
     ap.add_argument("--baseline-datalab")
     ap.add_argument("--datalab",required=True)
+    ap.add_argument("--tesla-mac-datalab")
     ap.add_argument("--spain-datalab")
     ap.add_argument("--zephyre-datalab")
     ap.add_argument("--italy-datalab")
@@ -315,7 +317,32 @@ def main():
         copy_file(shell_override/"bridge.js",out/"v9-production-shell/bridge.js")
 
     tesla_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="TESLA"),{})
-    if tesla_cfg.get("primarySource")=="dataLab":
+    if tesla_cfg.get("primarySource")=="teslaMacDataLab":
+        if not a.tesla_mac_datalab:
+            raise ValueError("Pinned Tesla Mac Data Lab checkout is required")
+        source_sha=cfg["sources"]["teslaMacDataLab"]["sha"]
+        proof, mac_source=verify_tesla_mac(a.tesla_mac_datalab, source_sha)
+        if tesla_cfg.get("path")!="data/tesla/mac/catalogue.json":
+            raise ValueError("Tesla Mac source path does not match validated handoff")
+        if tesla_cfg.get("tariffPolicy")=="mac-country-10-days":
+            suc_source=dl/tesla_cfg["sucPath"]
+            suc_meta=dl/tesla_cfg["sucMetadata"]
+            if not suc_source.exists() or not suc_meta.exists():
+                raise ValueError("Pinned Tesla SuC comparison source missing")
+            updates=out/"snapshot-inputs/TESLA/mac-country-updates.json"
+            write_json(updates,{"schemaVersion":1,"timeZone":"Europe/Paris",
+                                "countries":{code:{"updatedOn":date} for code,date in proof["countryDates"].items()}})
+            build_selected_catalogue(mac_source,suc_source,updates,cfg["teslaTariffAsOfDate"],
+                                     out/"runtime/data/tesla_stations.json",
+                                     out/"snapshot-inputs/TESLA/tariff-selection.json")
+            copy_file(out/"runtime/data/tesla_stations.json",out/"data/tesla_stations.json")
+            copy_file(suc_meta,out/"snapshot-inputs/TESLA/suc-tracker-metadata.json")
+        else:
+            copy_file(mac_source,out/"runtime/data/tesla_stations.json")
+            copy_file(mac_source,out/"data/tesla_stations.json")
+        copy_file(mac_source,out/"snapshot-inputs/TESLA/mac-stations.json")
+        write_json(out/"snapshot-inputs/TESLA/mac-source.json",proof)
+    elif tesla_cfg.get("primarySource")=="dataLab":
         tesla_path=tesla_cfg.get("path")
         if not tesla_path:
             raise SystemExit("Data Lab Tesla source selected without a path")
