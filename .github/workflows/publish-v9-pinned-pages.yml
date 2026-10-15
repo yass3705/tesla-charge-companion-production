@@ -3,6 +3,10 @@ name: Publish exact pinned TCC V9 to GitHub Pages
 on:
   workflow_dispatch:
     inputs:
+      tesla_sha:
+        description: "Validate an immutable Data Lab Mac catalogue candidate without changing the published pin"
+        required: false
+        type: string
       publish:
         description: "Explicitly publish exactly the current validated development snapshot to GitHub Pages"
         required: true
@@ -12,6 +16,8 @@ on:
     paths:
       - ".github/workflows/publish-v9-pinned-pages.yml"
       - "config/refresh-policy.json"
+      - "scripts/tesla_mac_source.py"
+      - "scripts/build_snapshot.py"
       - "config/snapshots/2026-10-15-es-reve-datalab-seed-candidate.json"
       - "config/snapshots/2026-10-15-es-reve-zephyre-datalab-candidate.json"
       - "config/snapshots/2026-10-15-es-reve-zephyre-italy-datalab-candidate.json"
@@ -40,14 +46,33 @@ jobs:
       - name: Read immutable development pin
         id: pin
         shell: bash
+        env:
+          TESLA_MAC_SHA: ${{ inputs.tesla_sha || '' }}
+          PUBLISH_REQUESTED: ${{ inputs.publish || 'false' }}
         run: |
           python - <<'PY'
-          import json, os
+          import json, os, re
           policy=json.load(open("production/config/refresh-policy.json", encoding="utf-8"))
           dev=policy["development"]
           snapshot_id=dev["currentSnapshot"]
           cfg=json.load(open(f"production/config/snapshots/{snapshot_id}.json", encoding="utf-8"))
+          tesla_sha=os.environ.get("TESLA_MAC_SHA", "")
+          if tesla_sha:
+              if not re.fullmatch(r"[0-9a-f]{40}", tesla_sha):
+                  raise SystemExit("Tesla Data Lab SHA must be a full immutable commit")
+              if os.environ.get("PUBLISH_REQUESTED") == "true":
+                  raise SystemExit("A candidate Tesla SHA must first be committed as the development snapshot pin")
+              snapshot_id += "-mac-" + tesla_sha[:8]
+              cfg["snapshotId"] = snapshot_id
+              cfg["sources"]["teslaMacDataLab"] = {"repo":"yass3705/tesla-charge-companion-data-lab","sha":tesla_sha}
+              tesla=next(d for d in cfg["datasets"] if d["id"]=="TESLA")
+              tesla.update(primarySource="teslaMacDataLab",path="data/tesla/mac/catalogue.json")
+              tesla.pop("catalogueSha256", None)
+              with open(f"production/config/snapshots/{snapshot_id}.json","w",encoding="utf-8") as f:
+                  json.dump(cfg,f,ensure_ascii=False,indent=2)
+                  f.write("\n")
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"tesla_mac_sha={tesla_sha or cfg['sources'].get('teslaMacDataLab',{}).get('sha','')}\n")
               out.write(f"snapshot_id={snapshot_id}\n")
               out.write(f"datalab_sha={dev['dataLabSha']}\n")
               out.write(f"stable_sha={cfg['sources']['stable']['sha']}\n")
@@ -136,12 +161,28 @@ jobs:
           path: france-last-good
           sparse-checkout: data/france/validated_runtime
           persist-credentials: false
+      - uses: actions/checkout@v4
+        if: steps.pin.outputs.tesla_mac_sha != ''
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ steps.pin.outputs.tesla_mac_sha }}
+          path: tesla-mac-datalab
+          sparse-checkout: data/tesla/mac
+          persist-credentials: false
 
       - name: Validate future snapshot source-selection policy
         run: |
           python -m unittest discover -s production/tests -p test_snapshot_source_selection.py -v
           python -m unittest discover -s production/tests -p test_germany_ionity_supplement_provenance.py -v
           python -m unittest discover -s production/tests -p test_uk_geniepoint_tariff_choice.py -v
+      - name: Verify pinned Tesla Mac catalogue and preserve source priority tests
+        if: steps.pin.outputs.tesla_mac_sha != ''
+        env:
+          TCC_TESLA_MAC_ROOT: tesla-mac-datalab
+        run: |
+          cd production
+          TCC_TESLA_MAC_ROOT=../tesla-mac-datalab python -m unittest tests.test_tesla_mac_source -v
+          python -m unittest tests.test_tesla_tariff_priority -v
 
       - name: Verify immutable development snapshot pin
         shell: bash
@@ -162,6 +203,9 @@ jobs:
           fi
           if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then
             test "$(git -C france-last-good rev-parse HEAD)" = "${{ steps.pin.outputs.france_last_good_sha }}"
+          fi
+          if [ -n "${{ steps.pin.outputs.tesla_mac_sha }}" ]; then
+            test "$(git -C tesla-mac-datalab rev-parse HEAD)" = "${{ steps.pin.outputs.tesla_mac_sha }}"
           fi
           python production/scripts/validate_snapshot.py "production/config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json"
 
@@ -187,9 +231,13 @@ jobs:
           if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then france_args=(--france-last-good-datalab ../france-last-good); fi
           baseline_args=()
           if [ -n "${{ steps.pin.outputs.baseline_datalab_sha }}" ]; then baseline_args=(--baseline-datalab ../baseline-datalab); fi
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${france_args[@]}" "${baseline_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
+          tesla_args=()
+          if [ -n "${{ steps.pin.outputs.tesla_mac_sha }}" ]; then tesla_args=(--tesla-mac-datalab ../tesla-mac-datalab); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${tesla_args[@]}" "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${france_args[@]}" "${baseline_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
+          tesla_parity_args=()
+          if [ -n "${{ steps.pin.outputs.tesla_mac_sha }}" ]; then tesla_parity_args=(--allow-pinned-mac-handoff); fi
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override "${tesla_parity_args[@]}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
           node tests/belgium-nap-safe-pricing.test.mjs ../dist/v9-dev-snapshot/snapshot-inputs/BE/pages
 

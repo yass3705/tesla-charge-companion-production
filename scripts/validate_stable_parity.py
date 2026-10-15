@@ -16,6 +16,7 @@ def main():
     allow_tesla_override="--allow-tesla-override" in sys.argv[3:]
     allow_mac_tesla_override="--allow-mac-tesla-override" in sys.argv[3:]
     allow_country_tesla_priority="--allow-country-tesla-priority" in sys.argv[3:]
+    allow_pinned_mac_handoff="--allow-pinned-mac-handoff" in sys.argv[3:]
     allow_nl_override="--allow-nl-override" in sys.argv[3:]
     allow_pricing_engine_override="--allow-pricing-engine-override" in sys.argv[3:]
     allow_production_owned_runtime="--allow-production-owned-runtime" in sys.argv[3:]
@@ -34,7 +35,7 @@ def main():
       "assets/v9/browser-loaders.js",
       "assets/v9/browser-routing.js"
     ]
-    if allow_tesla_override or allow_mac_tesla_override or allow_country_tesla_priority:
+    if allow_tesla_override or allow_mac_tesla_override or allow_country_tesla_priority or allow_pinned_mac_handoff:
         critical=[rel for rel in critical if rel!="data/tesla_stations.json"]
         tesla=snap/"data/tesla_stations.json"
         assert tesla.exists() and tesla.stat().st_size>0, "Data Lab Tesla override missing/empty"
@@ -48,6 +49,13 @@ def main():
         assert (root/"snapshot-inputs/TESLA/tariff-selection.json").exists(), "Tesla tariff selection report missing"
         assert (root/"snapshot-inputs/TESLA/mac-country-updates.json").exists(), "Mac country dates missing"
         assert (root/"snapshot-inputs/TESLA/suc-tracker-metadata.json").exists(), "SuC metadata missing"
+    if allow_pinned_mac_handoff:
+        root=pathlib.Path(sys.argv[2])
+        import json
+        proof=json.loads((root/"snapshot-inputs/TESLA/mac-source.json").read_text())
+        raw=root/"snapshot-inputs/TESLA/mac-stations.json"
+        assert sha(raw)==proof["catalogueSha256"], "Pinned Mac handoff digest mismatch"
+        assert len(json.loads(raw.read_text()))==proof["stationCount"], "Pinned Mac handoff station count mismatch"
     if allow_pricing_engine_override:
         critical=[rel for rel in critical if rel!="assets/v9/pricing-engine.js"]
         assert (snap/"assets/v9/pricing-engine.js").exists(), "V9 pricing engine missing"
