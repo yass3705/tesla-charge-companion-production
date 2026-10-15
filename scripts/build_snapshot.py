@@ -11,6 +11,7 @@ from tesla_tariff_priority import build_selected_catalogue
 from scope_belib_offers import scope_belib_offers
 from spain_reve_source import verify_bundle as verify_spain_reve_bundle
 from verify_zewatt_offer_source import verify_handoff as verify_zewatt_handoff
+from verify_zephyre_offer_source import verify_handoff as verify_zephyre_handoff
 
 def sha256(path):
     h=hashlib.sha256()
@@ -40,6 +41,7 @@ def main():
     ap.add_argument("--stable",required=True)
     ap.add_argument("--datalab",required=True)
     ap.add_argument("--spain-datalab")
+    ap.add_argument("--zephyre-datalab")
     ap.add_argument("--germany-source")
     ap.add_argument("--e55c-datalab")
     ap.add_argument("--out",required=True)
@@ -88,6 +90,20 @@ def main():
         write_json(out/"snapshot-inputs/FR/zewatt-offer-source.json",{
             "owner":"dataLab", "dataLabSha":cfg["sources"]["dataLab"]["sha"],
             "path":zewatt_cfg["path"], **proof})
+    zephyre_cfg=cfg.get("franceZephyreDataLabOffers")
+    if zephyre_cfg:
+        if not a.zephyre_datalab:
+            raise ValueError("Separate pinned Zephyre Data Lab checkout is required")
+        relative=pathlib.PurePosixPath(zephyre_cfg["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned Zephyre offer path is invalid")
+        source=pathlib.Path(a.zephyre_datalab)/relative
+        historical=stable/"v9-production-runtime/data/v9/france-zephyre-offers.json"
+        proof=verify_zephyre_handoff(source,zephyre_cfg["sourceSha256"],historical)
+        copy_file(source,out/"runtime/data/v9/france-zephyre-offers.json")
+        write_json(out/"snapshot-inputs/FR/zephyre-offer-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["zephyreDataLab"]["sha"],
+            "path":str(relative), **proof})
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:
         from supplement_france_irve_exact import supplement
