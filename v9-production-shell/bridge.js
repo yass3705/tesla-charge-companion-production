@@ -828,12 +828,31 @@
     return [...entries.values()];
   }
   function cardLanes(subscriptions=[]){return['direct',...(subscriptions||[]).map(id=>'subscription:'+text(id)),'electra','electroverse'];}
+  // Verified source-location crosswalk. A shared address or rounded GPS alone
+  // never creates a physical-site identity. Keep this small until a pinned
+  // Data Lab site-identity manifest can be compiled into the runtime.
+  const VERIFIED_PHYSICAL_SITES={
+    FRELCP12954082:'FR:electra:0a650b39-b871-4e78-9670-e56e6b20f329',
+    FRELCP5265355:'FR:electra:0a650b39-b871-4e78-9670-e56e6b20f329',
+    FRELCPBDALE:'FR:electra:0a650b39-b871-4e78-9670-e56e6b20f329',
+  };
+  function physicalSiteKey(station){
+    const id=text(station?.id||station?.canonicalId||station?.stationId);
+    const verified=VERIFIED_PHYSICAL_SITES[id];
+    if(verified&&text(station?.countryCode).toUpperCase()==='FR'&&
+       text(station?.physicalOperator?.name||station?.operator?.name||station?.operatorName).toLowerCase()==='electra'){
+      const lat=num(station?.latitude),lon=num(station?.longitude);
+      // 20 m covers source rounding; a moved or reused ID fails closed.
+      if(lat!=null&&lon!=null&&Math.abs(lat-48.799557)<0.00018&&Math.abs(lon-2.039009)<0.00027)return verified;
+    }
+    return id?text(station?.countryCode)+'|'+id:null;
+  }
   function stationCards(variants,subscriptions=[]){
     const cards=new Map();
     for(const [index,row] of (variants||[]).entries()){
       const station=row?.station||{},id=text(station.id||station.canonicalId||station.stationId);
       // A missing identifier must never merge two stations by name or location.
-      const key=id?text(station.countryCode)+'|'+id:'unidentified:'+index;
+      const key=physicalSiteKey(station)||'unidentified:'+index;
       let card=cards.get(key);
       if(!card){card={station,stationKey:key,variants:[],powerGroups:[],pdcIds:new Set(),bestChoice:null,rankingChoices:[],
         evaluation:null,total:null,costPerKm:null,score:row.score,route:row.route,
