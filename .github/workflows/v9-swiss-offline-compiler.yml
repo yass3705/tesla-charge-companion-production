@@ -1,0 +1,105 @@
+name: V9 Swiss pinned offline compiler
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_switzerland_v9.py'
+      - 'tests/test_build_switzerland_v9_pinned.py'
+      - '.github/workflows/v9-swiss-offline-compiler.yml'
+  workflow_dispatch:
+    inputs:
+      datalab_sha:
+        description: 'Immutable Data Lab SHA with validated Swiss national source and CPO files'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -p 'test_build_switzerland_v9_pinned.py'
+      - run: python -m py_compile scripts/build_switzerland_v9.py
+
+  compile:
+    if: github.event_name == 'workflow_dispatch'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - name: Validate immutable pin
+        env:
+          DATALAB_SHA: ${{ inputs.datalab_sha }}
+        run: |
+          [[ "$DATALAB_SHA" =~ ^[0-9a-f]{40}$ ]]
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ inputs.datalab_sha }}
+          path: datalab
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            data/national/switzerland_oicp_source.json.gz
+            data/switzerland/
+            data/swisscharge/
+            data/gofast/
+            data/fx/exchange_rates.json
+            docs/switzerland-v9-integration-2026-09-28.json
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify national source belongs to pinned bundle
+        env:
+          DATALAB_SHA: ${{ inputs.datalab_sha }}
+        run: |
+          test "$(git -C datalab rev-parse HEAD)" = "$DATALAB_SHA"
+          python - <<'PY'
+          import gzip,hashlib,json
+          from pathlib import Path
+          root=Path('datalab')
+          report=json.loads((root/'docs/switzerland-v9-integration-2026-09-28.json').read_text())
+          source=report['nationalSourceSnapshot']
+          raw=gzip.decompress((root/source['path']).read_bytes())
+          assert len(raw)==source['rawBytes']
+          assert hashlib.sha256(raw).hexdigest()==source['rawSha256']
+          print('SWISS_PINNED_SOURCE_PASS', source['rawBytes'], source['rawSha256'])
+          PY
+      - name: Compile without live API access
+        run: |
+          python production/scripts/build_switzerland_v9.py \
+            --national-file datalab/data/national/switzerland_oicp_source.json.gz \
+            --datalab-root datalab \
+            --fx-file datalab/data/fx/exchange_rates.json \
+            --output-root swiss-candidate
+      - name: Validate compiled inventory and offer categories
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('swiss-candidate')
+          manifest=json.loads((root/'switzerland-static/manifest.json').read_text())
+          offers=json.loads((root/'switzerland-offers.json').read_text())
+          report=json.loads((root/'switzerland-build-report.json').read_text())
+          assert manifest['country']=='CH' and manifest['evseCount']>10000 and manifest['stationCount']>5000
+          assert manifest['tiles'] and all((root/'switzerland-static'/t['file']).exists() for t in manifest['tiles'])
+          assert offers['directOffers'] and not offers['build']['errors']
+          assert report['offers']['direct']==len(offers['directOffers'])
+          assert report['offers']['subscriptions']==len(offers['subscriptionOffers'])
+          print('SWISS_OFFLINE_COMPILER_PASS',report['national'],report['offers']['direct'],report['offers']['subscriptions'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: swiss-offline-candidate-${{ inputs.datalab_sha }}
+          path: swiss-candidate/
+          if-no-files-found: error
+          retention-days: 14
