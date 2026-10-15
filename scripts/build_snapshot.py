@@ -13,6 +13,7 @@ from spain_reve_source import verify_bundle as verify_spain_reve_bundle
 from verify_zewatt_offer_source import verify_handoff as verify_zewatt_handoff
 from verify_zephyre_offer_source import verify_handoff as verify_zephyre_handoff
 from italy_last_good_source import verify_and_copy as copy_italy_last_good
+from fx_datalab_source import verify as verify_fx_source
 
 def sha256(path):
     h=hashlib.sha256()
@@ -44,6 +45,7 @@ def main():
     ap.add_argument("--spain-datalab")
     ap.add_argument("--zephyre-datalab")
     ap.add_argument("--italy-datalab")
+    ap.add_argument("--fx-datalab")
     ap.add_argument("--germany-source")
     ap.add_argument("--e55c-datalab")
     ap.add_argument("--out",required=True)
@@ -215,6 +217,19 @@ def main():
     # as an explicit local fallback under /control/.
     copy_tree(stable/"assets", out/"assets")
     copy_tree(stable/"data", out/"data")
+    fx_cfg=cfg.get("fxDataLabRates")
+    if fx_cfg:
+        if not a.fx_datalab:
+            raise ValueError("Separate pinned FX Data Lab checkout is required")
+        relative=pathlib.PurePosixPath(fx_cfg["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned FX path is invalid")
+        source=pathlib.Path(a.fx_datalab)/relative
+        proof=verify_fx_source(source,fx_cfg["sourceSha256"])
+        copy_file(source,out/"data/exchange_rates.json")
+        write_json(out/"snapshot-inputs/FX/source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["fxDataLab"]["sha"],
+            "path":str(relative), **proof})
     # Production owns the V9 shell (index, bridge and configuration); Stable is no longer its source.
     copy_tree(production_root/"v9-production-shell", out/"v9-production-shell")
     # Production-owned shell override: keep stable as fallback baseline while
