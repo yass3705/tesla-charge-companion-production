@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const ui=require('../v9-production-shell/bridge.js');
+const station={id:'S',countryCode:'FR',physicalOperator:{name:'Tesla',id:'tesla'},evses:[{id:'E',connectors:[{kind:'DC',powerKw:150}]}],offers:[]};
+const noPrice=ui.renderTariffs({best:null,alternatives:[],incomplete:[]},station);
+assert.match(noPrice,/data-v9-tariff-state="missing"/);
+assert.match(noPrice,/Aucune offre exploitable trouvée/);
+assert.equal((noPrice.match(/v9-tariff-row/g)||[]).length,3);
+const invalid={offerId:'electra-x',provider:'Electra',kind:'roaming',total:null,comparable:false,result:{complete:false,reason:'unknown_component'}};
+const unclear=ui.renderTariffs({best:null,alternatives:[],incomplete:[invalid]},station);
+assert.match(unclear,/Tarif incalculable/);
+assert.match(unclear,/Offre identifiée, mais les conditions/);
+assert.match(unclear,/data-v9-tariff-state="unresolved"/);
+assert.match(ui.renderStationLinks(station),/Réseau Tesla/);
+assert.match(ui.renderStationLinks(station),/SuC Tracker/);
+assert.doesNotMatch(ui.renderStationLinks({...station,physicalOperator:{name:'Other'}}),/Réseau Tesla/);
+console.log('V9 Lot 3 lane and Tesla clarity OK');
