@@ -2,6 +2,10 @@
   "schemaVersion": 1,
   "snapshotId": "2026-10-13-be-energyvision-official-cpo-candidate",
   "policy": "fail-closed",
+  "franceZeWattDataLabOffers": {
+    "path": "v9-production-runtime/data/v9/france-zewatt-offers.json",
+    "sourceSha256": "a348e2ba192ac6a4f7448703ed088be02acd12904991c65b42532af39ea07b6d"
+  },
   "sources": {
     "dataLab": {
       "repo": "yass3705/tesla-charge-companion-data-lab",
