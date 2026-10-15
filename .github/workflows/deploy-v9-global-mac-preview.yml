@@ -212,10 +212,15 @@ jobs:
               doc=json.load(f)
           assert doc["collectedAt"]==collection["collectedAt"]==audit["collectedAt"],"Blink source validation out of sync"
           assert audit["validatedForV9"] is True and audit["status"]=="validated_public_exact_connector"
-          assert audit["exactPricedConnectors"]==audit["publicConnectors"]==3599
-          assert audit["unpricedPublicConnectors"]==0
-          assert audit["distinctTariffs"]==55 and audit["publicLocations"]==869
-          print("BLINK_RECOLLECTED_VALIDATED",audit["collectedAt"],audit["exactPricedConnectors"])
+          locations=doc["sources"][0]["locations"]
+          connectors=[c for l in locations for e in l["evses"] for c in e["connectors"]]
+          priced=sum(bool(c.get("tariff_ids")) for c in connectors)
+          assert len(locations)==audit["publicLocations"]==collection["publicBlinkLocations"],"Blink location coverage mismatch"
+          assert len(connectors)==audit["publicConnectors"]==collection["publicConnectors"],"Blink public connector coverage mismatch"
+          assert priced==audit["exactPricedConnectors"]==collection["pricedExactConnectors"],"Blink exact priced connector coverage mismatch"
+          assert priced==len(connectors) and audit["unpricedPublicConnectors"]==0 and collection["unpricedPublicConnectors"]==0,"Blink unpriced connectors require explicit review"
+          assert audit["distinctTariffs"]==collection["sourceTariffs"],"Blink tariff catalogue mismatch"
+          print("BLINK_RECOLLECTED_VALIDATED",audit["collectedAt"],priced,"connectors",len(locations),"locations")
           print("UBITRICITY_UK_SUPPORT_HOLD: no activation until support response")
           PY
       - name: Validate Gridserve public access and exact connector tariffs
@@ -317,8 +322,13 @@ jobs:
           with gzip.open(dist/"snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz","rt") as f:
               ck=json.load(f)
           assert sum(len(e["connectors"]) for l in ck["sources"][0]["locations"] for e in l["evses"])==4
-          assert sum(bool(c["tariff_ids"]) for l in blink["sources"][0]["locations"] for e in l["evses"] for c in e["connectors"])==3599
-          print("UK_PRODUCTION_SCOPE_PASSED: Blink 3599, Midhope 4, Ubitricity/ChargePoint inactive")
+          blink_audit=json.loads((dl/"reports/uk/blink-pcpr-validation-latest.json").read_text())
+          blink_connectors=[c for l in blink["sources"][0]["locations"] for e in l["evses"] for c in e["connectors"]]
+          assert len(blink["sources"][0]["locations"])==blink_audit["publicLocations"],"Built Blink location count differs from audit"
+          assert len(blink_connectors)==blink_audit["publicConnectors"],"Built Blink connector count differs from audit"
+          assert sum(bool(c.get("tariff_ids")) for c in blink_connectors)==blink_audit["exactPricedConnectors"],"Built Blink priced connector count differs from audit"
+          assert blink_audit["validatedForV9"] is True and blink_audit["unpricedPublicConnectors"]==0
+          print(f"UK_PRODUCTION_SCOPE_PASSED: Blink {len(blink_connectors)} priced connectors, Midhope 4, Ubitricity/ChargePoint inactive")
           PY
       - name: Verify Gridserve is active and exact snapshot is deployed
         shell: bash
