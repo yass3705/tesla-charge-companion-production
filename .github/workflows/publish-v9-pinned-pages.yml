@@ -17,6 +17,7 @@ on:
       - "config/snapshots/2026-10-15-es-reve-zephyre-italy-datalab-candidate.json"
       - "config/snapshots/2026-10-15-es-reve-zephyre-italy-fx-datalab-candidate.json"
       - "config/snapshots/2026-10-15-france-last-good-datalab-candidate.json"
+      - "config/snapshots/2026-10-15-v9-datalab-baseline-candidate.json"
 
 permissions:
   contents: read
@@ -55,13 +56,37 @@ jobs:
               out.write(f"italy_datalab_sha={cfg['sources'].get('italyDataLab',{}).get('sha','')}\n")
               out.write(f"fx_datalab_sha={cfg['sources'].get('fxDataLab',{}).get('sha','')}\n")
               out.write(f"france_last_good_sha={cfg['sources'].get('franceLastGoodDataLab',{}).get('sha','')}\n")
+              out.write(f"baseline_datalab_sha={cfg['sources'].get('baselineDataLab',{}).get('sha','')}\n")
+              baseline=cfg.get('historicalBaselineDataLab',{})
+              out.write(f"baseline_path={baseline.get('path','')}\n")
+              out.write(f"baseline_archive_sha={baseline.get('archiveSha256','')}\n")
+              out.write(f"baseline_manifest_sha={baseline.get('manifestSha256','')}\n")
           PY
       - uses: actions/checkout@v4
+        if: steps.pin.outputs.baseline_datalab_sha == ''
         with:
           repository: yass3705/tesla-charge-companion-stable
           ref: ${{ steps.pin.outputs.stable_sha }}
           path: stable
           persist-credentials: false
+      - uses: actions/checkout@v4
+        if: steps.pin.outputs.baseline_datalab_sha != ''
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ steps.pin.outputs.baseline_datalab_sha }}
+          path: baseline-datalab
+          sparse-checkout: data/v9_baseline/stable_0a6
+          persist-credentials: false
+      - name: Materialize immutable Data Lab historical runtime inputs
+        if: steps.pin.outputs.baseline_datalab_sha != ''
+        shell: bash
+        run: |
+          test "$(git -C baseline-datalab rev-parse HEAD)" = "${{ steps.pin.outputs.baseline_datalab_sha }}"
+          python production/scripts/materialize_baseline.py \
+            "baseline-datalab/${{ steps.pin.outputs.baseline_path }}" stable \
+            --archive-sha "${{ steps.pin.outputs.baseline_archive_sha }}" \
+            --manifest-sha "${{ steps.pin.outputs.baseline_manifest_sha }}" \
+            --source-sha "${{ steps.pin.outputs.stable_sha }}"
       - uses: actions/checkout@v4
         with:
           repository: yass3705/tesla-charge-companion-data-lab
@@ -160,7 +185,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.fx_datalab_sha }}" ]; then fx_args=(--fx-datalab ../fx-datalab); fi
           france_args=()
           if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then france_args=(--france-last-good-datalab ../france-last-good); fi
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${france_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
+          baseline_args=()
+          if [ -n "${{ steps.pin.outputs.baseline_datalab_sha }}" ]; then baseline_args=(--baseline-datalab ../baseline-datalab); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${france_args[@]}" "${baseline_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot

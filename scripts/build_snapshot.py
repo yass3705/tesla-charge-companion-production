@@ -15,6 +15,7 @@ from verify_zephyre_offer_source import verify_handoff as verify_zephyre_handoff
 from italy_last_good_source import verify_and_copy as copy_italy_last_good
 from fx_datalab_source import verify as verify_fx_source
 from france_last_good_source import verify_and_copy as copy_france_last_good
+from materialize_baseline import verify_materialized as verify_baseline
 
 def sha256(path):
     h=hashlib.sha256()
@@ -42,6 +43,7 @@ def write_json(path,obj):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--stable",required=True)
+    ap.add_argument("--baseline-datalab")
     ap.add_argument("--datalab",required=True)
     ap.add_argument("--spain-datalab")
     ap.add_argument("--zephyre-datalab")
@@ -62,8 +64,25 @@ def main():
     if out.exists(): shutil.rmtree(out)
     out.mkdir(parents=True)
 
-    # Preserve the validated legacy V9 runtime as a compatibility baseline.
-    copy_tree(stable/"v9-production-runtime", out/"runtime")
+    production_root=pathlib.Path(__file__).resolve().parents[1]
+    baseline_cfg=cfg.get("historicalBaselineDataLab")
+    if baseline_cfg:
+        if not a.baseline_datalab:
+            raise ValueError("Pinned Data Lab historical runtime baseline checkout is required")
+        relative=pathlib.PurePosixPath(baseline_cfg["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned historical runtime baseline path is invalid")
+        proof=verify_baseline(pathlib.Path(a.baseline_datalab)/relative,stable,
+                              baseline_cfg["archiveSha256"],baseline_cfg["manifestSha256"],
+                              cfg["sources"]["stable"]["sha"])
+        write_json(out/"snapshot-inputs/BASELINE/source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["baselineDataLab"]["sha"],
+            "path":str(relative), **proof})
+        # V9 code comes from Production; the historical Data Lab archive supplies data only.
+        copy_tree(stable/"v9-production-runtime/data", out/"runtime/data")
+        copy_tree(production_root/"runtime-owned/assets", out/"runtime/assets")
+    else:
+        copy_tree(stable/"v9-production-runtime", out/"runtime")
     last_good=cfg.get("franceIrveLastGoodDataLab")
     if last_good:
         if a.france_irve_direct_parity or not a.france_last_good_datalab:
@@ -120,7 +139,7 @@ def main():
 
     # Gradual source migration: Production owns the listed engine modules.
     # The remaining historical runtime stays pinned until coverage parity is proven.
-    owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"
+    owned_runtime=production_root/"runtime-owned"
     for relative in ("assets/v9/access-router-engine.js", "assets/v9/offer-engine.js", "assets/v9/data-engine.js", "assets/v9/pricing-engine.js", "assets/v9/runtime-engine.js", "assets/v9/session-engine.js", "assets/v9/charge-model-engine.js", "assets/v9/session-planner-engine.js", "assets/v9/station-score-engine.js", "assets/v9/routing-engine.js", "assets/v9/device-scenario-engine.js", "assets/v9/vehicle-profile-engine.js", "assets/v9/readiness-engine.js", "assets/v9/parity-engine.js", "assets/v9/device-test-engine.js", "assets/v9/device-test-window-engine.js", "assets/v9/parity-scenario-engine.js", "assets/v9/rollout-engine.js", "assets/v9/enrollment-engine.js", "assets/v9/self-enrollment-engine.js", "assets/v9/whitelist-engine.js", "assets/v9/canary-policy-engine.js", "assets/v9/canary-identity.js", "assets/v9/canary-telemetry.js", "assets/v9/browser-loaders.js", "assets/v9/browser-routing.js", "assets/v9/v8-shadow-adapter.js", "assets/v9/adapters/france-crosswalk.js", "assets/v9/adapters/france-irve-status.js", "assets/v9/adapters/legacy-direct-stations.js", "assets/v9/adapters/legacy-direct-tariffs.js", "assets/v9/adapters/morocco-evone-policy.js", "assets/v9/adapters/morocco-kilowatt-tariff.js", "assets/v9/adapters/tesla-json.js", "assets/v9/adapters/direct-offers.js", "assets/v9/adapters/national-compact.js", "assets/v9/adapters/morocco-shell-vivo-diagnostic.js", "assets/v9/adapters/morocco-public.js"):
         src=owned_runtime/relative
         if not src.is_file():
