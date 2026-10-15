@@ -1,0 +1,9 @@
+# V9 historical baseline handoff — 15 October 2026
+
+The development and guarded Pages builds use Data Lab's immutable archive `data/v9_baseline/stable_0a6` at SHA `0181a0fbecbba02d96851aff0258503c51dc6717`. It was created from the public, validated Stable commit `0a6d2c3415504397310d3dc92fae40be843b2435`: 1,237 archived files, archive SHA-256 `a3ea67477d0554e06db1f6abe0c8fe07d67b772cde097900b832a4bd54261a59` and manifest SHA-256 `ceb5fdb4832524d386791043395ae7fb63da7be5a9ce1eedee0744a0c6ee7868`.
+
+The workflows verify the exact Data Lab commit and archive/manifest digests, reject unsafe archive paths, materialize the historical inputs, then check every extracted file against the archive inventory. In baseline mode the builder copies **V9 data** from that archive and takes the active V9 asset modules from Production `runtime-owned` and `runtime-overrides`; the Production shell is also local. The archive's V9 code files are historical evidence and are not used as executable module sources. The V7 control files remain a frozen compatibility/rollback view.
+
+The build retains the same country pins and validated overlays, including Spain REVE, Italy last-good, France IRVE last-good, Ze-Watt, Zephyre and FX. Normal development and guarded Pages validation no longer require a checkout of Stable. The `sources.stable.sha` field is historical provenance, not a runtime network dependency. Older candidate workflows and manual diagnostics may still check out Stable for comparisons.
+
+This handoff is not a public publication. Stable Pages remains active until the Production canary, asset graph, country runtime, tariff lanes and rollback are verified on the new build. France's newer national generation and the 449 BUMP connector-unproven EVSE remain a separate data-coverage question; no price or offer logic changes here.
