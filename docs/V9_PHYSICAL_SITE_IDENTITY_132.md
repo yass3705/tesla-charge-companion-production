@@ -1,0 +1,19 @@
+# Issue #132 — identité physique Electra Bois-d’Arcy (15 octobre 2026)
+
+## Chaîne et preuves
+
+La base IRVE nationale porte trois identifiants de station distincts : `FRELCP12954082`, `FRELCP5265355` et `FRELCPBDALE`. Le relevé Data Lab `data/operator_direct/electra_exact_france.json` associe **chacun** au même `publicId` Electra `0a650b39-b871-4e78-9670-e56e6b20f329`, à 1 m. L'objet Electra de ce relevé donne `Bois-d'Arcy - E.Leclerc`, `48.799557, 2.039009`, code postal 78390, et une liste d'EVSE propres au CPO. Le rapport `reports/electroverse/targeted-station-probe.json` étudie les trois IDs IRVE ; l'overlay Electroverse conserve son attribution exacte par EVSE, indépendante du direct Electra. L'adresse commune `11 avenue Jean Jaurès` et le nom compatible corroborent le lien, sans le fonder à eux seuls. Aucun identifiant OSM prouvé n'a été trouvé dans ces éléments : il n'entre pas dans la décision.
+
+Le flux reste IRVE et Electra → Data Lab → snapshot épinglé Production → évaluation par EVSE/prise/offre → carte UI. Le join de cette PR appartient à la **présentation Production**, car il réunit des cartes après l'évaluation des offres. Il ne réécrit ni station, ni EVSE, ni prise, ni puissance, ni offre dans les sources ou le snapshot. Le manifeste vérifié est actuellement une liste explicite dans `bridge.js` ; une migration future pourra le produire depuis un manifeste Data Lab épinglé, avec validation de provenance et parité.
+
+## Règle déterministe
+
+La clé de site est `FR:electra:<publicId>` pour les trois IDs ci-dessus, uniquement si pays `FR`, CPO physique `Electra` et position à moins d'environ 20 m du point Electra vérifié. Un ID réutilisé, déplacé, d'un autre CPO ou pays reste une carte distincte. La tolérance absorbe l'arrondi des sources ; elle ne découvre aucun nouveau lien. En l'absence de preuve directe d'un `publicId` commun (ou d'un autre identifiant de site officiel équivalent), **aucun** rapprochement automatique par nom, adresse ou GPS n'est autorisé. Les liens sont une classe explicitement vérifiée, sans fermeture transitive par proximité. L'ID canonique ne dépend ni de l'ordre des lignes, ni du nombre de PDC, ni de la date du snapshot.
+
+Pour étendre le mécanisme : tier A = identifiant de lieu CPO partagé avec correspondances IRVE exactes et aucune contradiction de pays/CPO/position ; tier B = correspondance exacte EVSE/PDC entre sources avec identité de lieu corroborée ; tier C = nom, adresse, GPS, réseau, puissance, connecteurs ou offres seulement. A seul autorise actuellement la réunion ; B requiert une revue et un manifeste explicite ; C reste diagnostic. Les puissances et les offres servent à détecter les contradictions et à préserver les variantes, jamais à prouver l'identité du lieu. Un conflit d'ID PDC, de CPO ou de localisation doit produire un refus auditable, sans propagation transitive.
+
+## Audit avant/après
+
+Le cas reproduit dans l'issue (capture p. 3–4) comporte 17 + 1 + 10 PDC sur trois cartes, soit 28 PDC, avec 14 AC 22 kW, 2 DC 100 kW et 12 DC 400 kW. Le test répétable `tests/v9-physical-site-identity-132.test.mjs` reconstruit cette entrée : avant, 3 IDs de station ; après, 1 carte avec 28 PDC et les mêmes trois groupes de puissance. Les 28 variantes et les 28 évaluations d'offres distinctes restent attachées à leurs PDC. Ces compteurs sont ceux du cas documenté et de la fixture ; un audit de l'artefact Pages ou d'un futur snapshot épinglé serait nécessaire pour affirmer les mêmes nombres en ligne après publication.
+
+Les tests couvrent aussi le refus pour CPO, pays, ID ou position contradictoire, la stabilité de la clé à l'inversion des lignes, et l'absence de rapprochement implicite dans ES, DE, IT, CH, GB, NL, BE et MA. `v9-station-card-lot1` et `v9-shell-grouping` vérifient les regroupements et tarifs existants. Aucune collecte, règle tarifaire, promotion de snapshot ou publication n'est incluse dans cette PR.
