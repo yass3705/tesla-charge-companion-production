@@ -553,7 +553,7 @@
     const categories=[
       {id:'direct',label:'Direct',color:'#f4a64a'},
       ...subs.map(id=>({id:'subscription:'+id,label:subscriptionNames.get(id)||id,color:'#f5d6a1',subscription:true})),
-      {id:'electra',label:'Electra',color:'#a8e8d4'},
+      {id:'electra',label:'Electra',color:'#74d7ec'},
       {id:'electroverse',label:'Electroverse',color:'#c9b3f4'}
     ];
     const states=new Map(categories.map(category=>[category.id,tariffLaneState(evaluation,station,category.id)]));
