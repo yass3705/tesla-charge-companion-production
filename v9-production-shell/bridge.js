@@ -1079,9 +1079,39 @@
     style.id='v9MobileLayoutStyle';
     style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9OperatorDropdown{min-width:200px}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}#v9OperatorControls select{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown select{max-height:230px;overflow:auto}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#compare .v9-filter-group .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;min-width:0!important}#compare .v9-filter-group .grid>div{min-width:0!important}#compare input#simDate,#compare input#simTime,#compare input#simUnplugTime{display:block!important;width:100%!important;max-width:160px!important;min-width:0!important;height:42px!important;min-height:42px!important;padding:6px 8px!important;font-size:15px!important;line-height:1.2!important;box-sizing:border-box!important;-webkit-appearance:none!important;appearance:none!important}#compare input#simTime,#compare input#simUnplugTime{text-align:center!important}}';
     style.textContent+='body{box-sizing:border-box!important}.v9-result-card{min-width:0;overflow-wrap:anywhere}.v9-station-best{margin:10px 0;padding:8px 10px;border-radius:8px;background:#232b34}.v9-power-group{margin:8px 0;border:1px solid #34404c;border-radius:8px;padding:8px}.v9-power-group>summary,.v9-pdc-detail>summary{cursor:pointer}.v9-power-group>summary::marker,.v9-pdc-detail>summary::marker{color:#f4a64a}.v9-power-lane-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:7px}.v9-power-lane{display:flex;flex-direction:column;gap:3px;min-width:0;padding:6px;border:1px solid;border-radius:6px}.v9-power-lane small{overflow-wrap:anywhere}.v9-power-content{padding:4px 0}.v9-pdc-detail{margin:7px 0;padding:8px;border-radius:6px;background:#171e26}.v9-pdc-detail .v9-tariffs{max-width:100%}@media(max-width:600px){.v9-power-lane-grid{grid-template-columns:1fr}.v9-power-lane{flex-direction:row;justify-content:space-between;gap:8px}.v9-pdc-detail .v9-tariff-row{grid-template-columns:minmax(0,1fr)!important}.v9-pdc-detail .v9-lane-amount{text-align:left}}';
+    style.textContent+='#v9FloatingNavigation{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));z-index:999;display:flex;gap:8px;max-width:calc(100vw - 24px)}#v9FloatingNavigation button{width:auto;min-width:72px;padding:10px 12px;border-radius:999px;background:#202c39;color:#fff;border:1px solid #8796a8;box-shadow:0 3px 12px #0008;cursor:pointer}#v9FloatingNavigation button:focus-visible{outline:3px solid #f4a64a;outline-offset:3px}#compare .v9-filter-group{margin:6px 0;padding:8px 10px}#compare .v9-filter-group>summary{cursor:pointer;font-weight:600}#compare .v9-filter-group .grid{gap:8px}@media(max-width:600px){#v9FloatingNavigation{right:10px;bottom:max(10px,env(safe-area-inset-bottom));gap:6px}#v9FloatingNavigation button{min-width:62px;padding:8px 10px;font-size:13px}#compare .v9-filter-group{padding:7px 8px}}@media(prefers-reduced-motion:reduce){#v9FloatingNavigation *{scroll-behavior:auto}}';
     d.head.appendChild(style);
   }
 
+  // Lot 2: accessible, compact navigation without changing form semantics.
+  function installFloatingNavigation(w){
+    const d=w.document;
+    if(d.getElementById('v9FloatingNavigation'))return;
+    const compare=d.getElementById('compare');
+    if(!compare)return;
+    const nav=d.createElement('nav');
+    nav.id='v9FloatingNavigation';
+    nav.setAttribute('aria-label','Navigation rapide TCC');
+    nav.innerHTML='<button type="button" id="v9JumpFilters" aria-label="Ouvrir les filtres">Filtres</button>'+
+      '<button type="button" id="v9JumpTop" aria-label="Revenir en haut de page">Haut ↑</button>';
+    d.body.appendChild(nav);
+    const filters=nav.querySelector('#v9JumpFilters');
+    const top=nav.querySelector('#v9JumpTop');
+    filters.addEventListener('click',()=>{
+      const panel=d.querySelector('#compare .v9-filter-group');
+      const target=panel||compare;
+      if(panel)panel.open=true;
+      const containingPanel=compare.closest('.panel');
+      if(containingPanel&&!containingPanel.classList.contains('active')){
+        const tab=[...d.querySelectorAll('header nav button')].find(button=>
+          d.getElementById(button.getAttribute('data-tab'))===containingPanel);
+        tab?.click();
+      }
+      target.scrollIntoView?.({behavior:'smooth',block:'start'});
+      (panel?.querySelector('summary')||compare.querySelector('input,select,button'))?.focus?.({preventScroll:true});
+    });
+    top.addEventListener('click',()=>w.scrollTo?.({top:0,behavior:'smooth'}));
+  }
   function installCurrentPositionButton(w){
     const input=w.document.getElementById('simOrigin');
     if(!input||w.document.getElementById('v9UseCurrentPosition'))return;
@@ -1156,9 +1186,9 @@
 
   function mountOperatorPicker(w,select){
     let panel=w.document.getElementById('v9OperatorDropdown');
-    if(!panel){panel=w.document.createElement('div');panel.id='v9OperatorDropdown';}
+    if(!panel){panel=w.document.createElement('details');panel.id='v9OperatorDropdown';}
     panel.style.cssText='flex:1 1 280px;min-width:240px;max-width:450px;border:1px solid #46505b;border-radius:8px;padding:8px;background:#1a222b;box-sizing:border-box';
-    panel.innerHTML='<b style="display:block;margin-bottom:6px">Opérateurs</b><div class="v9-operator-choices" role="group" aria-label="Choix des réseaux" style="max-height:150px;overflow:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:4px"></div>';
+    panel.innerHTML='<summary style="cursor:pointer;font-weight:600">Opérateurs · choisir plusieurs réseaux</summary><div class="v9-operator-choices" role="group" aria-label="Choix des réseaux" style="max-height:150px;overflow:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:4px"></div>';
     const choices=panel.querySelector('.v9-operator-choices'),selected=()=>new Set([...select.selectedOptions].map(option=>text(option.value)));
     const redraw=()=>{const values=selected();choices.innerHTML=[...select.options].map(option=>'<label style="display:flex;align-items:center;gap:5px;margin:0"><input type="checkbox" value="'+esc(option.value)+'" '+(values.has(text(option.value))?'checked':'')+' style="width:auto;margin:0"><span>'+esc(option.textContent)+'</span></label>').join('');};
     choices.addEventListener('change',()=>{const values=new Set([...choices.querySelectorAll('input:checked')].map(input=>text(input.value)));for(const option of [...select.options])option.selected=values.has(text(option.value));select.dispatchEvent(new w.Event('change',{bubbles:true}));});
@@ -1364,6 +1394,7 @@
     installPowerTypeFilter(w);
     installRankingOption(w);
     installProgressiveSearchForm(w);
+    installFloatingNavigation(w);
     bindCongestionToggles(w);
     installOperatorMultiSelect(w);
     w.compare=async function(){const input=readInputs(w);if(cfg.mode==='shadow'){
@@ -1383,6 +1414,6 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 
 });
