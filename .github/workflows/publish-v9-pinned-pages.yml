@@ -67,6 +67,7 @@ jobs:
               cfg["sources"]["teslaMacDataLab"] = {"repo":"yass3705/tesla-charge-companion-data-lab","sha":tesla_sha}
               tesla=next(d for d in cfg["datasets"] if d["id"]=="TESLA")
               tesla.update(primarySource="teslaMacDataLab",path="data/tesla/mac/catalogue.json")
+              tesla.pop("catalogueSha256", None)
               with open(f"production/config/snapshots/{snapshot_id}.json","w",encoding="utf-8") as f:
                   json.dump(cfg,f,ensure_ascii=False,indent=2)
                   f.write("\n")

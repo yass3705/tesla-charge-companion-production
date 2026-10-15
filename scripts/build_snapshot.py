@@ -324,6 +324,8 @@ def main():
         proof, mac_source=verify_tesla_mac(a.tesla_mac_datalab, source_sha)
         if tesla_cfg.get("path")!="data/tesla/mac/catalogue.json":
             raise ValueError("Tesla Mac source path does not match validated handoff")
+        if tesla_cfg.get("catalogueSha256") and proof["catalogueSha256"]!=tesla_cfg["catalogueSha256"]:
+            raise ValueError("Tesla Mac catalogue differs from immutable snapshot expectation")
         if tesla_cfg.get("tariffPolicy")=="mac-country-10-days":
             suc_source=dl/tesla_cfg["sucPath"]
             suc_meta=dl/tesla_cfg["sucMetadata"]
