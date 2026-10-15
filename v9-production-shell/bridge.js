@@ -836,6 +836,24 @@
       if(!card){card={station,stationKey:key,variants:[],powerGroups:[],pdcIds:new Set(),bestChoice:null,rankingChoices:[],
         evaluation:null,total:null,costPerKm:null,score:row.score,route:row.route,
         distanceKm:row.distanceKm,distanceEstimated:row.distanceEstimated};cards.set(key,card);}
+      // Keep the station-wide view independent from the selected cheapest PDC.
+      // Input variants contain only the EVSE/connector subset evaluated upstream.
+      if(card.variants.length){
+        const evses=new Map((card.station.evses||[]).map(evse=>[text(evse.id||evse.evseId),evse]));
+        for(const evse of station.evses||[]){
+          const id=text(evse.id||evse.evseId);
+          if(!evses.has(id)){evses.set(id,evse);continue;}
+          const previous=evses.get(id);
+          const connectors=new Map((previous.connectors||[]).map(connector=>[
+            text(connector.id||connector.connectorId)||[text(connector.kind),text(connector.powerKw)].join('|'),connector]));
+          for(const connector of evse.connectors||[]){
+            const connectorId=text(connector.id||connector.connectorId)||[text(connector.kind),text(connector.powerKw)].join('|');
+            if(!connectors.has(connectorId))connectors.set(connectorId,connector);
+          }
+          evses.set(id,{...previous,connectors:[...connectors.values()]});
+        }
+        card.station={...card.station,evses:[...evses.values()]};
+      }
       card.variants.push(row);
       const kind=text(row.powerLine?.kind||connectorKind((station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{})).toUpperCase();
       const power=num(row.powerLine?.powerKw??row.displayPowerKw);
@@ -854,7 +872,7 @@
           card.rankingChoices.push({row,pdc,lane,total,costPerKm:num(state.item.costPerRecoveredKm),score:row.score});
           if(!card.bestChoice||total<card.bestChoice.total){
             card.bestChoice={row,pdc,station:scoped,item:state.item,lane,total};
-            card.station=scoped;card.evaluation={...row.evaluation,best:state.item};
+            card.evaluation={...row.evaluation,best:state.item};
             card.total=total;card.costPerKm=num(state.item.costPerRecoveredKm);
             card.score=row.score;card.route=row.route;card.distanceKm=row.distanceKm;
             card.distanceEstimated=row.distanceEstimated;
