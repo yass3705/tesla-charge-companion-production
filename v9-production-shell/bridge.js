@@ -574,7 +574,7 @@
       const calculated=value=>'Prix calculé · '+displayAmount(value,fxRates);
       const amount=state.status==='priced'?calculated(displayItem)
         :state.status==='missing'?'Prix non disponible':'Tarif incalculable';
-      const stateExplanation=state.status==='missing'?'Aucune offre exploitable trouvée pour cette voie tarifaire et ce PDC.':state.status==='incomplete'?'Offre identifiée, mais les conditions ne permettent pas un calcul fiable.':'';
+      const stateExplanation=state.status==='missing'?'Aucune offre exploitable trouvée pour cette voie tarifaire et ce PDC.':state.status!=='priced'?'Offre identifiée, mais les conditions ne permettent pas un calcul fiable.':'';
       const congestionAttr=hasCongestion?' data-v9-congestion-key="'+esc(key)+'" data-v9-included-total="'+esc(item.total)+'" data-v9-excluded-total="'+esc(item.congestion.totalWithoutCongestion)+'" data-v9-included-amount="'+esc(calculated(item))+'" data-v9-excluded-amount="'+esc(calculated({...item,total:item.congestion.totalWithoutCongestion,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}))+'"':'';
       const totalAttr=state.status==='priced'&&num(total)!=null?' data-v9-effective-total="'+esc(total)+'"':'';
       const names=[...new Set(state.offers.map(offer=>text(offer.provider)).filter(Boolean))];
