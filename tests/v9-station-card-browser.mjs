@@ -35,12 +35,13 @@ try{
     const observed=await page.evaluate(()=>({cards:document.querySelectorAll('.v9-result-card').length,
       powers:document.querySelectorAll('.v9-power-group').length,
       lanes:document.querySelectorAll('.v9-power-group').length&&getComputedStyle(document.querySelector('.v9-power-lane-grid')).gridTemplateColumns.split(' ').length,
+      scrollWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,
       overflow:document.documentElement.scrollWidth>innerWidth}));
+    await page.screenshot({path:`artifacts/station-card-${name}.png`,fullPage:true});
     assert.equal(observed.cards,1,name);
     assert.equal(observed.powers,3,name);
     assert.equal(observed.lanes,columns,name);
-    assert.equal(observed.overflow,false,name);
-    await page.screenshot({path:`artifacts/station-card-${name}.png`,fullPage:true});
+    assert.equal(observed.overflow,false,name+': '+JSON.stringify(observed));
     await page.close();
   }
 }finally{await browser.close();}
