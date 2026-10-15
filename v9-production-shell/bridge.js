@@ -116,6 +116,12 @@
   function rankingWeights(mode){if(mode==='price')return{price:.7,distance:.3};if(mode==='distance')return{price:.3,distance:.7};return{price:.5,distance:.5};}
   function rankRows(rows,mode='balanced',limit=20){
     const rankable=x=>Number.isFinite(x.total)&&(!x.evaluation||pricedBest(x.evaluation));
+    const time=x=>x.rankingChoices?.length?
+      Math.min(...x.rankingChoices.map(choice=>num(choice.score?.totalTimeMinutes)??Infinity)):
+      (num(x.score?.totalTimeMinutes)??Infinity);
+    const cost=x=>x.rankingChoices?.length?
+      Math.min(...x.rankingChoices.map(choice=>num(choice.costPerKm)??Infinity)):
+      (num(x.costPerKm)??Infinity);
     const available=(rows||[]).filter(x=>rankable(x)&&Number.isFinite(x.distanceKm));
     const unknown=(rows||[]).filter(x=>!rankable(x)&&Number.isFinite(x.distanceKm)).sort((a,b)=>a.distanceKm-b.distanceKm);
     const nameTie=(a,b)=>text(a.station?.name).localeCompare(text(b.station?.name),'fr');
@@ -128,12 +134,12 @@
       return available.concat(unknown).slice(0,limit);
     }
     if(mode==='totalTime'){
-      available.sort((a,b)=>(num(a.score?.totalTimeMinutes)??Infinity)-(num(b.score?.totalTimeMinutes)??Infinity)||a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
+      available.sort((a,b)=>time(a)-time(b)||a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
       return available.concat(unknown).slice(0,limit);
     }
     if(mode==='costPerKm'){
-      const withCost=available.filter(x=>Number.isFinite(x.costPerKm)),withoutCost=available.filter(x=>!Number.isFinite(x.costPerKm));
-      withCost.sort((a,b)=>a.costPerKm-b.costPerKm||a.total-b.total||a.distanceKm-b.distanceKm||text(a.station?.name).localeCompare(text(b.station?.name),'fr'));
+      const withCost=available.filter(x=>Number.isFinite(cost(x))),withoutCost=available.filter(x=>!Number.isFinite(cost(x)));
+      withCost.sort((a,b)=>cost(a)-cost(b)||a.total-b.total||a.distanceKm-b.distanceKm||text(a.station?.name).localeCompare(text(b.station?.name),'fr'));
       return withCost.concat(withoutCost,unknown).slice(0,limit);
     }
     if(!available.length)return unknown.slice(0,limit);
@@ -399,7 +405,7 @@
         :row?.evaluation?.best
           ?'<div class="small" style="color:#c7d0d9">Tarif unitaire appliqué non détaillé · prix final ci-dessous</div>'
           :'<div class="small" style="color:#c7d0d9">Tarif de base non disponible</div>';
-      return '<div class="small" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><span>'+esc(line.kind)+' · <b>'+(unverifiedFranceDcPower(row?.station,line.kind,line.powerKw)?'Puissance à vérifier':line.powerKw+' kW')+'</b>'+baseLine+'</span><span>'+line.count+' point(s)</span></div>';
+      return '<div class="small" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><span>'+esc(line.kind)+' · <b>'+(unverifiedFranceDcPower(row?.station,line.kind,line.powerKw)?'Puissance à vérifier':line.powerKw+' kW')+'</b>'+baseLine+'</span><span>'+line.count+' PDC</span></div>';
     }).join('')+'</div>';
   }
   function renderMapSummary(w,area,rows){
@@ -428,7 +434,8 @@
       const row=points[index];if(!row||!selected)return;
       const st=row.station,price=num(row.costPerKm);
       selected.style.display='block';
-      selected.innerHTML='<b>'+esc(stationDisplayName(st))+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+' · '+esc(row.powerLine?.kind||'')+' '+esc(row.powerLine?.powerKw||'')+' kW</div>'+renderTariffs(row.evaluation,st,area?.displayFxRates,area?.selectedSubscriptions||[])+'<div class="small" style="margin-top:6px">'+(price==null?'Prix/km non disponible':esc(price.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' '+text(row.evaluation?.best?.targetCurrency||'EUR')+'/km'))+'</div><button type="button" class="secondary v9-map-open-row" style="width:auto;margin-top:8px">Voir la fiche dans la liste</button>';
+      const selectedPower=row.bestChoice?.row?.powerLine||row.powerLine;
+      selected.innerHTML='<b>'+esc(stationDisplayName(st))+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+(selectedPower?' · '+esc(selectedPower.kind||'')+' '+esc(selectedPower.powerKw||'')+' kW':'')+'</div>'+renderTariffs(row.evaluation,row.bestChoice?.station||st,area?.displayFxRates,area?.selectedSubscriptions||[])+'<div class="small" style="margin-top:6px">'+(price==null?'Prix/km non disponible':esc(price.toLocaleString('fr-FR',{minimumFractionDigits:3,maximumFractionDigits:3})+' '+text(row.evaluation?.best?.targetCurrency||'EUR')+'/km'))+'</div><button type="button" class="secondary v9-map-open-row" style="width:auto;margin-top:8px">Voir la fiche dans la liste</button>';
       selected.querySelector('.v9-map-open-row')?.addEventListener('click',()=>{setMode('list');const card=[...(results?.querySelectorAll('.v9-result-card')||[])].find(item=>text(item.dataset.v9StationId)===text(st.id));card?.scrollIntoView?.({behavior:'smooth',block:'center'});});
       for(const marker of markers.querySelectorAll('.v9-map-marker'))marker.style.outline=marker.dataset.indices.split(',').includes(String(index))?'3px solid #fff':'none';
     };
@@ -552,7 +559,7 @@
     const categories=[
       {id:'direct',label:'Direct',color:'#f4a64a'},
       ...subs.map(id=>({id:'subscription:'+id,label:subscriptionNames.get(id)||id,color:'#f5d6a1',subscription:true})),
-      {id:'electra',label:'Electra',color:'#a8e8d4'},
+      {id:'electra',label:'Electra',color:'#74d7ec'},
       {id:'electroverse',label:'Electroverse',color:'#c9b3f4'}
     ];
     const states=new Map(categories.map(category=>[category.id,tariffLaneState(evaluation,station,category.id)]));
@@ -801,6 +808,143 @@
     return [...groups.values()].map(group=>{group.pointCount+=group.pointIds.size;delete group.pointIds;group.evaluation=combinedEvaluation(group);delete group.evaluations;return group;});
   }
 
+  // A presentation card uses the canonical station identity. Pricing stays on
+  // the already evaluated connector/offer variants, never on a merged station.
+  function pdcEntries(row){
+    const entries=new Map();
+    for(const [index,evse] of (row?.station?.evses||[]).entries()){
+      const evseId=text(evse?.id||evse?.evseId)||'EVSE '+(index+1);
+      const exactIds=(evse?.pdcIds||[]).map(text).filter(Boolean);
+      const count=exactIds.length||Math.max(1,Math.floor(num(evse?.stalls)||1));
+      const ids=exactIds.length?exactIds:Array.from({length:count},(_,slot)=>evseId+':slot:'+slot);
+      for(const [slot,id] of ids.entries()){
+        const entry=entries.get(id)||{id,label:exactIds.length?id:'PDC '+(slot+1)+' · identifiant individuel non fourni',evses:[]};
+        if(!entry.evses.includes(evse))entry.evses.push(evse);
+        entries.set(id,entry);
+      }
+    }
+    return [...entries.values()];
+  }
+  function cardLanes(subscriptions=[]){return['direct',...(subscriptions||[]).map(id=>'subscription:'+text(id)),'electra','electroverse'];}
+  function stationCards(variants,subscriptions=[]){
+    const cards=new Map();
+    for(const [index,row] of (variants||[]).entries()){
+      const station=row?.station||{},id=text(station.id||station.canonicalId||station.stationId);
+      // A missing identifier must never merge two stations by name or location.
+      const key=id?text(station.countryCode)+'|'+id:'unidentified:'+index;
+      let card=cards.get(key);
+      if(!card){card={station,stationKey:key,variants:[],powerGroups:[],pdcIds:new Set(),bestChoice:null,rankingChoices:[],
+        evaluation:null,total:null,costPerKm:null,score:row.score,route:row.route,
+        distanceKm:row.distanceKm,distanceEstimated:row.distanceEstimated};cards.set(key,card);}
+      // Keep the station-wide view independent from the selected cheapest PDC.
+      // Input variants contain only the EVSE/connector subset evaluated upstream.
+      if(card.variants.length){
+        const evses=new Map((card.station.evses||[]).map(evse=>[text(evse.id||evse.evseId),evse]));
+        for(const evse of station.evses||[]){
+          const id=text(evse.id||evse.evseId);
+          if(!evses.has(id)){evses.set(id,evse);continue;}
+          const previous=evses.get(id);
+          const connectors=new Map((previous.connectors||[]).map(connector=>[
+            text(connector.id||connector.connectorId)||[text(connector.kind),text(connector.powerKw)].join('|'),connector]));
+          for(const connector of evse.connectors||[]){
+            const connectorId=text(connector.id||connector.connectorId)||[text(connector.kind),text(connector.powerKw)].join('|');
+            if(!connectors.has(connectorId))connectors.set(connectorId,connector);
+          }
+          evses.set(id,{...previous,connectors:[...connectors.values()]});
+        }
+        card.station={...card.station,evses:[...evses.values()]};
+      }
+      card.variants.push(row);
+      const kind=text(row.powerLine?.kind||connectorKind((station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{})).toUpperCase();
+      const power=num(row.powerLine?.powerKw??row.displayPowerKw);
+      const groupKey=kind+'|'+String(power);
+      let group=card.powerGroups.find(item=>item.key===groupKey);
+      if(!group){group={key:groupKey,kind,powerKw:power,variants:[],pdcIds:new Set()};card.powerGroups.push(group);}
+      const entries=pdcEntries(row);
+      group.variants.push({...row,pdcEntries:entries});
+      for(const pdc of entries){card.pdcIds.add(pdc.id);group.pdcIds.add(pdc.id);
+        const scoped={...station,evses:pdc.evses};
+        for(const lane of cardLanes(subscriptions)){
+          const state=tariffLaneState(row.evaluation,scoped,lane);
+          if(state.status!=='priced'||!pricedItem(state.item))continue;
+          const key=congestionLaneKey(scoped,row.evaluation,lane),total=congestionAdjustedTotal(state.item,key);
+          if(total==null)continue;
+          card.rankingChoices.push({row,pdc,lane,total,costPerKm:num(state.item.costPerRecoveredKm),score:row.score});
+          if(!card.bestChoice||total<card.bestChoice.total){
+            card.bestChoice={row,pdc,station:scoped,item:state.item,lane,total};
+            card.evaluation={...row.evaluation,best:state.item};
+            card.total=total;card.costPerKm=num(state.item.costPerRecoveredKm);
+            card.score=row.score;card.route=row.route;card.distanceKm=row.distanceKm;
+            card.distanceEstimated=row.distanceEstimated;
+          }
+        }
+      }
+    }
+    return [...cards.values()].map(card=>{
+      card.pointCount=card.pdcIds.size;
+      card.powerGroups.sort((a,b)=>a.kind.localeCompare(b.kind)||a.powerKw-b.powerKw);
+      delete card.pdcIds;
+      for(const group of card.powerGroups){group.pointCount=group.pdcIds.size;delete group.pdcIds;}
+      return card;
+    });
+  }
+
+  function powerLaneSummary(group,lane,fxRates){
+    const states=group.variants.flatMap(row=>row.pdcEntries.map(pdc=>
+      tariffLaneState(row.evaluation,{...row.station,evses:pdc.evses},lane)));
+    if(!states.length||states.every(state=>state.status==='missing'))return'Prix non disponible';
+    if(states.every(state=>state.status==='priced')){
+      const signatures=new Set(states.map(state=>JSON.stringify([text(state.item.offerId),text(state.item.currency),num(state.item.total)])));
+      if(signatures.size===1)return'Prix calculé · '+displayAmount(states[0].item,fxRates);
+    }
+    if(states.every(state=>state.status==='ambiguous'||state.status==='unresolved'))return'Tarif incalculable';
+    return'Tarifs selon PDC · voir détails';
+  }
+  function renderStationCard(card,index,area){
+    const station=card.station,best=card.bestChoice,fx=area?.displayFxRates||{},subs=area?.selectedSubscriptions||[];
+    const laneNames={direct:'Direct',electra:'Electra',electroverse:'Electroverse'};
+    const bestLabel=best?(laneNames[best.lane]||best.lane)+' · '+displayAmount({...best.item,total:best.total},fx)+' · '+best.row.powerLine?.powerKw+' kW '+best.row.powerLine?.kind:
+      card.variants.some(row=>[row.evaluation?.best,...(row.evaluation?.alternatives||[]),...(row.evaluation?.incomplete||[])].some(Boolean))?'Tarif incalculable':'Prix non disponible';
+    const powerHtml=card.powerGroups.map(group=>{
+      const lanes=[['direct','Direct','#f4a64a'],['electra','Electra','#74d7ec'],['electroverse','Electroverse','#c9b3f4']];
+      const summary='<span class="v9-power-lane-grid">'+lanes.map(([id,label,color])=>
+        '<span class="v9-power-lane" style="border-color:'+color+'"><b>'+label+'</b><small>'+esc(powerLaneSummary(group,id,fx))+'</small></span>').join('')+'</span>';
+      const byPdc=new Map();
+      for(const row of group.variants)for(const pdc of row.pdcEntries){
+        const variants=byPdc.get(pdc.id)||[];variants.push({row,pdc});byPdc.set(pdc.id,variants);
+      }
+      const pdcs=[...byPdc.values()].map(variants=>{
+        const pdc=variants[0].pdc,allEvses=variants.flatMap(item=>item.pdc.evses);
+        const connectors=[...new Set(allEvses.flatMap(evse=>(evse.connectors||[]).map(connector=>
+          [text(connector.plugName||connector.type||connector.standard||connector.kind||'Prise'),
+            num(connector.powerKw)!=null?connector.powerKw+' kW':''].filter(Boolean).join(' · '))))];
+        const evseIds=[...new Set(allEvses.map(evse=>text(evse.id||evse.evseId)).filter(Boolean))];
+        const status=allEvses.map(evse=>text(evse.status?.state||evse.status?.value||
+          (typeof evse.status==='string'?evse.status:null)||variants[0].row.station.status?.state)).filter(Boolean);
+        const source=text(allEvses[0]?.sourceId||allEvses[0]?.provenance?.sourceId)||stationBaseSource(variants[0].row.station);
+        const tariffs=variants.map(({row,pdc})=>{
+          const scoped={...row.station,evses:pdc.evses};
+          const plug=[...new Set(pdc.evses.flatMap(evse=>(evse.connectors||[]).map(connector=>
+            text(connector.plugName||connector.type||connector.standard||connector.kind))))].filter(Boolean).join(' / ');
+          return(variants.length>1?'<div class="small" style="margin-top:8px">Prise : '+esc(plug||group.kind)+'</div>':'')+
+            renderTariffs(row.evaluation,scoped,fx,subs);
+        }).join('');
+        return'<details class="v9-pdc-detail"><summary><b>'+esc(pdc.label)+'</b> · '+esc(connectors.join(' / ')||group.kind+' '+group.powerKw+' kW')+'</summary>'+
+          '<div class="small">EVSE : '+esc(evseIds.join(', ')||'non fourni')+' · Statut : '+esc([...new Set(status)].join(', ')||'non renseigné')+' · Source : '+esc(source)+'</div>'+
+          tariffs+'</details>';
+      }).join('');
+      return'<details class="v9-power-group"><summary><b>'+esc(group.powerKw==null?'Puissance non renseignée':group.powerKw+' kW '+group.kind)+'</b> · '+group.pointCount+' PDC'+summary+'</summary>'+
+        '<div class="v9-power-content">'+pdcs+'</div></details>';
+    }).join('');
+    return'<article class="box v9-result-card" data-v9-station-id="'+esc(station.id||station.canonicalId||station.stationId||'')+'" style="margin-top:10px">'+
+      '<b>'+(index+1)+'. '+esc(stationDisplayName(station))+'</b><div class="small">'+esc(station.physicalOperator?.name||'Opérateur inconnu')+' · '+card.pointCount+' PDC</div>'+
+      '<div class="small">'+esc(station.address||station.countryCode||'Localisation non renseignée')+'</div>'+
+      '<div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(station))+'</div>'+renderStationLinks(station)+
+      '<div class="v9-station-best"><b>Meilleure option du scénario</b> · '+esc(bestLabel)+'</div>'+powerHtml+
+      (Number.isFinite(card.distanceKm)?'<div class="small">'+card.distanceKm.toFixed(1)+(card.distanceEstimated?' km à vol d’oiseau':' km')+'</div>':'')+
+      renderCostPerKm(card)+'</article>';
+  }
+
   function renderStationLinks(station){
     const lat=num(station?.latitude),lon=num(station?.longitude),date=text(station?.status?.updatedAt);
     const maps=lat!=null&&lon!=null?'https://maps.google.com/maps?daddr='+encodeURIComponent(lat+','+lon):null;
@@ -812,9 +956,9 @@
   }
   function renderCandidate(w,area,rows,originLabel){
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
-    if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' borne(s) classée(s) depuis '+esc(originLabel)+'.</span>';
-    if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune borne V9 exploitable pour cette recherche. Retour au moteur stable recommandé.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une ligne par puissance et tarif calculé.</div>'+rows.map((row,i)=>{const st=row.station,best=row.evaluation?.best,score=row.score,route=row.route;return '<div class="box v9-result-card" data-v9-station-id="'+esc(st.id||'')+'" style="margin-top:10px"><b>'+(i+1)+'. '+esc(stationDisplayName(st))+'</b><div class="small">'+esc(st.physicalOperator?.name||'Opérateur inconnu')+'</div><div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(st))+'</div>'+renderStationLinks(st)+renderPowerLines(row)+'<div style="margin-top:6px">'+renderTariffs(row.evaluation,st,area?.displayFxRates,area?.selectedSubscriptions)+(Number.isFinite(row.distanceKm)?' · '+row.distanceKm.toFixed(1)+(row.distanceEstimated?' km à vol d’oiseau':' km'):'')+'</div>'+renderCostPerKm(row)+(score&&!unverifiedFranceDcPower(st,row.powerLine?.kind,row.displayPowerKw)?'<div class="small">Charge '+formatMinutes(score.chargingMinutes)+' · trajet '+formatMinutes(score.driveMinutes)+' · total '+formatMinutes(score.totalTimeMinutes)+(score.chargeModel?.averagePowerKw!=null?' · moyenne '+Number(score.chargeModel.averagePowerKw).toFixed(1)+' kW':'')+'</div>':'')+(route?.provider?'<div class="small">Routage '+esc(route.provider)+'</div>':'')+'</div>';}).join('');
+    if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' station(s) classée(s) depuis '+esc(originLabel)+'.</span>';
+    if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune station V9 exploitable pour cette recherche.</div>';return;}
+    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une carte par station, toutes les puissances et tous les PDC.</div>'+rows.map((row,i)=>renderStationCard(row,i,area)).join('');
 
     renderMapSummary(w,area,rows);
   }
@@ -849,7 +993,7 @@
     const selected=selectedSubscriptions(w);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
     if(queryMode==='tesla-only'&&!area.stations?.some(isTeslaStation))throw new Error(`no Tesla V9 station in ${countryCode}`);
-    area.selectedSubscriptions=selected;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),grouped=groupRows(eligible).map(row=>({...row,powerLine:{kind:connectorKind((row.station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{}),powerKw:row.displayPowerKw,count:row.pointCount}})),rows=rankRows(grouped,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
+    area.selectedSubscriptions=selected;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),cards=stationCards(eligible,selected),rows=rankRows(cards,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
     const d=w.document;
@@ -934,6 +1078,7 @@
     const style=d.createElement('style');
     style.id='v9MobileLayoutStyle';
     style.textContent='html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}body{zoom:1!important}#compare,#compare .card,#compare .grid,#results{width:100%!important;max-width:720px!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important}#v9OperatorControls{align-items:center!important}#v9OperatorDropdown{min-width:200px}#v9UsageHelp{max-width:720px;margin:0 auto}#v9UsageHelp .card{line-height:1.55}#v9UsageHelp h2{margin-top:0}#v9BaseUpdates{width:calc(100% - 20px)}@media(max-width:600px){body{font-size:16px!important}#compare{padding-left:10px!important;padding-right:10px!important}#v9OperatorControls{display:grid!important;grid-template-columns:1fr 1fr}#v9OperatorControls select{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown{grid-column:1/-1;width:100%;box-sizing:border-box}.v9-select-dropdown select{max-height:230px;overflow:auto}.v9-dropdown-panel{max-height:240px;overflow:auto}.v9-dropdown-value{float:right;color:#aaa;font-weight:400;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#compare .v9-filter-group .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;min-width:0!important}#compare .v9-filter-group .grid>div{min-width:0!important}#compare input#simDate,#compare input#simTime,#compare input#simUnplugTime{display:block!important;width:100%!important;max-width:160px!important;min-width:0!important;height:42px!important;min-height:42px!important;padding:6px 8px!important;font-size:15px!important;line-height:1.2!important;box-sizing:border-box!important;-webkit-appearance:none!important;appearance:none!important}#compare input#simTime,#compare input#simUnplugTime{text-align:center!important}}';
+    style.textContent+='body{box-sizing:border-box!important}.v9-result-card{min-width:0;overflow-wrap:anywhere}.v9-station-best{margin:10px 0;padding:8px 10px;border-radius:8px;background:#232b34}.v9-power-group{margin:8px 0;border:1px solid #34404c;border-radius:8px;padding:8px}.v9-power-group>summary,.v9-pdc-detail>summary{cursor:pointer}.v9-power-group>summary::marker,.v9-pdc-detail>summary::marker{color:#f4a64a}.v9-power-lane-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:7px}.v9-power-lane{display:flex;flex-direction:column;gap:3px;min-width:0;padding:6px;border:1px solid;border-radius:6px}.v9-power-lane small{overflow-wrap:anywhere}.v9-power-content{padding:4px 0}.v9-pdc-detail{margin:7px 0;padding:8px;border-radius:6px;background:#171e26}.v9-pdc-detail .v9-tariffs{max-width:100%}@media(max-width:600px){.v9-power-lane-grid{grid-template-columns:1fr}.v9-power-lane{flex-direction:row;justify-content:space-between;gap:8px}.v9-pdc-detail .v9-tariff-row{grid-template-columns:minmax(0,1fr)!important}.v9-pdc-detail .v9-lane-amount{text-align:left}}';
     d.head.appendChild(style);
   }
 
@@ -1238,6 +1383,6 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 
 });
