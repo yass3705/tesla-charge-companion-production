@@ -71,6 +71,31 @@ try{
     text:document.getElementById('results')?.innerText?.slice(0,500),
     diagnostics:JSON.parse(localStorage.getItem('tccV9ProductionShellDiagnosticsV1')||'[]').slice(0,2)
   }));
+  // Issue #128: inspect tariff/PDC markup from the actual V9 engine result,
+  // not an isolated fixture injected into the document.
+  const integrated=await page.evaluate(()=>{
+    const cards=[...document.querySelectorAll('#results .v9-result-card')];
+    const powers=[...document.querySelectorAll('#results .v9-power-group')];
+    const pdcDetails=[...document.querySelectorAll('#results .v9-pdc-detail')];
+    const lanes=[...document.querySelectorAll('#results .v9-tariff-row')];
+    return {cards:cards.length,powers:powers.length,pdcs:pdcDetails.length,
+      tariffStates:lanes.reduce((counts,element)=>{const key=element.dataset.v9TariffState||'unspecified';counts[key]=(counts[key]||0)+1;return counts;},{}),
+      overflow:document.documentElement.scrollWidth>innerWidth};
+  });
+  assert.ok(integrated.cards>0,'Integrated journey must render station cards');
+  assert.ok(integrated.powers>0,'Integrated journey must retain power groups');
+  assert.ok(integrated.pdcs>0,'Integrated journey must retain PDC details');
+  assert.equal(integrated.overflow,false,'Integrated desktop journey must not overflow horizontally');
+  const firstPower=page.locator('#results .v9-power-group').first();
+  await firstPower.evaluate(el=>el.open=true);
+  const firstPdc=firstPower.locator('.v9-pdc-detail').first();
+  await firstPdc.evaluate(el=>el.open=true);
+  const visibleTariffs=firstPdc.locator('.v9-tariff-row');
+  assert.ok(await visibleTariffs.count()>=3,'Each integrated PDC must keep independent tariff lanes');
+  for(const lane of ['Direct','Electra','Electroverse']){
+    assert.ok(await firstPdc.locator('.v9-tariff-row').filter({has:page.locator('.v9-lane-heading').filter({hasText:lane})}).count()>0,
+      'Integrated PDC is missing '+lane+' lane');
+  }
   await page.locator('.v9-view-map').click();
   assert.ok(await page.locator('#v9MapZones img[src*="tile.openstreetmap.org"]').count()>0,'Geographic map must load OpenStreetMap tile images');
   assert.ok(await page.locator('#v9MapZones .v9-map-marker').count()>0,'Geographic map must retain station markers');
