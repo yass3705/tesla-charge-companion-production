@@ -12,22 +12,28 @@
     "targetSoc": 80,
     "batteryCapacityKwh": 75,
     "includeCongestionFees": true,
-    "targetCurrency": "EUR",
-    "fxRates": {"EUR": 1}
+    "targetCurrency": "EUR"
   },
   "scenarios": [
     {"key":"FR-bois-d-arcy","countryCode":"FR","origin":{"lat":48.799557,"lon":2.039009},"radiusKm":0.35,"stationIds":["FRELCP12954082","FRELCP5265355","FRELCPBDALE"]},
     {"key":"FR-place-lully","countryCode":"FR","origin":{"lat":48.8061,"lon":2.053682},"radiusKm":5,"namePattern":"lully"},
+    {"key":"FR-place-lully-night","countryCode":"FR","origin":{"lat":48.806024,"lon":2.068762},"radiusKm":1,"stationIds":["FR55CP78210SA1P21PL"],"session":{"startAt":"2026-10-15T21:30:00Z","durationMinutes":120,"chargingMinutes":90,"postChargeMinutes":30,"energyKwh":12}},
+    {"key":"FR-place-lully-dst","countryCode":"FR","origin":{"lat":48.806024,"lon":2.068762},"radiusKm":1,"stationIds":["FR55CP78210SA1P21PL"],"session":{"startAt":"2026-10-25T00:30:00Z","durationMinutes":120,"chargingMinutes":90,"postChargeMinutes":30,"energyKwh":12}},
     {"key":"FR-metropolis","countryCode":"FR","origin":{"lat":48.69076,"lon":2.37082},"radiusKm":2,"namePattern":"m.tropolis|bry|neuilly"},
+    {"key":"FR-metropolis-long","countryCode":"FR","origin":{"lat":48.69076,"lon":2.37082},"radiusKm":2,"namePattern":"m.tropolis|bry|neuilly","session":{"durationMinutes":240,"chargingMinutes":150,"postChargeMinutes":90,"energyKwh":40}},
     {"key":"CH","countryCode":"CH","origin":{"lat":47.61764,"lon":9.2688},"radiusKm":8},
     {"key":"IT","countryCode":"IT","origin":{"lat":41.9028,"lon":12.4964},"radiusKm":25},
     {"key":"DE","countryCode":"DE","origin":{"lat":50.11,"lon":8.68},"radiusKm":10,"excludeTesla":true},
     {"key":"ES","countryCode":"ES","origin":{"lat":40.4168,"lon":-3.7038},"radiusKm":12},
     {"key":"NL","countryCode":"NL","origin":{"lat":52.3676,"lon":4.9041},"radiusKm":12},
+    {"key":"NL-midnight","countryCode":"NL","origin":{"lat":52.3676,"lon":4.9041},"radiusKm":12,"session":{"startAt":"2026-10-15T21:30:00Z","durationMinutes":120,"chargingMinutes":100,"postChargeMinutes":20,"energyKwh":25}},
     {"key":"GB","countryCode":"GB","origin":{"lat":51.751274,"lon":-0.313710},"radiusKm":10},
+    {"key":"GB-Midhope","countryCode":"GB","origin":{"lat":51.3095523,"lon":-0.5647349},"radiusKm":1,"namePattern":"midhope"},
+    {"key":"GB-GeniePoint","countryCode":"GB","origin":{"lat":52.392408,"lon":-1.528444},"radiusKm":2,"namePattern":"memorial|geniepoint"},
     {"key":"BE","countryCode":"BE","origin":{"lat":50.85,"lon":4.35},"radiusKm":20},
     {"key":"MA","countryCode":"MA","origin":{"lat":35.76,"lon":-5.8},"radiusKm":40},
     {"key":"TESLA-SuC","countryCode":"FR","source":"tesla","countryTesla":"FR","radiusKm":2,"namePattern":"tesla"},
+    {"key":"TESLA-SuC-congestion","countryCode":"FR","source":"tesla","countryTesla":"FR","radiusKm":2,"namePattern":"tesla","session":{"startSoc":75,"targetSoc":90,"linearSocVerified":true,"durationMinutes":90,"chargingMinutes":60,"postChargeMinutes":30,"energyKwh":30}},
     {"key":"TESLA-Mac","countryCode":"MA","source":"tesla","countryTesla":"MA","radiusKm":2,"namePattern":"tesla"}
   ]
 }

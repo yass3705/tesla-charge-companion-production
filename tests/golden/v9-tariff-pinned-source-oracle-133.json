@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 1,
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "cases": [
+    {
+      "key": "FR-Bois-d-Arcy",
+      "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+      "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+      "jsonPointer": "emspOffers:724",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris"
+      },
+      "expected": {
+        "status": "uncomputable",
+        "reason": "unsupported_rule_dimension"
+      },
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "key": "FR-Lully-Day",
+      "sourcePath": "data/e55c_station_tariffs_v1.json.gz",
+      "sourceSha256": "9c201a4c0f91ee7b41130a32d380e229671b1530b67d0b25812201057805d1a8",
+      "jsonPointer": "/profiles/e55c-scanpay-584ac48145a63ad4",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 120,
+        "chargingMinutes": 90,
+        "postChargeMinutes": 30,
+        "energyKwh": 12,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 5.208,
+        "currency": "EUR",
+        "components": {
+          "energy": 0,
+          "connectedTime": 0,
+          "chargingTime": 3.456,
+          "parkingTime": 1.152,
+          "afterMinutes": 0,
+          "connectionFee": 0.6,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        }
+      },
+      "adapter": "profileRules",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "key": "FR-Lully-Night",
+      "sourcePath": "data/e55c_station_tariffs_v1.json.gz",
+      "sourceSha256": "9c201a4c0f91ee7b41130a32d380e229671b1530b67d0b25812201057805d1a8",
+      "jsonPointer": "/profiles/e55c-scanpay-584ac48145a63ad4",
+      "session": {
+        "startAt": "2026-10-15T21:30:00Z",
+        "durationMinutes": 120,
+        "chargingMinutes": 90,
+        "postChargeMinutes": 30,
+        "energyKwh": 12,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 3.912,
+        "currency": "EUR",
+        "components": {
+          "energy": 0,
+          "connectedTime": 0,
+          "chargingTime": 2.484,
+          "parkingTime": 0.828,
+          "afterMinutes": 0,
+          "connectionFee": 0.6,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        }
+      },
+      "adapter": "profileRules",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "key": "FR-Lully-DST",
+      "sourcePath": "data/e55c_station_tariffs_v1.json.gz",
+      "sourceSha256": "9c201a4c0f91ee7b41130a32d380e229671b1530b67d0b25812201057805d1a8",
+      "jsonPointer": "/profiles/e55c-scanpay-584ac48145a63ad4",
+      "session": {
+        "startAt": "2026-10-25T00:30:00Z",
+        "durationMinutes": 120,
+        "chargingMinutes": 90,
+        "postChargeMinutes": 30,
+        "energyKwh": 12,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 3.912,
+        "currency": "EUR",
+        "components": {
+          "energy": 0,
+          "connectedTime": 0,
+          "chargingTime": 2.484,
+          "parkingTime": 0.828,
+          "afterMinutes": 0,
+          "connectionFee": 0.6,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        }
+      },
+      "adapter": "profileRules",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "key": "FR-Metropolis",
+      "sourcePath": "snapshot-inputs/FR/direct/metropolis_spie_direct_offers.json",
+      "sourceSha256": "597f5e243ddb74c1535fdff89f21674d26ae1f491c1b9505e4a49b7ea9f5dcba",
+      "jsonPointer": "directOffers:0",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20.2,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 14.23,
+        "currency": "EUR",
+        "components": {
+          "energy": 13.23,
+          "connectedTime": 0,
+          "chargingTime": 0,
+          "parkingTime": 0,
+          "afterMinutes": 0,
+          "connectionFee": 0,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 1
+        }
+      },
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "key": "NL-DOT-NL",
+      "sourcePath": "runtime/data/non_tesla_netherlands/all.json.gz",
+      "sourceSha256": "82e87cb798ca8da7a7f2b90144de50c8113e9cea286ab211cc91612648dd2d99",
+      "jsonPointer": "/1000/8/0/5",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Amsterdam"
+      },
+      "expected": {
+        "status": "uncomputable",
+        "reason": "unsupported_pricing_type"
+      },
+      "timeZone": "Europe/Amsterdam"
+    },
+    {
+      "key": "GB-Midhope",
+      "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+      "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+      "jsonPointer": "/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/London",
+        "fxEvidence": {
+          "date": "2026-10-15",
+          "base": "EUR",
+          "rates": {
+            "EUR": 1,
+            "CHF": 0.932022,
+            "GBP": 0.845514,
+            "NOK": 10.626379,
+            "SEK": 11.180407,
+            "DKK": 7.475537,
+            "PLN": 4.370828,
+            "CZK": 24.361361,
+            "HUF": 363.767885,
+            "RON": 5.339822,
+            "BGN": 1.95583,
+            "MAD": 10.998032,
+            "DZD": 150.737352,
+            "TND": 3.359121
+          },
+          "sourceSha256": "3dcfdc149289a0d3ddbfc22ca2a93501bcce29dbe1a26e186f1141b260d1eda6"
+        }
+      },
+      "expected": {
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "components": {
+          "energy": 7.9992,
+          "parkingTime": 1.60008,
+          "idleSupplement": 0.15
+        },
+        "convertedTotal": 11.530596,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15"
+      },
+      "timeZone": "Europe/London",
+      "context": {
+        "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670"
+      }
+    },
+    {
+      "key": "GB-GeniePoint",
+      "sourcePath": "snapshot-inputs/UK/all.json.gz",
+      "sourceSha256": "105943ce790b885dafc59d522cffa9f91f2be6a565e23fee04ce22ebde73436c",
+      "jsonPointer": "/sources/30/tariffs/0",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/London",
+        "fxEvidence": {
+          "date": "2026-10-15",
+          "base": "EUR",
+          "rates": {
+            "EUR": 1,
+            "CHF": 0.932022,
+            "GBP": 0.845514,
+            "NOK": 10.626379,
+            "SEK": 11.180407,
+            "DKK": 7.475537,
+            "PLN": 4.370828,
+            "CZK": 24.361361,
+            "HUF": 363.767885,
+            "RON": 5.339822,
+            "BGN": 1.95583,
+            "MAD": 10.998032,
+            "DZD": 150.737352,
+            "TND": 3.359121
+          },
+          "sourceSha256": "3dcfdc149289a0d3ddbfc22ca2a93501bcce29dbe1a26e186f1141b260d1eda6"
+        }
+      },
+      "expected": {
+        "status": "priced",
+        "total": 8.88,
+        "currency": "GBP",
+        "components": {
+          "energy": 8.88,
+          "connectedTime": 0,
+          "chargingTime": 0,
+          "parkingTime": 0,
+          "afterMinutes": 0,
+          "connectionFee": 0,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        },
+        "convertedTotal": 10.502487,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15"
+      },
+      "adapter": "ocpiTariff",
+      "timeZone": "Europe/London"
+    },
+    {
+      "key": "Tesla-SuC",
+      "sourcePath": "runtime/data/tesla_stations.json",
+      "sourceSha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5",
+      "jsonPointer": "/493/pricing",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 8.2,
+        "currency": "EUR",
+        "components": {
+          "energy": 8.2,
+          "connectedTime": 0,
+          "chargingTime": 0,
+          "parkingTime": 0,
+          "afterMinutes": 0,
+          "connectionFee": 0,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        }
+      },
+      "timeZone": "Europe/Paris",
+      "adapter": "teslaPricing"
+    },
+    {
+      "key": "Tesla-Mac",
+      "sourcePath": "runtime/data/tesla_stations.json",
+      "sourceSha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5",
+      "jsonPointer": "/1072/pricing",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Africa/Casablanca",
+        "fxEvidence": {
+          "date": "2026-10-15",
+          "base": "EUR",
+          "rates": {
+            "EUR": 1,
+            "CHF": 0.932022,
+            "GBP": 0.845514,
+            "NOK": 10.626379,
+            "SEK": 11.180407,
+            "DKK": 7.475537,
+            "PLN": 4.370828,
+            "CZK": 24.361361,
+            "HUF": 363.767885,
+            "RON": 5.339822,
+            "BGN": 1.95583,
+            "MAD": 10.998032,
+            "DZD": 150.737352,
+            "TND": 3.359121
+          },
+          "sourceSha256": "3dcfdc149289a0d3ddbfc22ca2a93501bcce29dbe1a26e186f1141b260d1eda6"
+        }
+      },
+      "expected": {
+        "status": "priced",
+        "total": 157.5,
+        "currency": "MAD",
+        "components": {
+          "energy": 0,
+          "connectedTime": 0,
+          "chargingTime": 157.5,
+          "parkingTime": 0,
+          "afterMinutes": 0,
+          "connectionFee": 0,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        },
+        "convertedTotal": 14.320744,
+        "fxStatus": "verified_dated_rate",
+        "fxAsOf": "2026-10-15"
+      },
+      "timeZone": "Africa/Casablanca",
+      "context": {
+        "powerKw": 150
+      },
+      "adapter": "teslaPricing"
+    },
+    {
+      "key": "CH",
+      "sourcePath": "runtime/data/v9/switzerland-offers.json",
+      "sourceSha256": "30cd7215c10359610d25b61860227a9a017441b22169efae512bb0afb8d83e3a",
+      "jsonPointer": "directOffers:4830",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Zurich"
+      },
+      "expected": {
+        "status": "uncomputable",
+        "reason": "unsupported_rule_dimension"
+      },
+      "timeZone": "Europe/Zurich"
+    },
+    {
+      "key": "IT",
+      "sourcePath": "runtime/data/v9/italy-offers.json",
+      "sourceSha256": "a61fc2fb67901c1387a8af4d8e63e54a949a527f190448b5d88d07ff3caa26b8",
+      "jsonPointer": "directOffers:20882",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Rome"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 13.4,
+        "currency": "EUR",
+        "components": {
+          "energy": 13.4,
+          "connectedTime": 0,
+          "chargingTime": 0,
+          "parkingTime": 0,
+          "afterMinutes": 0,
+          "connectionFee": 0,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        }
+      },
+      "timeZone": "Europe/Rome"
+    },
+    {
+      "key": "DE",
+      "sourcePath": "snapshot-inputs/DE/all.json.gz",
+      "sourceSha256": "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318",
+      "jsonPointer": "/sites/1002/pricing/rawAfirTariffs/0",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Berlin"
+      },
+      "expected": {
+        "status": "uncomputable",
+        "reason": "unsupported_pricing_type"
+      },
+      "timeZone": "Europe/Berlin"
+    },
+    {
+      "key": "ES",
+      "sourcePath": "runtime/data/v9/spain-reve-offers/offers_40_-4.json.gz",
+      "sourceSha256": "fc4a261dec4ebf23ef95f790909e3b1d9c5da72042640477cfd68acdc38bf175",
+      "jsonPointer": "directOffers:3",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Madrid"
+      },
+      "expected": {
+        "status": "uncomputable",
+        "reason": "unsupported_pricing_type"
+      },
+      "timeZone": "Europe/Madrid"
+    },
+    {
+      "key": "BE",
+      "sourcePath": "snapshot-inputs/BE/pages/nap-belgium-000000.json.gz",
+      "sourceSha256": "ef5c6a87bdb4fca94d22b68e298e0bbac06187a6624777cc83cddcb946b3466a",
+      "jsonPointer": "/locations/0/stations/0/evses/0/prices/0",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Brussels"
+      },
+      "expected": {
+        "status": "uncomputable",
+        "reason": "unsupported_pricing_type"
+      },
+      "timeZone": "Europe/Brussels"
+    },
+    {
+      "key": "MA",
+      "sourcePath": "snapshot-inputs/MA/sources/kilowatt-native-tariffs.json",
+      "sourceSha256": "bbd6e2a33e4e6b8636c4ed937999b46d67eb300381d74cc8439df6ae41036349",
+      "jsonPointer": "/stations/0/connectors/0",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Africa/Casablanca"
+      },
+      "expected": {
+        "status": "uncomputable",
+        "reason": "unsupported_pricing_type"
+      },
+      "timeZone": "Africa/Casablanca"
+    }
+  ],
+  "fxSource": {
+    "path": "data/exchange_rates.json",
+    "sha256": "3dcfdc149289a0d3ddbfc22ca2a93501bcce29dbe1a26e186f1141b260d1eda6",
+    "date": "2026-10-15",
+    "base": "EUR"
+  }
+}
