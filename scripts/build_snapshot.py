@@ -10,6 +10,7 @@ import sys
 from tesla_tariff_priority import build_selected_catalogue
 from scope_belib_offers import scope_belib_offers
 from spain_reve_source import verify_bundle as verify_spain_reve_bundle
+from verify_zewatt_offer_source import verify_handoff as verify_zewatt_handoff
 
 def sha256(path):
     h=hashlib.sha256()
@@ -78,6 +79,15 @@ def main():
         write_json(out/"snapshot-inputs/ES/reve-source.json",{
             "owner":"dataLab", "dataLabSha":cfg["sources"][source_key]["sha"],
             "path":str(relative), **proof})
+    zewatt_cfg=cfg.get("franceZeWattDataLabOffers")
+    if zewatt_cfg:
+        source=dl/zewatt_cfg["path"]
+        historical=stable/"v9-production-runtime/data/v9/france-zewatt-offers.json"
+        proof=verify_zewatt_handoff(source,zewatt_cfg["sourceSha256"],historical)
+        copy_file(source,out/"runtime/data/v9/france-zewatt-offers.json")
+        write_json(out/"snapshot-inputs/FR/zewatt-offer-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["dataLab"]["sha"],
+            "path":zewatt_cfg["path"], **proof})
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:
         from supplement_france_irve_exact import supplement

@@ -1,0 +1,50 @@
+name: Validate Ze-Watt Data Lab direct offer handoff
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_snapshot.py'
+      - 'scripts/verify_zewatt_offer_source.py'
+      - 'tests/test_zewatt_offer_handoff.py'
+      - 'config/snapshots/2026-10-13-be-energyvision-official-cpo-candidate.json'
+      - '.github/workflows/validate-zewatt-datalab-handoff.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: production
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: 94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3
+          path: datalab
+          sparse-checkout: v9-production-runtime/data/v9/france-zewatt-offers.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 0a6d2c3415504397310d3dc92fae40be843b2435
+          path: stable
+          sparse-checkout: v9-production-runtime/data/v9/france-zewatt-offers.json
+          sparse-checkout-cone-mode: false
+      - name: Verify source scope and pinned input
+        run: |
+          cd production
+          python -m unittest discover -s tests -p 'test_zewatt_offer_handoff.py' -v
+          PYTHONPATH=scripts python - <<'PY'
+          import json
+          from pathlib import Path
+          from verify_zewatt_offer_source import verify_handoff
+          cfg=json.loads(Path('config/snapshots/2026-10-13-be-energyvision-official-cpo-candidate.json').read_text())
+          spec=cfg['franceZeWattDataLabOffers']
+          proof=verify_handoff(Path('../datalab')/spec['path'],spec['sourceSha256'],Path('../stable/v9-production-runtime/data/v9/france-zewatt-offers.json'))
+          assert proof['dataLab']['exactEvseIds'] >= proof['historical']['exactEvseIds']
+          print(proof)
+          PY
