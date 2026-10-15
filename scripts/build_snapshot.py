@@ -12,6 +12,7 @@ from scope_belib_offers import scope_belib_offers
 from spain_reve_source import verify_bundle as verify_spain_reve_bundle
 from verify_zewatt_offer_source import verify_handoff as verify_zewatt_handoff
 from verify_zephyre_offer_source import verify_handoff as verify_zephyre_handoff
+from italy_last_good_source import verify_and_copy as copy_italy_last_good
 
 def sha256(path):
     h=hashlib.sha256()
@@ -42,6 +43,7 @@ def main():
     ap.add_argument("--datalab",required=True)
     ap.add_argument("--spain-datalab")
     ap.add_argument("--zephyre-datalab")
+    ap.add_argument("--italy-datalab")
     ap.add_argument("--germany-source")
     ap.add_argument("--e55c-datalab")
     ap.add_argument("--out",required=True)
@@ -103,6 +105,19 @@ def main():
         copy_file(source,out/"runtime/data/v9/france-zephyre-offers.json")
         write_json(out/"snapshot-inputs/FR/zephyre-offer-source.json",{
             "owner":"dataLab", "dataLabSha":cfg["sources"]["zephyreDataLab"]["sha"],
+            "path":str(relative), **proof})
+    it_cfg=next((d for d in cfg.get("datasets",[]) if d.get("id")=="IT"),{})
+    if it_cfg.get("primarySource")=="italyDataLab":
+        if not a.italy_datalab:
+            raise ValueError("Separate pinned Italy Data Lab checkout is required")
+        relative=pathlib.PurePosixPath(it_cfg["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned Italy bundle path is invalid")
+        proof=copy_italy_last_good(pathlib.Path(a.italy_datalab)/relative,
+                                   stable/"v9-production-runtime/data/v9",
+                                   out/"runtime/data/v9",it_cfg["bundleSha256"])
+        write_json(out/"snapshot-inputs/IT/last-good-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["italyDataLab"]["sha"],
             "path":str(relative), **proof})
     belib_supplement=cfg.get("franceBelibExactSupplement")
     if belib_supplement:
