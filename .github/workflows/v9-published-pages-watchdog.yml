@@ -1,0 +1,45 @@
+name: V9 published Pages watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '42 */2 * * *'
+  pull_request:
+    paths:
+      - 'scripts/check_published_pages.py'
+      - 'tests/test_check_published_pages.py'
+      - '.github/workflows/v9-published-pages-watchdog.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/check_published_pages.py'
+      - 'config/refresh-policy.json'
+      - '.github/workflows/v9-published-pages-watchdog.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -p 'test_check_published_pages.py'
+      - run: python -m py_compile scripts/check_published_pages.py
+
+  observe:
+    if: github.event_name != 'pull_request'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/check_published_pages.py
