@@ -17,3 +17,7 @@ The separate handoff candidate config pins those commits. CI builds both the his
 - Successful CI run for the new candidate, including full built-output parity and downstream validations.
 - Multiset counts by station, EVSE, normal/Type 2/CCS connector, power, status, supplement, offer and computed price, with exact business-difference report if byte checks fail.
 - A separate approved pin change before the handoff becomes the default. Until then the Stable IRVE relay and V7/V8 rollback remain active.
+
+## First same-generation CI result
+
+[Run 38722672261](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38722672261) reached the existing Belib supplement and failed on `FRV75PPX0750`: that station is already present in the newer national IRVE generation, while `supplement_france_irve_exact.py` correctly rejects applying the approved addition twice. Thus equal pre-supplement source manifests do **not** imply full build parity. The existing supplementation assumptions were approved against the older Stable France generation. The next change must prove, for each approved Belib/BUMP EVSE, whether the new national row is the same identity, active state and connector/power before making the supplement idempotent or changing the approved candidate. No assertion has been loosened and the current default build remains unchanged.
