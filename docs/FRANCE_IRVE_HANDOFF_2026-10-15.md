@@ -1,0 +1,66 @@
+# France IRVE source handoff candidate — 15 October 2026
+
+Production PR #104 is a source handoff inside the existing snapshot builder. The BUMP/Belib supplements, offer construction and pricing stages remain in their current order and use the same code. The default development snapshot and Stable relay are unchanged.
+
+## Cause of the first CI failure
+
+Run 38506877130 compared different source generations. Its development config pinned Stable `0a6d2c3415504397310d3dc92fae40be843b2435` (48,058 stations, 165,792 PDC, 362 tiles, all SHA-256 `204a5f7aaeecbd0988574d955a51f66f448325023977bccb9fe14dd9364b3b3d`) with Data Lab `94d4fc6785a0c1d2ed4df1d01b5a30d203bd4cd3` (49,185 stations, 165,129 PDC, 361 tiles, all SHA-256 `7113daf751ff34922474d8c9ead10c8e998ca651400d56a08f4964d3e66cf94f`). Strict byte parity cannot hold between those inputs. The file-difference list also contains the Data Lab `tiles/` tree, which the importer deliberately duplicates at the runtime root.
+
+## Same-generation reference
+
+Stable `6b1c62611d71ec96ea163b0dd1dc2df3003f292f` contains the relay of the Data Lab `94d4fc67` generation. Both manifests report 49,185 stations, 165,129 PDC and the same `allSha256`. Transforming only the Data Lab tile paths to the runtime layout yields the exact same manifest SHA-256 `c9f6427772b383e9bb9c45f5dff61ce88a2035d1584a6da5483777eda7538ddd` on both pinned commits. This proves source-manifest equivalence, not yet full built-output parity.
+
+The separate handoff candidate config pins those commits. CI builds both the historical and direct variants against that same Stable reference, validates both snapshots, then compares all national rows and tiles as multisets after JSON/gzip normalization, plus the Belib/BUMP offer objects. Any business difference fails closed; raw hashes are reported separately. The existing development snapshot is still built and validated against its own historical pins. No publication step exists in this workflow.
+
+## Gates still open
+
+- Successful CI run for the new candidate, including full built-output parity and downstream validations.
+- Multiset counts by station, EVSE, normal/Type 2/CCS connector, power, status, supplement, offer and computed price, with exact business-difference report if byte checks fail.
+- A separate approved pin change before the handoff becomes the default. Until then the Stable IRVE relay and V7/V8 rollback remain active.
+
+## First same-generation CI result
+
+[Run 38722672261](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38722672261) reached the existing Belib supplement and failed on `FRV75PPX0750`: that station is already present in the newer national IRVE generation, while `supplement_france_irve_exact.py` correctly rejects applying the approved addition twice. Thus equal pre-supplement source manifests do **not** imply full build parity. The existing supplementation assumptions were approved against the older Stable France generation. The next change must prove, for each approved Belib/BUMP EVSE, whether the new national row is the same identity, active state and connector/power before making the supplement idempotent or changing the approved candidate. No assertion has been loosened and the current default build remains unchanged.
+
+## Targeted EVSE comparison at the pinned SHAs
+
+A read-only comparison of the compact France `all.json.gz` at Stable `0a6d2c34` and Data Lab `94d4fc67` confirms the four approved Belib station IDs and all 21 approved BUMP station IDs are absent from the old base and present in the new source. The national station count rises by 1,127 before any supplement. All 39 approved BUMP EVSE IDs are present on those 21 new national rows, **alongside 10 additional EVSE IDs**. For Belib, the four official, positively active 7 kW approved sets contain respectively 5, 4, 5 and 3 EVSE IDs; all 17 are present in the new rows, but `FRV75PPX1817` has one additional EVSE. Each Belib row has two AC 7 kW connector groups containing the same EVSE set, so group-entry counts must not be mistaken for distinct EVSE counts. These additional EVSEs require identity, status, connector and price review before a build-level handoff can claim business parity. They are not removed or priced by this PR.
+
+## Idempotent supplement correction prepared
+
+The existing Belib and BUMP approved evidence, offer sources and pricing code are untouched. For each approved station, the supplement still validates source provenance, operator, location, exact EVSE, connector and positive dynamic status. If the station is absent, it performs the original scoped addition. If present, it checks every approved EVSE connector signature against the newer national row, checks station metadata and rejects an approved EVSE at another station. It keeps the full national row, including additional EVSEs, without increasing the manifest counts or attaching any offer to those additional IDs. A mismatch fails with the station and missing/extra signatures. The 49,185 national stations therefore remain intact.
+
+The [25-station comparison](FRANCE_IRVE_25_STATIONS_2026-10-15.md) records all 25 station IDs and 11 additional EVSE IDs. Historical approved scope is 17 Belib + 39 BUMP EVSE. The 11 distinct additional IDs belong to rows in the national public inventory and have explicit connector and power descriptions. Four are `hors_service` in the pinned dynamic data; seven have no matching dynamic record. None is positively `en_service` or present in the historical Belib/BUMP offer EVSE lists. Their individual public accessibility and active status remain unconfirmed; the migration keeps the national rows and does not infer a price.
+
+Local targeted test: `python3 tests/test_france_irve_handoff_idempotence.py STABLE_OLD DATALAB_PINNED` exercises addition on the old base, verified no-op on the new base, preservation of all 11 additional IDs, and detailed rejection of divergent approved connectors in both families. The candidate workflow invokes this test, builds both variants, validates both snapshots, then runs `scripts/compare_france_irve_builds.py` for normalized business parity. CI result is pending.
+
+## CI result at `2401c2b` — BUMP offer dependency remains
+
+The single targeted [run 38724599850](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38724599850) passed the new add/present/divergent test, then stopped in the **reference build** at the existing BUMP exact offer validator (`FRBMPE3264`). Of 1,783 EVSE attached to the pinned BUMP offer overlay, **449 are absent** from the newer national source; all 449 remain in the historical supplemented France result, none is positively `en_service` in the pinned dynamic data, and they map to 122 historical station IDs. The complete [449-row identity and connector report](FRANCE_IRVE_BUMP_449_MISSING_2026-10-15.csv) records the old station, connector, power and whether its station ID survives in the new national source. There are no duplicate or foreign-operator matches for the attached set that does exist. Changing offers or silently carrying these historical EVSEs would alter approved coverage and is outside this idempotence correction.
+
+The normalized comparison of the **two complete builds did not run** because the first build stopped at this guard. The 25-station supplement test and a local comparator self-check passed, but do not prove full build or price parity. The exact IDs and wider station/EVSE generation deltas are also recorded in the [PR #104 blocker comment](https://github.com/yass3705/tesla-charge-companion-production/pull/104#issuecomment-6190599297). France migration remains blocked by a business coverage dependency; Stable relay and default snapshot remain unchanged.
+
+## Differential diagnosis of the 449 BUMP IDs
+
+The [449-row classified report](FRANCE_IRVE_BUMP_449_DIAGNOSTIC_2026-10-15.md) and [individual evidence CSV](FRANCE_IRVE_BUMP_449_DIAGNOSTIC_2026-10-15.csv) establish that all 449 exact EVSE IDs are still present in the latest national raw CSV (SHA `ba0f806ed55d`, identical to Data Lab commit `045283b7c`'s source SHA), with their historical station IDs, Bump operator and matching powers. All 449 were present in Data Lab's static snapshot `372a95fd77` but disappeared in `5a5b29aa9f` built from the **same raw CSV SHA**. The intervening builder change `d89b0ebf6` admits only declared EF, Type 2 or CCS connectors: 373 records declare no connector, and 76 declare only unspecified `autre`. The old generic DC/AC labels do not prove a physical connector. A newer raw extraction restores none to the normalized snapshot. No dynamic status row for any of the 449 is available in the pinned or latest checked status snapshot, so active eligibility is unresolved rather than proven inactive. The strict BUMP guard remains in place; no offers, prices, supplements, pins or publishing paths were modified.
+
+## Technical handoff using the last validated generation
+
+The current national Data Lab generation is **not** promoted while its 449 historical BUMP EVSE lack a declared EF, Type 2 or CCS connector. Data Lab #314 instead preserves the exact older validated Stable generation `0a6d2c34` in a separate, immutable fallback bundle. The preserved generation has 48,058 stations, 165,792 PDC, 362 tiles and 364 runtime files; its manifest and all-file SHA-256 remain `cb26abd5...` and `204a5f7a...`. This is a custody transfer of an existing snapshot, not a claim that the newer national inventory is equivalent or that the 449 EVSE are newly verified active.
+
+The development candidate uses the Data Lab seed at `fb1458566`, verifies its provenance SHA-256 `8721f4d2...`, compares every file hash against the pinned Stable historical reference, then runs the unchanged Belib/BUMP supplementation, offers and price pipeline. Its reference build uses the same configuration and all other Data Lab pins, with only France static tiles taken from the historical Stable copy. `compare_france_irve_builds.py` retains strict multiset checks for national rows, EVSE/connector/power/status, tiles and Belib/BUMP offers. The current-national strict build remains available only through explicit `check_current_national=true` dispatch and is expected to fail until the connector evidence is resolved; the diagnostic assertion has not been weakened.
+
+The [CI run #38754448419](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/38754448419) passed the full development build, selected snapshot validation, normalized two-build comparison, and downstream guards. The guarded Pages candidate validation passed separately without deployment. The selected last-good Data Lab and historical Stable builds produced the same France all-file SHA-256 `282590706bb901891bdc92db42e93e78995fdd688502823a47a7e04bb2a01af8` after the unchanged supplements:
+
+| Measure | Historical reference | Pinned Data Lab last-good | Business delta |
+| --- | ---: | ---: | ---: |
+| Stations | 48,083 | 48,083 | 0 |
+| Station/EVSE pairs | 165,848 | 165,848 | 0 |
+| Connector entries | 169,165 | 169,165 | 0 |
+| Normal / Type 2 / CCS entries | 17 / 55 / 1 | 17 / 55 / 1 | 0 / 0 / 0 |
+| Belib Direct / subscription offers | 475 / 950 | 475 / 950 | 0 / 0 |
+| BUMP Direct / subscription offers | 58 / 0 | 58 / 0 | 0 / 0 |
+
+The strict comparator also checked every station row and tile as multisets, including EVSE identities, connectors, power and status, and each approved Belib/BUMP offer object. Its `normalizedBusinessDifference` was 0. The idempotence test separately passed all 25 approved stations, retained the 11 additional new-national EVSE, and rejected divergent Belib and BUMP signatures. These are **two distinct source generations**: no parity is claimed between the selected last-good generation and the newer national generation, which adds 1,127 stations and still excludes the 449 connector-unproven BUMP EVSE.
+
+This qualifies the technical handoff for the **last validated France generation only**. It does not certify new national coverage, remove the Stable IRVE relay while Stable Pages still uses it, or establish public V9 publication. The unrelated historical `build-deploy` Blink assertion failed before deployment and is tracked separately.

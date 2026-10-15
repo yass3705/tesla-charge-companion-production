@@ -14,6 +14,7 @@ from verify_zewatt_offer_source import verify_handoff as verify_zewatt_handoff
 from verify_zephyre_offer_source import verify_handoff as verify_zephyre_handoff
 from italy_last_good_source import verify_and_copy as copy_italy_last_good
 from fx_datalab_source import verify as verify_fx_source
+from france_last_good_source import verify_and_copy as copy_france_last_good
 
 def sha256(path):
     h=hashlib.sha256()
@@ -48,6 +49,8 @@ def main():
     ap.add_argument("--fx-datalab")
     ap.add_argument("--germany-source")
     ap.add_argument("--e55c-datalab")
+    ap.add_argument("--france-irve-direct-parity",action="store_true",help="Use Data Lab France IRVE only if identical to a same-generation pinned Stable reference")
+    ap.add_argument("--france-last-good-datalab")
     ap.add_argument("--out",required=True)
     ap.add_argument("--config",default="config/snapshots/2026-09-30.json")
     a=ap.parse_args()
@@ -61,6 +64,60 @@ def main():
 
     # Preserve the validated legacy V9 runtime as a compatibility baseline.
     copy_tree(stable/"v9-production-runtime", out/"runtime")
+    last_good=cfg.get("franceIrveLastGoodDataLab")
+    if last_good:
+        if a.france_irve_direct_parity or not a.france_last_good_datalab:
+            raise ValueError("France last-good source requires its separate Data Lab checkout and excludes current-national parity mode")
+        relative=pathlib.PurePosixPath(last_good["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Pinned France last-good path is invalid")
+        proof=copy_france_last_good(pathlib.Path(a.france_last_good_datalab)/relative,
+                                   stable/"v9-production-runtime/data/v9/france-static",
+                                   out/"runtime/data/v9/france-static",
+                                   last_good["provenanceSha256"],cfg["sources"]["stable"]["sha"])
+        write_json(out/"snapshot-inputs/FR/last-good-source.json",{
+            "owner":"dataLab", "dataLabSha":cfg["sources"]["franceLastGoodDataLab"]["sha"],
+            "path":str(relative), **proof})
+    if a.france_irve_direct_parity:
+        # Source handoff only. Preserve the *entire* existing supplement,
+        # direct-offer and price calculation chain below untouched.
+        from pathlib import Path
+        source=dl/"data/national/france-irve-static-v9"
+        stable_fr=stable/"v9-production-runtime/data/v9/france-static"
+        if not source.is_dir() or not stable_fr.is_dir():
+            raise AssertionError("France IRVE source or Stable parity reference is missing")
+        source_manifest=json.loads((source/"manifest.json").read_text())
+        stable_manifest=json.loads((stable_fr/"manifest.json").read_text())
+        generation_keys=("stationCount","pdcCount","allSha256")
+        if any(source_manifest.get(k)!=stable_manifest.get(k) for k in generation_keys):
+            raise AssertionError("France source handoff requires the same pinned generation: "
+                +str({k:{"stable":stable_manifest.get(k),"dataLab":source_manifest.get(k)} for k in generation_keys}))
+        # Build the exact historical runtime layout using the already validated importer.
+        imported=out/"snapshot-inputs/FR/handoff-import"
+        importer=pathlib.Path(__file__).resolve().parents[1]/"scripts/import_france_irve_from_datalab.py"
+        subprocess.run([sys.executable,str(importer),"--datalab",str(dl),"--output",str(imported)],check=True)
+        def hashes(root):
+            return {str(p.relative_to(root)):sha256(p) for p in root.rglob("*") if p.is_file()}
+        old_hashes=hashes(stable_fr)
+        new_hashes=hashes(imported)
+        if old_hashes!=new_hashes:
+            absent=sorted(set(old_hashes)-set(new_hashes))
+            extra=sorted(set(new_hashes)-set(old_hashes))
+            different=sorted(k for k in set(old_hashes)&set(new_hashes) if old_hashes[k]!=new_hashes[k])
+            write_json(out/"snapshot-inputs/FR/france-irve-handoff-parity-blocker.json", {
+                "status":"blocked",
+                "missingCount":len(absent),"extraCount":len(extra),"differentCount":len(different),
+                "missingExamples":absent[:10],"extraExamples":extra[:10],"differentExamples":different[:10],
+                "pinnedStableAllSha256":old_hashes.get("all.json.gz"),
+                "pinnedDataLabAllSha256":new_hashes.get("all.json.gz"),
+            })
+            raise AssertionError(f"France source handoff blocked: missing={absent[:8]}, extra={extra[:8]}, bytesDiffer={different[:8]}")
+        copy_tree(imported,out/"runtime/data/v9/france-static")
+        write_json(out/"snapshot-inputs/FR/france-irve-source-handoff.json",{
+            "mode":"Data Lab exact-byte parity verified against pinned Stable relay",
+            "fileCount":len(new_hashes),"allSha256":new_hashes.get("all.json.gz"),
+            "stationPricingLogicChanged":False,"sourcePromotionAllowed":True})
+
     # Gradual source migration: Production owns the listed engine modules.
     # The remaining historical runtime stays pinned until coverage parity is proven.
     owned_runtime=pathlib.Path(__file__).resolve().parents[1]/"runtime-owned"

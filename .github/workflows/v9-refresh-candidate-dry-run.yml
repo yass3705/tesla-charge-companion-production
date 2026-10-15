@@ -2,6 +2,12 @@ name: V9 pinned snapshot development validation
 
 on:
   workflow_dispatch:
+    inputs:
+      check_current_national:
+        description: "Run the strict new-national France diagnostic (currently blocked on 449 BUMP EVSE)"
+        type: boolean
+        required: true
+        default: false
   # Validate changes to the pinned development builder before they reach main.
   # This workflow has read-only permissions and no Pages or release steps.
   pull_request:
@@ -11,6 +17,11 @@ on:
       - "config/germany-ionity-supplement-provenance.json"
       - "config/electra-legacy-source-provenance.json"
       - "scripts/build_snapshot.py"
+      - "scripts/france_last_good_source.py"
+      - "tests/test_france_last_good_source.py"
+      - "scripts/compare_france_irve_builds.py"
+      - "scripts/france_irve_existing_station.py"
+      - "tests/test_france_irve_handoff_idempotence.py"
       - "scripts/italy_last_good_source.py"
       - "tests/test_italy_last_good_source.py"
       - "scripts/fx_datalab_source.py"
@@ -59,6 +70,7 @@ on:
       - "config/snapshots/2026-10-15-es-reve-zephyre-datalab-candidate.json"
       - "config/snapshots/2026-10-15-es-reve-zephyre-italy-datalab-candidate.json"
       - "config/snapshots/2026-10-15-es-reve-zephyre-italy-fx-datalab-candidate.json"
+      - "config/snapshots/2026-10-15-france-last-good-datalab-candidate.json"
       - "v9-production-shell/**"
   push:
     branches: [main]
@@ -133,6 +145,7 @@ jobs:
               out.write(f"zephyre_datalab_sha={cfg['sources'].get('zephyreDataLab',{}).get('sha','')}\n")
               out.write(f"italy_datalab_sha={cfg['sources'].get('italyDataLab',{}).get('sha','')}\n")
               out.write(f"fx_datalab_sha={cfg['sources'].get('fxDataLab',{}).get('sha','')}\n")
+              out.write(f"france_last_good_sha={cfg['sources'].get('franceLastGoodDataLab',{}).get('sha','')}\n")
           PY
       - uses: actions/checkout@v4
         with:
@@ -181,6 +194,14 @@ jobs:
           sparse-checkout: data/fx/exchange_rates.json
           sparse-checkout-cone-mode: false
           persist-credentials: false
+      - uses: actions/checkout@v4
+        if: steps.pin.outputs.france_last_good_sha != ''
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ steps.pin.outputs.france_last_good_sha }}
+          path: france-last-good
+          sparse-checkout: data/france/validated_runtime
+          persist-credentials: false
 
       - name: Validate future snapshot source-selection policy
         run: |
@@ -206,6 +227,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.fx_datalab_sha }}" ]; then
             test "$(git -C fx-datalab rev-parse HEAD)" = "${{ steps.pin.outputs.fx_datalab_sha }}"
           fi
+          if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then
+            test "$(git -C france-last-good rev-parse HEAD)" = "${{ steps.pin.outputs.france_last_good_sha }}"
+          fi
           python production/scripts/validate_snapshot.py "production/config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json"
 
       - name: Validate source-specific guards
@@ -229,6 +253,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_zephyre_offer_handoff.py'
           python -m unittest discover -s tests -p 'test_italy_last_good_source.py'
           python -m unittest discover -s tests -p 'test_fx_datalab_source.py'
+          python -m unittest discover -s tests -p 'test_france_last_good_source.py'
           spain_args=()
           if [ -n "${{ steps.pin.outputs.spain_datalab_sha }}" ]; then spain_args=(--spain-datalab ../spain-datalab); fi
           zephyre_args=()
@@ -237,8 +262,64 @@ jobs:
           if [ -n "${{ steps.pin.outputs.italy_datalab_sha }}" ]; then italy_args=(--italy-datalab ../italy-datalab); fi
           fx_args=()
           if [ -n "${{ steps.pin.outputs.fx_datalab_sha }}" ]; then fx_args=(--fx-datalab ../fx-datalab); fi
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
+          france_args=()
+          if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then france_args=(--france-last-good-datalab ../france-last-good); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${france_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
+      - name: Checkout same-generation Stable France reference
+        if: github.event_name == 'workflow_dispatch' && inputs.check_current_national == true
+        uses: actions/checkout@v4
+        with:
+          repository: yass3705/tesla-charge-companion-stable
+          ref: 6b1c62611d71ec96ea163b0dd1dc2df3003f292f
+          path: stable-france-reference
+      - name: Validate idempotent Belib and BUMP supplement cases
+        run: python production/tests/test_france_irve_handoff_idempotence.py stable datalab
+      - name: France last-good Data Lab handoff (strict normalized build parity)
+        if: steps.pin.outputs.france_last_good_sha != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd production
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json')
+          cfg=json.loads(path.read_text())
+          cfg.pop('franceIrveLastGoodDataLab',None)
+          next(d for d in cfg['datasets'] if d['id']=='FR')['primarySource']='stable'
+          Path('../france-reference-config.json').write_text(json.dumps(cfg))
+          PY
+          spain_args=()
+          if [ -n "${{ steps.pin.outputs.spain_datalab_sha }}" ]; then spain_args=(--spain-datalab ../spain-datalab); fi
+          zephyre_args=()
+          if [ -n "${{ steps.pin.outputs.zephyre_datalab_sha }}" ]; then zephyre_args=(--zephyre-datalab ../zephyre-datalab); fi
+          italy_args=()
+          if [ -n "${{ steps.pin.outputs.italy_datalab_sha }}" ]; then italy_args=(--italy-datalab ../italy-datalab); fi
+          fx_args=()
+          if [ -n "${{ steps.pin.outputs.fx_datalab_sha }}" ]; then fx_args=(--fx-datalab ../fx-datalab); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" --config ../france-reference-config.json --out ../dist/v9-france-last-good-reference
+          python scripts/validate_built_snapshot.py ../dist/v9-france-last-good-reference "${{ steps.pin.outputs.snapshot_id }}"
+          python scripts/compare_france_irve_builds.py ../dist/v9-france-last-good-reference ../dist/v9-dev-snapshot
+      - name: Current national France candidate (manual strict diagnostic; 449 BUMP IDs unresolved)
+        if: github.event_name == 'workflow_dispatch' && inputs.check_current_national == true
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd production
+          config=config/snapshots/2026-10-13-be-energyvision-france-irve-handoff-candidate.json
+          test "$(git -C ../stable-france-reference rev-parse HEAD)" = 6b1c62611d71ec96ea163b0dd1dc2df3003f292f
+          python scripts/validate_snapshot.py "$config"
+          python scripts/build_snapshot.py --stable ../stable-france-reference --datalab ../datalab --config "$config" --out ../dist/v9-france-reference
+          python scripts/build_snapshot.py --stable ../stable-france-reference --datalab ../datalab --config "$config" --out ../dist/v9-france-direct-parity --france-irve-direct-parity
+          python scripts/validate_built_snapshot.py ../dist/v9-france-reference 2026-10-13-be-energyvision-france-irve-handoff-candidate
+          python scripts/validate_built_snapshot.py ../dist/v9-france-direct-parity 2026-10-13-be-energyvision-france-irve-handoff-candidate
+          python scripts/compare_france_irve_builds.py ../dist/v9-france-reference ../dist/v9-france-direct-parity
+      - name: Validate selected development candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd production
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
           python tests/test_france_belib_exact_supplement.py ../stable ../datalab ../dist/v9-dev-snapshot

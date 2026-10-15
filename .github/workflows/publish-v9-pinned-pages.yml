@@ -16,6 +16,7 @@ on:
       - "config/snapshots/2026-10-15-es-reve-zephyre-datalab-candidate.json"
       - "config/snapshots/2026-10-15-es-reve-zephyre-italy-datalab-candidate.json"
       - "config/snapshots/2026-10-15-es-reve-zephyre-italy-fx-datalab-candidate.json"
+      - "config/snapshots/2026-10-15-france-last-good-datalab-candidate.json"
 
 permissions:
   contents: read
@@ -53,6 +54,7 @@ jobs:
               out.write(f"zephyre_datalab_sha={cfg['sources'].get('zephyreDataLab',{}).get('sha','')}\n")
               out.write(f"italy_datalab_sha={cfg['sources'].get('italyDataLab',{}).get('sha','')}\n")
               out.write(f"fx_datalab_sha={cfg['sources'].get('fxDataLab',{}).get('sha','')}\n")
+              out.write(f"france_last_good_sha={cfg['sources'].get('franceLastGoodDataLab',{}).get('sha','')}\n")
           PY
       - uses: actions/checkout@v4
         with:
@@ -101,6 +103,14 @@ jobs:
           sparse-checkout: data/fx/exchange_rates.json
           sparse-checkout-cone-mode: false
           persist-credentials: false
+      - uses: actions/checkout@v4
+        if: steps.pin.outputs.france_last_good_sha != ''
+        with:
+          repository: yass3705/tesla-charge-companion-data-lab
+          ref: ${{ steps.pin.outputs.france_last_good_sha }}
+          path: france-last-good
+          sparse-checkout: data/france/validated_runtime
+          persist-credentials: false
 
       - name: Validate future snapshot source-selection policy
         run: |
@@ -125,6 +135,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.fx_datalab_sha }}" ]; then
             test "$(git -C fx-datalab rev-parse HEAD)" = "${{ steps.pin.outputs.fx_datalab_sha }}"
           fi
+          if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then
+            test "$(git -C france-last-good rev-parse HEAD)" = "${{ steps.pin.outputs.france_last_good_sha }}"
+          fi
           python production/scripts/validate_snapshot.py "production/config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json"
 
       - name: Validate source-specific guards
@@ -145,7 +158,9 @@ jobs:
           if [ -n "${{ steps.pin.outputs.italy_datalab_sha }}" ]; then italy_args=(--italy-datalab ../italy-datalab); fi
           fx_args=()
           if [ -n "${{ steps.pin.outputs.fx_datalab_sha }}" ]; then fx_args=(--fx-datalab ../fx-datalab); fi
-          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
+          france_args=()
+          if [ -n "${{ steps.pin.outputs.france_last_good_sha }}" ]; then france_args=(--france-last-good-datalab ../france-last-good); fi
+          python scripts/build_snapshot.py --stable ../stable --datalab ../datalab "${spain_args[@]}" "${zephyre_args[@]}" "${italy_args[@]}" "${fx_args[@]}" "${france_args[@]}" --config "config/snapshots/${{ steps.pin.outputs.snapshot_id }}.json" --out ../dist/v9-dev-snapshot
           python scripts/validate_built_snapshot.py ../dist/v9-dev-snapshot "${{ steps.pin.outputs.snapshot_id }}"
           python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot

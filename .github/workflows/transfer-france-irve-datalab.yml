@@ -59,6 +59,13 @@ jobs:
           comparison={k:{"datalab":a.get(k),"stable":b.get(k),"same":a.get(k)==b.get(k)} for k in keys}
           pathlib.Path("candidate/france-stable-parity.json").write_text(json.dumps(comparison,indent=2)+"\\n")
           print(json.dumps(comparison,indent=2))
+          same_generation=a.get("sourceSha256")==b.get("sourceSha256") and a.get("sourceRetrievedAt")==b.get("sourceRetrievedAt")
+          if same_generation:
+              assert all(a.get(k)==b.get(k) for k in ("stationCount","pdcCount","tileCount","allSha256")), "Same source generation but differing catalogue metadata"
+              assert {t["id"]:t["sha256"] for t in a["tiles"]}=={t["id"]:t["sha256"] for t in b["tiles"]}, "Same source generation but differing tile fingerprints"
+              print("MATCH: same source generation, station/EVSE counts, global catalogue and all tile hashes")
+          else:
+              print("NOT COMPARABLE: Stable and Data Lab are different source generations; no source switch permitted")
           # The static source can legitimately refresh before Stable sync; mismatches
           # are retained for review, never silently overwritten or auto-promoted.
           PY
