@@ -1,0 +1,39 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "beforePhase1": {
+    "Site": 184672,
+    "SourceStation": 184674,
+    "ChargePoint": 389310,
+    "Connector": 389310,
+    "RawOffer": 365066,
+    "OfferScope": 374025,
+    "Evidence": 785
+  },
+  "afterPhase3": {
+    "Site": 362232,
+    "SourceStation": 362234,
+    "ChargePoint": 654932,
+    "Connector": 460144,
+    "RawOffer": 666631,
+    "OfferScope": 710386,
+    "Evidence": 807
+  },
+  "delta": {
+    "Site": 177560,
+    "SourceStation": 177560,
+    "ChargePoint": 265622,
+    "Connector": 70834,
+    "RawOffer": 301565,
+    "OfferScope": 336361,
+    "Evidence": 22
+  },
+  "phase2RawOffers": 578647,
+  "phase3AdditionalActiveDotnlRawOffers": 87984,
+  "activeDotnlSource": {
+    "path": "snapshot-inputs/NL/runtime/all.json.gz",
+    "sha256": "378607d62021696ad5f4f21d4cda01e6c931004ac704f9ff951144637a4bf832",
+    "rawOffers": 87984,
+    "scopeAssertions": 87984
+  },
+  "policy": "Historical NL compact and active NL national compact remain separate RawOffer records by file path, SHA and pointer; neither is deleted or merged. Physical Site never propagates tariff scope."
+}

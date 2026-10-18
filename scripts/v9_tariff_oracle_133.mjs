@@ -18,6 +18,54 @@ function localParts(instant,zone){
     return{minute:Number(fields.hour)*60+Number(fields.minute),date:`${fields.year}-${fields.month}-${fields.day}`,weekday:fields.weekday};
   }catch{return null}
 }
+// Read the DOT-NL wire row itself. Its positions are fixed by the pinned
+// Data Lab compiler: scope, local window, billing, currency, kWh, charging
+// minute, one-time FLAT, parking minute, deferred fee, threshold, weekdays,
+// OCPI duration bands and billing steps. No Production adapter is imported.
+export function independentDotnlCompactOracle(rows,scenario){
+  const duration=scenario.durationMinutes,charging=scenario.chargingMinutes,parking=scenario.postChargeMinutes;
+  if(!Array.isArray(rows)||!rows.length||!Number.isInteger(duration)||!Number.isInteger(charging)||
+     !Number.isInteger(parking)||duration<0||charging<0||parking<0||charging+parking!==duration||
+     !nonnegative(scenario.energyKwh))return fail('invalid_dotnl_session_or_rows');
+  const start=Date.parse(scenario.startAt||'');if(!Number.isFinite(start))return fail('invalid_start_instant');
+  const zone='Europe/Amsterdam',components={energy:0,chargingTime:0,parkingTime:0,flat:0};
+  const flatRates=new Set(),currencies=new Set();
+  for(let i=0;i<duration;i++){
+    const instant=new Date(start+i*60000),local=localParts(instant,zone);
+    if(!local)return fail('invalid_dotnl_local_time');
+    const day=new Date(local.date+'T12:00:00Z').getUTCDay();
+    const matching=rows.filter(r=>Array.isArray(r)&&r.length>=13&&r[0]==='timeWindow'&&
+      Array.isArray(r[11])&&r[11].includes(day)&&hhmm(r[1])!=null&&hhmm(r[2])!=null&&
+      inWindow(local.minute,hhmm(r[1]),hhmm(r[2])));
+    if(matching.length!==1)return fail('dotnl_window_overlap_or_gap');
+    const r=matching[0];
+    if(r[3]!=='kwh'||r[4]!=='EUR'||![r[5],r[6],r[7],r[8],r[9],r[10]].every(nonnegative)||
+       r[9]!==0||r[10]!==0)return fail('unsupported_dotnl_component');
+    // A positive band can only be ignored when its start is beyond this
+    // entire session; otherwise the duration interpretation needs proof.
+    if(!Array.isArray(r[12])||r[12].some(b=>!Array.isArray(b)||b.length<4||
+       !nonnegative(b[1])||!nonnegative(b[3])||b[1]<=duration*60&&b[3]>0))
+      return fail('dotnl_duration_band_not_proven');
+    if(r[13]&&Object.values(r[13]).some(x=>x!=null&&x>1))return fail('dotnl_billing_step_not_proven');
+    currencies.add(r[4]);flatRates.add(r[7]);
+    if(i<charging){components.energy+=scenario.energyKwh/charging*r[5];components.chargingTime+=r[6]}
+    else components.parkingTime+=r[8];
+  }
+  if(currencies.size!==1||flatRates.size!==1)return fail('dotnl_flat_or_currency_changes_within_session');
+  components.flat=[...flatRates][0];
+  for(const key of Object.keys(components))components[key]=money(components[key]);
+  const total=money(Object.values(components).reduce((a,b)=>a+b,0));
+  return{status:'priced',total,currency:'EUR',components,...fxResult(total,'EUR',scenario)};
+}
+export function independentKilowattFreeOracle(connector,stationId,freeStationIds,scenario){
+  if(!connector||!Array.isArray(freeStationIds)||!freeStationIds.includes(stationId)||
+     connector.active!==true||connector.rate_price!==0||connector.rate_currency!=='MAD'||
+     connector.rate_description!=='Free'||!connector.rate_id)
+    return fail('kilowatt_free_source_not_exactly_verified');
+  const total=0;
+  return{status:'priced',total,currency:'MAD',components:{energy:0},
+    ...fxResult(total,'MAD',scenario)};
+}
 function ruleAt(rules,instant,zone){
   const local=localParts(instant,zone);if(!local)return{error:'invalid_source_time_zone'};
   const matches=rules.filter(rule=>{
@@ -128,6 +176,29 @@ export function independentOracle(offer,scenario,context={}){
       idleSupplement:money(parking*pricing.idleSupplementPerMinuteGbp)};
     const total=money(Object.values(components).reduce((a,b)=>a+b,0));
     return{status:'priced',total,currency:'GBP',components,...fxResult(total,'GBP',scenario)};
+  }
+  if(offer.metadata?.source==='Electra eMSP GraphQL'&&offer.metadata?.cpo==='Electra'&&
+     offer.metadata?.verifiedScope==='exact_evse'){
+    if(pricing.priceSelectionBasis!=='session_start_local_time'||
+       pricing.tariffStartLockEvidence!=='electra_official_2026-10-10'||
+       offer.currency!=='EUR'||!Array.isArray(offer.evseIds)||offer.evseIds.length!==1)
+      return fail('electra_source_contract_unverified');
+    if(scenario.includeCongestionFees!==false)return fail('electra_saturation_or_soc_unverified');
+    const start=Date.parse(scenario.startAt||''),local=localParts(new Date(start),'Europe/Paris');
+    if(!Number.isFinite(start)||!local)return fail('electra_invalid_start_time');
+    const day=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(local.weekday);
+    const matches=pricing.rules?.filter(r=>r.scope==='timeWindow'&&r.days?.includes(day)&&
+      hhmm(r.start)!=null&&hhmm(r.end)!=null&&hhmm(r.start)<hhmm(r.end)&&
+      inWindow(local.minute,hhmm(r.start),hhmm(r.end)))||[];
+    if(matches.length!==1)return fail('electra_start_window_not_unique');
+    const rule=matches[0];
+    if(!nonnegative(rule.pricePerKwh)||[rule.chargePerMinute,rule.connectionFee,rule.idlePerMinute,
+       rule.afterMinutesRate,rule.congestionTimePerMinute].some(x=>x!=null&&x!==0)||
+       rule.ocpiDurationBands?.length||rule.ocpiCongestionDurationBands?.length)
+      return fail('electra_additional_component_unverified');
+    const total=money(energy*rule.pricePerKwh);
+    return{status:'priced',total,currency:'EUR',components:{energy:total},
+      priceSelectionBasis:'session_start_local_time',...fxResult(total,'EUR',scenario)};
   }
   if(pricing.type==='ocpi'){
     const tariff=pricing.tariff;

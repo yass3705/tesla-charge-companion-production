@@ -18,7 +18,7 @@
       },
       "expected": {
         "status": "uncomputable",
-        "reason": "unsupported_rule_dimension"
+        "reason": "electra_saturation_or_soc_unverified"
       },
       "timeZone": "Europe/Paris"
     },
@@ -507,6 +507,230 @@
         "reason": "unsupported_pricing_type"
       },
       "timeZone": "Africa/Casablanca"
+    },
+    {
+      "key": "NL-DOT-active",
+      "sourcePath": "snapshot-inputs/NL/runtime/all.json.gz",
+      "sourceSha256": "378607d62021696ad5f4f21d4cda01e6c931004ac704f9ff951144637a4bf832",
+      "jsonPointer": "/8/8/0/5",
+      "adapter": "dotnlCompact",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Amsterdam"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 13.552,
+        "currency": "EUR",
+        "components": {
+          "energy": 13.552,
+          "chargingTime": 0,
+          "parkingTime": 0,
+          "flat": 0
+        }
+      }
+    },
+    {
+      "key": "NL-DOT-midnight",
+      "sourcePath": "snapshot-inputs/NL/runtime/all.json.gz",
+      "sourceSha256": "378607d62021696ad5f4f21d4cda01e6c931004ac704f9ff951144637a4bf832",
+      "jsonPointer": "/8/8/0/5",
+      "adapter": "dotnlCompact",
+      "session": {
+        "startAt": "2026-10-15T21:30:00Z",
+        "durationMinutes": 120,
+        "chargingMinutes": 100,
+        "postChargeMinutes": 20,
+        "energyKwh": 25,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Amsterdam"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 16.94,
+        "currency": "EUR",
+        "components": {
+          "energy": 16.94,
+          "chargingTime": 0,
+          "parkingTime": 0,
+          "flat": 0
+        }
+      }
+    },
+    {
+      "key": "NL-DOT-all-components",
+      "sourcePath": "snapshot-inputs/NL/runtime/all.json.gz",
+      "sourceSha256": "378607d62021696ad5f4f21d4cda01e6c931004ac704f9ff951144637a4bf832",
+      "jsonPointer": "/75478/8/0/5",
+      "adapter": "dotnlCompact",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Amsterdam"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 13.068,
+        "currency": "EUR",
+        "components": {
+          "energy": 11.858,
+          "chargingTime": 0.45375,
+          "parkingTime": 0.15125,
+          "flat": 0.605
+        }
+      }
+    },
+    {
+      "key": "MA-Kilowatt-free-connector-1",
+      "sourcePath": "snapshot-inputs/MA/sources/kilowatt-native-tariffs.json",
+      "sourceSha256": "bbd6e2a33e4e6b8636c4ed937999b46d67eb300381d74cc8439df6ae41036349",
+      "jsonPointer": "/stations/42/connectors/0",
+      "adapter": "kilowattFree",
+      "stationId": "5f6d1cab31a6770a131db1bc",
+      "overlayPath": "snapshot-inputs/MA/sources/kilowatt-tariff-overlay.json",
+      "overlaySha256": "0b3eb8e1a08d0af572ea3303c507f7a4a286c3f51a6354510b5b597e118d44df",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "MAD"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 0,
+        "currency": "MAD",
+        "components": {
+          "energy": 0
+        }
+      }
+    },
+    {
+      "key": "MA-Kilowatt-free-connector-2",
+      "sourcePath": "snapshot-inputs/MA/sources/kilowatt-native-tariffs.json",
+      "sourceSha256": "bbd6e2a33e4e6b8636c4ed937999b46d67eb300381d74cc8439df6ae41036349",
+      "jsonPointer": "/stations/42/connectors/1",
+      "adapter": "kilowattFree",
+      "stationId": "5f6d1cab31a6770a131db1bc",
+      "overlayPath": "snapshot-inputs/MA/sources/kilowatt-tariff-overlay.json",
+      "overlaySha256": "0b3eb8e1a08d0af572ea3303c507f7a4a286c3f51a6354510b5b597e118d44df",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "MAD"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 0,
+        "currency": "MAD",
+        "components": {
+          "energy": 0
+        }
+      }
+    },
+    {
+      "key": "FR-Bois-d-Arcy-no-congestion",
+      "sourcePath": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+      "sourceSha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a",
+      "jsonPointer": "emspOffers:724",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris",
+        "includeCongestionFees": false
+      },
+      "expected": {
+        "status": "priced",
+        "total": 12.2,
+        "currency": "EUR",
+        "components": {
+          "energy": 12.2
+        }
+      },
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "key": "FR-Lully-22kW-Day",
+      "sourcePath": "data/e55c_station_tariffs_v1.json.gz",
+      "sourceSha256": "9c201a4c0f91ee7b41130a32d380e229671b1530b67d0b25812201057805d1a8",
+      "jsonPointer": "/profiles/e55c-scanpay-653f339c973546a8",
+      "session": {
+        "startAt": "2026-10-15T12:00:00Z",
+        "durationMinutes": 120,
+        "chargingMinutes": 90,
+        "postChargeMinutes": 30,
+        "energyKwh": 12,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 10.68,
+        "currency": "EUR",
+        "components": {
+          "energy": 0,
+          "connectedTime": 0,
+          "chargingTime": 7.56,
+          "parkingTime": 2.52,
+          "afterMinutes": 0,
+          "connectionFee": 0.6,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        }
+      },
+      "adapter": "profileRules",
+      "timeZone": "Europe/Paris"
+    },
+    {
+      "key": "FR-Lully-22kW-Night",
+      "sourcePath": "data/e55c_station_tariffs_v1.json.gz",
+      "sourceSha256": "9c201a4c0f91ee7b41130a32d380e229671b1530b67d0b25812201057805d1a8",
+      "jsonPointer": "/profiles/e55c-scanpay-653f339c973546a8",
+      "session": {
+        "startAt": "2026-10-15T21:30:00Z",
+        "durationMinutes": 120,
+        "chargingMinutes": 90,
+        "postChargeMinutes": 30,
+        "energyKwh": 12,
+        "targetCurrency": "EUR",
+        "stationTimeZone": "Europe/Paris"
+      },
+      "expected": {
+        "status": "priced",
+        "total": 8.088,
+        "currency": "EUR",
+        "components": {
+          "energy": 0,
+          "connectedTime": 0,
+          "chargingTime": 5.616,
+          "parkingTime": 1.872,
+          "afterMinutes": 0,
+          "connectionFee": 0.6,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        }
+      },
+      "adapter": "profileRules",
+      "timeZone": "Europe/Paris"
     }
   ],
   "fxSource": {

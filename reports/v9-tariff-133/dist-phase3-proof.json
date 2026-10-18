@@ -1,0 +1,16 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "manifestSha256": "2b7b9964d8fce26f65aaf1e508717a114cb68ca16c66fb3c06ba9a076f2db52f",
+  "fileCount": 2465,
+  "bytes": 750019247,
+  "datasets": 10,
+  "buildInputConfig": "config/snapshots/2026-10-15-v9-tesla-mac-ingress-verified.json",
+  "validation": {
+    "validate_built_snapshot.py": "pass",
+    "verify_candidate_manifest.py": {
+      "ok": true,
+      "allSha256Verified": true
+    }
+  },
+  "scope": "Local immutable work artifact; no publication or runtime switch."
+}

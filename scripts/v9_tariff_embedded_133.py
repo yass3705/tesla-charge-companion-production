@@ -44,7 +44,10 @@ def resolve(root, value):
 def source_paths(root, source):
     sid = source['id']
     if sid == 'netherlands-dotnl-national':
-        return [root/'runtime/data/non_tesla_netherlands/all.json.gz']
+        # The old runtime file is retained for history, but the active
+        # registry reads the separately pinned national source below.
+        return [root/'runtime/data/non_tesla_netherlands/all.json.gz',
+                root/'snapshot-inputs/NL/runtime/all.json.gz']
     if sid == 'belgium-nap-national':
         return sorted((root/'snapshot-inputs/BE/pages').glob('*.json.gz'))
     values = [source.get('path'), *(source.get('paths') or {}).values()]
