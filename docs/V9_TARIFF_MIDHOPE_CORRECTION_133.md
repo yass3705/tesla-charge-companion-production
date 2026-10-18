@@ -14,3 +14,9 @@ Branche corrective Draft empilée sur Production #143. Même pin `2026-10-15-v9-
 Les [golden source](../tests/golden/v9-tariff-phase7-midhope-source-133.json) fixent séparément montants et composantes ; l'[oracle](../scripts/v9_tariff_phase7_source_oracle_133.mjs) lit les octets épinglés et n'importe aucun moteur Production. La [matrice](../reports/v9-tariff-133/phase7-qualification-pin-2026-10-15.json) vérifie toutes les portées exactes et la date du prix. Le rapport des [branches](../reports/v9-tariff-133/phase7-midhope-branches-pin-2026-10-15.json) compare statut, GBP, conversion EUR datée, énergie, stationnement et frais après charge.
 
 Les 666 631 RawOffer, 710 386 OfferScope et leurs empreintes d'IDs restent celles du recensement Phase 7. Les 721 résultats runtime initiaux sont identiques à Phase 6. Les 62 refus sans oracle et 18 divergences insuffisantes sont exclus de la cohorte. Aucune propagation par site #134, activation, fusion, collecte ou publication.
+
+## Vérification
+
+Tests locaux ciblés : 7/7 réussis avec le dist épinglé ; syntaxe Python et `git diff --check` réussis. Les 36 anciennes lignes Midhope conservent exactement leurs résultats, preuves et identifiants ; 28 lignes ont été ajoutées. SHA inchangés : replay Phase 6 `781d37c7483cce48a3d876e29feeef901e2f0c7d0ad4ae5bdf1ba7c06c846c6b`, replay Phase 7 des 721 lignes `f37380acee9b8bfc16409b8b693ddcf97d3f3fe27bb42db0c69a4e01e3a86557`, inventaire complet `284e5a84117e3c879775d2c742bd71198e4b7c3d64fe2b1d1a56b06927686b55`.
+
+CI Draft #144 au commit initial `e8aa474` : [census](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/39163929114) et [evidence](https://github.com/yass3705/tesla-charge-companion-production/actions/runs/39163929145) réussis. Une mise à jour documentaire doit refaire passer les contrôles au SHA final.
