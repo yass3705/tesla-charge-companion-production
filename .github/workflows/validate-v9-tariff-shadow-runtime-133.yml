@@ -1,0 +1,44 @@
+name: Validate V9 tariff shadow runtime (no publish)
+on:
+  pull_request:
+    paths:
+      - 'runtime-owned/assets/v9/tariff-shadow-adapter.js'
+      - 'runtime-owned/assets/v9/runtime-engine.js'
+      - 'runtime-overrides/assets/v9/**'
+      - 'v9-production-shell/**'
+      - 'scripts/build_snapshot.py'
+      - 'scripts/v9_tariff_shadow_fixture_133.py'
+      - 'tests/v9-tariff-shadow-*.mjs'
+      - 'tests/test_production_owned_manifest.py'
+      - 'reports/v9-tariff-133/shadow-runtime-*'
+      - '.github/workflows/validate-v9-tariff-shadow-runtime-133.yml'
+  workflow_dispatch:
+jobs:
+  shadow-browser:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rebuild bounded pinned browser fixture
+        run: python3 scripts/v9_tariff_shadow_fixture_133.py "$RUNNER_TEMP/tcc133-shadow-fixture"
+      - name: Source and runtime integration tests
+        env:
+          TCC_V9_DIST: ${{ runner.temp }}/tcc133-shadow-fixture
+        run: |
+          node --test tests/v9-tariff-shadow-runtime-133.test.mjs tests/v9-tariff-shadow-133.test.mjs
+          python3 -m unittest tests/test_production_owned_manifest.py
+          git diff --check HEAD^
+      - name: Browser dependency
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.1
+          npx playwright install --with-deps chromium
+      - name: Desktop and emulated mobile second calculation
+        env:
+          TCC_V9_DIST: ${{ runner.temp }}/tcc133-shadow-fixture
+        run: node tests/v9-tariff-shadow-browser-133.mjs

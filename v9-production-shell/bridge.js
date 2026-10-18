@@ -199,7 +199,11 @@
     const exchangeUrl=new URL('../data/exchange_rates.json',w.location.href).toString();
     const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null);
     const loaders=w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),routeProvider=w.TCCV9BrowserRouting.osrmProvider();
-    const engine=w.TCCV9RuntimeEngine.createEngine({registry,loaders,routeProvider,vehicleProfiles});
+    const engine=w.TCCV9RuntimeEngine.createEngine({registry,loaders,routeProvider,vehicleProfiles,
+      tariffShadowFlag:cfg.tariffShadowFlag?.pin===cfg.snapshotId?cfg.tariffShadowFlag:null});
+    if(cfg.tariffShadowFlag?.enabled===true)w.__TCC_V9_TARIFF_SHADOW_CONTROL__=Object.freeze({
+      rollback:()=>engine.rollbackTariffShadow(),metrics:()=>engine.tariffShadowMetrics(),
+      diagnostics:()=>engine.tariffShadowDiagnostics()});
     engine.__tccFxRates=verifiedExchangeRates(exchange);
     return engine;
   }

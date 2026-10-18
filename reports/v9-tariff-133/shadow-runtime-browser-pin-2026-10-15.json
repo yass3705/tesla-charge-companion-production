@@ -1,0 +1,65 @@
+{
+  "pin": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+  "profiles": {
+    "desktop": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "cpuThrottle": 1,
+      "evaluations": 64,
+      "candidateP50Ms": 0.3999999985098839,
+      "candidateP95Ms": 0.7000000029802322,
+      "wholeEvaluationOffP95Ms": 1.2999999970197678,
+      "wholeEvaluationShadowP95Ms": 2.2000000029802322,
+      "divergences": {
+        "evaluations": 64,
+        "errors": 0,
+        "status": 0,
+        "amount": 0,
+        "currency": 0,
+        "components": 0,
+        "provenance": 0
+      },
+      "diagnosticCount": 32,
+      "rollbackCallsAfter": 0,
+      "domPreserved": true,
+      "rankInputsPreserved": true
+    },
+    "mobile_emulated_4x_cpu": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "cpuThrottle": 4,
+      "evaluations": 64,
+      "candidateP50Ms": 1,
+      "candidateP95Ms": 4.799999997019768,
+      "wholeEvaluationOffP95Ms": 6.899999998509884,
+      "wholeEvaluationShadowP95Ms": 12.5,
+      "divergences": {
+        "evaluations": 64,
+        "errors": 0,
+        "status": 0,
+        "amount": 0,
+        "currency": 0,
+        "components": 0,
+        "provenance": 0
+      },
+      "diagnosticCount": 32,
+      "rollbackCallsAfter": 0,
+      "domPreserved": true,
+      "rankInputsPreserved": true
+    }
+  },
+  "distManifestSha256": "2391553a5eba1647bd77fe9b586c62c70d3f51139d99fae8a20be42758b8683c",
+  "distFiles": 2466,
+  "sourceDataChangesFromPhase7": 0,
+  "globalShellJourney": {
+    "scenario": "CH Altnau/Tesla 20-80%",
+    "rankedStations": 20,
+    "pageErrors": 0,
+    "flagPresent": false
+  }
+}
