@@ -70,14 +70,16 @@ def main():
         station_country[country]+=1;station_operator[(country,cpo)]+=1
         geo[country]['with_coordinates' if coord else 'without_coordinates']+=1
         if coord:geo[country]['inside_fixed_query_radius' if in_zone else 'outside_fixed_query_radius']+=1
-    points={};point_connectors=defaultdict(list);point_country=Counter()
+    points={};point_connectors=defaultdict(list);point_country=Counter();point_operator=Counter()
     for key,station_key in db.execute('SELECT point_key,station_key FROM ChargePoint'):
         points[key]=station_key
         point_country[stations[station_key][0]]+=1
-    connectors={};connector_country=Counter()
+        point_operator[stations[station_key][:2]]+=1
+    connectors={};connector_country=Counter();connector_operator=Counter()
     for key,point_key in db.execute('SELECT connector_key,point_key FROM Connector'):
         connectors[key]=point_key;point_connectors[point_key].append(key)
         connector_country[stations[points[point_key]][0]]+=1
+        connector_operator[stations[points[point_key]][:2]]+=1
     groups=defaultdict(state);totals=Counter();global_digest={name:hashlib.sha256() for name in ('RawOffer','OfferScope','SourceStation','ChargePoint','Connector')}
     # Stable key hashes prove that every identifier is preserved across reruns.
     for table,column in [('SourceStation','station_key'),('ChargePoint','point_key'),('Connector','connector_key')]:
@@ -149,6 +151,11 @@ def main():
         'sourceStationByCountry':dict(sorted(station_country.items())),
         'chargePointByCountry':dict(sorted(point_country.items())),
         'connectorByCountry':dict(sorted(connector_country.items())),
+        'physicalEntityByCountryCpo':[
+            {'country':country,'cpo':cpo,'sourceStations':station_operator[(country,cpo)],
+             'chargePoints':point_operator[(country,cpo)],'connectors':connector_operator[(country,cpo)]}
+            for country,cpo in sorted(set(station_operator)|set(point_operator)|set(connector_operator),
+                key=lambda x:json.dumps(x,ensure_ascii=False))],
         'sourceStationGeographyByCountry':{k:dict(v) for k,v in sorted(geo.items())},
         'countrySummary':{k:dict(v) for k,v in sorted(country_summary.items())},
         'globalIdentifierSha256':{k:v.hexdigest() for k,v in global_digest.items()},

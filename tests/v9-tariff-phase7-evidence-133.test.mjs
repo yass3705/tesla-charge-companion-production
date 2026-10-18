@@ -21,6 +21,10 @@ test('pin-wide catalogue census, exact crosswalk and no site tariff propagation'
   assert.equal(Object.values(inventory.sourceStationByCountry).reduce((a,b)=>a+b,0),362234);
   assert.equal(Object.values(inventory.chargePointByCountry).reduce((a,b)=>a+b,0),654932);
   assert.equal(Object.values(inventory.connectorByCountry).reduce((a,b)=>a+b,0),460144);
+  assert.equal(inventory.physicalEntityByCountryCpo.reduce((n,r)=>n+r.sourceStations,0),362234);
+  assert.equal(inventory.physicalEntityByCountryCpo.reduce((n,r)=>n+r.chargePoints,0),654932);
+  assert.equal(inventory.physicalEntityByCountryCpo.reduce((n,r)=>n+r.connectors,0),460144);
+  assert.equal(new Set(inventory.physicalEntityByCountryCpo.map(r=>JSON.stringify([r.country,r.cpo]))).size,inventory.physicalEntityByCountryCpo.length);
   assert.equal(inventory.phase6ObservedCohorts,golden.phase6ObservedRuntimeCohorts);
   assert.equal(inventory.runtimeCohortsWithUniqueCatalogueCohort,golden.runtimeCohortsWithUniqueCatalogueCohort);
   assert.equal(inventory.catalogueCohortsRepresentedBySample,golden.catalogueCohortsRepresentedBySample);
