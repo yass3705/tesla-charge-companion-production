@@ -1,0 +1,28 @@
+name: Validate V9 tariff Phase 6 matrix (no publish)
+on:
+  pull_request:
+    paths:
+      - 'scripts/v9_tariff_dualrun_133.mjs'
+      - 'scripts/v9_tariff_phase6_matrix_133.py'
+      - 'scripts/v9_tariff_shadow_bench_133.mjs'
+      - 'tests/v9-tariff-phase6-*.test.mjs'
+      - 'tests/golden/v9-tariff-phase6-*.json'
+      - 'reports/v9-tariff-133/*phase6*'
+      - '.github/workflows/validate-v9-tariff-phase6-133.yml'
+  workflow_dispatch:
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify pinned matrix and isolated shadow contract
+        run: node --test tests/v9-tariff-phase6-evidence-133.test.mjs tests/v9-tariff-phase6-shadow-133.test.mjs tests/v9-tariff-shadow-133.test.mjs
+      - name: Python and whitespace
+        run: |
+          python3 -m py_compile scripts/v9_tariff_phase6_matrix_133.py
+          git diff --check HEAD^

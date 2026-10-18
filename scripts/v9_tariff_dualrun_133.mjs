@@ -117,6 +117,8 @@ const scenarios=scenarioConfig.scenarios.map(spec=>{
 });
 const phase4=process.env.TCC_V9_PHASE4_SAMPLE==='1';
 const sampleAudit=[];
+const phase6Census=process.env.TCC_V9_PHASE6_CENSUS==='1';
+const cohortCensus=new Map();
 const normalize=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 const finite=value=>typeof value==='number'&&Number.isFinite(value);
 const componentKeys=result=>Object.keys(result?.components||{}).sort();
@@ -309,6 +311,19 @@ for(const spec of scenarios){
         const bucket=strata.get(key)||[];bucket.push(x);strata.set(key,bucket);
       }
       const sampled=spec.key.startsWith('FR-bois-d-arcy')?tuples:[...strata.values()].flatMap(bucket=>bucket.slice(0,2));
+      if(phase6Census){
+        const sampleKeys=new Set(sampled.map(x=>[x.station.id,x.evse.id,x.connector.id,x.offer.id].join('\u001f')));
+        for(const x of tuples){
+          const key=[manifest.snapshotId,spec.countryCode,x.station.physicalOperator?.name||null,
+            x.offer.provider||null,x.offer.pricing?.type||x.offer.kind||'unknown'];
+          const serial=JSON.stringify(key);
+          const entry=cohortCensus.get(serial)||{key,exactTuplesInAreas:0,sampled:0,scenarios:{}};
+          entry.exactTuplesInAreas++;
+          if(sampleKeys.has([x.station.id,x.evse.id,x.connector.id,x.offer.id].join('\u001f')))entry.sampled++;
+          entry.scenarios[spec.key]=(entry.scenarios[spec.key]||0)+1;
+          cohortCensus.set(serial,entry);
+        }
+      }
       sampleAudit.push({scenario:spec.key,exactTuplesInArea:tuples.length,strata:strata.size,sampled:sampled.length,
         selection:spec.key.startsWith('FR-bois-d-arcy')?'all exact Electra tuples':
           'ASCII first two exact tuples per country/CPO/channel/power band/pricing family'});
@@ -335,6 +350,7 @@ const summary={snapshotId:manifest.snapshotId,scenarioCount:rows.length,
 if(phase4){summary.sampling={method:'deterministic exact tuple strata within configured pinned query areas',
   scenarios:sampleAudit,exactTuplesInAreas:sampleAudit.reduce((n,x)=>n+x.exactTuplesInArea,0),
   sampled:sampleAudit.reduce((n,x)=>n+x.sampled,0)};}
+if(phase6Census)summary.cohortCensus=[...cohortCensus.values()].sort((a,b)=>JSON.stringify(a.key).localeCompare(JSON.stringify(b.key),'en'));
 const output={summary,rows};
 const file=process.argv[3];if(file)fs.writeFileSync(file,JSON.stringify(output,null,2)+'\n');
 console.log(JSON.stringify(summary));

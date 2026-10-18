@@ -1,0 +1,58 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "mode": "offline recorded-result wrapper replay; not live engine cost",
+  "rows": 719,
+  "cohorts": 175,
+  "defaultDisabled": {
+    "candidateCalls": 0,
+    "logs": 0,
+    "latency": {
+      "calls": 719,
+      "p50Ms": 0.0009,
+      "p95Ms": 0.0019,
+      "maxMs": 0.1494
+    }
+  },
+  "enabled": {
+    "candidateCalls": 719,
+    "metrics": {
+      "evaluations": 719,
+      "errors": 0,
+      "status": 30,
+      "amount": 85,
+      "currency": 14,
+      "components": 0,
+      "provenance": 0
+    },
+    "logs": 719,
+    "logBytes": 289009,
+    "comparedFields": [
+      "status",
+      "total",
+      "currency"
+    ],
+    "unavailableFields": [
+      "legacy_components",
+      "legacy_provenance"
+    ],
+    "latency": {
+      "calls": 719,
+      "p50Ms": 0.0222,
+      "p95Ms": 0.0273,
+      "maxMs": 4.3378
+    }
+  },
+  "rollback": {
+    "candidateCallsAfter": 0,
+    "logsAfter": 0,
+    "latency": {
+      "calls": 719,
+      "p50Ms": 0.0002,
+      "p95Ms": 0.0002,
+      "maxMs": 0.0036
+    }
+  },
+  "uiResponseIdentityPreserved": true,
+  "rankingUnchanged": true,
+  "rawIdentifiersLogged": false
+}

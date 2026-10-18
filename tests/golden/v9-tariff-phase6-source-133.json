@@ -1,0 +1,61 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "cases": [
+    {
+      "country": "ES",
+      "path": "runtime/data/v9/spain-reve-offers/offers_40_-4.json.gz",
+      "sha256": "fc4a261dec4ebf23ef95f790909e3b1d9c5da72042640477cfd68acdc38bf175",
+      "pointer": "/directOffers/6/pricing/componentGroups/1/rules/0/reservationState",
+      "expected": "RESERVATION_EXPIRES"
+    },
+    {
+      "country": "IT",
+      "path": "runtime/data/v9/italy-offers.json",
+      "sha256": "a61fc2fb67901c1387a8af4d8e63e54a949a527f190448b5d88d07ff3caa26b8",
+      "pointer": "/directOffers/49925/pricing/postChargeFeeUnknown",
+      "expected": true
+    },
+    {
+      "country": "IT",
+      "path": "runtime/data/v9/italy-offers.json",
+      "sha256": "a61fc2fb67901c1387a8af4d8e63e54a949a527f190448b5d88d07ff3caa26b8",
+      "pointer": "/directOffers/1917/pricing/postChargeFee/graceMinutes",
+      "expected": 0
+    },
+    {
+      "country": "IT",
+      "path": "runtime/data/v9/italy-offers.json",
+      "sha256": "a61fc2fb67901c1387a8af4d8e63e54a949a527f190448b5d88d07ff3caa26b8",
+      "pointer": "/directOffers/1917/metadata/occupancyPolicy/graceAfterEnergyEndMinutes",
+      "expected": 60
+    },
+    {
+      "country": "NL",
+      "path": "snapshot-inputs/NL/runtime/all.json.gz",
+      "sha256": "378607d62021696ad5f4f21d4cda01e6c931004ac704f9ff951144637a4bf832",
+      "pointer": "/6252/8/0/5/0/12/0/0",
+      "expected": "PARKING_TIME"
+    },
+    {
+      "country": "GB",
+      "path": "snapshot-inputs/UK/all.json.gz",
+      "sha256": "105943ce790b885dafc59d522cffa9f91f2be6a565e23fee04ce22ebde73436c",
+      "pointer": "/sources/0/tariffs/6/elements/0/price_components/0/vat",
+      "expected": 20
+    },
+    {
+      "country": "FR",
+      "path": "snapshot-inputs/FR/platforms/electroverse/t_97_4.json.gz",
+      "sha256": "008c600019bd217ecfbafd8a22c620d44c03436019dd06296d601f11d4fa337d",
+      "pointer": "/emspOffers/3975/pricing/rules/0/ocpiDurationBands/0/0",
+      "expected": "ENERGY"
+    },
+    {
+      "country": "MA",
+      "path": "runtime/data/tesla_stations.json",
+      "sha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5",
+      "pointer": "/1077/pricing/rules/0/billing",
+      "expected": "powerMinute"
+    }
+  ]
+}

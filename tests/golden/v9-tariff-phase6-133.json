@@ -1,0 +1,24 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "manifestSha256": "2b7b9964d8fce26f65aaf1e508717a114cb68ca16c66fb3c06ba9a076f2db52f",
+  "counts": {
+    "rows": 721,
+    "sampledExactTuples": 719,
+    "exactTupleOccurrencesInQueryAreas": 21379,
+    "cohortsObserved": 181,
+    "sampleGateProvedRows": 590,
+    "sampleAllGatesProvedCohorts": 140,
+    "areaSampleCompleteCohorts": 36,
+    "promotionEligibleCohorts": 0,
+    "pricedWithoutOracle": 62
+  },
+  "residualByCountry": {
+    "ES": 22,
+    "FR": 2,
+    "GB": 8,
+    "IT": 20,
+    "MA": 2,
+    "NL": 8
+  },
+  "fullySampledAndProvedQueryAreaCohorts": 29
+}
