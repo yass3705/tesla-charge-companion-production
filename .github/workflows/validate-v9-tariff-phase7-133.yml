@@ -1,0 +1,32 @@
+name: Validate V9 tariff Phase 7 pin census (no publish)
+on:
+  pull_request:
+    paths:
+      - 'config/v9-tariff-phase7-midhope-133-scenarios.json'
+      - 'scripts/v9_tariff_dualrun_133.mjs'
+      - 'scripts/v9_tariff_phase7_*.py'
+      - 'scripts/v9_tariff_phase7_source_oracle_133.mjs'
+      - 'tests/v9-tariff-phase7-*.test.mjs'
+      - 'tests/golden/v9-tariff-phase7-*.json'
+      - 'tests/fixtures/v9-tariff-phase7-midhope-source-133.json.gz'
+      - 'reports/v9-tariff-133/*phase7*'
+      - '.github/workflows/validate-v9-tariff-phase7-133.yml'
+  workflow_dispatch:
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify full-pin counts, frozen row parity and exact Midhope source oracle
+        run: node --test tests/v9-tariff-phase7-evidence-133.test.mjs tests/v9-tariff-phase7-midhope-source-133.test.mjs tests/v9-tariff-shadow-133.test.mjs
+      - name: Verify Python syntax and whitespace
+        run: |
+          python3 -m py_compile scripts/v9_tariff_phase7_inventory_133.py scripts/v9_tariff_phase7_qualification_133.py
+          git diff --check HEAD^

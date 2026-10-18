@@ -1,0 +1,61 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "manifestSha256": "2b7b9964d8fce26f65aaf1e508717a114cb68ca16c66fb3c06ba9a076f2db52f",
+  "catalogueCounts": {
+    "RawOffer": 666631,
+    "OfferScope": 710386,
+    "SourceStation": 362234,
+    "ChargePoint": 654932,
+    "Connector": 460144
+  },
+  "globalIdentifierSha256": {
+    "RawOffer": "dfe9f165fe6ef90484c8532a57cfd441e49d87404a61f6bd6255a19d7f5af4e5",
+    "OfferScope": "c257eb3f30b67b4aa89a3fa2b0094e9357880339e92d30bbb2af39750722877c",
+    "SourceStation": "07fde890ae863b96b31f3f198c40f1cda1aea81a68811d70a7302500e2f76930",
+    "ChargePoint": "5cdd6ce8a0f3cc1f2996b84f0732d79fe83481cb59f2afbf35d8b68d0729c4a2",
+    "Connector": "719605755cd7327a282e75c07c23278f224d2651254f0b5479769e77b5736bc2"
+  },
+  "pinWideCohorts": 757,
+  "uniqueExactSourceTuples": 434401,
+  "phase6ObservedRuntimeCohorts": 181,
+  "runtimeCohortsWithUniqueCatalogueCohort": 177,
+  "catalogueCohortsRepresentedBySample": 123,
+  "queryAreaUniqueExactTuples": 17237,
+  "queryAreaSessionOccurrences": 21379,
+  "selected": [
+    {
+      "name": "Midhope",
+      "key": [
+        "2026-10-15-v9-tesla-mac-ingress-verified",
+        "GB",
+        "Connected Kerb Midhope Road verified four connector guest tariff (summer 2026)",
+        "Direct",
+        "connected_kerb_midhope_guest_verified"
+      ],
+      "phase6SampleRows": 2,
+      "branchScenarios": 9,
+      "branchEvaluations": 36,
+      "originalSupplierSourcePinned": true,
+      "pinWideCandidate": false
+    },
+    {
+      "name": "CH DE*EDH",
+      "key": [
+        "2026-10-15-v9-tesla-mac-ingress-verified",
+        "CH",
+        "DE*EDH",
+        "Direct",
+        "rules"
+      ],
+      "phase6SampleRows": 0,
+      "branchScenarios": 4,
+      "branchEvaluations": 8,
+      "originalSupplierSourcePinned": false,
+      "pinWideCandidate": false
+    }
+  ],
+  "candidateCount": 0,
+  "activationCount": 0,
+  "residual62": 62,
+  "insufficient18": 18
+}

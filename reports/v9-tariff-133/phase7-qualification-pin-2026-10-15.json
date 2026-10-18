@@ -1,0 +1,213 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "manifestSha256": "2b7b9964d8fce26f65aaf1e508717a114cb68ca16c66fb3c06ba9a076f2db52f",
+  "catalogueCounts": {
+    "RawOffer": 666631,
+    "OfferScope": 710386,
+    "SourceStation": 362234,
+    "ChargePoint": 654932,
+    "Connector": 460144
+  },
+  "globalIdentifierSha256": {
+    "RawOffer": "dfe9f165fe6ef90484c8532a57cfd441e49d87404a61f6bd6255a19d7f5af4e5",
+    "OfferScope": "c257eb3f30b67b4aa89a3fa2b0094e9357880339e92d30bbb2af39750722877c",
+    "SourceStation": "07fde890ae863b96b31f3f198c40f1cda1aea81a68811d70a7302500e2f76930",
+    "ChargePoint": "5cdd6ce8a0f3cc1f2996b84f0732d79fe83481cb59f2afbf35d8b68d0729c4a2",
+    "Connector": "719605755cd7327a282e75c07c23278f224d2651254f0b5479769e77b5736bc2"
+  },
+  "pinWideCohorts": 757,
+  "phase6ObservedRuntimeCohorts": 181,
+  "runtimeCohortsWithUniqueCatalogueCohort": 177,
+  "catalogueCohortsRepresentedBySample": 123,
+  "queryAreaUniqueExactTuples": 17237,
+  "queryAreaSessionOccurrences": 21379,
+  "same721RuntimeRows": true,
+  "residualPricedWithoutOracle": 62,
+  "insufficientDivergences": 18,
+  "selected": [
+    {
+      "name": "Midhope",
+      "key": [
+        "2026-10-15-v9-tesla-mac-ingress-verified",
+        "GB",
+        "Connected Kerb Midhope Road verified four connector guest tariff (summer 2026)",
+        "Direct",
+        "connected_kerb_midhope_guest_verified"
+      ],
+      "census": {
+        "key": [
+          "2026-10-15-v9-tesla-mac-ingress-verified",
+          "GB",
+          "Connected Kerb Midhope Road verified four connector guest tariff (summer 2026)",
+          "Direct",
+          "connected_kerb_midhope_guest_verified"
+        ],
+        "rawOfferCount": 4,
+        "offerScopeCount": 4,
+        "scopeStatuses": {
+          "source_exact_join": 4
+        },
+        "exactStationCount": 1,
+        "exactPointCount": 4,
+        "exactConnectorCount": 4,
+        "uniqueExactSourceTuples": 4,
+        "exactStationsInsideFixedQueryRadii": 1,
+        "rawKeysSha256": "8f20511a77515356e70e437116dd181e3ff5b831a293494ef19ffc0cb7cddd4e",
+        "sourcePathCount": 1,
+        "observedPhase6KeyExact": false
+      },
+      "phase6SampleRows": 2,
+      "exactAssertions": [
+        {
+          "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+          "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+          "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+          "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+          "scopeKind": "Connector",
+          "scopeSourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}",
+          "linkStatus": "source_exact_join",
+          "stationKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d",
+          "pointKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19825",
+          "connectorKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19825:connector:a46c9e98-5d68-4025-989a-ab416d7ab670"
+        },
+        {
+          "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+          "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+          "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+          "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+          "scopeKind": "Connector",
+          "scopeSourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}",
+          "linkStatus": "source_exact_join",
+          "stationKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d",
+          "pointKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19865",
+          "connectorKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19865:connector:d19e0ae8-1424-40d8-ae9a-b13fe6704484"
+        },
+        {
+          "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+          "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+          "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+          "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+          "scopeKind": "Connector",
+          "scopeSourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}",
+          "linkStatus": "source_exact_join",
+          "stationKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d",
+          "pointKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19716",
+          "connectorKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19716:connector:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0"
+        },
+        {
+          "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+          "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+          "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+          "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+          "scopeKind": "Connector",
+          "scopeSourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}",
+          "linkStatus": "source_exact_join",
+          "stationKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d",
+          "pointKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19707",
+          "connectorKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19707:connector:9a1d7557-d59c-4e95-a929-b667d73843f0"
+        }
+      ],
+      "branchScenarios": 9,
+      "branchEvaluations": 36,
+      "independentSourceOracle": "midhopeSourceOracle; exact pinned bytes and manual golden",
+      "originalSupplierSourcePinned": true,
+      "pinWideCandidate": false,
+      "branchCoverage": {
+        "energy": "proved_all_four",
+        "fixed_fee": "absent_preauthorisation_excluded",
+        "time": "proved_parking_and_idle",
+        "parking": "proved_weekday_sunday_and_window_boundaries",
+        "hourly_dst": "calculation_proved_supplier_winter_price_unconfirmed",
+        "threshold": "proved_started_30_minute_blocks",
+        "cap": "absent_in_complete_source_pricing_object",
+        "subscription": "absent_in_complete_source_offer",
+        "congestion": "absent_in_complete_source_pricing_object",
+        "fx": "GBP_and_2026_10_15_dated_EUR_proved",
+        "validity": "before_validFrom_rejected"
+      },
+      "blockedReason": "winterEvidence is not_confirmed_not_activated: supplier price validity after DST unproved for this date-unbounded cohort",
+      "candidateScope": "only this immutable pin and exact four connectors; flag remains off"
+    },
+    {
+      "name": "CH DE*EDH",
+      "key": [
+        "2026-10-15-v9-tesla-mac-ingress-verified",
+        "CH",
+        "DE*EDH",
+        "Direct",
+        "rules"
+      ],
+      "census": {
+        "key": [
+          "2026-10-15-v9-tesla-mac-ingress-verified",
+          "CH",
+          "DE*EDH",
+          "Direct",
+          "rules"
+        ],
+        "rawOfferCount": 2,
+        "offerScopeCount": 2,
+        "scopeStatuses": {
+          "exact_unique": 2
+        },
+        "exactStationCount": 1,
+        "exactPointCount": 2,
+        "exactConnectorCount": 2,
+        "uniqueExactSourceTuples": 2,
+        "exactStationsInsideFixedQueryRadii": 0,
+        "rawKeysSha256": "96d0e70dce987c89ed42126cef085165b6050babbb4a40badbd3291bd88a1471",
+        "sourcePathCount": 1,
+        "observedPhase6KeyExact": false
+      },
+      "phase6SampleRows": 0,
+      "exactAssertions": [
+        {
+          "rawKey": "runtime/data/v9/switzerland-offers.json:directOffers:7170",
+          "offerId": "ch:de-edh:DE-EDH-E001113:direct",
+          "sourcePath": "runtime/data/v9/switzerland-offers.json",
+          "sourceSha256": "30cd7215c10359610d25b61860227a9a017441b22169efae512bb0afb8d83e3a",
+          "scopeKind": "EVSE",
+          "scopeSourceId": "DE*EDH*E001113",
+          "linkStatus": "exact_unique",
+          "stationKey": "CH:CH*EDH:12ebaba4-1d4f-11ee-8421-42010aa40fc0:10636",
+          "pointKey": "CH:CH*EDH:12ebaba4-1d4f-11ee-8421-42010aa40fc0:10636:point:0:0",
+          "connectorKey": "CH:CH*EDH:12ebaba4-1d4f-11ee-8421-42010aa40fc0:10636:point:0:0:connector"
+        },
+        {
+          "rawKey": "runtime/data/v9/switzerland-offers.json:directOffers:7171",
+          "offerId": "ch:de-edh:DE-EDH-E001114:direct",
+          "sourcePath": "runtime/data/v9/switzerland-offers.json",
+          "sourceSha256": "30cd7215c10359610d25b61860227a9a017441b22169efae512bb0afb8d83e3a",
+          "scopeKind": "EVSE",
+          "scopeSourceId": "DE*EDH*E001114",
+          "linkStatus": "exact_unique",
+          "stationKey": "CH:CH*EDH:12ebaba4-1d4f-11ee-8421-42010aa40fc0:10636",
+          "pointKey": "CH:CH*EDH:12ebaba4-1d4f-11ee-8421-42010aa40fc0:10636:point:1:0",
+          "connectorKey": "CH:CH*EDH:12ebaba4-1d4f-11ee-8421-42010aa40fc0:10636:point:1:0:connector"
+        }
+      ],
+      "branchScenarios": 4,
+      "branchEvaluations": 8,
+      "independentSourceOracle": "chEdhPinnedOracle on derived EUR payload",
+      "originalSupplierSourcePinned": false,
+      "pinWideCandidate": false,
+      "branchCoverage": {
+        "energy": "proved_derived_eur_bytes",
+        "fixed_fee": "absent_in_derived_offer",
+        "time": "proved_connected_time",
+        "parking": "no_separate_parking_component",
+        "hourly_dst": "all_day_rule_only",
+        "threshold": "proved_239_240_241_300_minutes",
+        "cap": "absent_in_derived_offer",
+        "subscription": "absent_in_derived_offer",
+        "congestion": "absent_in_derived_offer",
+        "fx": "upstream_chf_and_dated_conversion_not_pinned",
+        "validity": "no_explicit_validity_window_in_derived_offer"
+      },
+      "blockedReason": "upstream CHF tariff and dated FX source are not pinned; derived EUR bytes alone do not prove supplier price"
+    }
+  ],
+  "pinWideCandidateCount": 0,
+  "activationCount": 0,
+  "siteKeyUsedForTariffJoin": false
+}
