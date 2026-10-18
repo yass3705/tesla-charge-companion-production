@@ -1,0 +1,13 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "catalogue": {"RawOffer": 666631, "SourceStation": 362234, "ChargePoint": 654932, "Connector": 460144, "OfferScope": 710386},
+  "sampledExactTuples": 719,
+  "rows": 721,
+  "states": {"priced": 652, "uncomputable": 55, "ineligible": 12, "no_exact_offer": 2},
+  "classifications": {"match": 689, "correction_demonstrated": 14, "data_insufficient": 18},
+  "catalogueProof": {"exact_catalogue_link": 301, "exact_derived_catalogue_link": 267, "raw_offer_not_enumerated": 151, "no_exact_runtime_offer": 2},
+  "independentOraclePriced": 422,
+  "pricedWithoutIndependentOracle": 230,
+  "electraExactOffersPerScenario": 12,
+  "electraNoCongestionEur": 12.2
+}

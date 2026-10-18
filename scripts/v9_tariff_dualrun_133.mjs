@@ -83,6 +83,8 @@ const scenarios=scenarioConfig.scenarios.map(spec=>{
   const row=teslaCatalog.find(item=>item.countryCode===spec.countryTesla&&Number.isFinite(item.latitude)&&Number.isFinite(item.longitude));
   return {...spec,origin:row?{lat:row.latitude,lon:row.longitude}:null};
 });
+const phase4=process.env.TCC_V9_PHASE4_SAMPLE==='1';
+const sampleAudit=[];
 const normalize=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 const finite=value=>typeof value==='number'&&Number.isFinite(value);
 const componentKeys=result=>Object.keys(result?.components||{}).sort();
@@ -233,16 +235,40 @@ for(const spec of scenarios){
       .filter(offer=>scoped(offer,evse,connector).eligible).map(offer=>({station,evse,connector,offer})))));
     const chosen=combinations[0]||null;
     const station=chosen?.station||candidates.find(st=>st.evses?.length&&st.offers?.length)||candidates.find(st=>st.evses?.length)||null;
-    if(!station){rows.push({key:spec.key,country:spec.countryCode,status:'missing_station',areaStations:area.stations.length,
+    if(!station){if(phase4)sampleAudit.push({scenario:spec.key,exactTuplesInArea:0,strata:0,sampled:0});rows.push({key:spec.key,country:spec.countryCode,status:'missing_station',areaStations:area.stations.length,
       nearby:area.stations.slice(0,3).map(x=>({id:x.id,name:x.name,operator:x.physicalOperator?.name}))});continue;}
     if(!chosen){
+      if(phase4)sampleAudit.push({scenario:spec.key,exactTuplesInArea:0,strata:0,sampled:0});
       const evse=station.evses?.find(evse=>evse.connectors?.length)||null;
       rows.push({key:spec.key,country:spec.countryCode,stationId:station.id,stationName:station.name,
         evseId:evse?.id,connectorId:evse?.connectors?.[0]?.id,status:'no_exact_offer',sourceOffers:station.offers?.length||0});continue;
     }
     // One independent sample per exact source offer on the selected physical
     // station. The source offer remains distinct even when its provider matches.
-    const selected=(spec.key==='FR-bois-d-arcy'?combinations:combinations.filter(x=>x.station.id===chosen.station.id))
+    const selected=phase4?(()=>{
+      // Stable selection over exact station/PDC/connector/offer tuples. The
+      // population is only the loaded stations inside this scenario radius.
+      const tuples=[...new Map(combinations.map(x=>[
+        [x.station.id,x.evse.id,x.connector.id,x.offer.id].join('\u001f'),x])).values()]
+        .sort((a,b)=>{
+          const left=[a.station.id,a.evse.id,a.connector.id,a.offer.id].join('\u001f');
+          const right=[b.station.id,b.evse.id,b.connector.id,b.offer.id].join('\u001f');
+          return left<right?-1:left>right?1:0;
+        });
+      const strata=new Map();
+      for(const x of tuples){
+        const family=String(x.offer.pricing?.type||x.offer.kind||'unknown');
+        const power=Number(x.connector.powerKw)||0;
+        const powerBand=power<25?'AC/low':power<150?'DC/mid':'DC/high';
+        const key=[spec.countryCode,x.station.physicalOperator?.name||'unknown',x.offer.provider||'unknown',powerBand,family].join('\u001f');
+        const bucket=strata.get(key)||[];bucket.push(x);strata.set(key,bucket);
+      }
+      const sampled=spec.key.startsWith('FR-bois-d-arcy')?tuples:[...strata.values()].flatMap(bucket=>bucket.slice(0,2));
+      sampleAudit.push({scenario:spec.key,exactTuplesInArea:tuples.length,strata:strata.size,sampled:sampled.length,
+        selection:spec.key.startsWith('FR-bois-d-arcy')?'all exact Electra tuples':
+          'ASCII first two exact tuples per country/CPO/channel/power band/pricing family'});
+      return sampled;
+    })(): (spec.key==='FR-bois-d-arcy'?combinations:combinations.filter(x=>x.station.id===chosen.station.id))
       .filter((x,index,all)=>all.findIndex(y=>y.station.id===x.station.id&&y.offer.id===x.offer.id)===index);
     for(const {station:sample,evse,connector,offer} of selected){
       const engineSession=runtimeSession(offer,scenarioSession);
@@ -252,7 +278,8 @@ for(const spec of scenarios){
       const delta=compare(next,legacyResult);
       rows.push({key:spec.key,country:spec.countryCode,stationId:sample.id,stationName:sample.name,
         evseId:evse.id,connectorId:connector.id,powerKw:connector.powerKw,offerId:next.offerId,
-        channel:offer.provider,sourceOffers:sample.offers.length,new:next,legacy:delta,
+        cpo:sample.physicalOperator?.name||null,channel:offer.provider,tariffFamily:offer.pricing?.type||offer.kind||'unknown',
+        sourceOffers:sample.offers.length,new:next,legacy:delta,
         classification:delta.classification});
     }
   }catch(error){rows.push({key:spec.key,country:spec.countryCode,status:'load_error',reason:String(error?.message||error)});}
@@ -260,6 +287,9 @@ for(const spec of scenarios){
 const summary={snapshotId:manifest.snapshotId,scenarioCount:rows.length,
   byStatus:Object.fromEntries([...new Set(rows.map(x=>x.new?.status||x.status))].map(s=>[s,rows.filter(x=>(x.new?.status||x.status)===s).length])),
   byClassification: Object.fromEntries([...new Set(rows.map(x=>x.classification||'not_compared'))].map(s=>[s,rows.filter(x=>(x.classification||'not_compared')===s).length]))};
+if(phase4){summary.sampling={method:'deterministic exact tuple strata within configured pinned query areas',
+  scenarios:sampleAudit,exactTuplesInAreas:sampleAudit.reduce((n,x)=>n+x.exactTuplesInArea,0),
+  sampled:sampleAudit.reduce((n,x)=>n+x.sampled,0)};}
 const output={summary,rows};
 const file=process.argv[3];if(file)fs.writeFileSync(file,JSON.stringify(output,null,2)+'\n');
 console.log(JSON.stringify(summary));
