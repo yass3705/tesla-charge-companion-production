@@ -1,0 +1,5935 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "dualrunSha256": "b802ea7425d953aad97ab95aaf1d413acd636a8633d3cba54ab30b3db6a638d6",
+  "sampling": {
+    "method": "deterministic exact tuple strata within configured pinned query areas",
+    "scenarios": [
+      {
+        "scenario": "FR-bois-d-arcy",
+        "exactTuplesInArea": 12,
+        "strata": 1,
+        "sampled": 12,
+        "selection": "all exact Electra tuples"
+      },
+      {
+        "scenario": "FR-place-lully",
+        "exactTuplesInArea": 4,
+        "strata": 1,
+        "sampled": 2,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "FR-place-lully-night",
+        "exactTuplesInArea": 4,
+        "strata": 1,
+        "sampled": 2,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "FR-place-lully-dst",
+        "exactTuplesInArea": 4,
+        "strata": 1,
+        "sampled": 2,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "FR-metropolis",
+        "exactTuplesInArea": 23,
+        "strata": 5,
+        "sampled": 9,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "FR-metropolis-long",
+        "exactTuplesInArea": 23,
+        "strata": 5,
+        "sampled": 9,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "CH",
+        "exactTuplesInArea": 50,
+        "strata": 12,
+        "sampled": 23,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "IT",
+        "exactTuplesInArea": 2624,
+        "strata": 28,
+        "sampled": 56,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "DE",
+        "exactTuplesInArea": 0,
+        "strata": 0,
+        "sampled": 0
+      },
+      {
+        "scenario": "ES",
+        "exactTuplesInArea": 3269,
+        "strata": 81,
+        "sampled": 161,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "NL",
+        "exactTuplesInArea": 4098,
+        "strata": 77,
+        "sampled": 139,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "NL-midnight",
+        "exactTuplesInArea": 4098,
+        "strata": 77,
+        "sampled": 139,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "GB",
+        "exactTuplesInArea": 92,
+        "strata": 9,
+        "sampled": 17,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "GB-Midhope",
+        "exactTuplesInArea": 4,
+        "strata": 1,
+        "sampled": 2,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "GB-GeniePoint",
+        "exactTuplesInArea": 0,
+        "strata": 0,
+        "sampled": 0
+      },
+      {
+        "scenario": "BE",
+        "exactTuplesInArea": 7049,
+        "strata": 66,
+        "sampled": 128,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "MA",
+        "exactTuplesInArea": 10,
+        "strata": 2,
+        "sampled": 3,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "TESLA-SuC",
+        "exactTuplesInArea": 1,
+        "strata": 1,
+        "sampled": 1,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "TESLA-SuC-congestion",
+        "exactTuplesInArea": 1,
+        "strata": 1,
+        "sampled": 1,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "TESLA-Mac",
+        "exactTuplesInArea": 1,
+        "strata": 1,
+        "sampled": 1,
+        "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+      },
+      {
+        "scenario": "FR-bois-d-arcy-no-congestion",
+        "exactTuplesInArea": 12,
+        "strata": 1,
+        "sampled": 12,
+        "selection": "all exact Electra tuples"
+      }
+    ],
+    "exactTuplesInAreas": 21379,
+    "sampled": 719
+  },
+  "population": "Only exact runtime tuples in the 21 configured geographic/scenario queries; repeated sessions count separately. Not a catalogue sample rate.",
+  "catalogue": {
+    "RawOffer": 666631,
+    "SourceStation": 362234,
+    "ChargePoint": 654932,
+    "Connector": 460144,
+    "OfferScope": 710386
+  },
+  "rows": 721,
+  "summary": {
+    "status": {
+      "uncomputable": 55,
+      "priced": 652,
+      "ineligible": 12,
+      "no_exact_offer": 2
+    },
+    "classification": {
+      "match": 689,
+      "data_insufficient": 18,
+      "correction_demonstrated": 14
+    },
+    "catalogueProof": {
+      "exact_catalogue_link": 301,
+      "no_exact_runtime_offer": 2,
+      "exact_derived_catalogue_link": 267,
+      "raw_offer_not_enumerated": 151
+    },
+    "oracle": {
+      "uncomputable": 285,
+      "priced": 422,
+      "not_run": 14
+    }
+  },
+  "byCountryCpoChannelPowerFamily": [
+    {
+      "country": "BE",
+      "cpo": "50five",
+      "channel": "50five",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "50five",
+      "channel": "50five",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Allego",
+      "channel": "Allego",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Allego",
+      "channel": "Allego",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Backcharge GmbH",
+      "channel": "Backcharge GmbH",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 1,
+      "states": {
+        "priced": 1
+      },
+      "classifications": {
+        "match": 1
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 1
+      },
+      "oracle": {
+        "priced": 1
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Calix",
+      "channel": "Calix",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Calix",
+      "channel": "Calix",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "CenEnergy",
+      "channel": "CenEnergy",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 1,
+        "raw_offer_not_enumerated": 1
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "ChargePoint",
+      "channel": "ChargePoint",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "ChargePoint",
+      "channel": "ChargePoint",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Chargewell Netherlands",
+      "channel": "Chargewell Netherlands",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Chargewell – Vlaamse Overheid",
+      "channel": "Chargewell – Vlaamse Overheid",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Community by Q8 (Belgium)",
+      "channel": "Community by Q8 (Belgium)",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "D'Ieteren Energy MSP6",
+      "channel": "D'Ieteren Energy MSP6",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 1,
+      "states": {
+        "priced": 1
+      },
+      "classifications": {
+        "match": 1
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 1
+      },
+      "oracle": {
+        "priced": 1
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "DATS 24",
+      "channel": "DATS 24",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "DATS 24",
+      "channel": "DATS 24",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "DATS 24",
+      "channel": "DATS 24",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "D’Ieteren Energy",
+      "channel": "D’Ieteren Energy",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "D’Ieteren Energy",
+      "channel": "D’Ieteren Energy",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "ENGIE Vianeo",
+      "channel": "ENGIE Vianeo",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "ENGIE Vianeo",
+      "channel": "ENGIE Vianeo",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "ENGIE Vianeo",
+      "channel": "ENGIE Vianeo",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 1,
+      "states": {
+        "priced": 1
+      },
+      "classifications": {
+        "match": 1
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 1
+      },
+      "oracle": {
+        "priced": 1
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "EQUANS",
+      "channel": "EQUANS",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "EVECHARGE",
+      "channel": "EVECHARGE",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Ecotap",
+      "channel": "Ecotap",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "ElectraClear",
+      "channel": "ElectraClear",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Electricea",
+      "channel": "Electricea",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Eneco",
+      "channel": "Eneco",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Eneco",
+      "channel": "Eneco",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Eneco",
+      "channel": "Eneco",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Even Laden",
+      "channel": "Even Laden",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Fastned",
+      "channel": "Fastned",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "G&V",
+      "channel": "G&V",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Gabriels",
+      "channel": "Gabriels",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Gabriels",
+      "channel": "Gabriels",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "IONITY",
+      "channel": "IONITY",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Interparking",
+      "channel": "Interparking",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Lidl",
+      "channel": "Lidl",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Lidl",
+      "channel": "Lidl",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Lidl",
+      "channel": "Lidl",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Luminus",
+      "channel": "Luminus",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Luminus",
+      "channel": "Luminus",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Luminus Sub-MSP",
+      "channel": "Luminus Sub-MSP",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Mobility Pulse",
+      "channel": "Mobility Pulse",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "MobilityPlus",
+      "channel": "MobilityPlus",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "MobilityPlus",
+      "channel": "MobilityPlus",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "NUMOBI",
+      "channel": "NUMOBI",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "PluginCompany",
+      "channel": "PluginCompany",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 1,
+        "exact_derived_catalogue_link": 1
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Pluginvest",
+      "channel": "Pluginvest",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Pluginvest",
+      "channel": "Pluginvest",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Powered By Zeno",
+      "channel": "Powered By Zeno",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Q8 electric",
+      "channel": "Q8 electric",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Q8 electric",
+      "channel": "Q8 electric",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Shell Recharge",
+      "channel": "Shell Recharge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Shell Recharge",
+      "channel": "Shell Recharge",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Smartchargers X-Charge",
+      "channel": "Smartchargers X-Charge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Sparki",
+      "channel": "Sparki",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Spirii",
+      "channel": "Spirii",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Spirii",
+      "channel": "Spirii",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Stroohm",
+      "channel": "Stroohm",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Stroohm",
+      "channel": "Stroohm",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Tesla",
+      "channel": "Tesla",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Tesla",
+      "channel": "Tesla",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 1,
+      "states": {
+        "uncomputable": 1
+      },
+      "classifications": {
+        "match": 1
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 1
+      },
+      "oracle": {
+        "uncomputable": 1
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "Watte?!",
+      "channel": "Watte?!",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "emyon",
+      "channel": "emyon",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 1,
+        "exact_derived_catalogue_link": 1
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "BE",
+      "cpo": "novoeco | recharge (BayWa)",
+      "channel": "novoeco | recharge (BayWa)",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "Energie 360 Grad AG",
+      "channel": "Energie 360",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "Lidl Schweiz AG",
+      "channel": "Lidl",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 1,
+        "ineligible": 1
+      },
+      "classifications": {
+        "match": 1,
+        "data_insufficient": 1
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 1,
+        "not_run": 1
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "Lidl Schweiz AG",
+      "channel": "Lidl",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 1,
+        "ineligible": 1
+      },
+      "classifications": {
+        "match": 1,
+        "data_insufficient": 1
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 1,
+        "not_run": 1
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "M-Charge",
+      "channel": "Migrol / M-Charge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 1,
+      "states": {
+        "priced": 1
+      },
+      "classifications": {
+        "match": 1
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 1
+      },
+      "oracle": {
+        "uncomputable": 1
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "M-Charge",
+      "channel": "Migrol / M-Charge",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "Move",
+      "channel": "MOVE Mobility",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 1,
+        "ineligible": 1
+      },
+      "classifications": {
+        "match": 1,
+        "data_insufficient": 1
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 1,
+        "not_run": 1
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "Move",
+      "channel": "MOVE Mobility",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 1,
+        "ineligible": 1
+      },
+      "classifications": {
+        "match": 1,
+        "data_insufficient": 1
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 1,
+        "not_run": 1
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "Shell Recharge",
+      "channel": "Shell Recharge / evpass",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "Shell Recharge",
+      "channel": "Shell Recharge / evpass",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "eCarUp",
+      "channel": "CH*ECU",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "eCarUp",
+      "channel": "eCarUp",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "CH",
+      "cpo": "swisscharge.ch AG",
+      "channel": "Swisscharge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "DE",
+      "cpo": null,
+      "channel": null,
+      "powerBand": null,
+      "tariffFamily": null,
+      "rows": 1,
+      "states": {
+        "no_exact_offer": 1
+      },
+      "classifications": {
+        "data_insufficient": 1
+      },
+      "catalogueProof": {
+        "no_exact_runtime_offer": 1
+      },
+      "oracle": {
+        "not_run": 1
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "ACCIONA Recarga",
+      "channel": "ACCIONA Recarga",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "ACCIONA Recarga",
+      "channel": "ACCIONA Recarga",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "ACCIONA Recarga",
+      "channel": "ACCIONA Recarga",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Atlante Iberia S.L.",
+      "channel": "Atlante Iberia S.L.",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 1,
+      "states": {
+        "priced": 1
+      },
+      "classifications": {
+        "match": 1
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 1
+      },
+      "oracle": {
+        "uncomputable": 1
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Atlante Iberia S.L.",
+      "channel": "Atlante Iberia S.L.",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Atlante Iberia S.L.",
+      "channel": "Atlante Iberia S.L.",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "CENTROS COMERCIALES CARREFOUR SA",
+      "channel": "CENTROS COMERCIALES CARREFOUR SA",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "CENTROS COMERCIALES CARREFOUR SA",
+      "channel": "CENTROS COMERCIALES CARREFOUR SA",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "CHARGING TOGETHER SL",
+      "channel": "CHARGING TOGETHER SL",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "CHARGING TOGETHER SL",
+      "channel": "CHARGING TOGETHER SL",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Congreso de los Diputados",
+      "channel": "Congreso de los Diputados",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "EDP Charge",
+      "channel": "EDP Charge",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "EDP Charge",
+      "channel": "EDP Charge",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "EDP Charge",
+      "channel": "EDP Charge",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "ELECTROMAPS SL",
+      "channel": "ELECTROMAPS SL",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "ELECTROMAPS SL",
+      "channel": "ELECTROMAPS SL",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "EMPRESA MUNICIPAL DE TRANSPORTES DE MADRID, S.A.",
+      "channel": "EMPRESA MUNICIPAL DE TRANSPORTES DE MADRID, S.A.",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "EMPRESA MUNICIPAL DE TRANSPORTES DE MADRID, S.A.",
+      "channel": "EMPRESA MUNICIPAL DE TRANSPORTES DE MADRID, S.A.",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "EMPRESA MUNICIPAL DE TRANSPORTES DE MADRID, S.A.",
+      "channel": "EMPRESA MUNICIPAL DE TRANSPORTES DE MADRID, S.A.",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "ENDESA X WAY, S.L.",
+      "channel": "ENDESA X WAY, S.L.",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "ENDESA X WAY, S.L.",
+      "channel": "ENDESA X WAY, S.L.",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "ENDESA X WAY, S.L.",
+      "channel": "ENDESA X WAY, S.L.",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Electra",
+      "channel": "Electra",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Eranovum E-Mobility",
+      "channel": "Eranovum E-Mobility",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Eranovum E-Mobility",
+      "channel": "Eranovum E-Mobility",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Eranovum E-Mobility",
+      "channel": "Eranovum E-Mobility",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "FENÍE ENERGÍA",
+      "channel": "FENÍE ENERGÍA",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "FENÍE ENERGÍA",
+      "channel": "FENÍE ENERGÍA",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "GALP_SPAIN",
+      "channel": "GALP_SPAIN",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "GALP_SPAIN",
+      "channel": "GALP_SPAIN",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "GALP_SPAIN",
+      "channel": "GALP_SPAIN",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "GRUP SUPECO MAXOR SL",
+      "channel": "GRUP SUPECO MAXOR SL",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Galp Energía España, S.A.U.",
+      "channel": "Galp Energía España, S.A.U.",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Galp Energía España, S.A.U.",
+      "channel": "Galp Energía España, S.A.U.",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Galp Energía España, S.A.U.",
+      "channel": "Galp Energía España, S.A.U.",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Garaje José",
+      "channel": "Garaje José",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Garaje Pablo",
+      "channel": "Garaje Pablo",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Hospital Infanta Leonor",
+      "channel": "Hospital Infanta Leonor",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Hospital Infanta Leonor",
+      "channel": "Hospital Infanta Leonor",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "IBERDROLA CLIENTES S.A.U",
+      "channel": "IBERDROLA CLIENTES S.A.U",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "IBERDROLA CLIENTES S.A.U",
+      "channel": "IBERDROLA CLIENTES S.A.U",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "IONITY",
+      "channel": "IONITY",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Iberdrola | bp pulse",
+      "channel": "Iberdrola | bp pulse",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Iberdrola | bp pulse",
+      "channel": "Iberdrola | bp pulse",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Iberdrola | bp pulse",
+      "channel": "Iberdrola | bp pulse",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Mariano Gómez Ponce",
+      "channel": "Mariano Gómez Ponce",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Moeve",
+      "channel": "Moeve",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Mutua Madrileña Inmobiliaria",
+      "channel": "Mutua Madrileña Inmobiliaria",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Mutua Madrileña Inmobiliaria",
+      "channel": "Mutua Madrileña Inmobiliaria",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "NATURGY RECARGA",
+      "channel": "NATURGY RECARGA",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "NATURGY RECARGA",
+      "channel": "NATURGY RECARGA",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "PAVAPARK MOVILIDAD, S.L.",
+      "channel": "PAVAPARK MOVILIDAD, S.L.",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "PLENOIL, S.L.",
+      "channel": "PLENOIL, S.L.",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Parking Pozuelo",
+      "channel": "Parking Pozuelo",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Parking Pozuelo",
+      "channel": "Parking Pozuelo",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Plaza de Aluche",
+      "channel": "Plaza de Aluche",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Powerdot Spain",
+      "channel": "Powerdot Spain",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Powerdot Spain",
+      "channel": "Powerdot Spain",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Powerdot Spain",
+      "channel": "Powerdot Spain",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Powy",
+      "channel": "Powy",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Qwello",
+      "channel": "Qwello",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "REPSOL SOLUCIONES ENERGÉTICAS SA",
+      "channel": "REPSOL SOLUCIONES ENERGÉTICAS SA",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "REPSOL SOLUCIONES ENERGÉTICAS SA",
+      "channel": "REPSOL SOLUCIONES ENERGÉTICAS SA",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "REPSOL SOLUCIONES ENERGÉTICAS SA",
+      "channel": "REPSOL SOLUCIONES ENERGÉTICAS SA",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Restaurante El Ninot",
+      "channel": "Restaurante El Ninot",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Restaurante El Ninot",
+      "channel": "Restaurante El Ninot",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "SIXT",
+      "channel": "SIXT",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Sacyr",
+      "channel": "Sacyr",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Senator Hotels",
+      "channel": "Senator Hotels",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Telpark",
+      "channel": "Telpark",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Telpark",
+      "channel": "Telpark",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Telpark",
+      "channel": "Telpark",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Tesla",
+      "channel": "Tesla",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "UMBRELLA e-MOBILITY",
+      "channel": "UMBRELLA e-MOBILITY",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "UMBRELLA e-MOBILITY",
+      "channel": "UMBRELLA e-MOBILITY",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Wenea Mobile Energy",
+      "channel": "Wenea Mobile Energy",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Wenea Mobile Energy",
+      "channel": "Wenea Mobile Energy",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Wenea Mobile Energy",
+      "channel": "Wenea Mobile Energy",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Zunder",
+      "channel": "Zunder",
+      "powerBand": "AC/low",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Zunder",
+      "channel": "Zunder",
+      "powerBand": "DC/high",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "ES",
+      "cpo": "Zunder",
+      "channel": "Zunder",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "FR",
+      "cpo": "ELECTRIC 55 CHARGING",
+      "channel": "Electroverse",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 6,
+      "states": {
+        "uncomputable": 6
+      },
+      "classifications": {
+        "match": 6
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 6
+      },
+      "oracle": {
+        "uncomputable": 6
+      }
+    },
+    {
+      "country": "FR",
+      "cpo": "Electra",
+      "channel": "Electra",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 24,
+      "states": {
+        "uncomputable": 12,
+        "priced": 12
+      },
+      "classifications": {
+        "match": 24
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 24
+      },
+      "oracle": {
+        "uncomputable": 12,
+        "priced": 12
+      }
+    },
+    {
+      "country": "FR",
+      "cpo": "SPIE CityNetworks",
+      "channel": "Electroverse",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    },
+    {
+      "country": "FR",
+      "cpo": "SPIE CityNetworks",
+      "channel": "Electroverse",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    },
+    {
+      "country": "FR",
+      "cpo": "SPIE CityNetworks",
+      "channel": "Electroverse",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    },
+    {
+      "country": "FR",
+      "cpo": "SPIE CityNetworks",
+      "channel": "Métropolis Recharge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "FR",
+      "cpo": "SPIE CityNetworks",
+      "channel": "Métropolis Recharge",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "FR",
+      "cpo": "Tesla",
+      "channel": "Tesla",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "Applegreen Fast Charge",
+      "channel": "Applegreen Fast Charge",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "Applegreen Fast Charge",
+      "channel": "Applegreen Fast Charge",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "powerBand": "AC/low",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "Evolt Network",
+      "channel": "Evolt Network",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "Evolt Network",
+      "channel": "Evolt Network",
+      "powerBand": "DC/mid",
+      "tariffFamily": "component_groups",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "Evolt Network",
+      "channel": "Evolt Network",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 1,
+      "states": {
+        "priced": 1
+      },
+      "classifications": {
+        "match": 1
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 1
+      },
+      "oracle": {
+        "priced": 1
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "MFG EV Power",
+      "channel": "MFG EV Power",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "MFG EV Power",
+      "channel": "MFG EV Power",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": null,
+      "channel": null,
+      "powerBand": null,
+      "tariffFamily": null,
+      "rows": 1,
+      "states": {
+        "no_exact_offer": 1
+      },
+      "classifications": {
+        "data_insufficient": 1
+      },
+      "catalogueProof": {
+        "no_exact_runtime_offer": 1
+      },
+      "oracle": {
+        "not_run": 1
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "Tesla",
+      "channel": "Tesla",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "GB",
+      "cpo": "Zest",
+      "channel": "Zest",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "A2A E.MOBILITY S.R.L.",
+      "channel": "A2A e-moving",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "A2A E.MOBILITY S.R.L.",
+      "channel": "A2A e-moving",
+      "powerBand": "DC/mid",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Atlante S.r.l",
+      "channel": "Atlante",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "ineligible": 2
+      },
+      "classifications": {
+        "data_insufficient": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "not_run": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Atlante S.r.l",
+      "channel": "Atlante",
+      "powerBand": "DC/high",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "ineligible": 2
+      },
+      "classifications": {
+        "data_insufficient": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "not_run": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Atlante S.r.l",
+      "channel": "Atlante",
+      "powerBand": "DC/mid",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "ineligible": 2
+      },
+      "classifications": {
+        "data_insufficient": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "not_run": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "BEC",
+      "channel": "Plenitude On The Road",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "BEC",
+      "channel": "Plenitude On The Road",
+      "powerBand": "DC/mid",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "DUFERCO MOBILITY SRL",
+      "channel": "Duferco Mobility",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "data_insufficient": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "DUFERCO MOBILITY SRL",
+      "channel": "Duferco Mobility",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "data_insufficient": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "ENEL X WAY ITALIA SRL",
+      "channel": "Enel X Way",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "ENEL X WAY ITALIA SRL",
+      "channel": "Enel X Way",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "ENEL X WAY ITALIA SRL",
+      "channel": "Enel X Way",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "ENX",
+      "channel": "Enel X Way",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "ENX",
+      "channel": "Enel X Way",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "EWI",
+      "channel": "Ewiva",
+      "powerBand": "DC/high",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "correction_demonstrated": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "EWIVA SRL",
+      "channel": "Enel On Your Way",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "correction_demonstrated": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "EWIVA SRL",
+      "channel": "Ewiva",
+      "powerBand": "DC/high",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "correction_demonstrated": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Free To X S.p.A.",
+      "channel": "Free To X",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "correction_demonstrated": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Free To X S.p.A.",
+      "channel": "Free To X",
+      "powerBand": "DC/mid",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "correction_demonstrated": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Go Electric Stations SRLS",
+      "channel": "Go Electric Stations SRLS",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Go Electric Stations SRLS",
+      "channel": "Go Electric Stations SRLS",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "NEOGY SRL",
+      "channel": "Alperia Charge",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "ineligible": 2
+      },
+      "classifications": {
+        "data_insufficient": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "not_run": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "NEOGY SRL",
+      "channel": "Neogy",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Plenitude On The Road S.r.l.",
+      "channel": "Plenitude On The Road",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Plenitude On The Road S.r.l.",
+      "channel": "Plenitude On The Road",
+      "powerBand": "DC/high",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Plenitude On The Road S.r.l.",
+      "channel": "Plenitude On The Road",
+      "powerBand": "DC/mid",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Repower Vendita Italia SpA",
+      "channel": "Repower",
+      "powerBand": "AC/low",
+      "tariffFamily": "kwh",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "correction_demonstrated": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "IT",
+      "cpo": "Tesla",
+      "channel": "Tesla",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "uncomputable": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "MA",
+      "cpo": "Kilowatt",
+      "channel": "Kilowatt direct",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "correction_demonstrated": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "MA",
+      "cpo": "Tesla",
+      "channel": "Tesla",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "50five",
+      "channel": "50five",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Allego",
+      "channel": "Allego",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Allego",
+      "channel": "Allego",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Allego",
+      "channel": "Allego",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Alva Charging Services",
+      "channel": "Alva Charging Services",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Alva Charging Services",
+      "channel": "Alva Charging Services",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Blink Charging",
+      "channel": "Blink Charging",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Blink Charging",
+      "channel": "Blink Charging",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "ChargePoint",
+      "channel": "ChargePoint",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Chargewell Netherlands",
+      "channel": "Chargewell Netherlands",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "DAEN Mobility",
+      "channel": "DAEN Mobility",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Dutch Charge",
+      "channel": "Dutch Charge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "E-Flux by Road",
+      "channel": "E-Flux by Road",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "E-Flux by Road",
+      "channel": "E-Flux by Road",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "E-Flux by Road",
+      "channel": "E-Flux by Road",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "EQUANS",
+      "channel": "EQUANS",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Eneco",
+      "channel": "Eneco",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Eneco",
+      "channel": "Eneco",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Eneco",
+      "channel": "Eneco",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Fastned",
+      "channel": "Fastned",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Fastned",
+      "channel": "Fastned",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Fleet Charge Services",
+      "channel": "Fleet Charge Services",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Fluctis",
+      "channel": "Fluctis",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Greenchoice B.V.",
+      "channel": "Greenchoice B.V.",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Heijmans",
+      "channel": "Heijmans",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "IP Charging",
+      "channel": "IP Charging",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Interparking Netherlands",
+      "channel": "Interparking Netherlands",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Kia Nederland B.V.",
+      "channel": "Kia Nederland B.V.",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Kia Nederland B.V.",
+      "channel": "Kia Nederland B.V.",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Laadnet",
+      "channel": "Laadnet",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Lanova Laadpalen",
+      "channel": "Lanova Laadpalen",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Lidl",
+      "channel": "Lidl",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Lidl",
+      "channel": "Lidl",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "MIP BV",
+      "channel": "MIP BV",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Merin",
+      "channel": "Merin",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "NRG Group",
+      "channel": "NRG Group",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "NRG Mobility",
+      "channel": "NRG Mobility",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "NXT Charging Solutions",
+      "channel": "NXT Charging Solutions",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "NXT Charging Solutions",
+      "channel": "NXT Charging Solutions",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "NXT Charging Solutions",
+      "channel": "NXT Charging Solutions",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "NXT50Five",
+      "channel": "NXT50Five",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "NXT50Five",
+      "channel": "NXT50Five",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Opcharge",
+      "channel": "Opcharge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Pluq",
+      "channel": "Pluq",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Porsche Sales & Marketplace",
+      "channel": "Porsche Sales & Marketplace",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 2
+      },
+      "oracle": {
+        "uncomputable": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "PowerGo",
+      "channel": "PowerGo",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "PowerGo",
+      "channel": "PowerGo",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "PowerGo",
+      "channel": "PowerGo",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "PureCharged",
+      "channel": "PureCharged",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Q-Park Netherlands",
+      "channel": "Q-Park Netherlands",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Qwello Benelux BV",
+      "channel": "Qwello Benelux BV",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Renault",
+      "channel": "Renault",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Renault",
+      "channel": "Renault",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Rockfield Real Estate",
+      "channel": "Rockfield Real Estate",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "SGM",
+      "channel": "SGM",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "SGM",
+      "channel": "SGM",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Shell Recharge",
+      "channel": "Shell Recharge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Shell Recharge",
+      "channel": "Shell Recharge",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Shell Recharge",
+      "channel": "Shell Recharge",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Smart Grid Monitor",
+      "channel": "Smart Grid Monitor",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Spirii",
+      "channel": "Spirii",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Spirii",
+      "channel": "Spirii",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "T-Electric",
+      "channel": "T-Electric",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Tango electric",
+      "channel": "Tango electric",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Tanx",
+      "channel": "Tanx",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Tesla",
+      "channel": "Tesla",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "TotalEnergies",
+      "channel": "TotalEnergies",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "TotalEnergies",
+      "channel": "TotalEnergies",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Ubitricity",
+      "channel": "Ubitricity",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Valk Energy",
+      "channel": "Valk Energy",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Valk Energy",
+      "channel": "Valk Energy",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 2,
+      "states": {
+        "priced": 2
+      },
+      "classifications": {
+        "match": 2
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 2
+      },
+      "oracle": {
+        "priced": 2
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Vattenfall InCharge",
+      "channel": "Vattenfall InCharge",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "Vattenfall InCharge",
+      "channel": "Vattenfall InCharge",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "We Drive Solar",
+      "channel": "We Drive Solar",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "bp pulse",
+      "channel": "bp pulse",
+      "powerBand": "DC/high",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "bp pulse",
+      "channel": "bp pulse",
+      "powerBand": "DC/mid",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "exact_derived_catalogue_link": 4
+      },
+      "oracle": {
+        "priced": 4
+      }
+    },
+    {
+      "country": "NL",
+      "cpo": "e-VOLTT",
+      "channel": "e-VOLTT",
+      "powerBand": "AC/low",
+      "tariffFamily": "rules",
+      "rows": 4,
+      "states": {
+        "priced": 4
+      },
+      "classifications": {
+        "match": 4
+      },
+      "catalogueProof": {
+        "raw_offer_not_enumerated": 4
+      },
+      "oracle": {
+        "uncomputable": 4
+      }
+    }
+  ],
+  "stopGates": {
+    "sourceRowsWithoutCatalogueProof": 151,
+    "pricedWithoutIndependentOracle": 230,
+    "dataInsufficient": 18,
+    "regressions": 0,
+    "noExactOffer": 2
+  }
+}

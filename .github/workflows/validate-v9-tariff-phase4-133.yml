@@ -1,0 +1,29 @@
+name: Validate V9 tariff Phase 4 evidence (no publish)
+on:
+  pull_request:
+    paths:
+      - 'scripts/v9_tariff_dualrun_133.mjs'
+      - 'scripts/v9_tariff_phase4_coverage_133.py'
+      - 'tests/v9-tariff-phase4-evidence-133.test.mjs'
+      - 'tests/golden/v9-tariff-phase4-133.json'
+      - 'reports/v9-tariff-133/*phase4*'
+      - '.github/workflows/validate-v9-tariff-phase4-133.yml'
+  workflow_dispatch:
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate bounded golden, exact scope and explicit refusals
+        run: node --test tests/v9-tariff-phase4-evidence-133.test.mjs
+      - name: Validate Python coverage tool syntax
+        run: python3 -m py_compile scripts/v9_tariff_phase4_coverage_133.py
+      - name: Validate whitespace
+        run: git diff --check HEAD^
