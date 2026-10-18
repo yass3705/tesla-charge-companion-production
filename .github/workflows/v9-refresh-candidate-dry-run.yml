@@ -375,7 +375,7 @@ jobs:
           cd production
           tesla_parity_args=()
           if [ -n "${{ steps.pin.outputs.tesla_mac_sha }}" ]; then tesla_parity_args=(--allow-pinned-mac-handoff); fi
-          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override "${tesla_parity_args[@]}"
+          python scripts/validate_stable_parity.py ../stable ../dist/v9-dev-snapshot --allow-nl-override --allow-pricing-engine-override --allow-production-owned-runtime "${tesla_parity_args[@]}"
           python scripts/validate_browser_asset_graph.py ../dist/v9-dev-snapshot
           python tests/test_france_belib_exact_supplement.py ../stable ../datalab ../dist/v9-dev-snapshot
           python tests/test_bump_exact_override.py ../stable ../dist/v9-dev-snapshot
