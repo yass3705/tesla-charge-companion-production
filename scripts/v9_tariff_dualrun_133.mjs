@@ -5,13 +5,42 @@ import path from 'node:path';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import crypto from 'node:crypto';
-import {independentOracle} from './v9_tariff_oracle_133.mjs';
+import zlib from 'node:zlib';
+import {independentOracle,independentDotnlCompactOracle,independentKilowattFreeOracle} from './v9_tariff_oracle_133.mjs';
 const require=createRequire(import.meta.url);
 const root=path.resolve(process.argv[2]||'');
 const runtime=path.join(root,'runtime');
 if(!fs.existsSync(path.join(root,'manifest.json')))throw Error('dist manifest required');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.json')));
 if(manifest.snapshotId!=='2026-10-15-v9-tesla-mac-ingress-verified')throw Error('wrong snapshot pin');
+const dotnlPath='snapshot-inputs/NL/runtime/all.json.gz';
+const dotnlBytes=fs.readFileSync(path.join(root,dotnlPath));
+if(crypto.createHash('sha256').update(dotnlBytes).digest('hex')!==manifest.files.find(x=>x.path===dotnlPath)?.sha256)
+  throw Error('pinned DOT-NL compact SHA mismatch');
+const dotnlRawByStation=new Map(JSON.parse(zlib.gunzipSync(dotnlBytes)).map((row,index)=>[row[0],{row,index}]));
+function pinnedJson(relative){
+  const bytes=fs.readFileSync(path.join(root,relative));
+  if(crypto.createHash('sha256').update(bytes).digest('hex')!==manifest.files.find(x=>x.path===relative)?.sha256)
+    throw Error('pinned source SHA mismatch: '+relative);
+  return JSON.parse(bytes);
+}
+function pinnedGzipJson(relative){
+  const bytes=fs.readFileSync(path.join(root,relative));
+  if(crypto.createHash('sha256').update(bytes).digest('hex')!==manifest.files.find(x=>x.path===relative)?.sha256)
+    throw Error('pinned source SHA mismatch: '+relative);
+  return JSON.parse(zlib.gunzipSync(bytes));
+}
+const kilowattNative=pinnedJson('snapshot-inputs/MA/sources/kilowatt-native-tariffs.json');
+const kilowattOverlay=pinnedJson('snapshot-inputs/MA/sources/kilowatt-tariff-overlay.json');
+const kilowattRawByStation=new Map(kilowattNative.stations.map((row,index)=>[row.station_id,{row,index}]));
+const ukOpen=pinnedGzipJson('snapshot-inputs/UK/all.json.gz');
+const applegreenSourceIndex=ukOpen.sources.findIndex(x=>x.name==='Applegreen Fast Charge');
+const applegreenSource=ukOpen.sources[applegreenSourceIndex];
+const bePagePath='snapshot-inputs/BE/pages/nap-belgium-007000.json.gz';
+const bePage=pinnedGzipJson(bePagePath);
+const beLocations=bePage.locations||bePage;
+const electraPinned=pinnedGzipJson('snapshot-inputs/FR/platforms/electra/t_97_4.json.gz');
+const electraRawById=new Map(electraPinned.emspOffers.map(x=>[x.id,x]));
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json')));
 const asset=name=>require(path.join(runtime,'assets/v9',name));
 const dataEngine=asset('data-engine.js'),browserLoaders=asset('browser-loaders.js');
@@ -57,6 +86,16 @@ const scenarios=scenarioConfig.scenarios.map(spec=>{
 const normalize=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 const finite=value=>typeof value==='number'&&Number.isFinite(value);
 const componentKeys=result=>Object.keys(result?.components||{}).sort();
+const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?
+  Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+function runtimeSession(offer,session){
+  if(offer.pricing?.type!=='connected_kerb_midhope_guest_verified')return session;
+  if(!Number.isInteger(session.durationMinutes)||!Number.isInteger(session.chargingMinutes)||
+     !Number.isInteger(session.postChargeMinutes)||
+     session.chargingMinutes+session.postChargeMinutes!==session.durationMinutes)
+    throw Error('Midhope occupancy must equal charging plus post-charge minutes');
+  return {...session,durationMinutes:session.chargingMinutes};
+}
 function scoped(offer,evse,connector){
   const ids=new Set([evse.id,evse.evseId,evse.pdcId,...(evse.aliases||[]),...(evse.pdcIds||[])].map(normalize));
   const evseIds=offer.evseIds||[],connectorIds=offer.connectorIds||[];
@@ -76,9 +115,51 @@ function evaluatePure(station,evse,connector,offer,session){
     return{status:'ineligible',reason:'above_offer_power'};
   if(offer.connectorKinds?.length&&!offer.connectorKinds.includes(connector.kind))
     return{status:'ineligible',reason:'connector_kind_mismatch'};
-  const oracle=independentOracle(offer,{...session,stationTimeZone:station.timeZone||station.metadata?.timeZone||session.stationTimeZone},
-    {connectorId:connector.id,powerKw:connector.powerKw});
-  const raw=pricing.evaluateOffer(offer,{...session,powerKw:connector.powerKw,chargingKind:connector.kind,
+  const oracleSession={...session,stationTimeZone:station.timeZone||station.metadata?.timeZone||session.stationTimeZone};
+  const sourceStation=String(station.id||'').replace(/^NL:national:/,'');
+  const dotnlSource=String(offer.id||'').startsWith('netherlands-dotnl-national:')
+    ? dotnlRawByStation.get(sourceStation):null;
+  const dotnlPointIndex=dotnlSource?.row[8]?.findIndex(p=>p[0]===evse.id)??-1;
+  const dotnlPoint=dotnlPointIndex>=0?dotnlSource.row[8][dotnlPointIndex]:null;
+  const kilowattStation=String(station.id||'').replace(/^MA:kilowatt:/,'');
+  const kilowattSource=String(offer.id||'').startsWith('kilowatt-native:')
+    ? kilowattRawByStation.get(kilowattStation):null;
+  const kilowattConnectorIndex=kilowattSource?.row.connectors.findIndex(x=>'kilowatt-native:'+x.id===connector.id)??-1;
+  const kilowattConnector=kilowattConnectorIndex>=0?kilowattSource.row.connectors[kilowattConnectorIndex]:null;
+  const electraRaw=String(offer.id||'').startsWith('electra-platform:')?electraRawById.get(offer.id):null;
+  const oracle=dotnlPoint?independentDotnlCompactOracle(dotnlPoint[5],oracleSession):
+    kilowattConnector?independentKilowattFreeOracle(kilowattConnector,kilowattStation,
+      kilowattOverlay.freeStationIds,oracleSession):
+    electraRaw?independentOracle(electraRaw,oracleSession,{connectorId:connector.id,powerKw:connector.powerKw}):
+    independentOracle(offer,oracleSession,{connectorId:connector.id,powerKw:connector.powerKw});
+  if(kilowattConnector&&oracle.status==='priced')
+    oracle.rawKey=`snapshot-inputs/MA/sources/kilowatt-native-tariffs.json:/stations/${kilowattSource.index}/connectors/${kilowattConnectorIndex}`;
+  if(dotnlPoint&&oracle.status==='priced')
+    oracle.rawKey=`${dotnlPath}:/${dotnlSource.index}/8/${dotnlPointIndex}/5`;
+  if(String(offer.id||'').startsWith('uk-production-open-feeds:AGF:')){
+    const locationId=String(station.id||'').split(':').at(-1);
+    const location=applegreenSource.locations.find(x=>x.id===locationId&&x.party_id==='AGF');
+    const exact=location?.evses?.some(e=>e.evse_id===evse.id&&e.connectors?.some(c=>
+      c.id===connector.id&&c.tariff_ids?.includes('applegreen:'+connector.id)));
+    const tariffIndex=applegreenSource.tariffs.findIndex(x=>x.id==='applegreen:'+connector.id);
+    if(exact&&tariffIndex>=0)
+      oracle.rawKey=`snapshot-inputs/UK/all.json.gz:/sources/${applegreenSourceIndex}/tariffs/${tariffIndex}`;
+  }
+  if(String(offer.id||'').startsWith('belgium-nap-national:')){
+    const locationId=String(station.id||'').replace(/^BE:national:/,'');
+    const li=beLocations.findIndex(x=>x.id===locationId);
+    const st=li>=0?beLocations[li].stations?.[0]:null;
+    const ei=st?.evses?.findIndex(x=>x.id===evse.id)??-1;
+    const rateId=String(offer.id).split(':').at(-1);
+    const pi=ei>=0?st.evses[ei].prices?.findIndex(x=>x.rateId===rateId)??-1:-1;
+    if(li>=0&&ei>=0&&pi>=0)
+      oracle.rawKey=`${bePagePath}:/locations/${li}/stations/0/evses/${ei}/prices/${pi}`;
+  }
+  // The verified Midhope runtime contract calls durationMinutes the charging
+  // period and adds postChargeMinutes to obtain occupancy. The scenario and
+  // independent oracle call durationMinutes the entire occupied period.
+  const engineSession=runtimeSession(offer,session);
+  const raw=pricing.evaluateOffer(offer,{...engineSession,powerKw:connector.powerKw,chargingKind:connector.kind,
     stationTimeZone:station.timeZone||station.metadata?.timeZone||session.stationTimeZone});
   if(!raw?.complete)return{status:'uncomputable',reason:raw?.reason||'unknown',currency:raw?.currency||offer.currency||null,oracle};
   const amount=Number(raw.totalEur);
@@ -92,7 +173,7 @@ function evaluatePure(station,evse,connector,offer,session){
   return{status:'priced',total:amount,currency,
     targetTotal:sameCurrency?amount:datedRate?Math.round(amount/verified.rates[currency]*verified.rates[session.targetCurrency]*1e6)/1e6:null,
     fxStatus:sameCurrency?'same_currency':datedRate?'verified_dated_rate':'missing_dated_rate',fxAsOf:datedRate?verified.date:null,
-    components:componentKeys(raw),source:offer.sourceId||offer.source||null,
+    components:componentKeys(raw),componentValues:raw.components||{},source:offer.sourceId||offer.source||null,
     oracle};
 }
 function compare(candidate,current){
@@ -106,7 +187,11 @@ function compare(candidate,current){
     if(Math.abs(Number(old.result?.totalEur)-candidate.total)>1e-5)differences.push('amount');
     if(String(old.currency||'')!==String(candidate.currency||''))differences.push('currency');
     if(JSON.stringify(componentKeys(old.result))!==JSON.stringify(candidate.components))differences.push('components');
+    else if(JSON.stringify(canonical(old.result?.components||{}))!==JSON.stringify(canonical(candidate.componentValues||{})))
+      differences.push('component_values');
   }
+  if(old?.connectorId&&candidate.connectorId&&normalize(old.connectorId)!==normalize(candidate.connectorId))differences.push('connector_scope');
+  if(old?.evseId&&candidate.evseId&&normalize(old.evseId)!==normalize(candidate.evseId))differences.push('evse_scope');
   const oldSource=old?.sourceId||null;
   if(oldSource&&candidate.source&&oldSource!==candidate.source)differences.push('provenance');
   const oracle=candidate.oracle?.status==='priced'?candidate.oracle.total:null;
@@ -132,7 +217,10 @@ const session={...scenarioConfig.session,fxEvidence:{date:fx.date,base:fx.base,r
 const rows=[];
 for(const spec of scenarios){
   try{
-    const scenarioSession={...session,...(spec.session||{}),fxEvidence:session.fxEvidence};
+    // The legacy station evaluator accepts FX rates separately from the
+    // read-only candidate. Feed it only the SHA-verified, dated pin rates.
+    const scenarioSession={...session,...(spec.session||{}),fxEvidence:session.fxEvidence,
+      fxRates:session.fxEvidence.rates};
     const area=await engine.queryArea({...spec,routingBudget:20});
     const pattern=spec.namePattern?new RegExp(spec.namePattern,'i'):null;
     const candidates=area.stations.filter(station=>spec.source==='tesla'
@@ -157,8 +245,10 @@ for(const spec of scenarios){
     const selected=(spec.key==='FR-bois-d-arcy'?combinations:combinations.filter(x=>x.station.id===chosen.station.id))
       .filter((x,index,all)=>all.findIndex(y=>y.station.id===x.station.id&&y.offer.id===x.offer.id)===index);
     for(const {station:sample,evse,connector,offer} of selected){
-      const legacyResult=legacy.evaluateStation({...sample,evses:[{...evse,connectors:[connector]}],offers:[offer]},scenarioSession);
-      const next={offerId:offer.id||offer.offerId,...evaluatePure(sample,evse,connector,offer,scenarioSession)};
+      const engineSession=runtimeSession(offer,scenarioSession);
+      const legacyResult=legacy.evaluateStation({...sample,evses:[{...evse,connectors:[connector]}],offers:[offer]},engineSession);
+      const next={offerId:offer.id||offer.offerId,evseId:evse.id,connectorId:connector.id,
+        ...evaluatePure(sample,evse,connector,offer,scenarioSession)};
       const delta=compare(next,legacyResult);
       rows.push({key:spec.key,country:spec.countryCode,stationId:sample.id,stationName:sample.name,
         evseId:evse.id,connectorId:connector.id,powerKw:connector.powerKw,offerId:next.offerId,

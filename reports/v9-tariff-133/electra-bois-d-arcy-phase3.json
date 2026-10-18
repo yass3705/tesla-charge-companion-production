@@ -1,0 +1,465 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "physicalSiteDisplayKey": "FR:electra:0a650b39-b871-4e78-9670-e56e6b20f329",
+  "sourceFiles": [
+    {
+      "path": "runtime/data/v9/france-static/all.json.gz",
+      "sha256": "282590706bb901891bdc92db42e93e78995fdd688502823a47a7e04bb2a01af8"
+    },
+    {
+      "path": "snapshot-inputs/FR/platforms/electra/t_97_4.json.gz",
+      "sha256": "f33da40bf37110927647d9d6620322cb0c127af52da6f30ac0dc7da58c635d3a"
+    }
+  ],
+  "countingRule": "Three source stations remain separate. Electra GraphQL offers attach only by exact national PDC; no price propagates by physical site, configuration or coordinates. Runtime connector IDs are synthetic, not a proved physical socket.",
+  "stations": [
+    {
+      "sourceStationId": "FRELCP12954082",
+      "name": "Electra Bois-d'Arcy - E.Leclerc",
+      "pdcCount": 17,
+      "pdc": [
+        {
+          "pdcId": "FRELCE9KBC",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEAFF6",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEP2E2",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEZCSR",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEU9WB",
+          "configurationId": "irve-1-dc-100_0",
+          "powerKw": 100.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCE2EV6",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE2EV6",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCE5MTY",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE5MTY",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCE99GL",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCE99GL",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEBYWK",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEBYWK",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEJYDZ",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEJYDZ",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCENUPV",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCENUPV",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEP7P4",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEP7P4",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEP9YQ",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEP9YQ",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEQBQD",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEQBQD",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEVQD4",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEVQD4",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEX6W6",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEX6W6",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEXJCK",
+          "configurationId": "irve-2-dc-400_0",
+          "powerKw": 400.0,
+          "electraOfferId": "electra-platform:0a650b39-b871-4e78-9670-e56e6b20f329:FRELCEXJCK",
+          "scope": "exact_pdc",
+          "withoutCongestion": {
+            "status": "priced",
+            "amountEurFor20KwhAt2026-10-15T12Z": 12.2
+          },
+          "withCongestion": {
+            "status": "uncomputable",
+            "reason": "saturation_and_soc_timeline_unverified"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        }
+      ]
+    },
+    {
+      "sourceStationId": "FRELCP5265355",
+      "name": "Bois-d'Arcy - E.Leclerc",
+      "pdcCount": 1,
+      "pdc": [
+        {
+          "pdcId": "FRELCE7BKJ",
+          "configurationId": "irve-0-dc-100_0",
+          "powerKw": 100.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        }
+      ]
+    },
+    {
+      "sourceStationId": "FRELCPBDALE",
+      "name": "Bois-d'Arcy - E.Leclerc",
+      "pdcCount": 10,
+      "pdc": [
+        {
+          "pdcId": "FRELCE6UAC",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCE8ZDS",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEEL7N",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEF4N3",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEHWGG",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEQ2A5",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCERZGY",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCESVLL",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEYPPY",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        },
+        {
+          "pdcId": "FRELCEZBQT",
+          "configurationId": "irve-0-ac-22_0",
+          "powerKw": 22.0,
+          "electraOfferId": null,
+          "scope": "no_exact_electra_offer",
+          "withoutCongestion": {
+            "status": "unavailable"
+          },
+          "withCongestion": {
+            "status": "unavailable"
+          },
+          "socketIdentity": "not_separately_enumerated_in_france_compact"
+        }
+      ]
+    }
+  ],
+  "electraGraphqlOffersAtLocation": 18,
+  "offersWithExactPdcAtTheseStations": 12,
+  "unmatchedOfferEvseIds": [
+    "FR*ELC*E85DQ",
+    "FR*ELC*E9CJK",
+    "FR*ELC*EAT2N",
+    "FR*ELC*EFRPT",
+    "FR*ELC*ENRFN",
+    "FR*ELC*EPZXW"
+  ],
+  "sourcePolicy": "Electra official 2026-10-10: price locked at local session start; congestion only DC with SOC >=80%, saturation and five-minute grace. Simulation without congestion deliberately excludes that component."
+}

@@ -1,0 +1,68 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "sourcePath": "data/e55c_station_tariffs_v1.json.gz",
+  "sourceSha256": "9c201a4c0f91ee7b41130a32d380e229671b1530b67d0b25812201057805d1a8",
+  "sourceStationId": "FR55CP78210SA1P21PL",
+  "stationName": "PLACE LULLY - SAINT-CYR-L'ECOLE",
+  "pdcCount": 4,
+  "powerProfiles": [
+    {
+      "powerKw": 7.36,
+      "pdcIds": [
+        "FR55CEFR78210P21PL1",
+        "FR55CEFR78210P21PL2",
+        "FR55CEFR78210P21PL3"
+      ],
+      "runtimeSocketIds": "not_separately_proven",
+      "profileId": "e55c-scanpay-584ac48145a63ad4",
+      "channel": "E55C Scan Pay",
+      "fixedEurPerSession": 0.6,
+      "day": {
+        "localWindow": "07:00–23:00 Europe/Paris",
+        "chargeEurPerMinute": 0.0384,
+        "parkingEurPerMinute": 0.0384
+      },
+      "night": {
+        "localWindow": "23:00–07:00 Europe/Paris",
+        "chargeEurPerMinute": 0.0276,
+        "parkingEurPerMinute": 0.0276
+      },
+      "parkingSemantics": "parked_not_charging",
+      "sourceText": "0,60 € TTC par recharge | 2,30 € TTC par heure de charge + 2,30 € TTC par heure de parking de 07:00 à 23:00 | 1,66 € TTC par heure de charge + 1,66 € TTC par heure de parking de 23:00 à 07:00"
+    },
+    {
+      "powerKw": 22.08,
+      "pdcIds": [
+        "FR55CEFR78210P21PL0"
+      ],
+      "runtimeSocketIds": "not_separately_proven",
+      "profileId": "e55c-scanpay-653f339c973546a8",
+      "channel": "E55C Scan Pay",
+      "fixedEurPerSession": 0.6,
+      "day": {
+        "localWindow": "07:00–23:00 Europe/Paris",
+        "chargeEurPerMinute": 0.084,
+        "parkingEurPerMinute": 0.084
+      },
+      "night": {
+        "localWindow": "23:00–07:00 Europe/Paris",
+        "chargeEurPerMinute": 0.0624,
+        "parkingEurPerMinute": 0.0624
+      },
+      "parkingSemantics": "parked_not_charging",
+      "sourceText": "0,60 € TTC par recharge | 5,04 € TTC par heure de charge + 5,04 € TTC par heure de parking de 07:00 à 23:00 | 3,74 € TTC par heure de charge + 3,74 € TTC par heure de parking de 23:00 à 07:00"
+    }
+  ],
+  "registryActive": {
+    "france-e55c-offers": true,
+    "e55c-direct-france": false
+  },
+  "activeExactOfferForStation": false,
+  "decision": "Do not activate the legacy Direct source. Source-only oracle can calculate these two power profiles, but active exact V9 direct offers do not cover Place Lully. Continue to display scoped Electroverse offers; Direct awaits independent consumer checkout verification for each PDC group and payment channel.",
+  "activationPrerequisites": [
+    "Verify public Scan Pay checkout at both 7.36 and 22.08 kW PDC groups with exact EVSE/payment URL mapping and consumer VAT-inclusive amounts.",
+    "Verify fixed 0.60 EUR is charged once per session and charge/parking minutes do not overlap.",
+    "Verify local day/night boundaries including DST and parking after charge on both groups.",
+    "Create exact scoped active source offers only after review in a separate collection/runtime change; validate full dist and dual-run before promotion."
+  ]
+}

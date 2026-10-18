@@ -28,6 +28,15 @@ for row in report['rows']:
         proof = {'state': 'no_exact_runtime_offer'}
     else:
         raw = raw_by_id[(offer_id,row['country'])]
+        oracle = (row.get('new') or {}).get('oracle') or {}
+        derived_kind = ('kilowatt_connector' if str(offer_id).startswith('kilowatt-native:') else
+                        'dotnl_active_compact' if str(offer_id).startswith('netherlands-dotnl-national:') else
+                        'applegreen_tariff' if str(offer_id).startswith('uk-production-open-feeds:AGF:') else
+                        'belgium_nap_price' if str(offer_id).startswith('belgium-nap-national:') else None)
+        derived_key = oracle.get('rawKey') if derived_kind else None
+        if not raw and derived_key:
+            raw = db.execute('SELECT raw_key,source_path,source_sha256,raw_json FROM RawOffer WHERE raw_key=?',
+                             (derived_key,)).fetchall()
         runtime_station = str(row.get('stationId') or '')
         national_prefix = row['country'] + ':national:'
         source_station = runtime_station[len(national_prefix):] if runtime_station.startswith(national_prefix) else runtime_station
@@ -54,18 +63,30 @@ for row in report['rows']:
                 if not found:continue
                 station_id,evse_id,pdc_id=found
                 station_proven=(station_id==source_station or runtime_station.endswith(':'+str(station_id))) and (
-                    not raw_offer.get('stationIds') or station_id in raw_offer['stationIds'])
+                    not isinstance(raw_offer,dict) or not raw_offer.get('stationIds') or station_id in raw_offer['stationIds'])
+                source_connector = db.execute('SELECT source_connector_id FROM Connector WHERE connector_key=?',
+                                              (connector_key,)).fetchone() if connector_key else None
+                derived_match = bool(derived_kind=='kilowatt_connector' and connector_key and source_connector and
+                    str(row.get('connectorId')) == 'kilowatt-native:'+str(source_connector[0]) and
+                    str(row.get('evseId')) == 'kilowatt-native:'+str(evse_id) and
+                    str(raw_offer.get('id')) == str(source_connector[0]) and
+                    str(raw_offer.get('chargestation_id')) == str(evse_id))
                 if station_proven and (str(evse_id)==str(row.get('evseId')) or str(pdc_id)==str(row.get('evseId'))
-                    or (connector_key and str(db.execute('SELECT source_connector_id FROM Connector WHERE connector_key=?',(connector_key,)).fetchone()[0])==str(row.get('connectorId')))):
+                    or (source_connector and str(source_connector[0])==str(row.get('connectorId'))) or derived_match):
                     exact.append({'scopeKind':kind,'sourceId':source_id})
-            proof = {'state':'exact_catalogue_link' if exact else 'raw_offer_without_proven_runtime_scope',
+            proof = {'state':('exact_derived_catalogue_link' if derived_key else 'exact_catalogue_link') if exact
+                     else 'raw_offer_without_proven_runtime_scope',
                      'rawKey':raw_key,'sourcePath':path,'sourceSha256':sha,'exactAssertions':exact,
-                     'scopeStatuses':dict(Counter(s[2] for s in scopes))}
+                     'scopeStatuses':dict(Counter(s[2] for s in scopes)),
+                     'derivation':{'kilowatt_connector':'connector_id_and_charge_point_id_from_pinned_kilowatt_native',
+                                   'dotnl_active_compact':'point_id_and_rules_from_pinned_active_dotnl',
+                                   'applegreen_tariff':'ocpi_location_evse_connector_tariff_reference',
+                                   'belgium_nap_price':'nap_location_evse_ad_hoc_rate_reference'}.get(derived_kind)}
     row['catalogueProof'] = proof
     oracle = (row.get('new') or {}).get('oracle') or {}
     differences = (row.get('legacy') or {}).get('differences') or []
     if differences:
-        exact = proof['state'] == 'exact_catalogue_link' and oracle.get('status') == 'priced'
+        exact = proof['state'] in ('exact_catalogue_link','exact_derived_catalogue_link') and oracle.get('status') == 'priced'
         new = row.get('new') or {}
         old = row.get('legacy') or {}
         oracle_total = oracle.get('total')

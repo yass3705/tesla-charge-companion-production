@@ -3,7 +3,8 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
-import {independentOracle} from '../scripts/v9_tariff_oracle_133.mjs';
+import {createRequire} from 'node:module';
+import {independentOracle,independentDotnlCompactOracle,independentKilowattFreeOracle} from '../scripts/v9_tariff_oracle_133.mjs';
 
 const dist=process.env.TCC_V9_DIST;
 if(!dist)throw Error('Set TCC_V9_DIST to the immutable validated pin');
@@ -39,7 +40,12 @@ for(const testCase of golden.cases){
   }:testCase.adapter==='pricingLeaf'?{
     id:raw.id,currency:testCase.currency,pricing:raw.pricing||raw
   }:raw;
-  const actual=independentOracle(offer,testCase.session,testCase.context||{});
+  const actual=testCase.adapter==='dotnlCompact'
+    ? independentDotnlCompactOracle(raw,testCase.session)
+    : testCase.adapter==='kilowattFree'
+    ? independentKilowattFreeOracle(raw,testCase.stationId,sourceNode({sourcePath:testCase.overlayPath,
+        sourceSha256:testCase.overlaySha256,jsonPointer:'/freeStationIds'}),testCase.session)
+    : independentOracle(offer,testCase.session,testCase.context||{});
   assert.equal(actual.status,testCase.expected.status,testCase.key);
   if(actual.status==='priced'){
     assert.equal(actual.total,testCase.expected.total,testCase.key);
@@ -56,4 +62,24 @@ assert(golden.cases.some(x=>x.key==='FR-Bois-d-Arcy'));
 assert(golden.cases.some(x=>x.key==='FR-Lully-DST'));
 assert(golden.cases.some(x=>x.key==='GB-Midhope'));
 assert(golden.cases.some(x=>x.key==='Tesla-Mac'));
+const midhopeCase=golden.cases.find(x=>x.key==='GB-Midhope');
+const midhopeOffer=sourceNode(midhopeCase);
+const pricing=createRequire(import.meta.url)(path.join(dist,'runtime/assets/v9/pricing-engine.js'));
+for(const [startAt,expectedParking] of [
+  ['2026-10-24T07:30:00Z',1.60008], // 08:30 BST
+  ['2026-10-25T08:30:00Z',0],       // Sunday after fall DST
+  ['2026-10-26T08:30:00Z',1.60008], // 08:30 GMT after fall DST
+  ['2026-10-26T17:30:00Z',0.80004], // 17:30–18:00 local
+  ['2026-10-26T18:00:00Z',0]        // outside the paid window
+]){
+  const occupied={...midhopeCase.session,startAt};
+  const independent=independentOracle(midhopeOffer,occupied,midhopeCase.context);
+  const engine=pricing.evaluateOffer(midhopeOffer,{...occupied,durationMinutes:occupied.chargingMinutes});
+  assert.equal(independent.status,'priced',startAt);
+  assert.equal(independent.components.parkingTime,expectedParking,startAt);
+  assert.equal(engine.complete,true,startAt);
+  assert.equal(engine.totalEur,independent.total,startAt);
+  assert.equal(engine.components.parkingTime.costGbp,expectedParking,startAt);
+  assert.equal(engine.components.idleSupplement.idleMinutes,15,startAt);
+}
 console.log(`Pinned independent source oracle #133: ${golden.cases.length} cases`);
