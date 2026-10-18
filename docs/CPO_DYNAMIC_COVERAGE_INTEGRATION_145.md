@@ -8,6 +8,8 @@ Le run Production [#39165311966](https://github.com/yass3705/tesla-charge-compan
 
 IONITY ne fournit pas d'EVSE physique dans ce lot (`sourceEvseId` vide sur les 878 prises du pin précédent). La sortie porte l'UUID source en `uid` et ne crée pas d'`evse_id`. Une prise sans `pricePerKwhGbp` garde `tariff_ids=[]` ; un zéro explicite est conservé. Les autres CPO gardent leurs identifiants source. Un lot courant vide est un incident, sauf retrait officiel décidé séparément. Le compilateur accepte un aggregate UK validé et daté en second argument pour réutiliser **le même CPO** en `last_good_stale`, avec date et SHA préservés ; sans précédent daté, il refuse le CPO plutôt que d'inventer une fraîcheur. `build_snapshot.py` expose ce chemin avec `--uk-last-good-batch`. La collecte Data Lab garde aussi le précédent CPO dans l'archive nationale lorsqu'un seul flux échoue.
 
+Le premier run CI de cette PR a dépassé le compilateur UK puis s'est arrêté sur une cause indépendante : le manifeste de provenance IONITY DE ne reconnaissait pas le SHA source `2f4052b0…` de Data Lab `76d47e35…`. Les 200 stations source restent les mêmes ; cinq payloads changent, avec un connecteur supplémentaire. Le supplément de présentation non tarifé garde exactement **188** déjà proches d'IONITY national, **8** quarantaines et **4** stations isolées. Après vérification des deux SHA source et des identifiants/quarantaines par le constructeur conservateur, le manifeste a reçu une entrée explicite pour ce commit. Aucune offre ni prix IONITY DE n'est créé par cette mise à jour. Une nouvelle CI globale doit confirmer la suite du parcours.
+
 ## Inventaire ciblé des validations
 
 | Contrôle | Classe | Décision |
