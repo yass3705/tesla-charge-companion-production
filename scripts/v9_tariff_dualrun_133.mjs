@@ -6,6 +6,8 @@ import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import crypto from 'node:crypto';
 import zlib from 'node:zlib';
+import {performance} from 'node:perf_hooks';
+import {createTariffShadow} from './v9_tariff_shadow_133.mjs';
 import {independentOracle,independentDotnlCompactOracle,independentKilowattFreeOracle,
   independentComponentGroupsOracle,independentOcpiEnergyOracle} from './v9_tariff_oracle_133.mjs';
 const require=createRequire(import.meta.url);
@@ -107,7 +109,8 @@ const subset={...registry,sources:registry.sources.filter(source=>wanted.has(sou
   .map(source=>source.id==='e55c-direct-france'?{...source,active:true}:source)};
 const loaders=browserLoaders.createRegistryLoaders({registry:subset,basePath:pathToFileURL(runtime+path.sep).href,adapters,fetchImpl:fileFetch});
 const engine=dataEngine.createEngine({registry:subset,loaders});
-const scenarioConfig=JSON.parse(fs.readFileSync(new URL('../config/v9-tariff-dualrun-133-scenarios.json',import.meta.url)));
+const scenarioConfig=JSON.parse(fs.readFileSync(process.env.TCC_V9_PHASE7_SCENARIOS||
+  new URL('../config/v9-tariff-dualrun-133-scenarios.json',import.meta.url)));
 if(scenarioConfig.snapshotId!==manifest.snapshotId)throw Error('scenario pin differs from dist');
 const teslaCatalog=JSON.parse(fs.readFileSync(path.join(runtime,'data/tesla_stations.json')));
 const scenarios=scenarioConfig.scenarios.map(spec=>{
@@ -119,6 +122,7 @@ const phase4=process.env.TCC_V9_PHASE4_SAMPLE==='1';
 const sampleAudit=[];
 const phase6Census=process.env.TCC_V9_PHASE6_CENSUS==='1';
 const cohortCensus=new Map();
+const phase7Unique=process.env.TCC_V9_PHASE7_UNIQUE==='1'?new Set():null;
 const normalize=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 const finite=value=>typeof value==='number'&&Number.isFinite(value);
 const componentKeys=result=>Object.keys(result?.components||{}).sort();
@@ -264,6 +268,8 @@ if(fx.date!==fxSource.providerDate||fx.base!=='EUR')throw Error('pinned FX date 
 const session={...scenarioConfig.session,fxEvidence:{date:fx.date,base:fx.base,rates:fx.rates,
   sourceSha256:fxSource.sourceSha256,providerDate:fxSource.providerDate}};
 const rows=[];
+const phase7Timing=process.env.TCC_V9_PHASE7_TIMING==='1';
+const timingTasks=[];
 for(const spec of scenarios){
   try{
     // The legacy station evaluator accepts FX rates separately from the
@@ -310,7 +316,9 @@ for(const spec of scenarios){
         const key=[spec.countryCode,x.station.physicalOperator?.name||'unknown',x.offer.provider||'unknown',powerBand,family].join('\u001f');
         const bucket=strata.get(key)||[];bucket.push(x);strata.set(key,bucket);
       }
-      const sampled=spec.key.startsWith('FR-bois-d-arcy')?tuples:[...strata.values()].flatMap(bucket=>bucket.slice(0,2));
+      const sampled=spec.key.startsWith('FR-bois-d-arcy')||spec.key.startsWith('GB-Midhope-P7-')?
+        tuples:[...strata.values()].flatMap(bucket=>bucket.slice(0,2));
+      if(phase7Unique)for(const x of tuples)phase7Unique.add([x.station.id,x.evse.id,x.connector.id,x.offer.id].join('\u001f'));
       if(phase6Census){
         const sampleKeys=new Set(sampled.map(x=>[x.station.id,x.evse.id,x.connector.id,x.offer.id].join('\u001f')));
         for(const x of tuples){
@@ -336,6 +344,13 @@ for(const spec of scenarios){
       const next={offerId:offer.id||offer.offerId,evseId:evse.id,connectorId:connector.id,
         ...evaluatePure(sample,evse,connector,offer,scenarioSession)};
       const delta=compare(next,legacyResult);
+      if(phase7Timing){
+        const old=legacyResult?.best?.offerId===next.offerId?legacyResult.best:
+          [...(legacyResult?.alternatives||[]),...(legacyResult?.incomplete||[])].find(x=>x.offerId===next.offerId);
+        timingTasks.push({spec,sample,evse,connector,offer,scenarioSession,current:legacyResult,
+          shadowCurrent:{status:delta.oldStatus,total:delta.oldTotal,currency:delta.oldCurrency,
+            components:old?.result?.components||{},sourceId:old?.sourceId||null},expected:next});
+      }
       rows.push({key:spec.key,country:spec.countryCode,stationId:sample.id,stationName:sample.name,
         evseId:evse.id,connectorId:connector.id,powerKw:connector.powerKw,offerId:next.offerId,
         cpo:sample.physicalOperator?.name||null,channel:offer.provider,tariffFamily:offer.pricing?.type||offer.kind||'unknown',
@@ -351,6 +366,53 @@ if(phase4){summary.sampling={method:'deterministic exact tuple strata within con
   scenarios:sampleAudit,exactTuplesInAreas:sampleAudit.reduce((n,x)=>n+x.exactTuplesInArea,0),
   sampled:sampleAudit.reduce((n,x)=>n+x.sampled,0)};}
 if(phase6Census)summary.cohortCensus=[...cohortCensus.values()].sort((a,b)=>JSON.stringify(a.key).localeCompare(JSON.stringify(b.key),'en'));
+if(phase7Unique)summary.uniqueExactTuplesInQueryAreas=phase7Unique.size;
+if(phase7Timing){
+  const pin=manifest.snapshotId;
+  const cohort=x=>({pin,country:x.spec.countryCode,cpo:x.sample.physicalOperator?.name||null,
+    channel:x.offer.provider||null,evseId:x.evse.id,connectorId:x.connector.id,offerId:x.offer.id});
+  const enabledCohorts=[...new Map(timingTasks.map(x=>{
+    const c=cohort(x);return[[c.pin,c.country,c.cpo,c.channel].join('\u001f'),c];
+  })).values()];
+  let calls=0,logs=0,logBytes=0;
+  const shadow=createTariffShadow({enabledCohorts,emit:event=>{logs++;logBytes+=Buffer.byteLength(JSON.stringify(event));}});
+  const disabled=createTariffShadow({emit:()=>{throw Error('disabled shadow logged');}});
+  const callbackMs=[],observeMs=[],disabledMs=[],rollbackMs=[];
+  const pct=(data,p)=>{const sorted=[...data].sort((a,b)=>a-b);return Number(sorted[Math.floor((sorted.length-1)*p)].toFixed(5));};
+  const stats=data=>({count:data.length,p50Ms:pct(data,.5),p95Ms:pct(data,.95),maxMs:pct(data,1),
+    totalMs:Number(data.reduce((a,b)=>a+b,0).toFixed(3))});
+  for(const x of timingTasks){
+    const input=cohort(x),original=JSON.stringify(x.current),offerIds=x.sample.offers.map(o=>o.id);
+    let t=performance.now();
+    if(disabled.observe(input,x.shadowCurrent,()=>{throw Error('default-on candidate')})!==x.shadowCurrent)throw Error('disabled response mutation');
+    disabledMs.push(performance.now()-t);
+    t=performance.now();
+    const returned=shadow.observe(input,x.shadowCurrent,()=>{
+      calls++;const start=performance.now();
+      const value=evaluatePure(x.sample,x.evse,x.connector,x.offer,x.scenarioSession);
+      callbackMs.push(performance.now()-start);
+      for(const key of ['status','total','currency','targetTotal','fxStatus','fxAsOf','components','componentValues','source','reason'])
+        if(JSON.stringify(value[key]??null)!==JSON.stringify(x.expected[key]??null))throw Error('second engine changed '+key);
+      return{status:value.status,total:value.total,currency:value.currency,
+        components:value.componentValues||{},sourceId:value.source||null};
+    });
+    observeMs.push(performance.now()-t);
+    if(returned!==x.shadowCurrent||JSON.stringify(x.current)!==original||
+      JSON.stringify(x.sample.offers.map(o=>o.id))!==JSON.stringify(offerIds))throw Error('response or ranking input mutation');
+  }
+  if(calls!==timingTasks.length||shadow.metrics().evaluations!==calls)throw Error('shadow second calculation incomplete');
+  shadow.rollback();const previousCalls=calls,previousLogs=logs;
+  for(const x of timingTasks){const t=performance.now();
+    if(shadow.observe(cohort(x),x.shadowCurrent,()=>{calls++;return null;})!==x.shadowCurrent)throw Error('rollback response mutation');
+    rollbackMs.push(performance.now()-t);
+  }
+  if(calls!==previousCalls||logs!==previousLogs)throw Error('rollback evaluated or logged');
+  summary.phase7SecondEngine={mode:'actual evaluatePure on the same 719 pinned runtime tuples, offline',
+    tuples:timingTasks.length,cohorts:enabledCohorts.length,defaultDisabled:{calls:0,logs:0,observe:stats(disabledMs)},
+    enabled:{calls:previousCalls,logs,logBytes,callback:stats(callbackMs),observe:stats(observeMs),metrics:shadow.metrics()},
+    rollback:{candidateCallsAfter:0,logsAfter:0,observe:stats(rollbackMs)},
+    currentResponseIdentityPreserved:true,sourceOfferOrderPreserved:true};
+}
 const output={summary,rows};
 const file=process.argv[3];if(file)fs.writeFileSync(file,JSON.stringify(output,null,2)+'\n');
 console.log(JSON.stringify(summary));

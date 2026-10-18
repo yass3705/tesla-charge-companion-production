@@ -1,0 +1,68 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "manifestSha256": "2b7b9964d8fce26f65aaf1e508717a114cb68ca16c66fb3c06ba9a076f2db52f",
+  "sameSampleRows": 721,
+  "queryAreaExactTupleOccurrences": 21379,
+  "queryAreaUniqueExactTuples": 17237,
+  "secondEngine": {
+    "mode": "actual evaluatePure on the same 719 pinned runtime tuples, offline",
+    "tuples": 719,
+    "cohorts": 175,
+    "defaultDisabled": {
+      "calls": 0,
+      "logs": 0,
+      "observe": {
+        "count": 719,
+        "p50Ms": 0.00556,
+        "p95Ms": 0.01013,
+        "maxMs": 0.6493,
+        "totalMs": 4.718
+      }
+    },
+    "enabled": {
+      "calls": 719,
+      "logs": 719,
+      "logBytes": 287619,
+      "callback": {
+        "count": 719,
+        "p50Ms": 1.55229,
+        "p95Ms": 8.13084,
+        "maxMs": 153.18491,
+        "totalMs": 2261.073
+      },
+      "observe": {
+        "count": 719,
+        "p50Ms": 1.62784,
+        "p95Ms": 8.22865,
+        "maxMs": 153.34153,
+        "totalMs": 2328.206
+      },
+      "metrics": {
+        "evaluations": 719,
+        "errors": 0,
+        "status": 30,
+        "amount": 85,
+        "currency": 14,
+        "components": 18,
+        "provenance": 652
+      }
+    },
+    "rollback": {
+      "candidateCallsAfter": 0,
+      "logsAfter": 0,
+      "observe": {
+        "count": 719,
+        "p50Ms": 0.00076,
+        "p95Ms": 0.00156,
+        "maxMs": 0.05846,
+        "totalMs": 0.723
+      }
+    },
+    "currentResponseIdentityPreserved": true,
+    "sourceOfferOrderPreserved": true
+  },
+  "limitations": [
+    "Offline loaded runtime and 719 sampled tuple-sessions, not production request latency.",
+    "Legacy component/provenance structures are not isomorphic; raw shadow difference counters are diagnostics, not promotion evidence."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "sourcePath": "runtime/data/v9/switzerland-offers.json",
+  "sourceSha256": "30cd7215c10359610d25b61860227a9a017441b22169efae512bb0afb8d83e3a",
+  "rawPointers": [
+    "/directOffers/7170",
+    "/directOffers/7171"
+  ],
+  "branchExpected": [
+    {
+      "durationMinutes": 239,
+      "energyKwh": 20,
+      "total": 10.379937,
+      "components": {
+        "energy": 10.379937,
+        "connectedTime": 0
+      }
+    },
+    {
+      "durationMinutes": 240,
+      "energyKwh": 20,
+      "total": 10.379937,
+      "components": {
+        "energy": 10.379937,
+        "connectedTime": 0
+      }
+    },
+    {
+      "durationMinutes": 241,
+      "energyKwh": 20,
+      "total": 10.485855,
+      "components": {
+        "energy": 10.379937,
+        "connectedTime": 0.105918
+      }
+    },
+    {
+      "durationMinutes": 300,
+      "energyKwh": 20,
+      "total": 16.735001,
+      "components": {
+        "energy": 10.379937,
+        "connectedTime": 6.355064
+      }
+    }
+  ],
+  "originalChfSourcePinned": false,
+  "promotionEligible": false
+}
