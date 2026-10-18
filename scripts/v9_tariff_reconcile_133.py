@@ -31,7 +31,7 @@ for row in report['rows']:
         oracle = (row.get('new') or {}).get('oracle') or {}
         derived_kind = ('kilowatt_connector' if str(offer_id).startswith('kilowatt-native:') else
                         'dotnl_active_compact' if str(offer_id).startswith('netherlands-dotnl-national:') else
-                        'applegreen_tariff' if str(offer_id).startswith('uk-production-open-feeds:AGF:') else
+                        'uk_ocpi_tariff' if str(offer_id).startswith('uk-production-open-feeds:') else
                         'belgium_nap_price' if str(offer_id).startswith('belgium-nap-national:') else None)
         derived_key = oracle.get('rawKey') if derived_kind else None
         if not raw and derived_key:
@@ -80,12 +80,31 @@ for row in report['rows']:
                      'scopeStatuses':dict(Counter(s[2] for s in scopes)),
                      'derivation':{'kilowatt_connector':'connector_id_and_charge_point_id_from_pinned_kilowatt_native',
                                    'dotnl_active_compact':'point_id_and_rules_from_pinned_active_dotnl',
-                                   'applegreen_tariff':'ocpi_location_evse_connector_tariff_reference',
+                                   'uk_ocpi_tariff':'ocpi_location_evse_connector_tariff_reference',
                                    'belgium_nap_price':'nap_location_evse_ad_hoc_rate_reference'}.get(derived_kind)}
+            equivalent_keys = oracle.get('equivalentRawKeys') or []
+            if equivalent_keys and proof['state']=='exact_derived_catalogue_link':
+                alternatives = db.execute('SELECT raw_key,source_path,source_sha256,raw_json FROM RawOffer WHERE raw_key IN ('+
+                                          ','.join('?' for _ in equivalent_keys)+')', equivalent_keys).fetchall()
+                alternate_scopes_ok = all(any(
+                    status in ('exact_unique','source_exact_join') and
+                    json.loads(source_id).get('stationId') == source_station and
+                    json.loads(source_id).get('evseId') == row.get('evseId') and
+                    (point_key or connector_key)
+                    for source_id,status,point_key,connector_key in db.execute(
+                        'SELECT source_id,link_status,point_key,connector_key FROM OfferScope WHERE raw_key=?',
+                        (key,))) for key in equivalent_keys)
+                if len(alternatives)==len(equivalent_keys) and len({item[3] for item in alternatives})==1 and alternate_scopes_ok:
+                    proof['equivalentRawOffers']=[{'rawKey':key,'sourcePath':path,'sourceSha256':sha}
+                                                  for key,path,sha,_ in sorted(alternatives)]
+                else:
+                    proof['state']='ambiguous_duplicate_source_payload'
     row['catalogueProof'] = proof
     oracle = (row.get('new') or {}).get('oracle') or {}
     differences = (row.get('legacy') or {}).get('differences') or []
-    if differences:
+    if (row.get('new') or {}).get('status') == 'ineligible' and (row.get('new') or {}).get('reason') == 'subscription_not_selected':
+        row['classification'] = 'ineligible_expected'
+    elif differences:
         exact = proof['state'] in ('exact_catalogue_link','exact_derived_catalogue_link') and oracle.get('status') == 'priced'
         new = row.get('new') or {}
         old = row.get('legacy') or {}

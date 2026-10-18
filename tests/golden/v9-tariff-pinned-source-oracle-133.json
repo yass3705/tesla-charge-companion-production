@@ -391,8 +391,20 @@
         "stationTimeZone": "Europe/Zurich"
       },
       "expected": {
-        "status": "uncomputable",
-        "reason": "unsupported_rule_dimension"
+        "status": "priced",
+        "total": 13.769305,
+        "currency": "EUR",
+        "components": {
+          "energy": 13.769305,
+          "connectedTime": 0,
+          "chargingTime": 0,
+          "parkingTime": 0,
+          "afterMinutes": 0,
+          "connectionFee": 0,
+          "sessionFee": 0,
+          "congestion": 0,
+          "postChargeFee": 0
+        }
       },
       "timeZone": "Europe/Zurich"
     },

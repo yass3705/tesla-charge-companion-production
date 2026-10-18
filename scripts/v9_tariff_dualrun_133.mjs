@@ -6,7 +6,8 @@ import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import crypto from 'node:crypto';
 import zlib from 'node:zlib';
-import {independentOracle,independentDotnlCompactOracle,independentKilowattFreeOracle} from './v9_tariff_oracle_133.mjs';
+import {independentOracle,independentDotnlCompactOracle,independentKilowattFreeOracle,
+  independentComponentGroupsOracle,independentOcpiEnergyOracle} from './v9_tariff_oracle_133.mjs';
 const require=createRequire(import.meta.url);
 const root=path.resolve(process.argv[2]||'');
 const runtime=path.join(root,'runtime');
@@ -34,11 +35,42 @@ const kilowattNative=pinnedJson('snapshot-inputs/MA/sources/kilowatt-native-tari
 const kilowattOverlay=pinnedJson('snapshot-inputs/MA/sources/kilowatt-tariff-overlay.json');
 const kilowattRawByStation=new Map(kilowattNative.stations.map((row,index)=>[row.station_id,{row,index}]));
 const ukOpen=pinnedGzipJson('snapshot-inputs/UK/all.json.gz');
-const applegreenSourceIndex=ukOpen.sources.findIndex(x=>x.name==='Applegreen Fast Charge');
-const applegreenSource=ukOpen.sources[applegreenSourceIndex];
-const bePagePath='snapshot-inputs/BE/pages/nap-belgium-007000.json.gz';
-const bePage=pinnedGzipJson(bePagePath);
-const beLocations=bePage.locations||bePage;
+const ukTariffByExactScope=new Map();
+const ukTariffByPointer=new Map();
+for(const [si,source] of ukOpen.sources.entries()){
+  const tariffs=new Map((source.tariffs||[]).map((tariff,ti)=>[String(tariff.id),ti]));
+  for(const [ti,tariff] of (source.tariffs||[]).entries())
+    ukTariffByPointer.set(`snapshot-inputs/UK/all.json.gz:/sources/${si}/tariffs/${ti}`,tariff);
+  for(const location of source.locations||[])for(const evse of location.evses||[])
+    for(const connector of evse.connectors||[])for(const tariffId of connector.tariff_ids||[]){
+      const ti=tariffs.get(String(tariffId));if(ti===undefined)continue;
+      const key=[location.party_id,String(location.id),evse.evse_id,String(connector.id),String(tariffId)].join('\u001f');
+      const matches=ukTariffByExactScope.get(key)||[];
+      matches.push(`snapshot-inputs/UK/all.json.gz:/sources/${si}/tariffs/${ti}`);
+      ukTariffByExactScope.set(key,matches);
+    }
+}
+const esRawById=new Map();
+for(const entry of manifest.files.filter(x=>/^runtime\/data\/v9\/spain-reve-offers\/.*\.json\.gz$/.test(x.path))){
+  const payload=pinnedGzipJson(entry.path);
+  for(const [index,offer] of (payload.directOffers||[]).entries()){
+    const matches=esRawById.get(offer.id)||[];
+    matches.push({offer,rawKey:`${entry.path}:directOffers:${index}`});
+    esRawById.set(offer.id,matches);
+  }
+}
+const beRawByExactScope=new Map();
+for(const entry of manifest.files.filter(x=>/^snapshot-inputs\/BE\/pages\/nap-belgium-\d+\.json\.gz$/.test(x.path))){
+  const page=pinnedGzipJson(entry.path),locations=page.locations||page;
+  for(const [li,location] of locations.entries())for(const [si,station] of (location.stations||[]).entries())
+    for(const [ei,evse] of (station.evses||[]).entries())for(const [pi,price] of (evse.prices||[]).entries()){
+      const key=[String(location.id),String(evse.id),String(price.rateId)].join('\u001f');
+      const matches=beRawByExactScope.get(key)||[];
+      matches.push({rawKey:`${entry.path}:/locations/${li}/stations/${si}/evses/${ei}/prices/${pi}`,
+        payload:JSON.stringify(price)});
+      beRawByExactScope.set(key,matches);
+    }
+}
 const electraPinned=pinnedGzipJson('snapshot-inputs/FR/platforms/electra/t_97_4.json.gz');
 const electraRawById=new Map(electraPinned.emspOffers.map(x=>[x.id,x]));
 const registry=JSON.parse(fs.readFileSync(path.join(runtime,'data/v9/source-registry.json')));
@@ -129,33 +161,46 @@ function evaluatePure(station,evse,connector,offer,session){
   const kilowattConnectorIndex=kilowattSource?.row.connectors.findIndex(x=>'kilowatt-native:'+x.id===connector.id)??-1;
   const kilowattConnector=kilowattConnectorIndex>=0?kilowattSource.row.connectors[kilowattConnectorIndex]:null;
   const electraRaw=String(offer.id||'').startsWith('electra-platform:')?electraRawById.get(offer.id):null;
-  const oracle=dotnlPoint?independentDotnlCompactOracle(dotnlPoint[5],oracleSession):
+  let oracle=dotnlPoint?independentDotnlCompactOracle(dotnlPoint[5],oracleSession):
     kilowattConnector?independentKilowattFreeOracle(kilowattConnector,kilowattStation,
       kilowattOverlay.freeStationIds,oracleSession):
     electraRaw?independentOracle(electraRaw,oracleSession,{connectorId:connector.id,powerKw:connector.powerKw}):
     independentOracle(offer,oracleSession,{connectorId:connector.id,powerKw:connector.powerKw});
-  if(kilowattConnector&&oracle.status==='priced')
+  if(kilowattConnector)
     oracle.rawKey=`snapshot-inputs/MA/sources/kilowatt-native-tariffs.json:/stations/${kilowattSource.index}/connectors/${kilowattConnectorIndex}`;
-  if(dotnlPoint&&oracle.status==='priced')
+  if(dotnlPoint)
     oracle.rawKey=`${dotnlPath}:/${dotnlSource.index}/8/${dotnlPointIndex}/5`;
-  if(String(offer.id||'').startsWith('uk-production-open-feeds:AGF:')){
-    const locationId=String(station.id||'').split(':').at(-1);
-    const location=applegreenSource.locations.find(x=>x.id===locationId&&x.party_id==='AGF');
-    const exact=location?.evses?.some(e=>e.evse_id===evse.id&&e.connectors?.some(c=>
-      c.id===connector.id&&c.tariff_ids?.includes('applegreen:'+connector.id)));
-    const tariffIndex=applegreenSource.tariffs.findIndex(x=>x.id==='applegreen:'+connector.id);
-    if(exact&&tariffIndex>=0)
-      oracle.rawKey=`snapshot-inputs/UK/all.json.gz:/sources/${applegreenSourceIndex}/tariffs/${tariffIndex}`;
+  if(String(offer.id||'').startsWith('uk-production-open-feeds:')){
+    const prefix='GB:ocpi:',parts=String(station.id||'').startsWith(prefix)?String(station.id).slice(prefix.length).split(':'):[];
+    const party=parts.shift(),locationId=parts.join(':');
+    const suffix=String(offer.id).slice('uk-production-open-feeds:'.length);
+    const keys=[...ukTariffByExactScope.keys()].filter(key=>{
+      const [p,l,e,c,t]=key.split('\u001f');
+      return p===party&&l===locationId&&e===evse.id&&c===String(connector.id)&&suffix.endsWith(':'+t);
+    });
+    const matches=keys.flatMap(key=>ukTariffByExactScope.get(key));
+    if(matches.length===1){
+      const pinnedTariff=ukTariffByPointer.get(matches[0]);
+      const sourceOracle=independentOcpiEnergyOracle(pinnedTariff,oracleSession);
+      if(sourceOracle.status==='priced')oracle=sourceOracle;
+      oracle.rawKey=matches[0];
+    }
+  }
+  if(offer.pricing?.type==='component_groups'&&String(offer.id||'').startsWith('es:reve:')){
+    const matches=esRawById.get(offer.id)||[];
+    if(matches.length===1&&matches[0].offer.provider===offer.provider){
+      oracle=independentComponentGroupsOracle(matches[0].offer,oracleSession);
+      oracle.rawKey=matches[0].rawKey;
+    }
   }
   if(String(offer.id||'').startsWith('belgium-nap-national:')){
     const locationId=String(station.id||'').replace(/^BE:national:/,'');
-    const li=beLocations.findIndex(x=>x.id===locationId);
-    const st=li>=0?beLocations[li].stations?.[0]:null;
-    const ei=st?.evses?.findIndex(x=>x.id===evse.id)??-1;
     const rateId=String(offer.id).split(':').at(-1);
-    const pi=ei>=0?st.evses[ei].prices?.findIndex(x=>x.rateId===rateId)??-1:-1;
-    if(li>=0&&ei>=0&&pi>=0)
-      oracle.rawKey=`${bePagePath}:/locations/${li}/stations/0/evses/${ei}/prices/${pi}`;
+    const matches=beRawByExactScope.get([locationId,String(evse.id),rateId].join('\u001f'))||[];
+    if(matches.length&&matches.every(x=>x.payload===matches[0].payload)){
+      oracle.rawKey=matches[0].rawKey;
+      if(matches.length>1)oracle.equivalentRawKeys=matches.map(x=>x.rawKey);
+    }
   }
   // The verified Midhope runtime contract calls durationMinutes the charging
   // period and adds postChargeMinutes to obtain occupancy. The scenario and
