@@ -42,7 +42,7 @@ Bois-d'Arcy conserve trois stations source et 28 PDC ; seules les 12 offres Grap
 
 Les **24 golden source Phase 3** et leurs tests indépendants restent la preuve ciblée pour horaires et DST Europe/London/Paris, frais fixes, kWh, minute de charge, stationnement et après-charge Midhope, `afterMinutesRate`, FLAT/OCPI DOT-NL et minuit, FX daté et vérifié par SHA, offres Tesla SuC/Mac, Electra avec/sans congestion, et Lully en source inactive. Les tests runtime du pin vérifient aussi les seuils, plafonds et abonnements éligibles. Le rapport Phase 4 sépare 422 lignes calculées avec oracle indépendant de 230 lignes calculées sans oracle : ces dernières exigent des golden source supplémentaires **par famille et par portée** avant admission. Aucune conclusion universelle n'est tirée pour les grilles absentes de l'échantillon. `ambiguous=0` dans les lignes évaluées ne prouve pas absence de conflits dans le catalogue.
 
-Direct Lully reste **inactif**. Une PR Draft documentaire **distincte** définit l'exigence de checkout Scan Pay, identité des quatre PDC et deux profils de puissance, TVA, frais uniques, stationnement, transitions horaires/DST et contrôle par offre avant toute activation. Les prix source Phase 3 ne deviennent pas des offres runtime par ce plan.
+Direct Lully reste **inactif**. La [PR Draft documentaire distincte #140](https://github.com/yass3705/tesla-charge-companion-production/pull/140) définit l'exigence de checkout Scan Pay, identité des quatre PDC et deux profils de puissance, TVA, frais uniques, stationnement, transitions horaires/DST et contrôle par offre avant toute activation. Les prix source Phase 3 ne deviennent pas des offres runtime par ce plan.
 
 ## Plan d'intégration réversible, non activé
 
