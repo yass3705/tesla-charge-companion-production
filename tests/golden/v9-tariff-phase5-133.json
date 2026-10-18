@@ -1,0 +1,17 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "manifestSha256": "2b7b9964d8fce26f65aaf1e508717a114cb68ca16c66fb3c06ba9a076f2db52f",
+  "catalogue": {"RawOffer": 666631, "SourceStation": 362234, "ChargePoint": 654932, "Connector": 460144, "OfferScope": 710386},
+  "rows": 721,
+  "intersection": 38,
+  "union": 343,
+  "lineageRoots": {"NL:oracle_status_suppressed_exact_pointer": 28, "BE:single_nap_page_lookup": 108, "BE:single_nap_page_lookup_and_duplicate_exact_rows": 4, "GB:uk_lookup_restricted_to_applegreen": 11},
+  "oracleTransition": {"newlyProvenFromOriginal230": 180, "remainingFromOriginal230": 50, "previouslyProvenNowRefused": 12},
+  "after": {
+    "status": {"priced": 652, "uncomputable": 55, "ineligible": 12, "no_exact_offer": 2},
+    "classification": {"match": 689, "correction_demonstrated": 2, "data_insufficient": 18, "ineligible_expected": 12},
+    "catalogueProof": {"exact_catalogue_link": 301, "exact_derived_catalogue_link": 418, "no_exact_runtime_offer": 2},
+    "pricedWithoutOracle": 62,
+    "pricedWithOracle": 590
+  }
+}

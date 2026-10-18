@@ -46,7 +46,9 @@ export function independentDotnlCompactOracle(rows,scenario){
     if(!Array.isArray(r[12])||r[12].some(b=>!Array.isArray(b)||b.length<4||
        !nonnegative(b[1])||!nonnegative(b[3])||b[1]<=duration*60&&b[3]>0))
       return fail('dotnl_duration_band_not_proven');
-    if(r[13]&&Object.values(r[13]).some(x=>x!=null&&x>1))return fail('dotnl_billing_step_not_proven');
+    // The pinned compact uses seconds. A 60-second step is exactly one
+    // scenario minute; larger or fractional steps require separate proof.
+    if(r[13]&&Object.values(r[13]).some(x=>x!=null&&x!==1&&x!==60))return fail('dotnl_billing_step_not_proven');
     currencies.add(r[4]);flatRates.add(r[7]);
     if(i<charging){components.energy+=scenario.energyKwh/charging*r[5];components.chargingTime+=r[6]}
     else components.parkingTime+=r[8];
@@ -65,6 +67,47 @@ export function independentKilowattFreeOracle(connector,stationId,freeStationIds
   const total=0;
   return{status:'priced',total,currency:'MAD',components:{energy:0},
     ...fxResult(total,'MAD',scenario)};
+}
+// Evaluate only REVE component groups whose meaning is explicit in the pinned
+// offer itself. Reservation, duration and time-window rules fail closed.
+export function independentComponentGroupsOracle(sourceOffer,scenario){
+  const pricing=sourceOffer?.pricing,groups=pricing?.componentGroups;
+  if(pricing?.type!=='component_groups'||!Array.isArray(groups)||!groups.length||
+     !nonnegative(scenario.energyKwh)||!sourceOffer.currency)return fail('component_groups_source_incomplete');
+  if(Object.keys(pricing).some(k=>!['type','componentGroups'].includes(k)))return fail('component_groups_extra_pricing_semantics');
+  let energy=null,flat=0;
+  for(const group of groups){
+    if(!Array.isArray(group.rules)||group.rules.length!==1)return fail('component_groups_multiple_rules');
+    const rule=group.rules[0];
+    if(group.kind==='ENERGY'){
+      if(energy!==null||Object.keys(rule).some(k=>!['pricePerKwh','energyStepWh'].includes(k))||
+         !nonnegative(rule.pricePerKwh)||!Number.isInteger(rule.energyStepWh)||rule.energyStepWh<=0)
+        return fail('component_groups_energy_semantics_unproved');
+      const billedWh=Math.ceil(scenario.energyKwh*1000/rule.energyStepWh)*rule.energyStepWh;
+      energy=billedWh/1000*rule.pricePerKwh;
+    }else if(group.kind==='FLAT'){
+      if(Object.keys(rule).some(k=>k!=='sessionFeeEur')||!nonnegative(rule.sessionFeeEur))
+        return fail('component_groups_conditional_flat_unproved');
+      flat+=rule.sessionFeeEur;
+    }else return fail('component_groups_duration_or_other_unproved');
+  }
+  if(energy===null)return fail('component_groups_no_energy');
+  const components={energy:money(energy),sessionFee:money(flat)};
+  const total=money(energy+flat);
+  return{status:'priced',total,currency:sourceOffer.currency,components,
+    ...fxResult(total,sourceOffer.currency,scenario)};
+}
+export function independentOcpiEnergyOracle(tariff,scenario){
+  const elements=tariff?.elements;
+  if(!Array.isArray(elements)||elements.length!==1||elements[0]?.restrictions||
+     !Array.isArray(elements[0]?.price_components)||elements[0].price_components.length!==1)
+    return fail('ocpi_source_elements_not_unique');
+  const c=elements[0].price_components[0];
+  if(c.type!=='ENERGY'||!nonnegative(c.price)||c.step_size!==1||c.vat!=null||!tariff.currency||
+     !nonnegative(scenario.energyKwh))return fail('ocpi_energy_or_tax_semantics_unproved');
+  const total=money(scenario.energyKwh*c.price);
+  return{status:'priced',total,currency:tariff.currency,components:{energy:total},
+    ...fxResult(total,tariff.currency,scenario)};
 }
 function ruleAt(rules,instant,zone){
   const local=localParts(instant,zone);if(!local)return{error:'invalid_source_time_zone'};
@@ -154,6 +197,8 @@ export function independentOracle(offer,scenario,context={}){
   let pricing=offer?.pricing||{};
   if((offer?.subscriptionId||offer?.kind==='subscription')&&scenario.selectedSubscriptionId!==offer.subscriptionId)
     return{status:'ineligible',reason:'subscription_not_selected'};
+  if(pricing.postChargeFeeUnknown&&scenario.postChargeMinutes>0)
+    return fail('unknown_station_specific_post_charge_fee');
   const duration=scenario.durationMinutes,charging=scenario.chargingMinutes,parking=scenario.postChargeMinutes,energy=scenario.energyKwh;
   if(![duration,charging,parking,energy].every(nonnegative)||!Number.isInteger(duration)||duration>10080||
      !Number.isInteger(charging)||!Number.isInteger(parking)||charging+parking>duration||(energy>0&&charging===0))
@@ -217,11 +262,17 @@ export function independentOracle(offer,scenario,context={}){
   if(!Array.isArray(rules)||!rules.length)return fail('missing_rules');
   if(pricing.componentGroups||pricing.longConnectionFee||pricing.conditionalSessionFees)return fail('unsupported_composite_pricing');
   const unsupported=['ocpiDurationBands','energyStepWh','chargingTimeStepSeconds','parkingTimeStepSeconds',
-    'connectedTimeStepSeconds','connectedTimeBlockMinutes','connectedTimeBlockEur','connectedTimeFreeMinutes',
+    'connectedTimeStepSeconds','connectedTimeBlockMinutes','connectedTimeBlockEur',
     'connectedTimeInitialMinutes','ocpiCongestionDurationBands','congestionTimeStepSeconds'];
   for(const rule of rules){
     if(rule.days?.length||rule.holidayOnly||rule.excludeHolidays||rule.mustEndSameLocalDay)return fail('unsupported_calendar_restriction');
     if(unsupported.some(key=>Array.isArray(rule[key])?rule[key].length:!!rule[key]))return fail('unsupported_rule_dimension');
+    if(rule.connectedTimeFreeMinutes!=null){
+      if(!nonnegative(rule.connectedTimeFreeMinutes)||
+         !nonnegative(rule.connectedTimePerMinuteAfterFreeEur)||
+         (duration>rule.connectedTimeFreeMinutes&&rule.connectedTimePerMinuteAfterFreeEur>0))
+        return fail('connected_time_after_free_boundary_unproved');
+    }
     if(rule.scope!=='allDay'&&rule.scope!=='timeWindow')return fail('unsupported_rule_scope');
     if(rule.scope==='timeWindow'&&(hhmm(rule.start)==null||hhmm(rule.end)==null))return fail('invalid_time_window');
     for(const key of ['pricePerKwh','pricePerMinute','connectedTimePerMinuteEur','chargePerMinute',
@@ -233,7 +284,11 @@ export function independentOracle(offer,scenario,context={}){
   const currencies=[...new Set(rules.map(r=>r.currency||offer.currency).filter(Boolean))];
   if(currencies.length!==1)return fail('mixed_or_missing_source_currency');
   const currency=currencies[0];
-  const zone=pricing.timeZone||offer.metadata?.timeZone||scenario.stationTimeZone;
+  const allDayTimeIndependent=rules.every(r=>r.scope==='allDay'&&!r.days?.length&&!r.daysOfWeek?.length&&
+    !r.holidayOnly&&!r.excludeHolidays&&!r.mustEndSameLocalDay&&!r.afterMinutesCap&&
+    !(r.congestionTimePerMinute>0)&&r.billing!=='powerMinute'&&!r.powerBands?.length)&&!pricing.postChargeFee;
+  const zone=pricing.timeZone||offer.metadata?.timeZone||scenario.stationTimeZone||
+    (allDayTimeIndependent?'UTC':null);
   if(!zone)return fail('missing_tariff_time_zone');
   const startMs=Date.parse(scenario.startAt||'');if(!Number.isFinite(startMs))return fail('invalid_start_instant');
   const fixed=oneTime(rules,'connectionFee'),sessionFee=oneTime(rules,'sessionFeeEur');

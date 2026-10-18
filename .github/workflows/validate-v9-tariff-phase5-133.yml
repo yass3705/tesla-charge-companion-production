@@ -1,0 +1,30 @@
+name: Validate V9 tariff Phase 5 evidence (no publish)
+on:
+  pull_request:
+    paths:
+      - 'scripts/v9_tariff_*.mjs'
+      - 'scripts/v9_tariff_*133.py'
+      - 'tests/v9-tariff-phase5-*.test.mjs'
+      - 'tests/v9-tariff-shadow-133.test.mjs'
+      - 'tests/golden/v9-tariff-phase5-*.json'
+      - 'reports/v9-tariff-133/*phase5*'
+      - '.github/workflows/validate-v9-tariff-phase5-133.yml'
+  workflow_dispatch:
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate complete Phase 5 report and disabled shadow
+        run: node --test tests/v9-tariff-phase5-evidence-133.test.mjs tests/v9-tariff-shadow-133.test.mjs
+      - name: Validate Python report and reconciliation syntax
+        run: python3 -m py_compile scripts/v9_tariff_reconcile_133.py scripts/v9_tariff_phase5_report_133.py
+      - name: Validate whitespace
+        run: git diff --check HEAD^
