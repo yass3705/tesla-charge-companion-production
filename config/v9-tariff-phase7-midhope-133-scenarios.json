@@ -180,6 +180,139 @@
         "stationTimeZone": "Europe/London",
         "targetCurrency": "GBP"
       }
+    },
+    {
+      "countryCode": "GB",
+      "origin": {
+        "lat": 51.3095523,
+        "lon": -0.5647349
+      },
+      "radiusKm": 1,
+      "namePattern": "midhope",
+      "key": "GB-Midhope-P7-summer-saturday",
+      "session": {
+        "startAt": "2026-10-17T07:30:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "stationTimeZone": "Europe/London",
+        "targetCurrency": "GBP"
+      }
+    },
+    {
+      "countryCode": "GB",
+      "origin": {
+        "lat": 51.3095523,
+        "lon": -0.5647349
+      },
+      "radiusKm": 1,
+      "namePattern": "midhope",
+      "key": "GB-Midhope-P7-winter-before-open-exact",
+      "session": {
+        "startAt": "2026-10-26T08:29:00Z",
+        "durationMinutes": 1,
+        "chargingMinutes": 1,
+        "postChargeMinutes": 0,
+        "energyKwh": 0,
+        "stationTimeZone": "Europe/London",
+        "targetCurrency": "GBP"
+      }
+    },
+    {
+      "countryCode": "GB",
+      "origin": {
+        "lat": 51.3095523,
+        "lon": -0.5647349
+      },
+      "radiusKm": 1,
+      "namePattern": "midhope",
+      "key": "GB-Midhope-P7-winter-open-exact",
+      "session": {
+        "startAt": "2026-10-26T08:30:00Z",
+        "durationMinutes": 1,
+        "chargingMinutes": 1,
+        "postChargeMinutes": 0,
+        "energyKwh": 0,
+        "stationTimeZone": "Europe/London",
+        "targetCurrency": "GBP"
+      }
+    },
+    {
+      "countryCode": "GB",
+      "origin": {
+        "lat": 51.3095523,
+        "lon": -0.5647349
+      },
+      "radiusKm": 1,
+      "namePattern": "midhope",
+      "key": "GB-Midhope-P7-winter-before-close-exact",
+      "session": {
+        "startAt": "2026-10-26T17:59:00Z",
+        "durationMinutes": 1,
+        "chargingMinutes": 1,
+        "postChargeMinutes": 0,
+        "energyKwh": 0,
+        "stationTimeZone": "Europe/London",
+        "targetCurrency": "GBP"
+      }
+    },
+    {
+      "countryCode": "GB",
+      "origin": {
+        "lat": 51.3095523,
+        "lon": -0.5647349
+      },
+      "radiusKm": 1,
+      "namePattern": "midhope",
+      "key": "GB-Midhope-P7-winter-close-exact",
+      "session": {
+        "startAt": "2026-10-26T18:00:00Z",
+        "durationMinutes": 1,
+        "chargingMinutes": 1,
+        "postChargeMinutes": 0,
+        "energyKwh": 0,
+        "stationTimeZone": "Europe/London",
+        "targetCurrency": "GBP"
+      }
+    },
+    {
+      "countryCode": "GB",
+      "origin": {
+        "lat": 51.3095523,
+        "lon": -0.5647349
+      },
+      "radiusKm": 1,
+      "namePattern": "midhope",
+      "key": "GB-Midhope-P7-dst-spring-sunday",
+      "session": {
+        "startAt": "2027-03-28T00:30:00Z",
+        "durationMinutes": 120,
+        "chargingMinutes": 90,
+        "postChargeMinutes": 30,
+        "energyKwh": 20,
+        "stationTimeZone": "Europe/London",
+        "targetCurrency": "GBP"
+      }
+    },
+    {
+      "countryCode": "GB",
+      "origin": {
+        "lat": 51.3095523,
+        "lon": -0.5647349
+      },
+      "radiusKm": 1,
+      "namePattern": "midhope",
+      "key": "GB-Midhope-P7-dst-spring-summer-monday",
+      "session": {
+        "startAt": "2027-03-29T07:30:00Z",
+        "durationMinutes": 60,
+        "chargingMinutes": 45,
+        "postChargeMinutes": 15,
+        "energyKwh": 20,
+        "stationTimeZone": "Europe/London",
+        "targetCurrency": "GBP"
+      }
     }
   ]
 }

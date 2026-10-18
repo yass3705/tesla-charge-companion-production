@@ -33,10 +33,10 @@
         "connected_kerb_midhope_guest_verified"
       ],
       "phase6SampleRows": 2,
-      "branchScenarios": 9,
-      "branchEvaluations": 36,
+      "branchScenarios": 16,
+      "branchEvaluations": 64,
       "originalSupplierSourcePinned": true,
-      "pinWideCandidate": false
+      "pinWideCandidate": true
     },
     {
       "name": "CH DE*EDH",
@@ -54,7 +54,7 @@
       "pinWideCandidate": false
     }
   ],
-  "candidateCount": 0,
+  "candidateCount": 1,
   "activationCount": 0,
   "residual62": 62,
   "insufficient18": 18

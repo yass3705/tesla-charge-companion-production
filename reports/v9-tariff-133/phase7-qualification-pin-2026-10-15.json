@@ -107,17 +107,24 @@
           "connectorKey": "embedded:uk-connected-kerb-midhope-guest-verified:snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:cd20ba89-4241-4b39-b738-514f49093e8d:point:GB*CK0*E19707:connector:9a1d7557-d59c-4e95-a929-b667d73843f0"
         }
       ],
-      "branchScenarios": 9,
-      "branchEvaluations": 36,
+      "branchScenarios": 16,
+      "branchEvaluations": 64,
       "independentSourceOracle": "midhopeSourceOracle; exact pinned bytes and manual golden",
       "originalSupplierSourcePinned": true,
-      "pinWideCandidate": false,
+      "pinWideCandidate": true,
+      "priceFreshness": {
+        "observedAt": "2026-10-10",
+        "snapshotAsOf": "2026-10-15",
+        "validFrom": "2026-10-10",
+        "validTo": null,
+        "decision": "proved_for_immutable_pin_only; revalidate on newer supplier evidence"
+      },
       "branchCoverage": {
         "energy": "proved_all_four",
         "fixed_fee": "absent_preauthorisation_excluded",
         "time": "proved_parking_and_idle",
         "parking": "proved_weekday_sunday_and_window_boundaries",
-        "hourly_dst": "calculation_proved_supplier_winter_price_unconfirmed",
+        "hourly_dst": "year_round_local_schedule_proved; UTC_offset_only_changes",
         "threshold": "proved_started_30_minute_blocks",
         "cap": "absent_in_complete_source_pricing_object",
         "subscription": "absent_in_complete_source_offer",
@@ -125,7 +132,7 @@
         "fx": "GBP_and_2026_10_15_dated_EUR_proved",
         "validity": "before_validFrom_rejected"
       },
-      "blockedReason": "winterEvidence is not_confirmed_not_activated: supplier price validity after DST unproved for this date-unbounded cohort",
+      "blockedReason": null,
       "candidateScope": "only this immutable pin and exact four connectors; flag remains off"
     },
     {
@@ -207,7 +214,7 @@
       "blockedReason": "upstream CHF tariff and dated FX source are not pinned; derived EUR bytes alone do not prove supplier price"
     }
   ],
-  "pinWideCandidateCount": 0,
+  "pinWideCandidateCount": 1,
   "activationCount": 0,
   "siteKeyUsedForTariffJoin": false
 }
