@@ -49,3 +49,9 @@ Arrêt immédiat si pin différent, tuple ou canal inexact, contradiction de com
 5. **Data Lab #332** : intégrer le passage de relais mémoire une fois les décisions Production versionnées. **#140 Lully** reste un chantier indépendant d'activation Scan Pay.
 
 Chaque fusion éventuelle doit recontrôler les déclencheurs Actions et l'état de branche avant push. Aucune étape ci-dessus n'autorise publication Pages/Cloudflare ni activation du flag.
+
+## Contrôles PR et blocage externe
+
+Les recettes candidates Espagne, développement et Pages validaient `runtime-engine.js` contre les octets du Stable malgré la propriété Production déjà établie. Leur appel de `validate_stable_parity.py` utilise désormais `--allow-production-owned-runtime`, qui **vérifie l'égalité SHA avec les modules Production empaquetés** et continue de comparer tous les autres fichiers critiques au Stable. Cette parité passe localement sur le dist final. La validation de PR ne peut jamais exécuter les étapes de publication Pages : celles-ci demandent `workflow_dispatch` avec `publish=true`.
+
+Le workflow global Mac preview a signalé un écart de comptage IONITY (84 stations, 878 prises/tarifs) dans son jeu candidat distinct. Aucun fichier source, registre IONITY ou règle tarifaire n'est changé ici ; ce contrôle reste **NO-GO pour une fusion** jusqu'à résolution dans le chantier source concerné ou à une preuve de provenance du pin. La recette locale globale sur le pin strict du 15/10 passe en desktop et mobile émulé, sans masquer cet échec CI.

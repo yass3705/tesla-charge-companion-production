@@ -51,7 +51,7 @@ jobs:
             --config config/snapshots/2026-10-15-es-reve-datalab-seed-candidate.json \
             --out ../dist/es-reve-datalab-candidate
           python scripts/validate_built_snapshot.py ../dist/es-reve-datalab-candidate 2026-10-15-es-reve-datalab-seed-candidate
-          python scripts/validate_stable_parity.py ../stable ../dist/es-reve-datalab-candidate --allow-nl-override --allow-pricing-engine-override
+          python scripts/validate_stable_parity.py ../stable ../dist/es-reve-datalab-candidate --allow-nl-override --allow-pricing-engine-override --allow-production-owned-runtime
           python scripts/validate_browser_asset_graph.py ../dist/es-reve-datalab-candidate
           node tests/runtime-e2e-smoke.mjs ../dist/es-reve-datalab-candidate
       - name: Require exact preserved Spain runtime and source provenance
