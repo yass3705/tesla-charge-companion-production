@@ -78,19 +78,90 @@
     "before-validity": {
       "status": "uncomputable",
       "reason": "before_observed_tariff"
+    },
+    "summer-saturday": {
+      "status": "priced",
+      "total": 9.74928,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 1.60008,
+        "idleSupplement": 0.15
+      }
+    },
+    "winter-before-open-exact": {
+      "status": "priced",
+      "total": 0,
+      "components": {
+        "energy": 0,
+        "parkingTime": 0,
+        "idleSupplement": 0
+      }
+    },
+    "winter-open-exact": {
+      "status": "priced",
+      "total": 0.80004,
+      "components": {
+        "energy": 0,
+        "parkingTime": 0.80004,
+        "idleSupplement": 0
+      }
+    },
+    "winter-before-close-exact": {
+      "status": "priced",
+      "total": 0.80004,
+      "components": {
+        "energy": 0,
+        "parkingTime": 0.80004,
+        "idleSupplement": 0
+      }
+    },
+    "winter-close-exact": {
+      "status": "priced",
+      "total": 0,
+      "components": {
+        "energy": 0,
+        "parkingTime": 0,
+        "idleSupplement": 0
+      }
+    },
+    "dst-spring-sunday": {
+      "status": "priced",
+      "total": 8.2992,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 0,
+        "idleSupplement": 0.3
+      }
+    },
+    "dst-spring-summer-monday": {
+      "status": "priced",
+      "total": 9.74928,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 1.60008,
+        "idleSupplement": 0.15
+      }
     }
   },
   "expectedConnectors": 4,
   "expectedOffers": 4,
   "expectedExactTuples": 4,
-  "scenarios": 9,
-  "evaluations": 36,
-  "supplierWinterPriceProven": false,
+  "scenarios": 16,
+  "evaluations": 64,
   "fxEvidence": {
     "date": "2026-10-15",
     "base": "EUR",
     "rates": {
       "GBP": 0.845514
     }
+  },
+  "yearRoundLocalScheduleProven": true,
+  "historicalWinterAnnotation": "not_confirmed_not_activated",
+  "priceFreshness": {
+    "observedAt": "2026-10-10",
+    "snapshotAsOf": "2026-10-15",
+    "validFrom": "2026-10-10",
+    "validTo": null,
+    "scope": "immutable_pin_only"
   }
 }

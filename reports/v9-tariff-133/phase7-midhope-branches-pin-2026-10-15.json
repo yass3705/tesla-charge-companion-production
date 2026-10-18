@@ -1,13 +1,13 @@
 {
   "summary": {
     "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
-    "scenarioCount": 36,
+    "scenarioCount": 64,
     "byStatus": {
-      "priced": 32,
+      "priced": 60,
       "uncomputable": 4
     },
     "byClassification": {
-      "match": 36
+      "match": 64
     },
     "sampling": {
       "method": "deterministic exact tuple strata within configured pinned query areas",
@@ -74,20 +74,69 @@
           "strata": 1,
           "sampled": 4,
           "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+        },
+        {
+          "scenario": "GB-Midhope-P7-summer-saturday",
+          "exactTuplesInArea": 4,
+          "strata": 1,
+          "sampled": 4,
+          "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+        },
+        {
+          "scenario": "GB-Midhope-P7-winter-before-open-exact",
+          "exactTuplesInArea": 4,
+          "strata": 1,
+          "sampled": 4,
+          "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+        },
+        {
+          "scenario": "GB-Midhope-P7-winter-open-exact",
+          "exactTuplesInArea": 4,
+          "strata": 1,
+          "sampled": 4,
+          "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+        },
+        {
+          "scenario": "GB-Midhope-P7-winter-before-close-exact",
+          "exactTuplesInArea": 4,
+          "strata": 1,
+          "sampled": 4,
+          "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+        },
+        {
+          "scenario": "GB-Midhope-P7-winter-close-exact",
+          "exactTuplesInArea": 4,
+          "strata": 1,
+          "sampled": 4,
+          "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+        },
+        {
+          "scenario": "GB-Midhope-P7-dst-spring-sunday",
+          "exactTuplesInArea": 4,
+          "strata": 1,
+          "sampled": 4,
+          "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
+        },
+        {
+          "scenario": "GB-Midhope-P7-dst-spring-summer-monday",
+          "exactTuplesInArea": 4,
+          "strata": 1,
+          "sampled": 4,
+          "selection": "ASCII first two exact tuples per country/CPO/channel/power band/pricing family"
         }
       ],
-      "exactTuplesInAreas": 36,
-      "sampled": 36
+      "exactTuplesInAreas": 64,
+      "sampled": 64
     },
     "catalogueProof": {
-      "exact_catalogue_link": 36
+      "exact_catalogue_link": 64
     },
     "catalogueProofByCountryChannel": [
       {
         "country": "GB",
         "channel": "Connected Kerb",
         "states": {
-          "exact_catalogue_link": 36
+          "exact_catalogue_link": 64
         }
       }
     ],
@@ -127,6 +176,40 @@
         "differenceFields": {}
       },
       {
+        "scenario": "GB-Midhope-P7-dst-spring-summer-monday",
+        "rows": 4,
+        "statuses": {
+          "priced": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "priced": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "GB-Midhope-P7-dst-spring-sunday",
+        "rows": 4,
+        "statuses": {
+          "priced": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "priced": 4
+        },
+        "differenceFields": {}
+      },
+      {
         "scenario": "GB-Midhope-P7-dst-winter-monday",
         "rows": 4,
         "statuses": {
@@ -145,6 +228,23 @@
       },
       {
         "scenario": "GB-Midhope-P7-started-block-31",
+        "rows": 4,
+        "statuses": {
+          "priced": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "priced": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "GB-Midhope-P7-summer-saturday",
         "rows": 4,
         "statuses": {
           "priced": 4
@@ -230,6 +330,74 @@
       },
       {
         "scenario": "GB-Midhope-P7-weekday-paid",
+        "rows": 4,
+        "statuses": {
+          "priced": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "priced": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "GB-Midhope-P7-winter-before-close-exact",
+        "rows": 4,
+        "statuses": {
+          "priced": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "priced": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "GB-Midhope-P7-winter-before-open-exact",
+        "rows": 4,
+        "statuses": {
+          "priced": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "priced": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "GB-Midhope-P7-winter-close-exact",
+        "rows": 4,
+        "statuses": {
+          "priced": 4
+        },
+        "classifications": {
+          "match": 4
+        },
+        "proofStates": {
+          "exact_catalogue_link": 4
+        },
+        "oracleStatuses": {
+          "priced": 4
+        },
+        "differenceFields": {}
+      },
+      {
+        "scenario": "GB-Midhope-P7-winter-open-exact",
         "rows": 4,
         "statuses": {
           "priced": 4
@@ -3446,6 +3614,2622 @@
       "legacy": {
         "oldStatus": "uncomputable",
         "oldTotal": null,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-summer-saturday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19707",
+      "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "evseId": "GB*CK0*E19707",
+        "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "targetTotal": 9.74928,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 1.60008,
+            "paidMinutes": 60,
+            "startedHalfHourBlocks": 2,
+            "segments": [
+              {
+                "billableMinutes": 60,
+                "startedHalfHourBlocks": 2,
+                "costGbp": 1.60008
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0.15,
+            "idleMinutes": 15,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 9.74928,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 9.74928,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-summer-saturday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19716",
+      "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "evseId": "GB*CK0*E19716",
+        "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "targetTotal": 9.74928,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 1.60008,
+            "paidMinutes": 60,
+            "startedHalfHourBlocks": 2,
+            "segments": [
+              {
+                "billableMinutes": 60,
+                "startedHalfHourBlocks": 2,
+                "costGbp": 1.60008
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0.15,
+            "idleMinutes": 15,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 9.74928,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 9.74928,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-summer-saturday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19825",
+      "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "evseId": "GB*CK0*E19825",
+        "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "targetTotal": 9.74928,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 1.60008,
+            "paidMinutes": 60,
+            "startedHalfHourBlocks": 2,
+            "segments": [
+              {
+                "billableMinutes": 60,
+                "startedHalfHourBlocks": 2,
+                "costGbp": 1.60008
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0.15,
+            "idleMinutes": 15,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 9.74928,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 9.74928,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-summer-saturday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19865",
+      "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "evseId": "GB*CK0*E19865",
+        "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "targetTotal": 9.74928,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 1.60008,
+            "paidMinutes": 60,
+            "startedHalfHourBlocks": 2,
+            "segments": [
+              {
+                "billableMinutes": 60,
+                "startedHalfHourBlocks": 2,
+                "costGbp": 1.60008
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0.15,
+            "idleMinutes": 15,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 9.74928,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 9.74928,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-before-open-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19707",
+      "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "evseId": "GB*CK0*E19707",
+        "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "status": "priced",
+        "total": 0,
+        "currency": "GBP",
+        "targetTotal": 0,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-before-open-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19716",
+      "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "evseId": "GB*CK0*E19716",
+        "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "status": "priced",
+        "total": 0,
+        "currency": "GBP",
+        "targetTotal": 0,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-before-open-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19825",
+      "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "evseId": "GB*CK0*E19825",
+        "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "status": "priced",
+        "total": 0,
+        "currency": "GBP",
+        "targetTotal": 0,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-before-open-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19865",
+      "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "evseId": "GB*CK0*E19865",
+        "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "status": "priced",
+        "total": 0,
+        "currency": "GBP",
+        "targetTotal": 0,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-open-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19707",
+      "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "evseId": "GB*CK0*E19707",
+        "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "status": "priced",
+        "total": 0.80004,
+        "currency": "GBP",
+        "targetTotal": 0.80004,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0.80004,
+            "paidMinutes": 1,
+            "startedHalfHourBlocks": 1,
+            "segments": [
+              {
+                "billableMinutes": 1,
+                "startedHalfHourBlocks": 1,
+                "costGbp": 0.80004
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0.80004,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0.80004,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0.80004,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0.80004,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-open-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19716",
+      "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "evseId": "GB*CK0*E19716",
+        "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "status": "priced",
+        "total": 0.80004,
+        "currency": "GBP",
+        "targetTotal": 0.80004,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0.80004,
+            "paidMinutes": 1,
+            "startedHalfHourBlocks": 1,
+            "segments": [
+              {
+                "billableMinutes": 1,
+                "startedHalfHourBlocks": 1,
+                "costGbp": 0.80004
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0.80004,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0.80004,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0.80004,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0.80004,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-open-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19825",
+      "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "evseId": "GB*CK0*E19825",
+        "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "status": "priced",
+        "total": 0.80004,
+        "currency": "GBP",
+        "targetTotal": 0.80004,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0.80004,
+            "paidMinutes": 1,
+            "startedHalfHourBlocks": 1,
+            "segments": [
+              {
+                "billableMinutes": 1,
+                "startedHalfHourBlocks": 1,
+                "costGbp": 0.80004
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0.80004,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0.80004,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0.80004,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0.80004,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-open-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19865",
+      "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "evseId": "GB*CK0*E19865",
+        "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "status": "priced",
+        "total": 0.80004,
+        "currency": "GBP",
+        "targetTotal": 0.80004,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0.80004,
+            "paidMinutes": 1,
+            "startedHalfHourBlocks": 1,
+            "segments": [
+              {
+                "billableMinutes": 1,
+                "startedHalfHourBlocks": 1,
+                "costGbp": 0.80004
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0.80004,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0.80004,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0.80004,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0.80004,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-before-close-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19707",
+      "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "evseId": "GB*CK0*E19707",
+        "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "status": "priced",
+        "total": 0.80004,
+        "currency": "GBP",
+        "targetTotal": 0.80004,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0.80004,
+            "paidMinutes": 1,
+            "startedHalfHourBlocks": 1,
+            "segments": [
+              {
+                "billableMinutes": 1,
+                "startedHalfHourBlocks": 1,
+                "costGbp": 0.80004
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0.80004,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0.80004,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0.80004,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0.80004,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-before-close-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19716",
+      "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "evseId": "GB*CK0*E19716",
+        "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "status": "priced",
+        "total": 0.80004,
+        "currency": "GBP",
+        "targetTotal": 0.80004,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0.80004,
+            "paidMinutes": 1,
+            "startedHalfHourBlocks": 1,
+            "segments": [
+              {
+                "billableMinutes": 1,
+                "startedHalfHourBlocks": 1,
+                "costGbp": 0.80004
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0.80004,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0.80004,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0.80004,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0.80004,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-before-close-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19825",
+      "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "evseId": "GB*CK0*E19825",
+        "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "status": "priced",
+        "total": 0.80004,
+        "currency": "GBP",
+        "targetTotal": 0.80004,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0.80004,
+            "paidMinutes": 1,
+            "startedHalfHourBlocks": 1,
+            "segments": [
+              {
+                "billableMinutes": 1,
+                "startedHalfHourBlocks": 1,
+                "costGbp": 0.80004
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0.80004,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0.80004,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0.80004,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0.80004,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-before-close-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19865",
+      "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "evseId": "GB*CK0*E19865",
+        "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "status": "priced",
+        "total": 0.80004,
+        "currency": "GBP",
+        "targetTotal": 0.80004,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0.80004,
+            "paidMinutes": 1,
+            "startedHalfHourBlocks": 1,
+            "segments": [
+              {
+                "billableMinutes": 1,
+                "startedHalfHourBlocks": 1,
+                "costGbp": 0.80004
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0.80004,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0.80004,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0.80004,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0.80004,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-close-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19707",
+      "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "evseId": "GB*CK0*E19707",
+        "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "status": "priced",
+        "total": 0,
+        "currency": "GBP",
+        "targetTotal": 0,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-close-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19716",
+      "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "evseId": "GB*CK0*E19716",
+        "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "status": "priced",
+        "total": 0,
+        "currency": "GBP",
+        "targetTotal": 0,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-close-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19825",
+      "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "evseId": "GB*CK0*E19825",
+        "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "status": "priced",
+        "total": 0,
+        "currency": "GBP",
+        "targetTotal": 0,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-winter-close-exact",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19865",
+      "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "evseId": "GB*CK0*E19865",
+        "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "status": "priced",
+        "total": 0,
+        "currency": "GBP",
+        "targetTotal": 0,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 0,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0,
+            "idleMinutes": 0,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 0,
+          "currency": "GBP",
+          "components": {
+            "energy": 0,
+            "parkingTime": 0,
+            "idleSupplement": 0
+          },
+          "convertedTotal": 0,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 0,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-dst-spring-sunday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19707",
+      "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "evseId": "GB*CK0*E19707",
+        "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "status": "priced",
+        "total": 8.2992,
+        "currency": "GBP",
+        "targetTotal": 8.2992,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0.3,
+            "idleMinutes": 30,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 8.2992,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 0,
+            "idleSupplement": 0.3
+          },
+          "convertedTotal": 8.2992,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.2992,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-dst-spring-sunday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19716",
+      "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "evseId": "GB*CK0*E19716",
+        "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "status": "priced",
+        "total": 8.2992,
+        "currency": "GBP",
+        "targetTotal": 8.2992,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0.3,
+            "idleMinutes": 30,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 8.2992,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 0,
+            "idleSupplement": 0.3
+          },
+          "convertedTotal": 8.2992,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.2992,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-dst-spring-sunday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19825",
+      "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "evseId": "GB*CK0*E19825",
+        "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "status": "priced",
+        "total": 8.2992,
+        "currency": "GBP",
+        "targetTotal": 8.2992,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0.3,
+            "idleMinutes": 30,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 8.2992,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 0,
+            "idleSupplement": 0.3
+          },
+          "convertedTotal": 8.2992,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.2992,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-dst-spring-sunday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19865",
+      "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "evseId": "GB*CK0*E19865",
+        "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "status": "priced",
+        "total": 8.2992,
+        "currency": "GBP",
+        "targetTotal": 8.2992,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 0,
+            "paidMinutes": 0,
+            "startedHalfHourBlocks": 0,
+            "segments": []
+          },
+          "idleSupplement": {
+            "costGbp": 0.3,
+            "idleMinutes": 30,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 8.2992,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 0,
+            "idleSupplement": 0.3
+          },
+          "convertedTotal": 8.2992,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 8.2992,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/1/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"d19e0ae8-1424-40d8-ae9a-b13fe6704484\",\"evseId\":\"GB*CK0*E19865\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-dst-spring-summer-monday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19707",
+      "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "evseId": "GB*CK0*E19707",
+        "connectorId": "9a1d7557-d59c-4e95-a929-b667d73843f0",
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "targetTotal": 9.74928,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 1.60008,
+            "paidMinutes": 60,
+            "startedHalfHourBlocks": 2,
+            "segments": [
+              {
+                "billableMinutes": 60,
+                "startedHalfHourBlocks": 2,
+                "costGbp": 1.60008
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0.15,
+            "idleMinutes": 15,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 9.74928,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 9.74928,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/3/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"9a1d7557-d59c-4e95-a929-b667d73843f0\",\"evseId\":\"GB*CK0*E19707\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-dst-spring-summer-monday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19716",
+      "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "evseId": "GB*CK0*E19716",
+        "connectorId": "f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0",
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "targetTotal": 9.74928,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 1.60008,
+            "paidMinutes": 60,
+            "startedHalfHourBlocks": 2,
+            "segments": [
+              {
+                "billableMinutes": 60,
+                "startedHalfHourBlocks": 2,
+                "costGbp": 1.60008
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0.15,
+            "idleMinutes": 15,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 9.74928,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 9.74928,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/2/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"f02dbb6d-7fcb-4dd0-8f51-1a27111ab5b0\",\"evseId\":\"GB*CK0*E19716\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-dst-spring-summer-monday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19825",
+      "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "evseId": "GB*CK0*E19825",
+        "connectorId": "a46c9e98-5d68-4025-989a-ab416d7ab670",
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "targetTotal": 9.74928,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 1.60008,
+            "paidMinutes": 60,
+            "startedHalfHourBlocks": 2,
+            "segments": [
+              {
+                "billableMinutes": 60,
+                "startedHalfHourBlocks": 2,
+                "costGbp": 1.60008
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0.15,
+            "idleMinutes": 15,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 9.74928,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 9.74928,
+        "oldCurrency": "GBP",
+        "differences": [],
+        "classification": "match"
+      },
+      "classification": "match",
+      "catalogueProof": {
+        "state": "exact_catalogue_link",
+        "rawKey": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz:/sources/0/locations/0/evses/0/connectors/0/validatedV9Offer",
+        "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+        "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+        "exactAssertions": [
+          {
+            "scopeKind": "Connector",
+            "sourceId": "{\"connectorId\":\"a46c9e98-5d68-4025-989a-ab416d7ab670\",\"evseId\":\"GB*CK0*E19825\",\"stationId\":\"cd20ba89-4241-4b39-b738-514f49093e8d\"}"
+          }
+        ],
+        "scopeStatuses": {
+          "source_exact_join": 1
+        },
+        "derivation": null
+      }
+    },
+    {
+      "key": "GB-Midhope-P7-dst-spring-summer-monday",
+      "country": "GB",
+      "stationId": "GB:ocpi:CK0:cd20ba89-4241-4b39-b738-514f49093e8d",
+      "stationName": "Midhope Road",
+      "evseId": "GB*CK0*E19865",
+      "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "powerKw": 11.04,
+      "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+      "cpo": "Connected Kerb",
+      "channel": "Connected Kerb",
+      "tariffFamily": "connected_kerb_midhope_guest_verified",
+      "sourceOffers": 4,
+      "new": {
+        "offerId": "connected-kerb-midhope-verified:d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "evseId": "GB*CK0*E19865",
+        "connectorId": "d19e0ae8-1424-40d8-ae9a-b13fe6704484",
+        "status": "priced",
+        "total": 9.74928,
+        "currency": "GBP",
+        "targetTotal": 9.74928,
+        "fxStatus": "same_currency",
+        "fxAsOf": null,
+        "components": [
+          "energy",
+          "guestPreAuthorisation",
+          "idleSupplement",
+          "parkingTime",
+          "sourcePriceBasis"
+        ],
+        "componentValues": {
+          "energy": 7.9992,
+          "parkingTime": {
+            "costGbp": 1.60008,
+            "paidMinutes": 60,
+            "startedHalfHourBlocks": 2,
+            "segments": [
+              {
+                "billableMinutes": 60,
+                "startedHalfHourBlocks": 2,
+                "costGbp": 1.60008
+              }
+            ]
+          },
+          "idleSupplement": {
+            "costGbp": 0.15,
+            "idleMinutes": 15,
+            "rateGbpPerMinute": 0.01
+          },
+          "guestPreAuthorisation": {
+            "amountGbp": 25,
+            "includedInTotal": false
+          },
+          "sourcePriceBasis": "GBP including VAT, user screenshot and exact guest socket tariff"
+        },
+        "source": "uk-connected-kerb-midhope-guest-verified",
+        "oracle": {
+          "status": "priced",
+          "total": 9.74928,
+          "currency": "GBP",
+          "components": {
+            "energy": 7.9992,
+            "parkingTime": 1.60008,
+            "idleSupplement": 0.15
+          },
+          "convertedTotal": 9.74928,
+          "fxStatus": "same_currency",
+          "targetCurrency": "GBP",
+          "fxAsOf": null
+        }
+      },
+      "legacy": {
+        "oldStatus": "priced",
+        "oldTotal": 9.74928,
         "oldCurrency": "GBP",
         "differences": [],
         "classification": "match"

@@ -57,12 +57,19 @@ def main():
             if label=='Midhope' else [f"{chw['sourcePath']}:directOffers:{i}" for i in (7170,7171)])
         assert hashlib.sha256(''.join(k+'\n' for k in sorted(raw_keys)).encode()).hexdigest()==census['rawKeysSha256']
         assertions=[]
-        winter_unconfirmed=False
+        historical_winter_annotation=False
         for raw_key in raw_keys:
             r=db.execute('SELECT country,cpo,channel,offer_id,source_path,source_sha256,raw_json FROM RawOffer WHERE raw_key=?',(raw_key,)).fetchone()
             assert r and r[:3]==suffix[:3]
             if label=='Midhope':
-                winter_unconfirmed |= json.loads(r[6]).get('metadata',{}).get('winterEvidence')=='not_confirmed_not_activated'
+                offer=json.loads(r[6]);metadata=offer.get('metadata',{});pricing=offer.get('pricing',{})
+                historical_winter_annotation |= metadata.get('winterEvidence')=='not_confirmed_not_activated'
+                assert offer.get('validFrom')==metadata.get('tariffObservedAt')=='2026-10-10'
+                assert not offer.get('validTo') and metadata.get('pricingTimeZone')=='Europe/London'
+                assert metadata.get('refreshPolicy')=='revalidate exact CPO guest price on new tariff evidence; DST alone does not expire the price'
+                assert metadata.get('scheduleBasis')=='customer app 09:30-19:00 Europe/Paris = 08:30-18:00 Europe/London, including DST'
+                assert (pricing.get('energyPerKwhGbp'),pricing.get('parkingPerStarted30minGbp'),
+                    pricing.get('idleSupplementPerMinuteGbp'))==(0.39996,0.80004,0.01)
             assert r[4]==golden['sourcePath'] and r[5]==golden['sourceSha256']==paths[r[4]]
             scopes=db.execute('SELECT scope_kind,source_id,point_key,connector_key,link_status FROM OfferScope WHERE raw_key=?',(raw_key,)).fetchall()
             assert len(scopes)==1 and scopes[0][4] in ('exact_unique','source_exact_join')
@@ -77,12 +84,12 @@ def main():
                 'pointKey':point_key,'connectorKey':connector_key})
         assert len({x['rawKey'] for x in assertions})==expected_count
         assert len({x['connectorKey'] for x in assertions})==expected_count
-        if label=='Midhope':assert winter_unconfirmed
+        if label=='Midhope':assert historical_winter_annotation  # Preserve historical bytes; never use as a tariff gate.
         prior_rows=sum(x['sampleRows'] for x in inventory['runtimeToCatalogueCrosswalk'] if
             key in [tuple(k) for k in x['catalogueKeys']])
         selected.append({'name':label,'key':key,'census':census,'phase6SampleRows':prior_rows,
             'exactAssertions':assertions})
-    mid_rows=branches['rows'];assert len(mid_rows)==mid['evaluations']==36
+    mid_rows=branches['rows'];assert len(mid_rows)==mid['evaluations']==64
     assert Counter(r['key'] for r in mid_rows)==Counter({f'GB-Midhope-P7-{k}':4 for k in mid['branchExpected']})
     mid_ids={x['rawKey'] for x in selected[0]['exactAssertions']}
     for r in mid_rows:
@@ -101,14 +108,17 @@ def main():
     assert 'data/switzerland/de-edh-direct-tariffs.json' not in paths
     selected[0].update({'branchScenarios':len(mid['branchExpected']),'branchEvaluations':len(mid_rows),
         'independentSourceOracle':'midhopeSourceOracle; exact pinned bytes and manual golden',
-        'originalSupplierSourcePinned':True,'pinWideCandidate':False,
+        'originalSupplierSourcePinned':True,'pinWideCandidate':True,
+        'priceFreshness':{'observedAt':'2026-10-10','snapshotAsOf':'2026-10-15',
+            'validFrom':'2026-10-10','validTo':None,
+            'decision':'proved_for_immutable_pin_only; revalidate on newer supplier evidence'},
         'branchCoverage':{'energy':'proved_all_four','fixed_fee':'absent_preauthorisation_excluded',
             'time':'proved_parking_and_idle','parking':'proved_weekday_sunday_and_window_boundaries',
-            'hourly_dst':'calculation_proved_supplier_winter_price_unconfirmed','threshold':'proved_started_30_minute_blocks',
+            'hourly_dst':'year_round_local_schedule_proved; UTC_offset_only_changes','threshold':'proved_started_30_minute_blocks',
             'cap':'absent_in_complete_source_pricing_object','subscription':'absent_in_complete_source_offer',
             'congestion':'absent_in_complete_source_pricing_object','fx':'GBP_and_2026_10_15_dated_EUR_proved',
             'validity':'before_validFrom_rejected'},
-        'blockedReason':'winterEvidence is not_confirmed_not_activated: supplier price validity after DST unproved for this date-unbounded cohort',
+        'blockedReason':None,
         'candidateScope':'only this immutable pin and exact four connectors; flag remains off'})
     selected[1].update({'branchScenarios':len(chw['branchExpected']),'branchEvaluations':
         len(chw['branchExpected'])*2,'independentSourceOracle':'chEdhPinnedOracle on derived EUR payload',

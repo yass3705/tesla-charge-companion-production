@@ -42,6 +42,10 @@ test('selected cohort branches and all original refusal gates remain intact',()=
   assert.equal(qualification.queryAreaUniqueExactTuples,golden.queryAreaUniqueExactTuples);
   assert.equal(qualification.queryAreaSessionOccurrences,golden.queryAreaSessionOccurrences);
   assert.equal(qualification.selected.length,2);
+  assert.equal(qualification.selected[0].pinWideCandidate,true);
+  assert.equal(qualification.selected[0].blockedReason,null);
+  assert.equal(qualification.selected[0].priceFreshness.snapshotAsOf,'2026-10-15');
+  assert.equal(qualification.selected[1].pinWideCandidate,false);
   assert.deepEqual(qualification.selected.map(s=>Object.fromEntries(Object.entries(s).filter(([k])=>
     ['name','key','phase6SampleRows','branchScenarios','branchEvaluations','originalSupplierSourcePinned','pinWideCandidate'].includes(k)))),golden.selected);
   for(const s of qualification.selected){
@@ -52,7 +56,7 @@ test('selected cohort branches and all original refusal gates remain intact',()=
     assert.equal(digest,s.census.rawKeysSha256);
     assert.ok(s.exactAssertions.every(x=>x.linkStatus==='exact_unique'||x.linkStatus==='source_exact_join'));
   }
-  assert.equal(branches.rows.length,36);
+  assert.equal(branches.rows.length,64);
   assert.equal(second.secondEngine.enabled.callback.count,719);
   assert.equal(second.secondEngine.defaultDisabled.calls,0);
   assert.equal(second.secondEngine.rollback.candidateCallsAfter,0);
