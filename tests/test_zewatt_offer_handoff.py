@@ -38,10 +38,12 @@ class ZeWattHandoffTest(unittest.TestCase):
         digest = self.write(fixture(["A", "B"]), fixture(["A"]))
         self.assertEqual(verify_handoff(self.current, digest, self.old)["dataLab"]["exactEvseIds"], 2)
 
-    def test_coverage_drop_is_rejected(self):
+    def test_coverage_decrease_is_observed_with_exact_scope(self):
         digest = self.write(fixture(["A"]), fixture(["A", "B"]))
-        with self.assertRaisesRegex(ValueError, "coverage decreased"):
-            verify_handoff(self.current, digest, self.old)
+        result = verify_handoff(self.current, digest, self.old)
+        self.assertEqual(result["dataLab"]["exactEvseIds"], 1)
+        self.assertEqual(result["historical"]["exactEvseIds"], 2)
+        self.assertEqual(result["sourceSha256"], digest)
 
     def test_non_guest_offer_is_rejected(self):
         digest = self.write(fixture(["A"], guest=False), fixture(["A"]))

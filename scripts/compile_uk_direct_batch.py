@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Compile audited UK direct sources into the pinned open-feed snapshot.
+"""Compile audited UK direct sources into the open-feed snapshot.
 
 The source files are copied from the exact Data Lab commit by build_snapshot.py.
-Every tariff is attached to one connector; unsupported or missing prices fail.
+Coverage varies daily. Missing prices leave exact connectors unpriced.
 """
 import copy
 import gzip
@@ -15,28 +15,13 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 
-EXPECTED = {
-    "Be.EV": (600, 2539, 2539),
-    "Applegreen Fast Charge": (261, 534, 534),
-    "Wenea": (209, 630, 630),
-    "IONITY": (83, 872, 872),
-    "Zest": (1987, 3469, 2797),
-    "RAW Charging": (250, 500, 0),
-    "JOLT": (71, 155, 0),
-    "3ti Energy Hubs": (7, 78, 0),
-    "Shell Recharge": (32, 206, 0),
-    "TotalEnergies": (1439, 3263, 0),
-    "Qwello": (96, 359, 0),
-    "Osprey Charging": (407, 0, 0),
-    "Fastned": (42, 0, 0),
-    "Roam": (401, 0, 0),
-    "Lidl": (313, 0, 0),
-    "Charge My Street": (106, 0, 0),
-    "Believ": (854, 0, 0),
-    "Monta": (1389, 1389, 0),
-    "ParkRecharge": (443, 811, 0),
-    "GeniePoint": (306, 1138, 281),
-}
+KNOWN_CPOS = frozenset({
+    "Be.EV", "Applegreen Fast Charge", "Wenea", "IONITY", "Zest",
+    "RAW Charging", "JOLT", "3ti Energy Hubs", "Shell Recharge",
+    "TotalEnergies", "Qwello", "Osprey Charging", "Fastned", "Roam",
+    "Lidl", "Charge My Street", "Believ", "Monta", "ParkRecharge",
+    "GeniePoint",
+})
 
 
 def read(path):
@@ -61,17 +46,21 @@ def tariff(identifier, price):
 
 def source(name, party, locations, tariffs, filename, blob):
     count = sum(len(evse.get("connectors", [])) for loc in locations for evse in loc.get("evses", []))
-    if (len(locations), count, len(tariffs)) != EXPECTED[name]:
-        raise AssertionError(f"{name}: count drift: {len(locations)} locations / {count} connectors / {len(tariffs)} tariffs")
+    if not locations:
+        raise AssertionError(f"{name}: unexpectedly empty source; retain last validated CPO snapshot")
     ids = {t["id"] for t in tariffs}
     if len(ids) != len(tariffs):
         raise AssertionError(f"{name}: duplicate tariff identity")
+    if any(t.get("currency") != "GBP" or not t.get("elements") for t in tariffs):
+        raise AssertionError(f"{name}: invalid direct tariff currency/components")
     station_ids = [loc["id"] for loc in locations]
     if len(set(station_ids)) != len(station_ids):
         raise AssertionError(f"{name}: duplicate station identity")
+    connector_ids = set()
+    referenced = set()
     for loc in locations:
-        if loc.get("country_code") != "GB" or loc.get("publish") is not True:
-            raise AssertionError(f"{name}: non-public/outside-GB location")
+        if loc.get("country_code") != "GB" or loc.get("publish") is not True or loc.get("party_id") != party:
+            raise AssertionError(f"{name}: non-public/outside-GB/wrong-CPO location")
         lat, lon = loc["coordinates"]["latitude"], loc["coordinates"]["longitude"]
         if not (49 <= float(lat) <= 61 and -9 <= float(lon) <= 3):
             raise AssertionError(f"{name}: invalid GB coordinates")
@@ -82,9 +71,16 @@ def source(name, party, locations, tariffs, filename, blob):
                 references = connector.get("tariff_ids", [])
                 if not connector.get("id") or len(references) > 1 or (references and references[0] not in ids):
                     raise AssertionError(f"{name}: missing exact tariff reference")
+                connector_key = (str(loc["id"]), str(evse.get("evse_id") or evse.get("uid")), str(connector["id"]))
+                if connector_key in connector_ids:
+                    raise AssertionError(f"{name}: duplicate exact connector identity")
+                connector_ids.add(connector_key)
+                referenced.update(references)
                 power = connector.get("max_electric_power")
                 if (tariffs or power is not None) and (not isinstance(power, (int, float)) or power <= 0):
                     raise AssertionError(f"{name}: missing connector power")
+    if ids - referenced:
+        raise AssertionError(f"{name}: orphan tariff identities")
     return {
         "name": name,
         "partyIdsExpected": [party],
@@ -192,14 +188,10 @@ def wenea(data, filename, blob):
     empty_locations = [loc for loc in locations if not loc["evses"]]
     test_id = "94846a98-ff9d-0db8-9c0f-7eb9de8518a2"
     locations = [loc for loc in locations if loc["id"] != test_id]
-    if duplicate_count != 1:
-        raise AssertionError(f"Wenea: unexpected duplicate connector count {duplicate_count}")
-    if len(empty_locations) != 3 or test_id not in {loc["id"] for loc in empty_locations}:
-        raise AssertionError("Wenea: empty/test location quarantine drift")
     result = source("Wenea", "WNE", locations, tariffs, filename, blob)
     result["sourceAudit"]["excludedDuplicateConnectors"] = duplicate_count
-    result["sourceAudit"]["excludedEmptyTestLocations"] = 1
-    result["sourceAudit"]["retainedEmptyPublicLocations"] = len(empty_locations) - 1
+    result["sourceAudit"]["excludedEmptyTestLocations"] = int(test_id in {loc["id"] for loc in empty_locations})
+    result["sourceAudit"]["retainedEmptyPublicLocations"] = len(empty_locations) - result["sourceAudit"]["excludedEmptyTestLocations"]
     return result
 
 
@@ -211,20 +203,28 @@ def ionity(data, filename, blob):
         evses = []
         for connector in station["connectors"]:
             cid = str(connector["uuid"])
-            if not cid or not connector.get("pricePerKwhGbp"):
-                raise AssertionError("IONITY: missing exact connector/price")
+            if not cid or cid == "None":
+                raise AssertionError("IONITY: missing exact connector identity")
+            evse_id = connector.get("sourceEvseId")
             tid = "ionity-uk:" + cid
-            tariffs.append(tariff(tid, connector["pricePerKwhGbp"]))
-            evses.append({
-                "evse_id": str(connector.get("sourceEvseId") or "GB*ION*E" + cid),
+            price = connector.get("pricePerKwhGbp")
+            if price is not None:
+                tariffs.append(tariff(tid, price))
+            evse = {
+                # The source currently exposes a connector UUID but no physical
+                # EVSE ID. OCPI uid retains that exact source identity.
+                "uid": cid,
                 "status": "UNKNOWN",
                 "connectors": [{
                     "id": cid, "standard": str(connector.get("type") or "UNKNOWN"),
                     "power_type": str(connector.get("kind") or "UNKNOWN"),
                     "max_electric_power": round(float(connector["powerKw"]) * 1000),
-                    "tariff_ids": [tid],
+                    "tariff_ids": [tid] if price is not None else [],
                 }],
-            })
+            }
+            if evse_id:
+                evse["evse_id"] = str(evse_id)
+            evses.append(evse)
         locations.append({
             "id": str(station["uuid"]), "country_code": "GB", "party_id": "ION", "publish": True,
             "name": station["name"], "address": station.get("address", ""),
@@ -348,8 +348,6 @@ def shell_recharge(data, filename, blob):
             "postal_code": address.get("postalCode", ""), "coordinates": raw["coordinates"],
             "operator": {"name": "Shell Recharge"}, "evses": evses,
         })
-    if unknown_power != 18:
-        raise AssertionError("Shell Recharge: suspect low-power count drift")
     result = source("Shell Recharge", "TNM", locations, [], filename, blob)
     result["sourceAudit"]["unknownPowerConnectors"] = unknown_power
     result["sourceAudit"]["tariffQuarantineReason"] = "Shell_RP_2 units/VAT not reconciled with gross guest price"
@@ -535,8 +533,6 @@ def monta(data, filename, blob, locations_blob):
                                          "max_electric_power": connector["max_electric_power"], "tariff_ids": []}]}]
         loc["operator"] = {"name": "Monta"}
         rows.append(loc)
-    if bad != 49:
-        raise AssertionError(f"Monta: invalid coordinate quarantine drift {bad}")
     result = source("Monta", "MON", rows, [], filename, blob)
     result["sourceAudit"]["excludedInvalidCoordinates"] = bad
     result["sourceAudit"]["tariffQuarantineReason"] = "public pricing table has additional fee columns and unverified gross basis on some exact rows"
@@ -574,8 +570,6 @@ def parkrecharge(data, filename, blob):
             "coordinates": {"latitude": lat, "longitude": lon},
             "operator": {"name": "ParkRecharge"}, "evses": evses,
         })
-    if excluded != 16:
-        raise AssertionError("ParkRecharge: coordinate/access quarantine drift")
     result = source("ParkRecharge", "HBN", locations, [], filename, blob)
     result["sourceAudit"]["excludedInvalidCoordinateOrAccessText"] = excluded
     result["sourceAudit"]["tariffQuarantineReason"] = "device fee fields and local parking charges not yet reconciled to a gross complete session price"
@@ -635,15 +629,33 @@ def geniepoint(data, filename, blob):
                 connector["tariff_ids"] = [tid]
     result = source("GeniePoint", "GPT", locations, tariffs, filename, blob)
     result["sourceAudit"]["grossVatMethod"] = "OCPI 2.2 component price ex VAT multiplied by (1 + 20/100)"
-    result["sourceAudit"]["quarantinedConnectors"] = 1138 - len(tariffs)
+    result["sourceAudit"]["quarantinedConnectors"] = result["summary"]["connectors"] - len(tariffs)
     result["sourceAudit"]["quarantineReason"] = "ambiguous/missing tariff identity or nonzero time/parking fee requiring full session semantics"
     result["sourceAudit"]["adHocPreference"] = "one AD_HOC_PAYMENT plus one REGULAR: use the walk-up tariff only when full fee components are calculable"
     return result
 
 
-def main(uk):
+def use_last_good(filename, error, previous, current_blob=None):
+    """Keep one CPO's validated source when its current input is unusable."""
+    row = previous.get(filename)
+    audit = (row or {}).get("sourceAudit") or {}
+    if not row or not audit.get("sourceSha256") or not audit.get("collectedAt"):
+        raise AssertionError(f"{filename}: invalid current source and no dated last-good CPO") from error
+    retained = copy.deepcopy(row)
+    retained["summary"]["status"] = "last_good_stale"
+    retained["sourceAudit"]["lastGoodCollectedAt"] = audit["collectedAt"]
+    retained["sourceAudit"]["currentSourceError"] = str(error)
+    retained["sourceAudit"]["rejectedSourceSha256"] = hashlib.sha256(current_blob).hexdigest() if current_blob is not None else None
+    return retained
+
+
+def main(uk, last_good_path=None):
     aggregate_path = uk / "all.json.gz"
     aggregate = read(aggregate_path)
+    previous = {}
+    if last_good_path:
+        old = read(Path(last_good_path))
+        previous = {(row.get("sourceAudit") or {}).get("sourceFile"): row for row in old.get("sources", [])}
     additions = []
     for filename, compiler in [
         ("uk_beev_public_map.json.gz", beev),
@@ -667,23 +679,41 @@ def main(uk):
         ("uk_geniepoint_official_ocpi.json.gz", geniepoint),
     ]:
         path = uk / "sources" / filename
-        blob = path.read_bytes()
-        payload = json.loads(blob) if path.suffix == ".json" else read(path)
-        additions.append(compiler(payload, filename, blob))
+        blob = None
+        try:
+            blob = path.read_bytes()
+            payload = json.loads(blob) if path.suffix == ".json" else read(path)
+            compiled = compiler(payload, filename, blob)
+            collected_at = next((payload[key] for key in ("collectedAt", "generatedAt", "retrievedAt")
+                                 if isinstance(payload, dict) and payload.get(key)), None)
+            compiled["sourceAudit"]["collectedAt"] = collected_at
+        except (AssertionError, ValueError, KeyError, TypeError, AttributeError, IndexError, OSError, EOFError) as error:
+            compiled = use_last_good(filename, error, previous, blob)
+        additions.append(compiled)
     monta_path = uk / "sources" / "uk_monta_public_pricing.json.gz"
     monta_locations_path = uk / "sources" / "uk_monta_mon_locations.json.gz"
-    monta_result = monta(read(monta_path), monta_path.name, monta_path.read_bytes(), read(monta_locations_path))
-    monta_result["sourceAudit"]["locationSourceFile"] = monta_locations_path.name
-    monta_result["sourceAudit"]["locationSourceSha256"] = hashlib.sha256(monta_locations_path.read_bytes()).hexdigest()
+    monta_blob = None
+    try:
+        monta_blob = monta_path.read_bytes()
+        monta_payload = read(monta_path)
+        monta_result = monta(monta_payload, monta_path.name, monta_blob, read(monta_locations_path))
+        monta_result["sourceAudit"]["locationSourceFile"] = monta_locations_path.name
+        monta_result["sourceAudit"]["locationSourceSha256"] = hashlib.sha256(monta_locations_path.read_bytes()).hexdigest()
+        monta_result["sourceAudit"]["collectedAt"] = next((monta_payload[key] for key in ("collectedAt", "generatedAt", "retrievedAt")
+                                                           if monta_payload.get(key)), None)
+    except (AssertionError, ValueError, KeyError, TypeError, AttributeError, IndexError, OSError, EOFError) as error:
+        monta_result = use_last_good(monta_path.name, error, previous, monta_blob)
     additions.append(monta_result)
     names = {row["name"] for row in aggregate["sources"]}
-    if names.intersection(EXPECTED):
+    if names.intersection(KNOWN_CPOS):
         raise AssertionError("UK direct batch already present in aggregate")
     aggregate["sources"].extend(additions)
     summary = aggregate["summary"]
     summary["requestedSources"] += len(additions)
-    summary["successfulSources"] += len(additions)
-    summary["completeSources"] += len(additions)
+    fresh = sum(row["summary"]["status"] != "last_good_stale" for row in additions)
+    summary["successfulSources"] += fresh
+    summary["completeSources"] += fresh
+    summary["lastGoodSources"] = summary.get("lastGoodSources", 0) + len(additions) - fresh
     summary["totalLocations"] += sum(row["summary"]["locations"] for row in additions)
     summary["totalEvses"] += sum(len(loc["evses"]) for row in additions for loc in row["locations"])
     summary["totalConnectors"] += sum(row["summary"]["connectors"] for row in additions)
@@ -696,4 +726,4 @@ def main(uk):
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]))
+    main(Path(sys.argv[1]), Path(sys.argv[2]) if len(sys.argv) > 2 else None)

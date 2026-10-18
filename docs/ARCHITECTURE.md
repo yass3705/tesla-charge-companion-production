@@ -1,3 +1,5 @@
+> **Couverture CPO dynamique (18/10/2026) :** la règle métier unique est [Data Lab `CPO_DYNAMIC_COVERAGE_POLICY.md`](https://github.com/yass3705/tesla-charge-companion-data-lab/blob/docs/universal-cpo-dynamic-coverage-332/docs/CPO_DYNAMIC_COVERAGE_POLICY.md). La construction des snapshots ne bloque jamais une variation de volume seule ; elle vérifie la qualité du lot, les identités exactes, les SHA, la complétude et la fraîcheur du dernier état valide. Voir [la correction empilée sur #145](CPO_DYNAMIC_COVERAGE_INTEGRATION_145.md).
+
 # V9 production architecture
 
 ## Flow

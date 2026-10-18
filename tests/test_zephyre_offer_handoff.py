@@ -38,10 +38,12 @@ class ZephyreHandoffTest(unittest.TestCase):
         result = verify_handoff(self.current, digest, self.old)
         self.assertEqual(result["dataLab"]["exactEvseIds"], 2)
 
-    def test_coverage_drop_fails(self):
+    def test_coverage_decrease_is_observed_with_exact_scope(self):
         digest = self.write(fixture(["A"]), fixture(["A", "B"]))
-        with self.assertRaisesRegex(ValueError, "coverage decreased"):
-            verify_handoff(self.current, digest, self.old)
+        result = verify_handoff(self.current, digest, self.old)
+        self.assertEqual(result["dataLab"]["exactEvseIds"], 1)
+        self.assertEqual(result["historical"]["exactEvseIds"], 2)
+        self.assertEqual(result["sourceSha256"], digest)
 
     def test_ambiguous_scope_fails(self):
         digest = self.write(fixture(["A"], "station"), fixture(["A"]))
