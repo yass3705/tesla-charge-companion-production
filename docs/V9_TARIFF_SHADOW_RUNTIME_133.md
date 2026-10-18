@@ -1,3 +1,5 @@
+> **Rectification du 18/10/2026 :** le blocage IONITY fondé sur `83/872/872` est obsolète au regard de la [politique de couverture dynamique](CPO_DYNAMIC_COVERAGE_INTEGRATION_145.md). Ce rapport #145 reste la preuve historique de son run ; la PR corrective et une nouvelle CI décident de la levée effective du blocage.
+
 # Issue #133 — raccordement technique du shadow tarifaire V9
 
 PR Draft empilée sur #144. Contrat #135, site physique #134, mémoire Data Lab #332 et preuves Phases 5–7 conservés. Pin unique : `2026-10-15-v9-tesla-mac-ingress-verified`. **Aucun prix candidat, flag ou cohorte n'est activé dans la configuration livrée.** Le moteur historique garde seul l'UI, les prix, le tri et les cartes.

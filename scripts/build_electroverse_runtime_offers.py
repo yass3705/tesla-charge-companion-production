@@ -133,8 +133,6 @@ def main():
     op=pathlib.Path(args.out);op.parent.mkdir(parents=True,exist_ok=True)
     op.write_text(json.dumps(out,ensure_ascii=False,separators=(",",":"))+"\n")
     print(json.dumps(out["metadata"],ensure_ascii=False))
-    if len(offers)<1000:
-        raise SystemExit(f"too few safe Electroverse offers: {len(offers)}")
 
 if __name__=="__main__":
     main()

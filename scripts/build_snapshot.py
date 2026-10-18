@@ -55,6 +55,7 @@ def main():
     ap.add_argument("--e55c-datalab")
     ap.add_argument("--france-irve-direct-parity",action="store_true",help="Use Data Lab France IRVE only if identical to a same-generation pinned Stable reference")
     ap.add_argument("--france-last-good-datalab")
+    ap.add_argument("--uk-last-good-batch", help="Prior validated UK aggregate for CPO-local fallback; requires dated source provenance")
     ap.add_argument("--out",required=True)
     ap.add_argument("--config",default="config/snapshots/2026-09-30.json")
     a=ap.parse_args()
@@ -650,7 +651,7 @@ def main():
         if p.exists(): copy_file(p,uk/"sources"/name)
     if uk_recent_candidate:
         from compile_uk_direct_batch import main as compile_uk_direct_batch
-        compile_uk_direct_batch(uk)
+        compile_uk_direct_batch(uk, a.uk_last_good_batch)
     allego_data=uk/"sources/uk_allego_uk_pcpr_v9.json.gz"
     allego_report=dl/"reports/uk/allego_uk-pcpr-validation-latest.json"
     if uk_recent_candidate and allego_data.exists() and allego_report.exists():
@@ -824,7 +825,7 @@ def main():
                     if any(str(tid) not in grid_tariffs for tid in tids):
                         raise AssertionError("Gridserve connector with unresolved tariff")
                     priced+=bool(tids)
-        if (len(grid_locs)<100 or public_connectors!=verified.get("publicConnectors")
+        if (not grid_locs or public_connectors!=verified.get("publicConnectors")
             or priced!=verified.get("exactPricedConnectors")
             or public_connectors!=priced+verified.get("unpricedPublicConnectors",0)
             or verified.get("publicUnmappedTariffReferences")):
@@ -1125,10 +1126,6 @@ def main():
         evse_manifest=evse_overlay/"manifest.json"
     elif not evse_manifest.exists():
         raise SystemExit("Pinned Electroverse EVSE tariff overlay is missing; refusing legacy complex-tariff exclusions")
-    evse_meta=load_json(evse_manifest)
-    evse_stats=evse_meta.get("stats") or {}
-    if int(evse_stats.get("publishedOffers") or 0)<5000:
-        raise SystemExit("Pinned Electroverse EVSE overlay has incomplete tariff coverage")
     if not historical_r9:
         copy_tree(evse_overlay,overlays/"FR/platforms/electroverse")
     # Preserve the complete Electroverse source cache and mapping inputs. The

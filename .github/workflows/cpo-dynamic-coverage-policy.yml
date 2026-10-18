@@ -1,0 +1,27 @@
+name: CPO dynamic coverage policy
+
+on:
+  pull_request:
+    paths:
+      - scripts/compile_uk_direct_batch.py
+      - scripts/build_snapshot.py
+      - scripts/verify_zephyre_offer_source.py
+      - scripts/verify_zewatt_offer_source.py
+      - tests/test_uk_dynamic_coverage.py
+      - .github/workflows/cpo-dynamic-coverage-policy.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -p test_uk_dynamic_coverage.py
+      - run: python -m unittest discover -s tests -p test_uk_geniepoint_tariff_choice.py
+      - run: python -m py_compile scripts/compile_uk_direct_batch.py scripts/build_snapshot.py

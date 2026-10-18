@@ -33,6 +33,4 @@ def verify_handoff(source, expected_sha256, historical):
         raise ValueError("Pinned Zephyre Data Lab SHA256 mismatch")
     current = inspect(source)
     previous = inspect(historical)
-    if current["exactEvseIds"] < previous["exactEvseIds"]:
-        raise ValueError("Zephyre EVSE coverage decreased during handoff")
     return {"sourceSha256": digest, "historical": previous, "dataLab": current}
