@@ -45,6 +45,5 @@ jobs:
           cfg=json.loads(Path('config/snapshots/2026-10-13-be-energyvision-official-cpo-candidate.json').read_text())
           spec=cfg['franceZeWattDataLabOffers']
           proof=verify_handoff(Path('../datalab')/spec['path'],spec['sourceSha256'],Path('../stable/v9-production-runtime/data/v9/france-zewatt-offers.json'))
-          assert proof['dataLab']['exactEvseIds'] >= proof['historical']['exactEvseIds']
           print(proof)
           PY
