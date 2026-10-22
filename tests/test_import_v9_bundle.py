@@ -58,6 +58,24 @@ class ImportV9BundleTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "SHA"):
                 MODULE.verify(path)
 
+    def test_hash_correct_but_invalid_scope_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            original = bundle(root, "a")
+            raw = json.loads((original / "FR__ionity_direct.json").read_bytes())
+            raw["offers"] = [{"id": "offer", "channel": "Direct", "scope": {"evseId": "missing", "connectorId": None}}]
+            source_bytes = json.dumps(raw).encode()
+            manifest = json.loads((original / "manifest.json").read_bytes())
+            manifest["sources"][1]["sha256"] = MODULE.sha256(source_bytes)
+            manifest_bytes = (json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()
+            forged = root / MODULE.sha256(manifest_bytes)
+            forged.mkdir()
+            (forged / "manifest.json").write_bytes(manifest_bytes)
+            (forged / "FR__ionity_direct.json").write_bytes(source_bytes)
+            (forged / "CH__swiss_integration.json").write_bytes((original / "CH__swiss_integration.json").read_bytes())
+            with self.assertRaisesRegex(ValueError, "offer scope"):
+                MODULE.import_source(forged, "FR:ionity_direct", root / "stage")
+
 
 if __name__ == "__main__":
     unittest.main()
