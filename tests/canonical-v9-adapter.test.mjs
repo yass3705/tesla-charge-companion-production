@@ -7,11 +7,13 @@ const source={schemaVersion:1,source:{id:'FR:archived_source',artifactSha256:'a'
   cpos:[{id:'operator',sourceOperatorId:'archived',name:'Archived'}],
   stations:[{id:'station',country:'FR',cpoId:'operator',sourceStationId:'source-station',name:'Station',latitude:48,longitude:2}],
   evses:[{id:'evse',stationId:'station',sourceEvseId:null,officialEvseId:null}],
-  connectors:[{id:'connector',evseId:'evse',sourceConnectorId:'source-connector',officialConnectorId:null,plugType:'CCS',powerKw:150}],
+  connectors:[{id:'connector',evseId:'evse',sourceConnectorId:'source-connector',officialConnectorId:null,plugType:'CCS',powerKw:150,rawSourceFields:{kind:'DC'}}],
   offers:[{id:'offer',channel:'Direct',scope:{evseId:'evse',connectorId:'connector'},rawOffer:{tariffId:'archived-reference'}}]};
 const [station]=toFragments(source);
 assert.equal(station.evses[0].officialEvseId,null);
 assert.equal(station.evses[0].connectors[0].powerKw,150);
+assert.equal(station.evses[0].connectors[0].kind,'DC');
+assert.equal(station.evses[0].connectors[0].plugType,'CCS');
 assert.equal(station.offers.length,0);
 assert.equal(station.unparsedOffers[0].scope.connectorId,'connector');
 assert.equal(station.unparsedOffers[0].calculationStatus,'not_evaluated');

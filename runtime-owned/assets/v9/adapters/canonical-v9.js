@@ -19,7 +19,8 @@
       const evse=evses.get(row.evseId);
       if(!evse)throw new Error('canonical connector EVSE missing');
       evse.output.connectors.push({id:row.id,sourceConnectorId:row.sourceConnectorId||null,
-        officialConnectorId:row.officialConnectorId||null,kind:row.plugType||null,powerKw:row.powerKw??null});
+        officialConnectorId:row.officialConnectorId||null,kind:row.rawSourceFields?.kind||null,
+        plugType:row.plugType||null,powerKw:row.powerKw??null});
     }
     for(const offer of data.offers){
       const evse=evses.get(offer.scope?.evseId);
