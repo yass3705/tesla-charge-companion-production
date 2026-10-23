@@ -115,18 +115,25 @@
     const active=restriction?Object.entries(restriction).filter(([,value])=>
       Array.isArray(value)?value.length:value!=null&&value!==''):[];
     const days={SUNDAY:0,MONDAY:1,TUESDAY:2,WEDNESDAY:3,THURSDAY:4,FRIDAY:5,SATURDAY:6};
-    if(active.some(([name])=>!['start_date','end_date','start_time','end_time','day_of_week'].includes(name)))return null;
+    if(active.some(([name])=>!['start_date','end_date','start_time','end_time','day_of_week',
+      'min_duration','max_duration','min_power','max_power'].includes(name)))return null;
     const date=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&
       !Number.isNaN(Date.parse(value+'T00:00:00Z'))&&
       new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
     const clock=(value,end)=>typeof value==='string'&&/^\d{2}:\d{2}$/.test(value)&&
       (value==='24:00'?end:Number(value.slice(0,2))<24&&Number(value.slice(3))<60);
     const activeMap=Object.fromEntries(active);
-    if((activeMap.start_date&&!date(activeMap.start_date))||
-       (activeMap.end_date&&!date(activeMap.end_date))||
-       (activeMap.start_date&&activeMap.end_date&&activeMap.start_date>activeMap.end_date)||
-       (activeMap.start_time&&!clock(activeMap.start_time,false))||
-       (activeMap.end_time&&!clock(activeMap.end_time,true))||
+    if((activeMap.start_date!=null&&!date(activeMap.start_date))||
+       (activeMap.end_date!=null&&!date(activeMap.end_date))||
+       (activeMap.start_date!=null&&activeMap.end_date!=null&&activeMap.start_date>activeMap.end_date)||
+       (activeMap.start_time!=null&&!clock(activeMap.start_time,false))||
+       (activeMap.end_time!=null&&!clock(activeMap.end_time,true))||
+       ['min_duration','max_duration','min_power','max_power'].some(name=>
+         activeMap[name]!=null&&(!Number.isFinite(activeMap[name])||activeMap[name]<0))||
+       (activeMap.min_duration!=null&&activeMap.max_duration!=null&&
+         activeMap.min_duration>activeMap.max_duration)||
+       (activeMap.min_power!=null&&activeMap.max_power!=null&&
+         activeMap.min_power>activeMap.max_power)||
        (activeMap.day_of_week&&(!Array.isArray(activeMap.day_of_week)||
          !activeMap.day_of_week.length||activeMap.day_of_week.some(day=>
            !Number.isInteger(typeof day==='number'?day:days[String(day).toUpperCase()])||
@@ -170,6 +177,11 @@
     }
     if(activeMap.day_of_week)rule.daysOfWeek=activeMap.day_of_week.map(day=>
       typeof day==='number'?(day===7?0:day):days[String(day).toUpperCase()]);
+    for(const [source,target,divisor] of [['min_duration','minDurationMinutes',60],
+      ['max_duration','maxDurationMinutes',60],['min_power','minPowerKw',1],
+      ['max_power','maxPowerKw',1]]){
+      if(activeMap[source]!=null)rule[target]=activeMap[source]/divisor;
+    }
     return{id:offer.id,provider:cpo.name||cpo.sourceOperatorId,kind:'direct',currency:'EUR',
       countries:['NL'],operatorIds:[cpo.sourceOperatorId],evseIds:[evse.id],
       connectorIds:[connector.id],subscriptionId:null,pricing:{type:'rules',rules:[rule]},

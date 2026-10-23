@@ -174,6 +174,37 @@ const scheduledTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v
   fetchImpl:scheduledFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
     fragments[0].offers[0].pricing.rules[0].end='12:00';return fragments;}}});
 await assert.rejects(scheduledTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
+const boundedNl=structuredClone(netherlands);
+boundedNl.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={
+  min_duration:1800,max_duration:3600,min_power:20,max_power:50};
+const boundedOffer=toFragments(boundedNl)[0].offers[0];
+assert.ok(boundedOffer,'historically supported OCPI duration and charger power bounds retained');
+const boundedSession={energyKwh:1.2,durationMinutes:40,powerKw:22,startAt:'2026-10-23T12:00:00Z'};
+assert.equal(evaluateOffer(boundedOffer,boundedSession).totalEur,1.14);
+for(const session of [{...boundedSession,durationMinutes:20},
+  {...boundedSession,durationMinutes:70},{...boundedSession,powerKw:11},
+  {...boundedSession,powerKw:60},{...boundedSession,powerKw:null}]){
+  assert.equal(evaluateOffer(boundedOffer,session).complete,false,
+    'duration or charger power outside an OCPI bound cannot produce a ranked price');
+}
+const historicalBounded=historicalOcpi.tariffPricing({currency:'EUR',elements:[{
+  restrictions:boundedNl.tariffCatalog['NL:ABC:T1'].elements[0].restrictions,
+  price_components:[{type:'ENERGY',price:.57,step_size:1000}]}]});
+assert.equal(historicalPricing.evaluateOffer({currency:'EUR',pricing:historicalBounded},boundedSession).totalEur,
+  evaluateOffer(boundedOffer,boundedSession).totalEur,'duration and power use historical OCPI semantics');
+const boundedBytes=new TextEncoder().encode(JSON.stringify(boundedNl));
+const boundedIndex={schemaVersion:1,status:'prepared',bundleId:'nl-bounded',rejected:[],sources:[{
+  source:'NL:dotnl_static',path:'sources/NL__dotnl_static.json',
+  sha256:createHash('sha256').update(boundedBytes).digest('hex')}]};
+const boundedFetch=async url=>({ok:true,arrayBuffer:async()=>url.endsWith('index.json')?
+  new TextEncoder().encode(JSON.stringify(boundedIndex)).buffer:boundedBytes.buffer});
+const boundedPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:boundedFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await boundedPrepared.loaders['prepared:NL:dotnl_static']())[0].offers.length,1);
+const boundedTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:boundedFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
+    fragments[0].offers[0].pricing.rules[0].minPowerKw=0;return fragments;}}});
+await assert.rejects(boundedTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
 for(const mutation of [
   d=>{d.offers.push({...d.offers[0],id:'another-tariff'});},
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_kwh:2};},
@@ -210,7 +241,7 @@ assert.equal(evaluateOffer(compoundOffer,{energyKwh:1.2,startAt:'2026-10-23T12:0
 for(const mutation of [
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents.push({type:'TIME',priceInclVat:1,stepSize:60});},
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents.push({type:'UNKNOWN',priceInclVat:1,stepSize:60});},
-  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_duration:1800};},
+  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_kwh:2};},
 ]){const changed=structuredClone(compoundNl);mutation(changed);
   assert.equal(toFragments(changed)[0].offers.length,0,'ambiguous or unsupported component remains unparsed');}
 const compoundBytes=new TextEncoder().encode(JSON.stringify(compoundNl));
