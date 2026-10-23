@@ -40,6 +40,16 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             marker = browser.execute_script("return window.__TCC_V9_SHELL__")
             if marker.get("ready") is not True:
                 raise AssertionError(f"TCC shell did not load: {marker}")
+            invalid_vehicle = browser.execute_async_script("""
+                const done=arguments[0],field=document.getElementById('v9BatteryCapacity');
+                if(!field){done({error:'battery control missing'});return;}
+                field.value='0';
+                window.compare().then(area=>done({blocked:area===null,
+                  message:document.getElementById('routeStatus')?.textContent||''}))
+                  .catch(error=>done({error:String(error)}));
+            """)
+            if not invalid_vehicle.get("blocked") or "Vérifie les paramètres" not in invalid_vehicle.get("message", ""):
+                raise AssertionError(f"Invalid vehicle input was not blocked: {invalid_vehicle}")
             vehicle = browser.execute_script("""
                 const values={v9BatteryCapacity:90,v9Consumption:18,v9MaxAc:22,v9MaxDc:180};
                 for(const [id,value] of Object.entries(values)){
