@@ -169,7 +169,14 @@ const scheduledFetch=async url=>({ok:true,arrayBuffer:async()=>url.endsWith('ind
   new TextEncoder().encode(JSON.stringify(scheduledIndex)).buffer:scheduledBytes.buffer});
 const scheduledPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:scheduledFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
-assert.equal((await scheduledPrepared.loaders['prepared:NL:dotnl_static']())[0].offers.length,1);
+const scheduledStation=(await scheduledPrepared.loaders['prepared:NL:dotnl_static']())[0];
+assert.equal(scheduledStation.offers.length,1);
+assert.equal(evaluateStation(scheduledStation,{energyKwh:1.2,durationMinutes:30,
+  startAt:'2026-10-26T08:30:00Z'}).best.total,1.14,
+  'prepared restriction reaches the TCC session ranking');
+assert.equal(evaluateStation(scheduledStation,{energyKwh:1.2,durationMinutes:30,
+  startAt:'2026-10-25T08:30:00Z'}).comparableOfferCount,0,
+  'prepared offer outside its weekday stays outside ranking');
 const scheduledTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:scheduledFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
     fragments[0].offers[0].pricing.rules[0].end='12:00';return fragments;}}});
@@ -200,7 +207,10 @@ const boundedFetch=async url=>({ok:true,arrayBuffer:async()=>url.endsWith('index
   new TextEncoder().encode(JSON.stringify(boundedIndex)).buffer:boundedBytes.buffer});
 const boundedPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:boundedFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
-assert.equal((await boundedPrepared.loaders['prepared:NL:dotnl_static']())[0].offers.length,1);
+const boundedStation=(await boundedPrepared.loaders['prepared:NL:dotnl_static']())[0];
+assert.equal(boundedStation.offers.length,1);
+assert.equal(evaluateStation(boundedStation,boundedSession).best.total,1.14);
+assert.equal(evaluateStation(boundedStation,{...boundedSession,powerKw:11}).comparableOfferCount,0);
 const boundedTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:boundedFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
     fragments[0].offers[0].pricing.rules[0].minPowerKw=0;return fragments;}}});
