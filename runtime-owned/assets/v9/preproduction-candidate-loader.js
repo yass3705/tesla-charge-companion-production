@@ -59,6 +59,38 @@
           if(id==='NL:dotnl_static')for(const row of data.offers)
             connectorOfferCounts.set(row.scope?.connectorId,(connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
           const provedOffer=(fragment,offer)=>{
+            if(id==='FR:emsp_exact'){
+              const raw=rawOffers.get(offer?.id),evse=rawEvses.get(raw?.scope?.evseId),source=raw?.rawOffer;
+              const local=fragment.evses.find(row=>row.id===evse?.id);
+              const connectorIds=(local?.connectors||[]).filter(row=>row.powerKw>0).map(row=>row.id).sort();
+              const rule=offer?.pricing?.rules?.[0];
+              return fragment.countryCode==='FR'&&offer?.kind==='roaming'&&
+                offer.provider==='Electroverse'&&offer.currency==='EUR'&&
+                offer.metadata?.verified===true&&offer.metadata?.identityMode==='exact_canonical_emsp_evse'&&
+                offer.metadata?.sourceId===id&&offer.metadata?.artifactSha256===data.source.artifactSha256&&
+                offer.metadata?.sourceOfferId===source?.id&&offer.metadata?.timeZone==='Europe/Paris'&&
+                raw?.channel==='Electroverse'&&raw.calculationStatus==='not_evaluated'&&
+                raw.scope?.connectorId==null&&source?.id===raw.sourceOfferId&&
+                source.provider==='Electroverse'&&source.verifiedScope==='exact_evse'&&
+                source.metadata?.verified===true&&
+                source.metadata?.identityMode==='exact_unique_national_irve_pdc'&&
+                Array.isArray(source.evseIds)&&source.evseIds.length===1&&
+                source.evseIds[0]===evse?.officialEvseId&&raw.officialEvseId===evse?.officialEvseId&&
+                Array.isArray(offer.evseIds)&&offer.evseIds.length===1&&offer.evseIds[0]===evse?.id&&
+                Array.isArray(offer.connectorIds)&&connectorIds.length>0&&
+                JSON.stringify(offer.connectorIds.slice().sort())===JSON.stringify(connectorIds)&&
+                offer.pricing?.type==='rules'&&offer.pricing.rules?.length===1&&
+                JSON.stringify(offer.pricing)===JSON.stringify(source.pricing)&&
+                Object.keys(rule||{}).sort().join(',')===
+                  'afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,days,end,idlePerMinute,ocpiDurationBands,pricePerKwh,scope,start'&&
+                rule.scope==='allDay'&&rule.start==='00:00'&&rule.end==='24:00'&&
+                rule.currency==='EUR'&&rule.billing==='kwh'&&rule.days==null&&
+                Array.isArray(rule.ocpiDurationBands)&&rule.ocpiDurationBands.length===0&&
+                rule.afterMinutesRate===0&&rule.afterMinutesThreshold===0&&
+                ['pricePerKwh','chargePerMinute','connectionFee','idlePerMinute'].every(name=>
+                  typeof rule[name]==='number'&&Number.isFinite(rule[name])&&rule[name]>=0)&&
+                rule.pricePerKwh>0;
+            }
             if(fragment.countryCode!==id.slice(0,2)||offer?.metadata?.sourceId!==id||
                offer.metadata.verified!==true||offer.metadata.artifactSha256!==data.source.artifactSha256||
                offer.kind!=='direct'||offer.currency!=='EUR'||

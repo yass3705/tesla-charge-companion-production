@@ -214,4 +214,43 @@ const nlTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',ori
     const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].connectionFee=1;return fragments;
   }}});
 await assert.rejects(nlTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
+const emspSource=structuredClone(source);
+emspSource.source={id:'FR:emsp_exact',artifactSha256:'e'.repeat(64)};
+emspSource.evses[0].officialEvseId='FR*ABC*E1';
+emspSource.evses[0].sourceEvseId='FR*ABC*E1';
+const emspRule={scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',
+  pricePerKwh:.52,chargePerMinute:.04,connectionFee:0,idlePerMinute:.01,
+  afterMinutesRate:0,afterMinutesThreshold:0,days:null,ocpiDurationBands:[]};
+const emspRaw={id:'source-emsp',provider:'Electroverse',currency:'EUR',verifiedScope:'exact_evse',
+  evseIds:['FR*ABC*E1'],pricing:{type:'rules',rules:[emspRule]},
+  metadata:{verified:true,identityMode:'exact_unique_national_irve_pdc'}};
+emspSource.offers=[{id:'emsp-offer',channel:'Electroverse',scope:{evseId:'evse-a',connectorId:null},
+  officialEvseId:'FR*ABC*E1',sourceOfferId:'source-emsp',rawOffer:emspRaw,
+  calculationStatus:'not_evaluated'}];
+const emspFragment=toFragments(emspSource)[0];
+assert.equal(emspFragment.offers.length,1);
+assert.equal(emspFragment.offers[0].kind,'roaming');
+assert.deepEqual(emspFragment.offers[0].evseIds,['evse-a']);
+assert.deepEqual(emspFragment.offers[0].connectorIds,['plug-a']);
+const emspSession={energyKwh:10,durationMinutes:55,chargingMinutes:45,postChargeMinutes:10,
+  startAt:'2026-10-23T12:00:00Z'};
+const emspQuote=evaluateOffer(emspFragment.offers[0],emspSession);
+assert.equal(emspQuote.totalEur,7.1);
+assert.equal(emspQuote.components.energy,5.2);
+assert.equal(emspQuote.components.chargingTime,1.8);
+assert.equal(emspQuote.components.parkingTime,.1);
+assert.equal(evaluateOffer(emspFragment.offers[0],{energyKwh:10,startAt:emspSession.startAt}).complete,false);
+const emspBytes=new TextEncoder().encode(JSON.stringify(emspSource));
+const emspIndex={schemaVersion:1,status:'prepared',bundleId:'emsp-test',rejected:[],sources:[{
+  source:'FR:emsp_exact',path:'sources/FR__emsp_exact.json',
+  sha256:createHash('sha256').update(emspBytes).digest('hex')}]};
+const emspFetch=async url=>({ok:true,arrayBuffer:async()=>url.endsWith('index.json')?
+  new TextEncoder().encode(JSON.stringify(emspIndex)).buffer:emspBytes.buffer});
+const emspPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:emspFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await emspPrepared.loaders['prepared:FR:emsp_exact']())[0].offers.length,1);
+const emspTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:emspFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
+    fragments[0].offers[0].pricing.rules[0].idlePerMinute=0;return fragments;}}});
+await assert.rejects(emspTampered.loaders['prepared:FR:emsp_exact'](),/candidate pricing isolation violated/);
 console.log('Canonical V9: proved FR/IT/BE/NL energy rates, exact scope and historic oracles');

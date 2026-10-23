@@ -88,11 +88,18 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       const compoundIds=new Set(area.stations.flatMap(s=>s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='NL:dotnl_static'&&o.pricing?.rules?.some(r=>
                           r.chargePerMinute>0||r.connectionFee>0||r.idlePerMinute>0)).map(o=>o.id));
+                      const emspIds=new Set(area.stations.flatMap(s=>s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='FR:emsp_exact').map(o=>o.id));
                       const evaluated=Object.values(area.sessionEvaluations||{}).flatMap(row=>
                         [row?.best,...(row?.alternatives||[]),...(row?.incomplete||[])]).filter(Boolean);
                       done({
                       count:area.stations.length,prepared:area.preproductionCandidate,
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
+                      emspPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='FR:emsp_exact'&&o.provider==='Electroverse').length,0),
+                      emspEvaluated:evaluated.filter(row=>emspIds.has(row.offerId)&&row.result?.complete).length,
+                      emspCostPerKm:evaluated.filter(row=>emspIds.has(row.offerId)&&row.result?.complete&&
+                        Number.isFinite(row.costPerRecoveredKm)).length,
                       compoundPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='NL:dotnl_static'&&o.pricing?.rules?.some(r=>
                           r.chargePerMinute>0||r.connectionFee>0||r.idlePerMinute>0)).length,0),
@@ -101,14 +108,18 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         (row.result.components?.connectionFee>0||row.result.components?.chargingTime>0||
                           row.result.components?.parkingTime>0)).length,
                       pricedOutsideProved:area.stations.flatMap(s=>s.offers||[]).filter(o=>
-                        !['FR:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
-                        !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi'].includes(o.metadata?.identityMode)).length,
+                        !['FR:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
+                        !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi','exact_canonical_emsp_evse'].includes(o.metadata?.identityMode)).length,
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       emspRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
                         o.channel==='Electra'||o.channel==='Electroverse').length,0),
                       emspMisScoped:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
                         (o.channel==='Electra'||o.channel==='Electroverse')&&
                         !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId)).length,0),
+                      emspPricedMisScoped:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='FR:emsp_exact'&&
+                        !(s.evses||[]).some(evse=>o.evseIds?.includes(evse.id)&&
+                          o.connectorIds?.every(id=>(evse.connectors||[]).some(c=>c.id===id)))).length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
                     });}).catch(error=>done({error:String(error)}));
@@ -159,9 +170,15 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 target = next((row for row in emsp_data["stations"] if row.get("latitude") is not None and row.get("longitude") is not None), None)
                 if target is None:
                     raise AssertionError("Exact eMSP source has no archived national station coordinates")
-                emsp = compare(target["latitude"], target["longitude"], "FR", "Exact eMSP fixture", radius=2)
-                if emsp["emspRaw"] <= 0 or emsp["emspMisScoped"] != 0:
-                    raise AssertionError("Exact eMSP raw offer was lost or moved to another EVSE")
+                emsp = compare(target["latitude"], target["longitude"], "FR", "Exact eMSP fixture", radius=2, require_raw=False)
+                if emsp["emspRaw"] + emsp["emspPriced"] <= 0 or emsp["emspMisScoped"] != 0 or emsp["emspPricedMisScoped"] != 0:
+                    raise AssertionError("Exact eMSP offer was lost or moved to another EVSE/connector")
+                if emsp["emspPriced"]:
+                    if not emsp["emspEvaluated"] or not emsp["emspCostPerKm"]:
+                        raise AssertionError("Proved eMSP session or cost per kilometre was not calculated")
+                    emsp_totals = browser.execute_script("return [...document.querySelectorAll('#results .v9-tariff-row[data-v9-lane-label=\"Electroverse\"][data-v9-effective-total]')].map(row=>Number(row.dataset.v9EffectiveTotal))")
+                    if not any(total > 0 for total in emsp_totals):
+                        raise AssertionError("Proved Electroverse offer did not reach the tariff comparison")
             gb = compare(51.507, -0.128, "GB", "London fixture")
             gb_text = browser.execute_script("return document.getElementById('results').innerText")
             if "IONITY Direct · UK" not in gb_text:

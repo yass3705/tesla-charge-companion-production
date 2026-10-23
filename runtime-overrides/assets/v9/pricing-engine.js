@@ -586,7 +586,7 @@
   }
   function evaluateOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=offerTimeZone(offer,session);
-    if(offer?.metadata?.identityMode==='exact_canonical_connector_ocpi'){
+    if(['exact_canonical_connector_ocpi','exact_canonical_emsp_evse'].includes(offer?.metadata?.identityMode)){
       const canonicalRules=Array.isArray(pricing.rules)?pricing.rules:[];
       if(canonicalRules.some(rule=>(num(rule?.chargePerMinute)??0)>0)&&
          (num(session.durationMinutes)==null||num(session.chargingMinutes)==null))

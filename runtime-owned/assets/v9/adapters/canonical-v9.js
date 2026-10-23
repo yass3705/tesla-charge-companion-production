@@ -158,6 +158,37 @@
         sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
         sourceTariffKey:offer.sourceTariffKey,timeZone:'Europe/Amsterdam'}};
   }
+  function provedElectroverseOffer(data,offer,index){
+    if(data.source?.id!=='FR:emsp_exact'||offer.channel!=='Electroverse'||
+       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const evse=index.evses.get(offer.scope?.evseId),raw=offer.rawOffer;
+    if(!evse||!evse.officialEvseId||offer.officialEvseId!==evse.officialEvseId||
+       raw?.id!==offer.sourceOfferId||raw.provider!=='Electroverse'||
+       raw.verifiedScope!=='exact_evse'||raw.metadata?.verified!==true||
+       raw.metadata?.identityMode!=='exact_unique_national_irve_pdc'||
+       !Array.isArray(raw.evseIds)||raw.evseIds.length!==1||
+       raw.evseIds[0]!==evse.officialEvseId||raw.currency!=='EUR'||
+       raw.pricing?.type!=='rules'||!Array.isArray(raw.pricing.rules)||
+       raw.pricing.rules.length!==1)return null;
+    const rule=raw.pricing.rules[0];
+    if(Object.keys(rule).sort().join(',')!==
+         'afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,days,end,idlePerMinute,ocpiDurationBands,pricePerKwh,scope,start'||
+       rule.scope!=='allDay'||rule.start!=='00:00'||rule.end!=='24:00'||
+       rule.currency!=='EUR'||rule.billing!=='kwh'||rule.days!=null||
+       !Array.isArray(rule.ocpiDurationBands)||rule.ocpiDurationBands.length||
+       rule.afterMinutesRate!==0||rule.afterMinutesThreshold!==0||
+       !['pricePerKwh','chargePerMinute','connectionFee','idlePerMinute'].every(name=>
+         typeof rule[name]==='number'&&Number.isFinite(rule[name])&&rule[name]>=0)||
+       rule.pricePerKwh<=0)return null;
+    const connectors=(index.connectors.get(evse.id)||[]).filter(row=>
+      typeof row.powerKw==='number'&&Number.isFinite(row.powerKw)&&row.powerKw>0);
+    if(!connectors.length)return null;
+    return{id:offer.id,provider:'Electroverse',kind:'roaming',currency:'EUR',
+      countries:['FR'],evseIds:[evse.id],connectorIds:connectors.map(row=>row.id),
+      subscriptionId:null,pricing:JSON.parse(JSON.stringify(raw.pricing)),
+      metadata:{verified:true,identityMode:'exact_canonical_emsp_evse',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,sourceOfferId:raw.id,timeZone:'Europe/Paris'}};
+  }
   function toFragments(data){
     if(data?.schemaVersion!==1||!Array.isArray(data?.stations)||!Array.isArray(data?.evses)||!Array.isArray(data?.connectors)||!Array.isArray(data?.offers))throw new Error('canonical schema invalid');
     const cpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
@@ -171,6 +202,10 @@
       for(const row of data.connectors)proofIndex.connectorsById.set(row.id,row);
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
+    }
+    if(data.source?.id==='FR:emsp_exact'){
+      for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];
+        list.push(row);proofIndex.connectors.set(row.evseId,list);}
     }
     const stations=new Map(data.stations.map(row=>[row.id,{row,evses:[],offers:[],pricedOffers:[]}]));
     const evses=new Map();
@@ -191,7 +226,7 @@
       const evse=evses.get(offer.scope?.evseId);
       if(!evse)throw new Error('canonical offer EVSE missing');
       const proved=provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
-        provedNetherlandsOffer(data,offer,proofIndex);
+        provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({id:offer.id,channel:offer.channel,scope:offer.scope,
         rawOffer:offer.rawOffer??null,sourceTariffKey:offer.sourceTariffKey||null,
