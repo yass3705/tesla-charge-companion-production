@@ -57,7 +57,7 @@ const component={conditions:[],currency:'EUR',price:{excl_vat:0.65,incl_vat:0.79
   priceDimension:'ENERGY',stepSize:null,surchargeName:null,
   validity:{absolute:{daysOfWeekValidity:[],validitySchemes:[]},relative:{displayText:[],maxDurationInMinutes:null}}};
 const tariff={connectorId:'IT*ATE*E1-C1',identifiers:{evseId:'IT*ATE*E1',connectorId:'C1'},priceComponents:[component]};
-const sourceConnector={evseId:'IT*ATE*E1',connectorId:'C1',pricePerKwhEur:0.79,tariffs:[tariff]};
+const sourceConnector={evseId:'IT*ATE*E1',connectorId:'C1',powerType:'DC',pricePerKwhEur:0.79,tariffs:[tariff]};
 const atlante={...structuredClone(source),source:{id:'IT:atlante_direct',artifactSha256:'b'.repeat(64)}};
 atlante.stations[0].country='IT';
 atlante.connectors[0].rawSourceFields=sourceConnector;
@@ -72,6 +72,8 @@ for(const mutation of [
   d=>{d.offers[0].rawOffer.priceComponents.push({...component,priceDimension:'TIME'});},
   d=>{d.offers[0].rawOffer.priceComponents[0].conditions.push({type:'minDuration'});},
   d=>{d.offers[0].rawOffer.priceComponents[0].price.incl_vat=0.80;},
+  d=>{d.connectors[0].powerKw=null;},
+  d=>{d.offers[0].scope.connectorId='not-a-connector';},
 ]){
   const changed=structuredClone(atlante);mutation(changed);
   assert.equal(toFragments(changed)[0].offers.length,0,'complex or inconsistent tariff stays out of ranking');

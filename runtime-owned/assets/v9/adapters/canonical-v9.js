@@ -23,15 +23,20 @@
     if(offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated')return null;
     const raw=offer.rawOffer;
     if(!raw||typeof raw!=='object'||Array.isArray(raw)||!offer.scope?.connectorId)return null;
+    const connector=data.connectors.find(row=>row.id===offer.scope.connectorId&&row.evseId===offer.scope.evseId);
+    if(!connector||typeof connector.powerKw!=='number'||!Number.isFinite(connector.powerKw)||connector.powerKw<=0)return null;
     let price=null,provider=null,country=null,operator=null;
     if(data.source?.id==='FR:ionity_direct'){
       if(Object.keys(raw).length!==1||!Object.prototype.hasOwnProperty.call(raw,'pricePerKwhEur'))return null;
+      if(!['AC','DC'].includes(connector.rawSourceFields?.kind))return null;
       price=raw.pricePerKwhEur;provider='IONITY Direct';country='FR';operator='ionity';
     }else if(data.source?.id==='IT:atlante_direct'){
-      const connector=data.connectors.find(row=>row.id===offer.scope.connectorId&&row.evseId===offer.scope.evseId);
       const source=connector?.rawSourceFields,components=raw.priceComponents;
       const sameConnector=data.offers.filter(row=>row.scope?.connectorId===offer.scope.connectorId);
-      if(!source||sameConnector.length!==1||!Array.isArray(components)||components.length!==1||
+      const type=String(source?.powerType||source?.connectorType||'').toUpperCase();
+      if(!source||!(['AC','DC'].includes(type)||type.includes('TYPE 2')||type.includes('TYPE2')||
+          type.includes('CCS')||type.includes('CHADEMO'))||
+         sameConnector.length!==1||!Array.isArray(components)||components.length!==1||
          Object.keys(raw).sort().join(',')!=='connectorId,identifiers,priceComponents'||
          raw.identifiers?.evseId!==source.evseId||raw.identifiers?.connectorId!==source.connectorId||
          source.tariffs?.length!==1||source.tariffs[0]?.connectorId!==raw.connectorId||

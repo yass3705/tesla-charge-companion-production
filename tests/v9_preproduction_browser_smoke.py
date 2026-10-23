@@ -124,10 +124,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 it_text = browser.execute_script("return document.getElementById('results').innerText")
                 if "Atlante Direct · IT" not in it_text:
                     raise AssertionError("Atlante Italy provenance missing")
-                priced_cards = browser.execute_script("return document.querySelectorAll('#results .v9-tariff-row[data-v9-effective-total]').length")
-                if italy["priced"] and priced_cards <= 0:
+                priced_totals = browser.execute_script("return [...document.querySelectorAll('#results .v9-tariff-row[data-v9-effective-total]')].map(row=>Number(row.dataset.v9EffectiveTotal))")
+                if italy["priced"] and not any(total > 0 for total in priced_totals):
                     raise AssertionError("Proved Atlante tariff was loaded but no calculated offer reached the UI")
-                italy["calculatedCards"] = priced_cards
+                italy["calculatedCards"] = len(priced_totals)
             germany = None
             if "DE:ionity_direct" in source_ids:
                 germany = compare(52.520, 13.405, "DE", "Berlin fixture")
