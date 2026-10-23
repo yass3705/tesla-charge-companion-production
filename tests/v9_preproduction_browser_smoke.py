@@ -56,7 +56,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       count:area.stations.length,prepared:area.preproductionCandidate,
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
-                      firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null
+                      firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
+                      sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
                     })).catch(error=>done({error:String(error)}));
                 """)
                 if "error" in result:
@@ -109,6 +110,11 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 it_text = browser.execute_script("return document.getElementById('results').innerText")
                 if "Atlante Direct · IT" not in it_text:
                     raise AssertionError("Atlante Italy provenance missing")
+            zephyre = None
+            if "FR:zephyre_epowerdirect_exact" in source_ids:
+                zephyre = compare(43.579, 3.880, "FR", "Lattes fixture", radius=20)
+                if "FR:zephyre_epowerdirect_exact" not in zephyre["sourceIds"]:
+                    raise AssertionError(f"Zéphyre exact EVSE archive missing from physical map: {zephyre}")
             # A same-origin iframe supplies a real 390 CSS-pixel viewport even
             # when headless Firefox enforces a 500-pixel minimum outer window.
             browser.get(f"http://127.0.0.1:{server.server_port}/control/index.html")
@@ -136,7 +142,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
-            return {"fr": fr, "gb": gb, "it": italy, "minPower300": filtered["count"], "map": map_state,
+            return {"fr": fr, "gb": gb, "it": italy, "zephyre": zephyre,
+                    "minPower300": filtered["count"], "map": map_state,
                     "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:
         server.shutdown()
