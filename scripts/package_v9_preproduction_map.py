@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import tempfile
 from pathlib import Path, PurePosixPath
@@ -25,6 +26,8 @@ def check_candidate(candidate: Path) -> dict:
     index = json.loads((candidate / "index.json").read_bytes())
     if index.get("schemaVersion") != 1 or index.get("status") not in {"prepared", "partial_failure"}:
         raise ValueError("Prepared candidate index is invalid")
+    if not re.fullmatch(r"[a-f0-9]{64}", str(index.get("bundleId", ""))):
+        raise ValueError("Prepared bundle identity is invalid")
     sources = index.get("sources")
     if not isinstance(sources, list) or not sources or not isinstance(index.get("rejected"), list):
         raise ValueError("Prepared candidate source listing is invalid")
@@ -90,6 +93,7 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
         config.update({
             "preproductionCandidateBase": "../prepared-v9",
             "preproductionIsolated": True,
+            "preparedBundleId": index["bundleId"],
             "engineScopeCountries": sorted({entry["source"][:2] for entry in index["sources"]}),
             "fallback": "fail-closed",
         })

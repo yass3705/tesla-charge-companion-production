@@ -207,6 +207,7 @@
         baseUrl:cfg.preproductionCandidateBase,fetchImpl:w.fetch.bind(w),adapter:w.TCCV9CanonicalAdapter,
         cryptoImpl:w.crypto,origin:w.location.href
       });
+      if(preview.candidate.bundleId!==cfg.preparedBundleId)throw new Error('prepared bundle identity mismatch');
       registry=preview.registry;loaders=preview.loaders;preparedCandidate=preview.candidate;
     }
     const routeProvider=w.TCCV9BrowserRouting.osrmProvider();

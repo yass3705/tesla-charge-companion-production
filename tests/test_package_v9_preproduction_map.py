@@ -24,7 +24,7 @@ class PreparedMapPackageTests(unittest.TestCase):
             (candidate / "sources").mkdir(parents=True)
             data = json.dumps({"schemaVersion": 1, "source": {"id": "FR:ionity_direct"}}).encode()
             (candidate / "sources/FR__ionity_direct.json").write_bytes(data)
-            index = {"schemaVersion": 1, "bundleId": "historical-only",
+            index = {"schemaVersion": 1, "bundleId": "a" * 64,
                      "status": "prepared", "rejected": [],
                      "sources": [{"source": "FR:ionity_direct",
                                   "path": "sources/FR__ionity_direct.json",
@@ -36,6 +36,7 @@ class PreparedMapPackageTests(unittest.TestCase):
             cfg = json.loads((output / "v9-production-shell/shell-config.json").read_text())
             self.assertTrue(cfg["preproductionIsolated"])
             self.assertEqual(cfg["preproductionCandidateBase"], "../prepared-v9")
+            self.assertEqual(cfg["preparedBundleId"], "a" * 64)
             self.assertEqual(cfg["fallback"], "fail-closed")
             self.assertTrue((output / "v9-production-runtime/assets/v9/preproduction-candidate-loader.js").is_file())
             self.assertEqual(json.loads((site / "v9-production-shell/shell-config.json").read_text())["engineScopeCountries"], ["CH"])
@@ -44,6 +45,10 @@ class PreparedMapPackageTests(unittest.TestCase):
             (candidate / "sources/FR__ionity_direct.json").write_text("tampered")
             with self.assertRaisesRegex(ValueError, "SHA mismatch"):
                 package(site, candidate, root / "bad-preview")
+            (candidate / "sources/FR__ionity_direct.json").write_bytes(data)
+            (candidate / "index.json").write_text(json.dumps({**index, "bundleId": "unverified"}))
+            with self.assertRaisesRegex(ValueError, "bundle identity"):
+                package(site, candidate, root / "bad-bundle")
 
 
 if __name__ == "__main__":
