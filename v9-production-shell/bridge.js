@@ -1116,6 +1116,40 @@
     nav.appendChild(button);
   }
 
+  function installPreviewValidation(w,cfg){
+    if(cfg?.preproductionIsolated!==true)return;
+    const d=w.document,nav=d.querySelector('header nav'),main=d.querySelector('main');
+    if(!nav||!main||d.getElementById('v9ValidationTab'))return;
+    const tab=d.createElement('button');tab.id='v9ValidationTab';tab.type='button';tab.textContent='Tester TCC V9';
+    tab.setAttribute('aria-controls','v9ValidationPanel');
+    const panel=d.createElement('section');panel.id='v9ValidationPanel';panel.className='panel';
+    panel.innerHTML='<div class="card"><h2>Parcours de validation TCC V9</h2>'+
+      '<ol><li>Recherche une station ou utilise ta position, puis ouvre sa fiche sur la carte.</li>'+
+      '<li>Vérifie les EVSE, les prises et les puissances AC/DC regroupées.</li>'+
+      '<li>Compare Direct, Electra et Electroverse. « Tarif incalculable » indique une offre sans calcul fiable.</li>'+
+      '<li>Règle batterie, objectif, consommation et puissance du véhicule ; vérifie coût, durée et coût/km lorsqu’ils sont calculables.</li>'+
+      '<li>Essaie les filtres, abonnements et la vue mobile.</li></ol>'+
+      '<label for="v9FeedbackText">Une anomalie ? Décris la station, le tarif ou le calcul observé.</label>'+
+      '<textarea id="v9FeedbackText" rows="4" style="width:100%;box-sizing:border-box;margin-top:8px" placeholder="Décris ce qui ne correspond pas à tes attentes"></textarea>'+
+      '<button id="v9FeedbackShare" type="button" class="primary" style="margin-top:8px">Partager ce signalement</button>'+
+      '<p id="v9FeedbackStatus" class="small" role="status" aria-live="polite"></p></div>';
+    main.appendChild(panel);nav.appendChild(tab);
+    tab.addEventListener('click',()=>{d.querySelectorAll('nav button,.panel').forEach(el=>el.classList.remove('active'));tab.classList.add('active');panel.classList.add('active');});
+    nav.querySelectorAll('button').forEach(other=>{if(other!==tab)other.addEventListener('click',()=>{tab.classList.remove('active');panel.classList.remove('active');});});
+    panel.querySelector('#v9FeedbackShare').addEventListener('click',async()=>{
+      const description=panel.querySelector('#v9FeedbackText').value.trim(),status=panel.querySelector('#v9FeedbackStatus');
+      if(!description){status.textContent='Décris d’abord l’anomalie à signaler.';return;}
+      const body='TCC V9 · signalement\nBundle : '+text(cfg.preparedBundleId)+'\nPage : '+w.location.href+'\n\n'+description;
+      try{
+        if(typeof w.navigator.share==='function'){
+          await w.navigator.share({title:'Signalement TCC V9',text:body});status.textContent='Signalement partagé.';
+        }else if(w.navigator.clipboard?.writeText){
+          await w.navigator.clipboard.writeText(body);status.textContent='Signalement copié. Colle-le dans ta conversation TCC.';
+        }else{status.textContent='Copie ce texte et envoie-le dans ta conversation TCC : '+body;}
+      }catch(error){status.textContent=error?.name==='AbortError'?'Partage annulé.':'Partage indisponible. Copie ton message et envoie-le dans ta conversation TCC.';}
+    });
+  }
+
   function installBaseUpdatesFooter(w,cfg){
     const d=w.document;if(d.getElementById('v9BaseUpdates'))return;
     const footer=d.createElement('footer');footer.id='v9BaseUpdates';footer.className='card small';
@@ -1462,6 +1496,7 @@
     const subscriptionCataloguePromise=loadSubscriptionCatalogue(w,cfg);
     installCurrentPositionButton(w);
     installUsageHelpTab(w);
+    installPreviewValidation(w,cfg);
     installBaseUpdatesFooter(w,cfg);
     installPowerTypeFilter(w);
     installRankingOption(w);

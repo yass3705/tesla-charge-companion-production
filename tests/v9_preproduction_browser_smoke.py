@@ -40,6 +40,14 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             marker = browser.execute_script("return window.__TCC_V9_SHELL__")
             if marker.get("ready") is not True:
                 raise AssertionError(f"TCC shell did not load: {marker}")
+            guidance = browser.execute_script("""
+                const panel=document.getElementById('v9ValidationPanel');
+                return {tab:!!document.getElementById('v9ValidationTab'),
+                  steps:panel?.querySelectorAll('ol li').length||0,
+                  feedback:!!panel?.querySelector('#v9FeedbackText')&&!!panel?.querySelector('#v9FeedbackShare')};
+            """)
+            if not guidance["tab"] or guidance["steps"] != 5 or not guidance["feedback"]:
+                raise AssertionError(f"Preview validation flow missing: {guidance}")
             invalid_vehicle = browser.execute_async_script("""
                 const done=arguments[0],field=document.getElementById('v9BatteryCapacity');
                 if(!field){done({error:'battery control missing'});return;}
