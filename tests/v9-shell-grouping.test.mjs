@@ -2,7 +2,22 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea, stationDisplayName, stationBaseSource } = require('../v9-production-shell/bridge.js');
+const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea, stationDisplayName, stationBaseSource,
+  variantsByPower, stationCards, renderStationCard } = require('../v9-production-shell/bridge.js');
+
+const unknownPowerStation={id:'ozecar-fixture',countryCode:'FR',name:'OZECAR test',physicalOperator:{name:'OZECAR'},
+  evses:[{id:'internal-a',officialEvseId:'FROZEE3430505',connectors:[{id:'plug-a',plugType:'Type 2',powerKw:null}]},
+         {id:'internal-b',officialEvseId:'FROZEE3430506',connectors:[{id:'plug-b',plugType:'Type 2',powerKw:null}]}],
+  offers:[],unparsedOffers:[{id:'raw-a',channel:'Direct',scope:{evseId:'internal-a',connectorId:null},calculationStatus:'not_evaluated'}]};
+const unknownStub={TCCV9SessionPlannerEngine:{planStation(){}},TCCV9SessionEngine:{evaluateStation(){},offerMatchesChargingKind(){}},TCCV9StationScoreEngine:{scoreStation(){}}};
+const unknownVariants=variantsByPower(unknownStub,[{station:unknownPowerStation,distanceKm:1}],{},[]);
+assert.equal(unknownVariants.length,1,'unknown connector power must not remove a station');
+assert.equal(unknownVariants[0].powerLine.powerKw,null);
+assert.deepEqual(unknownVariants[0].station.unparsedOffers.map(offer=>offer.id),['raw-a']);
+const unknownCards=stationCards(unknownVariants);
+assert.equal(unknownCards.length,1);
+assert.match(renderStationCard(unknownCards[0],0,{}),/FROZEE3430505/);
+assert.match(renderStationCard(unknownCards[0],0,{}),/FROZEE3430506/);
 
 assert.equal(stationBaseSource({countryCode:'FR',physicalOperator:{name:'IONITY'},provenance:[{sourceId:'FR:ionity_direct'}]}),'IONITY Direct · FR');
 assert.equal(stationBaseSource({countryCode:'FR',physicalOperator:{name:'IONITY'},provenance:[{sourceId:'prepared:FR:ionity_direct'}]}),'IONITY Direct · FR');

@@ -120,6 +120,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 ozecar = compare(41.926, 9.390, "FR", "Corsica fixture", radius=20)
                 if "FR:ozecar_monta" not in ozecar["sourceIds"]:
                     raise AssertionError(f"OZECAR exact EVSE archive missing from physical map: {ozecar}")
+                corsica_text = browser.execute_script("""
+                    document.querySelectorAll('.v9-power-group,.v9-pdc-detail').forEach(item=>{item.open=true});
+                    return document.getElementById('results').innerText;
+                """)
+                if "OZECAR" not in corsica_text or "FROZEE" not in corsica_text:
+                    raise AssertionError(f"OZECAR station and exact EVSE are not visible: {corsica_text[:1200]}")
             # A same-origin iframe supplies a real 390 CSS-pixel viewport even
             # when headless Firefox enforces a 500-pixel minimum outer window.
             browser.get(f"http://127.0.0.1:{server.server_port}/control/index.html")

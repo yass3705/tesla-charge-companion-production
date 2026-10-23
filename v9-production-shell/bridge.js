@@ -704,9 +704,14 @@
     if(!planner?.planStation||!sessionEngine?.evaluateStation||!sessionEngine?.offerMatchesChargingKind||!scoreEngine?.scoreStation)throw new Error('per-power pricing engines unavailable');
     const variants=[];
     for(const row of rows||[]){
-      const station=row?.station||{},groups=new Map();
+      const station=row?.station||{},groups=new Map(),unknownEvses=new Map(),unknownConnectorIds=new Set();
       for(const [evseIndex,evse] of (station.evses||[]).entries())for(const [connectorIndex,raw] of (evse.connectors||[]).entries()){
-        const power=num(raw.powerKw??raw.power??evse.powerKw);if(power==null||power<=0)continue;
+        const power=num(raw.powerKw??raw.power??evse.powerKw);
+        if(power==null||power<=0){
+          const previous=unknownEvses.get(evseIndex)||[];previous.push(raw);unknownEvses.set(evseIndex,previous);
+          if(raw.id||raw.connectorId)unknownConnectorIds.add(text(raw.id||raw.connectorId));
+          continue;
+        }
         const connector={...raw,powerKw:power},kind=connectorKind(connector),connectorId=text(connector.id||connector.connectorId)||null,plug=text(connector.plugName||connector.type)||null;
         const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex,evseTokens=new Set([evseKey,text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)].filter(Boolean)),connectorTokens=new Set(connectorId?[connectorId]:[]);
         const matching=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,evseTokens,connectorTokens)&&sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId)).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
@@ -724,13 +729,24 @@
         }
         const scopedOffers=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,group.evseTokens,group.connectorIds));
         const guardedOffers=guardUnverifiedPowerOffers(station,group.kind,group.powerKw,scopedOffers);
-        const variant={...station,evses,offers:guardedOffers.concat(electraPlusOffers({...station,offers:guardedOffers},selectedSubscriptions))},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
+        const unparsedOffers=(station.unparsedOffers||[]).filter(offer=>group.evseKeys.has(text(offer.scope?.evseId))&&
+          (offer.scope?.connectorId==null||group.connectorIds.has(text(offer.scope.connectorId))));
+        const variant={...station,evses,offers:guardedOffers.concat(electraPlusOffers({...station,offers:guardedOffers},selectedSubscriptions)),unparsedOffers},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
         const plan=planner.planStation(variant,session,{route:{byStationId:routeMap}});
         const rawEvaluation=sessionEngine.evaluateStation(variant,plan.effectiveSession,{selectedSubscriptions,targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}});
         const evaluation=consistentLaneEvaluation(rawEvaluation,variant,selectedSubscriptions);
         const score=scoreEngine.scoreStation(variant,evaluation,plan.effectiveSession,{route:{byStationId:routeMap},plan});
         const line={kind:group.kind,powerKw:group.powerKw,count:group.evseKeys.size};
         variants.push({...row,station:variant,powerLine:line,evaluation,score,total:num(pricedBest(evaluation)?.total),costPerKm:num(pricedBest(evaluation)?.costPerRecoveredKm),recoveredKm:num(evaluation?.recoveredKm),displayKey:[text(station.name),line.kind,line.powerKw,group.offerIds.join(',')].join('|')});
+      }
+      if(unknownEvses.size){
+        const evses=[...unknownEvses].map(([index,connectors])=>({...station.evses[index],connectors}));
+        const evseIds=new Set(evses.map(evse=>text(evse.id||evse.evseId)));
+        const unparsedOffers=(station.unparsedOffers||[]).filter(offer=>evseIds.has(text(offer.scope?.evseId))&&
+          (offer.scope?.connectorId==null||unknownConnectorIds.has(text(offer.scope.connectorId))));
+        variants.push({...row,station:{...station,evses,offers:[],unparsedOffers},
+          powerLine:{kind:'UNKNOWN',powerKw:null,count:evseIds.size},evaluation:null,total:null,costPerKm:null,
+          displayKey:[text(station.name),'UNKNOWN'].join('|')});
       }
     }
     return variants;
@@ -952,7 +968,7 @@
         const connectors=[...new Set(allEvses.flatMap(evse=>(evse.connectors||[]).map(connector=>
           [text(connector.plugName||connector.type||connector.standard||connector.kind||'Prise'),
             num(connector.powerKw)!=null?connector.powerKw+' kW':''].filter(Boolean).join(' · '))))];
-        const evseIds=[...new Set(allEvses.map(evse=>text(evse.id||evse.evseId)).filter(Boolean))];
+        const evseIds=[...new Set(allEvses.map(evse=>text(evse.officialEvseId||evse.sourceEvseId||evse.evseId||evse.id)).filter(Boolean))];
         const status=allEvses.map(evse=>text(evse.status?.state||evse.status?.value||
           (typeof evse.status==='string'?evse.status:null)||variants[0].row.station.status?.state)).filter(Boolean);
         const source=text(allEvses[0]?.sourceId||allEvses[0]?.provenance?.sourceId)||stationBaseSource(variants[0].row.station);
