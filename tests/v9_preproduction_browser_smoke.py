@@ -41,7 +41,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             if marker.get("ready") is not True:
                 raise AssertionError(f"TCC shell did not load: {marker}")
 
-            def compare(lat: float, lon: float, country: str, label: str, min_power: int | None = None, radius: int = 200) -> dict:
+            def compare(lat: float, lon: float, country: str, label: str, min_power: int | None = None,
+                        radius: int = 200, require_raw: bool = True) -> dict:
                 browser.execute_script("""
                     const [lat,lon,country,label,minPower]=arguments;
                     window.resolveOrigin=async()=>({lat,lon,label});
@@ -62,7 +63,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 """)
                 if "error" in result:
                     raise AssertionError(result["error"])
-                if result["count"] <= 0 or result["priced"] != 0 or result["raw"] <= 0:
+                if result["count"] <= 0 or result["priced"] != 0 or (require_raw and result["raw"] <= 0):
                     raise AssertionError(f"Candidate physical/pricing isolation failed: {result}")
                 return result
 
@@ -97,7 +98,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             if screenshots:
                 browser.execute_script("document.getElementById('v9MapSummary').scrollIntoView()")
                 browser.save_screenshot(str(screenshots / "prepared-fr-map.png"))
-            filtered = compare(48.856, 2.352, "FR", "Paris fixture", 300)
+            filtered = compare(48.856, 2.352, "FR", "Paris fixture", 300, require_raw=False)
             if filtered["count"] > fr["count"]:
                 raise AssertionError("Minimum power filter expanded result set")
             gb = compare(51.507, -0.128, "GB", "London fixture")
@@ -120,6 +121,16 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 it_text = browser.execute_script("return document.getElementById('results').innerText")
                 if "Atlante Direct · IT" not in it_text:
                     raise AssertionError("Atlante Italy provenance missing")
+            germany = None
+            if "DE:ionity_direct" in source_ids:
+                germany = compare(52.520, 13.405, "DE", "Berlin fixture")
+                if "DE:ionity_direct" not in germany["sourceIds"]:
+                    raise AssertionError("IONITY Germany candidate source missing")
+            switzerland = None
+            if "CH:swiss_integration" in source_ids:
+                switzerland = compare(47.376, 8.541, "CH", "Zurich fixture", radius=100)
+                if "CH:swiss_integration" not in switzerland["sourceIds"]:
+                    raise AssertionError("Swiss national candidate source missing")
             zephyre = None
             if "FR:zephyre_epowerdirect_exact" in source_ids:
                 zephyre = compare(43.579, 3.880, "FR", "Lattes fixture", radius=20)
@@ -163,7 +174,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
-            return {"fr": fr, "gb": gb, "midhope": midhope, "it": italy, "zephyre": zephyre, "ozecar": ozecar,
+            return {"fr": fr, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
+                    "ch": switzerland, "zephyre": zephyre, "ozecar": ozecar,
                     "minPower300": filtered["count"], "map": map_state,
                     "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:

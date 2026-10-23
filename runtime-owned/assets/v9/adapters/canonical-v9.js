@@ -33,7 +33,7 @@
       const evse=evses.get(row.evseId);
       if(!evse)throw new Error('canonical connector EVSE missing');
       evse.output.connectors.push({id:row.id,sourceConnectorId:row.sourceConnectorId||null,
-        officialConnectorId:row.officialConnectorId||null,kind:row.rawSourceFields?.kind||null,
+        officialConnectorId:row.officialConnectorId||null,kind:row.kind||row.rawSourceFields?.kind||null,
         plugType:row.plugType||null,powerKw:row.powerKw??null});
     }
     for(const offer of data.offers){

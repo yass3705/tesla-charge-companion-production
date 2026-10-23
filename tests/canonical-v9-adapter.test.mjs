@@ -18,6 +18,8 @@ assert.equal(station.offers.length,0);
 assert.equal(station.unparsedOffers[0].scope.connectorId,'connector');
 assert.equal(station.unparsedOffers[0].calculationStatus,'not_evaluated');
 assert.equal(station.provenance[0].sourceId,'FR:archived_source');
+const nationalAc=toFragments({...source,connectors:[{...source.connectors[0],kind:'AC',powerKw:43,rawSourceFields:['compact-group']}]})[0];
+assert.equal(nationalAc.evses[0].connectors[0].kind,'AC','source AC/DC must win over power heuristic');
 assert.equal(toFragments({...source,stations:[{...source.stations[0],networkBrand:"Belib'"}]})[0].networkBrand,"Belib'");
 const swiss=toFragments({...source,stations:[{...source.stations[0],latitude:null,longitude:null,address:{City:'Meyrin'},coordinates:{Google:'46.2 6.1'}}]})[0];
 assert.equal(swiss.latitude,46.2);

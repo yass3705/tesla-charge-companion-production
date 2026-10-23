@@ -52,6 +52,30 @@ def check_candidate(candidate: Path) -> dict:
         data = json.loads(payload)
         if data.get("schemaVersion") != 1 or data.get("source", {}).get("id") != source:
             raise ValueError("Prepared source provenance mismatch")
+    joins = index.get("joins", [])
+    if not isinstance(joins, list):
+        raise ValueError("Prepared join listing invalid")
+    for entry in joins:
+        national = entry.get("nationalSource")
+        relative = Path("joins") / (str(national).replace(":", "__") + ".json")
+        if (national not in seen or entry.get("path") != relative.as_posix() or
+                entry.get("status") != "exact_identity_only" or
+                not re.fullmatch(r"[a-f0-9]{64}", str(entry.get("sha256", "")))):
+            raise ValueError("Prepared exact join descriptor invalid")
+        raw = (candidate / relative).read_bytes()
+        if digest(raw) != entry["sha256"]:
+            raise ValueError("Prepared exact join SHA mismatch")
+        report = json.loads(raw)
+        if (report.get("schemaVersion") != 1 or report.get("candidateBundleId") != index["bundleId"] or
+                report.get("nationalSource") != national or
+                not isinstance(report.get("matches"), list) or not isinstance(report.get("unmatched"), list) or
+                report.get("statistics", {}).get("matchedOfferCount") != len(report["matches"]) or
+                report.get("statistics", {}).get("unmatchedOfferCount") != len(report["unmatched"])):
+            raise ValueError("Prepared exact join report invalid")
+        expected = {row["source"]: row["sha256"] for row in sources if row["source"].startswith(national[:2] + ":")}
+        observed = {row.get("source"): row.get("sha256") for row in report.get("sourceInputs", [])}
+        if observed != expected or len(report["sourceInputs"]) != len(expected):
+            raise ValueError("Prepared exact join provenance mismatch")
     return index
 
 
