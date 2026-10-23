@@ -305,6 +305,16 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if ("ES:reve_static" not in spain["sourceIds"] or spain["spainNationalPriced"] or
                         spanish_view["groups"] <= 0 or "Prix non disponible" not in spanish_view["text"]):
                     raise AssertionError(f"Spanish source identity, power groups or unavailable prices failed: {spain}")
+            morocco = None
+            if "MA:evgo" in source_ids:
+                morocco = compare(33.573, -7.590, "MA", "Casablanca fixture", radius=50, require_raw=False)
+                morocco_view = browser.execute_script("""
+                    return {groups:document.querySelectorAll('#results .v9-power-group').length,
+                        text:document.getElementById('results').innerText};
+                """)
+                if ("MA:evgo" not in morocco["sourceIds"] or morocco["priced"] or
+                        morocco_view["groups"] <= 0 or "Prix non disponible" not in morocco_view["text"]):
+                    raise AssertionError(f"Morocco source identity, unknown power or unavailable prices failed: {morocco}")
             switzerland = None
             if "CH:swiss_integration" in source_ids:
                 switzerland = compare(47.376, 8.541, "CH", "Zurich fixture", radius=100)
@@ -385,7 +395,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
-            return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "it": italy, "de": germany, "es": spain,
+            return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
+                    "es": spain, "ma": morocco,
                     "ch": switzerland, "be": belgium, "nl": netherlands,
                     "zephyre": zephyre, "ozecar": ozecar,
                     "minPower300": filtered["count"], "map": map_state,
