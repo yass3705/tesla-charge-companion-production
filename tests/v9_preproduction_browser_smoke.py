@@ -134,6 +134,14 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         o.metadata?.sourceId==='FR:emsp_exact'&&
                         !(s.evses||[]).some(evse=>o.evseIds?.includes(evse.id)&&
                           o.connectorIds?.every(id=>(evse.connectors||[]).some(c=>c.id===id)))).length,0),
+                      ukPcprRaw:area.stations.filter(s=>(s.provenance||[]).some(p=>
+                        ['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(p.sourceId)))
+                        .reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
+                      ukPcprMisScoped:area.stations.filter(s=>(s.provenance||[]).some(p=>
+                        ['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(p.sourceId)))
+                        .reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                          !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId&&
+                            (evse.connectors||[]).some(connector=>connector.id===o.scope?.connectorId))).length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
                     });}).catch(error=>done({error:String(error)}));
@@ -200,9 +208,13 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     browser.execute_script("document.getElementById('results').scrollIntoView()")
                     browser.save_screenshot(str(screenshots / "prepared-fr-electroverse-exact.png"))
             gb = compare(51.507, -0.128, "GB", "London fixture")
-            gb_text = browser.execute_script("return document.getElementById('results').innerText")
-            if "IONITY Direct · UK" not in gb_text:
+            if "GB:ionity_direct" not in gb["sourceIds"]:
                 raise AssertionError("UK candidate provenance missing")
+            if "GB:blink_pcpr_direct" in source_ids:
+                expected_pcpr = {"GB:blink_pcpr_direct", "GB:allego_pcpr_direct",
+                                 "GB:source_ev_pcpr_direct"}
+                if not expected_pcpr.issubset(gb["sourceIds"]) or gb["ukPcprRaw"] <= 0 or gb["ukPcprMisScoped"]:
+                    raise AssertionError("UK PCPR archived connector offers were lost or moved")
             midhope = None
             if "GB:connected_kerb_midhope_verified" in source_ids:
                 midhope = compare(51.30955, -0.56473, "GB", "Woking fixture", radius=10)
