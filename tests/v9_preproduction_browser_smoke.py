@@ -18,6 +18,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
     if not (site / "prepared-v9/index.json").is_file() or not (site / "v9-production-shell/index.html").is_file():
         raise ValueError("Isolated packaged site required")
+    source_ids = {row["source"] for row in json.loads((site / "prepared-v9/index.json").read_bytes())["sources"]}
     class QuietHandler(SimpleHTTPRequestHandler):
         def log_message(self, *_args):
             pass
@@ -40,16 +41,16 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             if marker.get("ready") is not True:
                 raise AssertionError(f"TCC shell did not load: {marker}")
 
-            def compare(lat: float, lon: float, country: str, label: str, min_power: int | None = None) -> dict:
+            def compare(lat: float, lon: float, country: str, label: str, min_power: int | None = None, radius: int = 200) -> dict:
                 browser.execute_script("""
                     const [lat,lon,country,label,minPower]=arguments;
                     window.resolveOrigin=async()=>({lat,lon,label});
                     sessionStorage.setItem(`tcc-v9-country:${lat.toFixed(3)},${lon.toFixed(3)}`,country);
                     document.getElementById('simOrigin').value=label;
-                    document.getElementById('simMaxDistance').value='200';
+                    document.getElementById('simMaxDistance').value=String(arguments[5]);
                     document.getElementById('simOperatorFilter').dataset.v9Mode='all';
                     document.getElementById('simMinPowerKw').value=minPower==null?'':String(minPower);
-                """, lat, lon, country, label, min_power)
+                """, lat, lon, country, label, min_power, radius)
                 result = browser.execute_async_script("""
                     const done=arguments[0];window.compare().then(area=>done({
                       count:area.stations.length,prepared:area.preproductionCandidate,
@@ -66,7 +67,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
 
             fr = compare(48.856, 2.352, "FR", "Paris fixture")
             text = browser.execute_script("return document.getElementById('results').innerText")
-            for label in ("IONITY Direct · FR", "Extraction :", "Tarif incalculable", "Prix non disponible", "Direct", "Electra", "Electroverse"):
+            fr_source_label = "Belib · FR" if "FR:belib_stations" in source_ids else "IONITY Direct · FR"
+            for label in (fr_source_label, "Extraction :", "Tarif incalculable", "Prix non disponible", "Direct", "Electra", "Electroverse"):
                 if label not in text:
                     raise AssertionError(f"FR station view missing {label!r}")
             if "Base source : IRVE" in text:
@@ -101,6 +103,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             gb_text = browser.execute_script("return document.getElementById('results').innerText")
             if "IONITY Direct · UK" not in gb_text:
                 raise AssertionError("UK candidate provenance missing")
+            italy = None
+            if "IT:atlante_direct" in source_ids:
+                italy = compare(45.464, 9.19, "IT", "Milano fixture")
+                it_text = browser.execute_script("return document.getElementById('results').innerText")
+                if "Atlante Direct · IT" not in it_text:
+                    raise AssertionError("Atlante Italy provenance missing")
             # A same-origin iframe supplies a real 390 CSS-pixel viewport even
             # when headless Firefox enforces a 500-pixel minimum outer window.
             browser.get(f"http://127.0.0.1:{server.server_port}/control/index.html")
@@ -128,7 +136,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
-            return {"fr": fr, "gb": gb, "minPower300": filtered["count"], "map": map_state,
+            return {"fr": fr, "gb": gb, "it": italy, "minPower300": filtered["count"], "map": map_state,
                     "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:
         server.shutdown()
