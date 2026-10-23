@@ -143,12 +143,15 @@
             const rule=offer.pricing.rules[0],raw=rawOffers.get(offer.id);
             const ordinaryRule='afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,end,idlePerMinute,pricePerKwh,scope,start';
             const nlRequired=['afterMinutesRate','afterMinutesThreshold','billing','chargePerMinute','connectionFee','currency','end','energyStepWh','idlePerMinute','pricePerKwh','scope','start'];
-            const nlAllowed=new Set([...nlRequired,'chargingTimeStepSeconds','parkingTimeStepSeconds','validFromDate']);
+            const nlAllowed=new Set([...nlRequired,'chargingTimeStepSeconds','parkingTimeStepSeconds',
+              'validFromDate','validThroughDate','daysOfWeek']);
             if((id==='NL:dotnl_static'?
                  nlRequired.some(key=>!Object.prototype.hasOwnProperty.call(rule,key))||
                    Object.keys(rule).some(key=>!nlAllowed.has(key)):
                  Object.keys(rule).sort().join(',')!==ordinaryRule)||
-               rule.scope!=='allDay'||rule.billing!=='kwh'||rule.start!=='00:00'||rule.end!=='24:00'||
+               (id!=='NL:dotnl_static'&&
+                 (rule.scope!=='allDay'||rule.start!=='00:00'||rule.end!=='24:00'))||
+               rule.billing!=='kwh'||
                rule.currency!=='EUR'||!Number.isFinite(rule.pricePerKwh)||rule.pricePerKwh<0||
                (id==='NL:dotnl_static'?
                  !['afterMinutesRate','afterMinutesThreshold'].every(key=>rule[key]===0):
@@ -189,6 +192,19 @@
               }
               const paidTime=byType.get('TIME')?.priceInclVat||0;
               const paidParking=byType.get('PARKING_TIME')?.priceInclVat||0;
+              const validDate=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&
+                !Number.isNaN(Date.parse(value+'T00:00:00Z'))&&
+                new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
+              const validClock=(value,end)=>typeof value==='string'&&/^\d{2}:\d{2}$/.test(value)&&
+                (value==='24:00'?end:Number(value.slice(0,2))<24&&Number(value.slice(3))<60);
+              const allowedRestrictions=new Set(['start_date','end_date','start_time','end_time','day_of_week']);
+              const restrictionsMap=Object.fromEntries(activeRestrictions);
+              const weekday={SUNDAY:0,MONDAY:1,TUESDAY:2,WEDNESDAY:3,THURSDAY:4,FRIDAY:5,SATURDAY:6};
+              const expectedDays=restrictionsMap.day_of_week==null?undefined:
+                Array.isArray(restrictionsMap.day_of_week)?restrictionsMap.day_of_week.map(day=>
+                  typeof day==='number'?(day===7?0:day):weekday[String(day).toUpperCase()]):null;
+              const expectedStart=restrictionsMap.start_time||'00:00';
+              const expectedEnd=restrictionsMap.end_time||'24:00';
               return offer.metadata.identityMode==='exact_canonical_connector_ocpi'&&
                 offer.connectorIds.length===1&&raw.scope?.connectorId===offer.connectorIds[0]&&
                 connectorOfferCounts.get(offer.connectorIds[0])===1&&
@@ -198,12 +214,20 @@
                 [null,'REGULAR','AD_HOC_PAYMENT'].includes(tariff.type)&&
                 tariff.currency==='EUR'&&tariff.startDateTime==null&&tariff.endDateTime==null&&
                 tariff.minPrice==null&&tariff.maxPrice==null&&tariff.elements.length===1&&
-                activeRestrictions.length<=1&&
-                activeRestrictions.every(([name,value])=>name==='start_date'&&
-                  typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&
-                  !Number.isNaN(Date.parse(value+'T00:00:00Z'))&&
-                  new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value)&&
-                rule.validFromDate===(activeRestrictions.length?activeRestrictions[0][1]:undefined)&&
+                activeRestrictions.every(([name])=>allowedRestrictions.has(name))&&
+                (restrictionsMap.start_date==null||validDate(restrictionsMap.start_date))&&
+                (restrictionsMap.end_date==null||validDate(restrictionsMap.end_date))&&
+                (restrictionsMap.start_date==null||restrictionsMap.end_date==null||
+                  restrictionsMap.start_date<=restrictionsMap.end_date)&&
+                (restrictionsMap.start_time==null||validClock(restrictionsMap.start_time,false))&&
+                (restrictionsMap.end_time==null||validClock(restrictionsMap.end_time,true))&&
+                (expectedDays===undefined||Array.isArray(expectedDays)&&expectedDays.length>0&&
+                  expectedDays.every(day=>Number.isInteger(day)&&day>=0&&day<=6))&&
+                rule.validFromDate===restrictionsMap.start_date&&
+                rule.validThroughDate===restrictionsMap.end_date&&
+                rule.start===expectedStart&&rule.end===expectedEnd&&
+                rule.scope===(expectedStart==='00:00'&&expectedEnd==='24:00'?'allDay':'timeWindow')&&
+                JSON.stringify(rule.daysOfWeek)===JSON.stringify(expectedDays)&&
                 energy.length===1&&energy[0].priceInclVat===rule.pricePerKwh&&
                 energy[0].stepSize===rule.energyStepWh&&
                 Number.isInteger(rule.energyStepWh)&&rule.energyStepWh>=1&&

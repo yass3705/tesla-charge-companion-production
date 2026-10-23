@@ -147,6 +147,33 @@ const historicalDate=historicalOcpi.tariffPricing({currency:'EUR',elements:[{
 }]});
 assert.equal(historicalPricing.evaluateOffer({currency:'EUR',pricing:historicalDate},
   {energyKwh:1.2,startAt:'2026-10-23T12:00:00Z'}).complete,false);
+const scheduledNl=structuredClone(netherlands);
+scheduledNl.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={
+  start_date:'2026-10-26',end_date:'2026-10-26',start_time:'09:00',end_time:'11:00',
+  day_of_week:['MONDAY']};
+const scheduledOffer=toFragments(scheduledNl)[0].offers[0];
+assert.ok(scheduledOffer,'complete historical OCPI date, weekday and time restrictions retained');
+assert.equal(scheduledOffer.pricing.rules[0].scope,'timeWindow');
+assert.deepEqual(scheduledOffer.pricing.rules[0].daysOfWeek,[1]);
+assert.equal(evaluateOffer(scheduledOffer,{energyKwh:1.2,durationMinutes:30,
+  startAt:'2026-10-26T08:30:00Z'}).totalEur,1.14,'Amsterdam local Monday 09:30 is applicable');
+for(const startAt of ['2026-10-25T08:30:00Z','2026-10-26T11:30:00Z','2026-11-02T08:30:00Z']){
+  assert.equal(evaluateOffer(scheduledOffer,{energyKwh:1.2,durationMinutes:30,startAt}).complete,false,
+    'weekday, local time and end date restrictions cannot price an inapplicable session');
+}
+const scheduledBytes=new TextEncoder().encode(JSON.stringify(scheduledNl));
+const scheduledIndex={schemaVersion:1,status:'prepared',bundleId:'nl-scheduled',rejected:[],sources:[{
+  source:'NL:dotnl_static',path:'sources/NL__dotnl_static.json',
+  sha256:createHash('sha256').update(scheduledBytes).digest('hex')}]};
+const scheduledFetch=async url=>({ok:true,arrayBuffer:async()=>url.endsWith('index.json')?
+  new TextEncoder().encode(JSON.stringify(scheduledIndex)).buffer:scheduledBytes.buffer});
+const scheduledPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:scheduledFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await scheduledPrepared.loaders['prepared:NL:dotnl_static']())[0].offers.length,1);
+const scheduledTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:scheduledFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
+    fragments[0].offers[0].pricing.rules[0].end='12:00';return fragments;}}});
+await assert.rejects(scheduledTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
 for(const mutation of [
   d=>{d.offers.push({...d.offers[0],id:'another-tariff'});},
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_kwh:2};},
@@ -183,9 +210,9 @@ assert.equal(evaluateOffer(compoundOffer,{energyKwh:1.2,startAt:'2026-10-23T12:0
 for(const mutation of [
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents.push({type:'TIME',priceInclVat:1,stepSize:60});},
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents.push({type:'UNKNOWN',priceInclVat:1,stepSize:60});},
-  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={start_time:'18:00'};},
+  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_duration:1800};},
 ]){const changed=structuredClone(compoundNl);mutation(changed);
-  assert.equal(toFragments(changed)[0].offers.length,0,'ambiguous or restricted component remains unparsed');}
+  assert.equal(toFragments(changed)[0].offers.length,0,'ambiguous or unsupported component remains unparsed');}
 const compoundBytes=new TextEncoder().encode(JSON.stringify(compoundNl));
 const compoundIndex={schemaVersion:1,status:'prepared',bundleId:'nl-compound-test',rejected:[],
   sources:[{source:'NL:dotnl_static',path:'sources/NL__dotnl_static.json',

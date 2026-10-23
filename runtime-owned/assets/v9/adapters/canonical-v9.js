@@ -114,11 +114,23 @@
     const element=raw.elements[0],restriction=element?.restrictions;
     const active=restriction?Object.entries(restriction).filter(([,value])=>
       Array.isArray(value)?value.length:value!=null&&value!==''):[];
-    if(active.some(([name])=>name!=='start_date')||active.length>1||
-       (active.length===1&&(typeof active[0][1]!=='string'||
-         !/^\d{4}-\d{2}-\d{2}$/.test(active[0][1])||
-         Number.isNaN(Date.parse(active[0][1]+'T00:00:00Z'))||
-         new Date(active[0][1]+'T00:00:00Z').toISOString().slice(0,10)!==active[0][1])))return null;
+    const days={SUNDAY:0,MONDAY:1,TUESDAY:2,WEDNESDAY:3,THURSDAY:4,FRIDAY:5,SATURDAY:6};
+    if(active.some(([name])=>!['start_date','end_date','start_time','end_time','day_of_week'].includes(name)))return null;
+    const date=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&
+      !Number.isNaN(Date.parse(value+'T00:00:00Z'))&&
+      new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
+    const clock=(value,end)=>typeof value==='string'&&/^\d{2}:\d{2}$/.test(value)&&
+      (value==='24:00'?end:Number(value.slice(0,2))<24&&Number(value.slice(3))<60);
+    const activeMap=Object.fromEntries(active);
+    if((activeMap.start_date&&!date(activeMap.start_date))||
+       (activeMap.end_date&&!date(activeMap.end_date))||
+       (activeMap.start_date&&activeMap.end_date&&activeMap.start_date>activeMap.end_date)||
+       (activeMap.start_time&&!clock(activeMap.start_time,false))||
+       (activeMap.end_time&&!clock(activeMap.end_time,true))||
+       (activeMap.day_of_week&&(!Array.isArray(activeMap.day_of_week)||
+         !activeMap.day_of_week.length||activeMap.day_of_week.some(day=>
+           !Number.isInteger(typeof day==='number'?day:days[String(day).toUpperCase()])||
+           (typeof day==='number'&&(day<0||day>7))))))return null;
     const components=element?.priceComponents;
     if(!Array.isArray(components)||!components.length)return null;
     let energy=null,step=null,time=null,timeStep=null,flat=null,parking=null,parkingStep=null;
@@ -150,7 +162,14 @@
     if(time>0){rule.chargePerMinute=time/60;rule.chargingTimeStepSeconds=timeStep;}
     if(flat>0)rule.connectionFee=flat;
     if(parking>0){rule.idlePerMinute=parking/60;rule.parkingTimeStepSeconds=parkingStep;}
-    if(active.length)rule.validFromDate=active[0][1];
+    if(activeMap.start_date)rule.validFromDate=activeMap.start_date;
+    if(activeMap.end_date)rule.validThroughDate=activeMap.end_date;
+    if(activeMap.start_time||activeMap.end_time){
+      rule.start=activeMap.start_time||'00:00';rule.end=activeMap.end_time||'24:00';
+      rule.scope=rule.start==='00:00'&&rule.end==='24:00'?'allDay':'timeWindow';
+    }
+    if(activeMap.day_of_week)rule.daysOfWeek=activeMap.day_of_week.map(day=>
+      typeof day==='number'?(day===7?0:day):days[String(day).toUpperCase()]);
     return{id:offer.id,provider:cpo.name||cpo.sourceOperatorId,kind:'direct',currency:'EUR',
       countries:['NL'],operatorIds:[cpo.sourceOperatorId],evseIds:[evse.id],
       connectorIds:[connector.id],subscriptionId:null,pricing:{type:'rules',rules:[rule]},
