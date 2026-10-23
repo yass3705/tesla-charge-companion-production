@@ -36,6 +36,18 @@ const quote=pricing.evaluateOffer(fragments[0].offers[0],{
 assert.equal(quote.complete,true);
 assert.ok(Math.abs(quote.totalEur-8.9004)<1e-6);
 assert.equal(uk.pcprDirectPricing(tariff).ocpiFirstMatch,true);
+const before=pricing.evaluateOffer(fragments[0].offers[0],{
+  startAt:'2026-07-22T12:00:00Z',energyKwh:10,durationMinutes:30,chargingMinutes:30});
+assert.equal(before.complete,false,'a dated tariff cannot be applied before its start date');
+const combined=structuredClone(data);
+combined.offers[0].rawOffer.elements[0].price_components[1].price=1.2;
+combined.offers[0].rawOffer.elements[0].price_components[1].sourcePriceExVat=1;
+const combinedOffer=canonical.toFragments(combined)[0].offers[0];
+const combinedQuote=pricing.evaluateOffer(combinedOffer,{
+  startAt:'2026-10-23T12:00:00Z',energyKwh:10,durationMinutes:30,chargingMinutes:30});
+assert.equal(combinedQuote.complete,true);
+assert.ok(Math.abs(combinedQuote.totalEur-10.1004)<1e-6,
+  'archived converter must add a fixed component to the energy charge');
 function config(payload,adapter=canonical){
   const raw=JSON.stringify(payload),index={schemaVersion:1,bundleId:'a'.repeat(64),status:'prepared',rejected:[],
     sources:[{source:'GB:source_ev_pcpr_direct',path:'sources/GB__source_ev_pcpr_direct.json',sha256:sha(raw)}]};
