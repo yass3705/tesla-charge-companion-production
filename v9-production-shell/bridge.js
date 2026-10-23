@@ -224,7 +224,7 @@
   }
   function rowsFromArea(area,origin=area?.query?.origin){return(area.rankedStations||area.stations||[]).map(st=>{const evaluation=area.sessionEvaluations?.[st.id],best=pricedBest(evaluation),score=area.stationScores?.[st.id],route=area.routes?.byStationId?.[st.id],routedDistance=num(score?.distanceKm??route?.distanceKm);return{station:st,evaluation,score,route,total:num(best?.total),costPerKm:num(best?.costPerRecoveredKm),recoveredKm:num(evaluation?.recoveredKm??best?.result?.recoveredKm),distanceKm:routedDistance??straightLineDistanceKm(origin,st),distanceEstimated:routedDistance==null};});}
   function maxPower(st){let max=0;for(const evse of st?.evses||[])for(const c of evse?.connectors||[])max=Math.max(max,num(c?.powerKw)||0);return max;}
-  function connectorKind(c={}){const raw=text(c.kind||c.currentType||c.powerType||c.plugName).toUpperCase();if(raw.includes('DC')||raw.includes('CCS')||raw.includes('CHADEMO'))return'DC';if(raw.includes('AC')||raw.includes('TYPE2')||raw.includes('TYPE 2'))return'AC';const power=num(c.powerKw);return power!=null&&power>22?'DC':'AC';}
+  function connectorKind(c={}){const raw=text(c.kind||c.currentType||c.powerType||c.plugName||c.plugType).toUpperCase();if(raw.includes('DC')||raw.includes('CCS')||raw.includes('CHADEMO'))return'DC';if(raw.includes('AC')||raw.includes('TYPE2')||raw.includes('TYPE 2'))return'AC';const power=num(c.powerKw);return power!=null&&power>22?'DC':'AC';}
   function powerLines(row){
     if(row?.powerLine)return[row.powerLine];
     const map=new Map(),station=row?.station||{};
@@ -712,7 +712,7 @@
           if(raw.id||raw.connectorId)unknownConnectorIds.add(text(raw.id||raw.connectorId));
           continue;
         }
-        const connector={...raw,powerKw:power},kind=connectorKind(connector),connectorId=text(connector.id||connector.connectorId)||null,plug=text(connector.plugName||connector.type)||null;
+        const connector={...raw,powerKw:power},kind=connectorKind(connector),connectorId=text(connector.id||connector.connectorId)||null,plug=text(connector.plugName||connector.type||connector.plugType)||null;
         const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex,evseTokens=new Set([evseKey,text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)].filter(Boolean)),connectorTokens=new Set(connectorId?[connectorId]:[]);
         const matching=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,evseTokens,connectorTokens)&&sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId)).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
         const key=[kind,floorPower(power),matching.join(',')].join('|');
@@ -966,7 +966,7 @@
       const pdcs=[...byPdc.values()].map(variants=>{
         const pdc=variants[0].pdc,allEvses=variants.flatMap(item=>item.pdc.evses);
         const connectors=[...new Set(allEvses.flatMap(evse=>(evse.connectors||[]).map(connector=>
-          [text(connector.plugName||connector.type||connector.standard||connector.kind||'Prise'),
+          [text(connector.plugName||connector.type||connector.standard||connector.plugType||connector.kind||'Prise'),
             num(connector.powerKw)!=null?connector.powerKw+' kW':''].filter(Boolean).join(' · '))))];
         const evseIds=[...new Set(allEvses.map(evse=>text(evse.officialEvseId||evse.sourceEvseId||evse.evseId||evse.id)).filter(Boolean))];
         const status=allEvses.map(evse=>text(evse.status?.state||evse.status?.value||
@@ -975,7 +975,7 @@
         const tariffs=variants.map(({row,pdc})=>{
           const scoped={...row.station,evses:pdc.evses};
           const plug=[...new Set(pdc.evses.flatMap(evse=>(evse.connectors||[]).map(connector=>
-            text(connector.plugName||connector.type||connector.standard||connector.kind))))].filter(Boolean).join(' / ');
+            text(connector.plugName||connector.type||connector.standard||connector.plugType||connector.kind))))].filter(Boolean).join(' / ');
           return(variants.length>1?'<div class="small" style="margin-top:8px">Prise : '+esc(plug||group.kind)+'</div>':'')+
             renderTariffs(row.evaluation,scoped,fx,subs);
         }).join('');

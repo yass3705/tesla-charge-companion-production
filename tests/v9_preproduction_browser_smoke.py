@@ -124,7 +124,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     document.querySelectorAll('.v9-power-group,.v9-pdc-detail').forEach(item=>{item.open=true});
                     return document.getElementById('results').innerText;
                 """)
-                if "OZECAR" not in corsica_text or "FROZEE" not in corsica_text:
+                if "OZECAR" not in corsica_text or "FROZEE" not in corsica_text or "Type 2" not in corsica_text:
                     raise AssertionError(f"OZECAR station and exact EVSE are not visible: {corsica_text[:1200]}")
             # A same-origin iframe supplies a real 390 CSS-pixel viewport even
             # when headless Firefox enforces a 500-pixel minimum outer window.
