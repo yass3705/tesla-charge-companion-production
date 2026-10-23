@@ -114,6 +114,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       emspEvaluated:evaluated.filter(row=>emspIds.has(row.offerId)&&row.result?.complete).length,
                       emspCostPerKm:evaluated.filter(row=>emspIds.has(row.offerId)&&row.result?.complete&&
                         Number.isFinite(row.costPerRecoveredKm)).length,
+                      emspCompoundFees:evaluated.filter(row=>emspIds.has(row.offerId)&&row.result?.complete&&
+                        (row.result.components?.chargingTime>0||row.result.components?.parkingTime>0)).length,
                       compoundPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='NL:dotnl_static'&&o.pricing?.rules?.some(r=>
                           r.chargePerMinute>0||r.connectionFee>0||r.idlePerMinute>0)).length,0),
@@ -218,6 +220,23 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if screenshots:
                     browser.execute_script("document.getElementById('results').scrollIntoView()")
                     browser.save_screenshot(str(screenshots / "prepared-fr-electroverse-exact.png"))
+                evse_index = {row["id"]: row for row in emsp_data["evses"]}
+                station_index = {row["id"]: row for row in emsp_data["stations"]}
+                compound_station = next((station_index[evse_index[offer["scope"]["evseId"]]["stationId"]]
+                    for offer in emsp_data["offers"]
+                    if any(rule.get("chargePerMinute", 0) > 0 or rule.get("idlePerMinute", 0) > 0
+                           for rule in offer.get("rawOffer", {}).get("pricing", {}).get("rules", []))
+                    and station_index[evse_index[offer["scope"]["evseId"]]["stationId"]].get("latitude") is not None), None)
+                if compound_station:
+                    compound = compare(compound_station["latitude"], compound_station["longitude"],
+                                       "FR", "Electroverse compound fixture", radius=2, require_raw=False)
+                    detail = browser.execute_script("""
+                        document.querySelectorAll('#results details').forEach(row=>row.open=true);
+                        return document.getElementById('results').innerText;
+                    """)
+                    if (compound["emspCompoundFees"] <= 0 or compound["emspPricedMisScoped"] or
+                            not ("Temps de charge :" in detail or "Stationnement :" in detail)):
+                        raise AssertionError(f"Electroverse compound fee missing: {compound}; detail: {detail[:1200]}")
             gb = compare(51.507, -0.128, "GB", "London fixture")
             if "GB:ionity_direct" not in gb["sourceIds"]:
                 raise AssertionError("UK candidate provenance missing")
