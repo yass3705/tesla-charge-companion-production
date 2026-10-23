@@ -51,7 +51,38 @@
              !Array.isArray(data.connectors)||!Array.isArray(data.offers))
             throw new Error('candidate source schema or identity invalid');
           const fragments=adapter.toFragments(data);
-          if(fragments.some(f=>f.countryCode!==id.slice(0,2)||f.offers.length))
+          const provedOffer=(fragment,offer)=>
+            (id==='FR:ionity_direct'||id==='IT:atlante_direct')&&
+            fragment.countryCode===id.slice(0,2)&&offer?.metadata?.sourceId===id&&
+            offer.metadata.verified===true&&offer.metadata.identityMode==='exact_canonical_connector'&&
+            offer.metadata.artifactSha256===data.source.artifactSha256&&
+            offer.kind==='direct'&&offer.currency==='EUR'&&
+            offer.provider===(id==='FR:ionity_direct'?'IONITY Direct':'Atlante direct')&&
+            Array.isArray(offer.evseIds)&&offer.evseIds.length===1&&
+            Array.isArray(offer.connectorIds)&&offer.connectorIds.length===1&&
+            fragment.evses.some(evse=>evse.id===offer.evseIds[0]&&
+              evse.connectors.some(connector=>connector.id===offer.connectorIds[0]))&&
+            offer.pricing?.type==='rules'&&Object.keys(offer.pricing).sort().join(',')==='rules,type'&&
+            offer.pricing.rules?.length===1&&
+            Object.keys(offer.pricing.rules[0]).sort().join(',')===
+              'afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,end,idlePerMinute,pricePerKwh,scope,start'&&
+            offer.pricing.rules[0].scope==='allDay'&&offer.pricing.rules[0].billing==='kwh'&&
+            offer.pricing.rules[0].start==='00:00'&&offer.pricing.rules[0].end==='24:00'&&
+            offer.pricing.rules[0].currency==='EUR'&&
+            ['chargePerMinute','connectionFee','idlePerMinute','afterMinutesRate','afterMinutesThreshold']
+              .every(key=>offer.pricing.rules[0][key]===0)&&
+            data.offers.some(raw=>raw.id===offer.id&&raw.channel==='Direct'&&
+              raw.scope?.evseId===offer.evseIds[0]&&raw.scope?.connectorId===offer.connectorIds[0]&&
+              raw.calculationStatus==='not_evaluated'&&raw.rawOffer&&
+              (id==='FR:ionity_direct'
+                ?Object.keys(raw.rawOffer).length===1&&
+                  raw.rawOffer.pricePerKwhEur===offer.pricing.rules[0].pricePerKwh&&
+                  typeof raw.rawOffer.pricePerKwhEur==='number'&&raw.rawOffer.pricePerKwhEur>0
+                :raw.rawOffer.priceComponents?.length===1&&
+                  raw.rawOffer.priceComponents[0]?.priceDimension==='ENERGY'&&
+                  raw.rawOffer.priceComponents[0]?.price?.incl_vat===offer.pricing.rules[0].pricePerKwh));
+          if(fragments.some(f=>f.countryCode!==id.slice(0,2)||
+             f.offers.some(offer=>!provedOffer(f,offer))))
             throw new Error('candidate pricing isolation violated');
           return fragments;
         }).catch(error=>{pending=null;throw error;});

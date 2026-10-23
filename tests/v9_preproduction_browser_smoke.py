@@ -53,17 +53,20 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     document.getElementById('simMinPowerKw').value=minPower==null?'':String(minPower);
                 """, lat, lon, country, label, min_power, radius)
                 result = browser.execute_async_script("""
-                    const done=arguments[0];window.compare().then(area=>done({
+                    const done=arguments[0];window.compare().then(area=>area?done({
                       count:area.stations.length,prepared:area.preproductionCandidate,
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
+                      pricedOutsideProved:area.stations.flatMap(s=>s.offers||[]).filter(o=>
+                        !['FR:ionity_direct','IT:atlante_direct'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
+                        o.metadata?.identityMode!=='exact_canonical_connector').length,
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
-                    })).catch(error=>done({error:String(error)}));
+                    }):done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)})).catch(error=>done({error:String(error)}));
                 """)
                 if "error" in result:
-                    raise AssertionError(result["error"])
-                if result["count"] <= 0 or result["priced"] != 0 or (require_raw and result["raw"] <= 0):
+                    raise AssertionError(result)
+                if result["count"] <= 0 or result["pricedOutsideProved"] != 0 or (require_raw and result["raw"] <= 0):
                     raise AssertionError(f"Candidate physical/pricing isolation failed: {result}")
                 return result
 
@@ -121,6 +124,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 it_text = browser.execute_script("return document.getElementById('results').innerText")
                 if "Atlante Direct · IT" not in it_text:
                     raise AssertionError("Atlante Italy provenance missing")
+                priced_cards = browser.execute_script("return document.querySelectorAll('#results .v9-tariff-row[data-v9-effective-total]').length")
+                if italy["priced"] and priced_cards <= 0:
+                    raise AssertionError("Proved Atlante tariff was loaded but no calculated offer reached the UI")
+                italy["calculatedCards"] = priced_cards
             germany = None
             if "DE:ionity_direct" in source_ids:
                 germany = compare(52.520, 13.405, "DE", "Berlin fixture")
