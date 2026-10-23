@@ -52,6 +52,10 @@ class ExactJoinReportTests(unittest.TestCase):
             self.assertEqual(first["sha256"], second["sha256"])
             report = json.loads(Path(first["report"]).read_bytes())
             self.assertEqual(report["statistics"]["matchedOfferCount"], 1)
+            self.assertEqual(report["statistics"]["bySource"]["FR:exact_tariff"],
+                             {"matchedOffers": 1, "unmatchedOffers": 0, "distinctNationalEvses": 1})
+            self.assertEqual(report["statistics"]["byChannel"]["Direct"]["matchedOffers"], 1)
+            self.assertEqual(report["statistics"]["byChannel"]["Electroverse"]["matchedOffers"], 0)
             self.assertEqual(report["matches"][0]["nationalConnectorId"], "plug")
             self.assertNotIn("privatePrice", Path(first["report"]).read_text())
             (prepared / "sources" / "FR__exact_tariff.json").write_text("tampered")

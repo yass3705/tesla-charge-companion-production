@@ -30,12 +30,24 @@ def compute(candidate: Path, national_source: str) -> dict:
         return json.loads((candidate / by_source[source]["path"]).read_bytes())
     result = match_offers(read(national_source), [read(source) for source in related])
     reasons = Counter(row["reason"] for row in result["unmatched"])
+    coverage_by_source = {}
+    by_channel = {}
+    for source in related:
+        matched = [row for row in result["matches"] if row["sourceId"] == source]
+        unmatched = [row for row in result["unmatched"] if row["sourceId"] == source]
+        coverage_by_source[source] = {"matchedOffers": len(matched), "unmatchedOffers": len(unmatched),
+                             "distinctNationalEvses": len({row["nationalEvseId"] for row in matched})}
+    for channel in ("Direct", "Electra", "Electroverse"):
+        matched = [row for row in result["matches"] if row["channel"] == channel]
+        by_channel[channel] = {"matchedOffers": len(matched),
+                               "distinctNationalEvses": len({row["nationalEvseId"] for row in matched})}
     return {"schemaVersion": 1, "candidateBundleId": index["bundleId"],
               "nationalSource": national_source,
               "sourceInputs": [{"source": source, "sha256": by_source[source]["sha256"]}
                                for source in [national_source, *related]],
               "policy": "exact_official_evse_and_exact_official_connector_when_scoped;no_site_or_geo_price_propagation",
-              "statistics": {**result["statistics"], "unmatchedReasons": dict(sorted(reasons.items()))},
+              "statistics": {**result["statistics"], "unmatchedReasons": dict(sorted(reasons.items())),
+                             "bySource": coverage_by_source, "byChannel": by_channel},
               "matches": result["matches"], "unmatched": result["unmatched"]}
 
 
