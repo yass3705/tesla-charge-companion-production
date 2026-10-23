@@ -112,7 +112,13 @@
        raw.startDateTime!=null||raw.endDateTime!=null||raw.minPrice!=null||raw.maxPrice!=null||
        !Array.isArray(raw.elements)||raw.elements.length!==1)return null;
     const element=raw.elements[0],restriction=element?.restrictions;
-    if(restriction&&Object.values(restriction).some(value=>Array.isArray(value)?value.length:value!=null&&value!==''))return null;
+    const active=restriction?Object.entries(restriction).filter(([,value])=>
+      Array.isArray(value)?value.length:value!=null&&value!==''):[];
+    if(active.some(([name])=>name!=='start_date')||active.length>1||
+       (active.length===1&&(typeof active[0][1]!=='string'||
+         !/^\d{4}-\d{2}-\d{2}$/.test(active[0][1])||
+         Number.isNaN(Date.parse(active[0][1]+'T00:00:00Z'))||
+         new Date(active[0][1]+'T00:00:00Z').toISOString().slice(0,10)!==active[0][1])))return null;
     const components=element?.priceComponents;
     if(!Array.isArray(components)||!components.length)return null;
     let energy=null,step=null,time=null,timeStep=null,flat=null,parking=null,parkingStep=null;
@@ -144,6 +150,7 @@
     if(time>0){rule.chargePerMinute=time/60;rule.chargingTimeStepSeconds=timeStep;}
     if(flat>0)rule.connectionFee=flat;
     if(parking>0){rule.idlePerMinute=parking/60;rule.parkingTimeStepSeconds=parkingStep;}
+    if(active.length)rule.validFromDate=active[0][1];
     return{id:offer.id,provider:cpo.name||cpo.sourceOperatorId,kind:'direct',currency:'EUR',
       countries:['NL'],operatorIds:[cpo.sourceOperatorId],evseIds:[evse.id],
       connectorIds:[connector.id],subscriptionId:null,pricing:{type:'rules',rules:[rule]},

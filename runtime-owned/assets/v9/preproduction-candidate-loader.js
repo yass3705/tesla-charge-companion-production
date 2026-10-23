@@ -69,7 +69,7 @@
             const rule=offer.pricing.rules[0],raw=rawOffers.get(offer.id);
             const ordinaryRule='afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,end,idlePerMinute,pricePerKwh,scope,start';
             const nlRequired=['afterMinutesRate','afterMinutesThreshold','billing','chargePerMinute','connectionFee','currency','end','energyStepWh','idlePerMinute','pricePerKwh','scope','start'];
-            const nlAllowed=new Set([...nlRequired,'chargingTimeStepSeconds','parkingTimeStepSeconds']);
+            const nlAllowed=new Set([...nlRequired,'chargingTimeStepSeconds','parkingTimeStepSeconds','validFromDate']);
             if((id==='NL:dotnl_static'?
                  nlRequired.some(key=>!Object.prototype.hasOwnProperty.call(rule,key))||
                    Object.keys(rule).some(key=>!nlAllowed.has(key)):
@@ -100,6 +100,8 @@
               const tariff=data.tariffCatalog?.[raw.sourceTariffKey];
               const element=tariff?.elements?.[0],components=element?.priceComponents;
               const restrictions=element?.restrictions;
+              const activeRestrictions=restrictions?Object.entries(restrictions).filter(([,value])=>
+                Array.isArray(value)?value.length:value!=null&&value!==''):[];
               const energy=Array.isArray(components)?components.filter(component=>component.type==='ENERGY'):[];
               const byType=new Map();
               if(!Array.isArray(components))return false;
@@ -122,8 +124,12 @@
                 [null,'REGULAR','AD_HOC_PAYMENT'].includes(tariff.type)&&
                 tariff.currency==='EUR'&&tariff.startDateTime==null&&tariff.endDateTime==null&&
                 tariff.minPrice==null&&tariff.maxPrice==null&&tariff.elements.length===1&&
-                (!restrictions||Object.values(restrictions).every(value=>
-                  Array.isArray(value)?value.length===0:value==null||value===''))&&
+                activeRestrictions.length<=1&&
+                activeRestrictions.every(([name,value])=>name==='start_date'&&
+                  typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&
+                  !Number.isNaN(Date.parse(value+'T00:00:00Z'))&&
+                  new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value)&&
+                rule.validFromDate===(activeRestrictions.length?activeRestrictions[0][1]:undefined)&&
                 energy.length===1&&energy[0].priceInclVat===rule.pricePerKwh&&
                 energy[0].stepSize===rule.energyStepWh&&
                 Number.isInteger(rule.energyStepWh)&&rule.energyStepWh>=1&&

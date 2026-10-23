@@ -135,9 +135,22 @@ const nlFragment=toFragments(netherlands)[0];
 assert.equal(nlFragment.offers.length,1);
 assert.equal(evaluateOffer(nlFragment.offers[0],{energyKwh:1.2,startAt:'2026-10-23T12:00:00Z'}).totalEur,1.14,
   'historical DOT-NL 1000 Wh billing oracle');
+const datedNl=structuredClone(netherlands);
+datedNl.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={start_date:'2026-10-24'};
+const datedOffer=toFragments(datedNl)[0].offers[0];
+assert.ok(datedOffer,'a documented OCPI start date remains attached to its exact connector');
+assert.equal(evaluateOffer(datedOffer,{energyKwh:1.2,startAt:'2026-10-23T12:00:00Z'}).complete,false,
+  'future tariff must not be priced early');
+assert.equal(evaluateOffer(datedOffer,{energyKwh:1.2,startAt:'2026-10-25T12:00:00Z'}).totalEur,1.14);
+const historicalDate=historicalOcpi.tariffPricing({currency:'EUR',elements:[{
+  restrictions:{start_date:'2026-10-24'},price_components:[{type:'ENERGY',price:.57,step_size:1000}]
+}]});
+assert.equal(historicalPricing.evaluateOffer({currency:'EUR',pricing:historicalDate},
+  {energyKwh:1.2,startAt:'2026-10-23T12:00:00Z'}).complete,false);
 for(const mutation of [
   d=>{d.offers.push({...d.offers[0],id:'another-tariff'});},
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_kwh:2};},
+  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={start_date:'2026-02-30'};},
   d=>{d.connectors[0].powerKw=null;},
 ]){
   const changed=structuredClone(netherlands);mutation(changed);
