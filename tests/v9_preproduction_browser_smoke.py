@@ -10,6 +10,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -100,7 +101,35 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             gb_text = browser.execute_script("return document.getElementById('results').innerText")
             if "IONITY Direct · UK" not in gb_text:
                 raise AssertionError("UK candidate provenance missing")
-            return {"fr": fr, "gb": gb, "minPower300": filtered["count"], "map": map_state}
+            # A same-origin iframe supplies a real 390 CSS-pixel viewport even
+            # when headless Firefox enforces a 500-pixel minimum outer window.
+            browser.get(f"http://127.0.0.1:{server.server_port}/control/index.html")
+            browser.execute_script("""
+                const frame=document.createElement('iframe');frame.id='v9-mobile-fixture';
+                frame.style.cssText='width:390px;height:844px;border:0';frame.src=arguments[0];
+                document.body.append(frame);
+            """, f"http://127.0.0.1:{server.server_port}/v9-production-shell/")
+            browser.switch_to.frame("v9-mobile-fixture")
+            WebDriverWait(browser, 30).until(lambda driver: driver.execute_script(
+                "return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error"))
+            mobile = compare(48.856, 2.352, "FR", "Paris fixture")
+            viewport = browser.execute_script("return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth}")
+            if viewport["width"] != 390 or viewport["scrollWidth"] > viewport["width"]:
+                raise AssertionError(f"Mobile station list overflows: {viewport}")
+            browser.execute_script("document.querySelector('.v9-view-map').click()")
+            mobile_map = browser.execute_script("""
+                return {width:document.querySelector('.v9-real-map').getBoundingClientRect().width,
+                    markers:document.querySelectorAll('.v9-map-marker').length,
+                    scrollWidth:document.documentElement.scrollWidth};
+            """)
+            if mobile_map["width"] > 390 or mobile_map["scrollWidth"] > 390 or mobile_map["markers"] <= 0:
+                raise AssertionError(f"Mobile map overflows or has no markers: {mobile_map}")
+            browser.execute_script("document.getElementById('v9MapSummary').scrollIntoView()")
+            browser.switch_to.default_content()
+            if screenshots:
+                browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
+            return {"fr": fr, "gb": gb, "minPower300": filtered["count"], "map": map_state,
+                    "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:
         server.shutdown()
         server.server_close()

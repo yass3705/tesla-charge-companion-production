@@ -34,7 +34,7 @@ Commande reproductible après packaging et installation locale de Selenium :
 python3 tests/v9_preproduction_browser_smoke.py --site /chemin/absolu/vers/preview-tcc-neuf
 ```
 
-Ce replay couvre deux pays et une famille CPO, avec offres brutes volontairement non chiffrées. Il ne valide ni le moteur tarifaire complet, ni tous les pays, ni une URL de préproduction accessible à l'utilisateur, ni le responsive sous 500 px dans Firefox headless. G7/G8 restent FAIL.
+Le même test charge le shell dans une iframe sécurisée de **390 px CSS** : liste et carte conservent leurs stations et marqueurs sans débordement horizontal (`scrollWidth=390`). Ce replay couvre deux pays et une famille CPO, avec offres brutes volontairement non chiffrées. Il ne valide ni le moteur tarifaire complet, ni tous les pays, ni une URL de préproduction accessible à l'utilisateur. G7/G8 restent FAIL.
 
 ## Essai local, sans publication
 
