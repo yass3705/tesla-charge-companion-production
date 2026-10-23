@@ -3,20 +3,20 @@
   "status": "ready",
   "sourceRepository": "yass3705/tesla-charge-companion-production",
   "cataloguePath": "data/tesla/mac/staging/catalogue.json",
-  "catalogueCommit": "807686a217ad1f2a43041cddc750bfab957d0d93",
-  "catalogueSha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5",
-  "catalogueBytes": 4472574,
-  "stationCount": 1179,
-  "sourceKind": "historical already Mac-published catalogue transport verification",
-  "sourcePublishedAt": "2026-10-10T03:23:47+02:00",
-  "lot": "historical-mac-catalogue-2026-10-10",
-  "updaterRunId": 0,
+  "catalogueCommit": "cd43c934cfd4fcc2c1d41b7a058fc8b9a8643ddb",
+  "catalogueSha256": "9fa27877858a17e054177251ab27e8b84a6e4ad8537a5061f9f98ee35a326250",
+  "catalogueBytes": 4498603,
+  "stationCount": 1182,
+  "sourceKind": "validated Mac lot country publications",
+  "lot": "france",
+  "updaterRunId": 39860161568,
+  "sourcePublishedAt": "2026-10-23T03:56:43.670165+00:00",
   "countryDates": {
     "BE": "2026-10-07",
     "CH": "2026-10-09",
     "DE": "2026-10-10",
     "ES": "2026-10-08",
-    "FR": "2026-10-07",
+    "FR": "2026-10-23",
     "GB": "2026-10-09",
     "IT": "2026-10-09",
     "LU": "2026-10-07",
@@ -25,8 +25,8 @@
     "PT": "2026-10-07"
   },
   "countriesUpdated": [
-    "DE"
+    "FR"
   ],
   "sucComparison": "unavailable",
-  "provenance": "Historical Mac publication e6dc8e52908d5eb25d5f1ae270900b85b39ad3fb; exact bytes transported for handoff verification, not a new Mac acquisition"
+  "provenance": "Mac acquisition and per-country safe_candidate validation; SuC comparison only"
 }
