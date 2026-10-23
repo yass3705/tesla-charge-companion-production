@@ -122,8 +122,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         (row.result.components?.connectionFee>0||row.result.components?.chargingTime>0||
                           row.result.components?.parkingTime>0)).length,
                       pricedOutsideProved:area.stations.flatMap(s=>s.offers||[]).filter(o=>
-                        !['FR:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
-                        !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi','exact_canonical_emsp_evse'].includes(o.metadata?.identityMode)).length,
+                        !['FR:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact','GB:source_ev_pcpr_direct'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
+                        !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi','exact_canonical_emsp_evse','exact_canonical_connector_pcpr'].includes(o.metadata?.identityMode)).length,
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       emspRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
                         o.channel==='Electra'||o.channel==='Electroverse').length,0),
@@ -142,6 +142,17 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         .reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
                           !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId&&
                             (evse.connectors||[]).some(connector=>connector.id===o.scope?.connectorId))).length,0),
+                      ukPcprPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='GB:source_ev_pcpr_direct').length,0),
+                      ukPcprEvaluated:evaluated.filter(row=>area.stations.some(s=>(s.offers||[]).some(o=>
+                        o.id===row.offerId&&o.metadata?.sourceId==='GB:source_ev_pcpr_direct'))&&row.result?.complete).length,
+                      ukPcprCostPerKm:evaluated.filter(row=>area.stations.some(s=>(s.offers||[]).some(o=>
+                        o.id===row.offerId&&o.metadata?.sourceId==='GB:source_ev_pcpr_direct'))&&row.result?.complete&&
+                        Number.isFinite(row.costPerRecoveredKm)).length,
+                      ukPcprPricedMisScoped:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='GB:source_ev_pcpr_direct'&&
+                        !(s.evses||[]).some(evse=>o.evseIds?.includes(evse.id)&&
+                          o.connectorIds?.every(id=>(evse.connectors||[]).some(c=>c.id===id)))).length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
                     });}).catch(error=>done({error:String(error)}));
@@ -215,6 +226,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                                  "GB:source_ev_pcpr_direct"}
                 if not expected_pcpr.issubset(gb["sourceIds"]) or gb["ukPcprRaw"] <= 0 or gb["ukPcprMisScoped"]:
                     raise AssertionError("UK PCPR archived connector offers were lost or moved")
+                if gb["ukPcprPriced"] and (not gb["ukPcprEvaluated"] or not gb["ukPcprCostPerKm"] or
+                                           gb["ukPcprPricedMisScoped"]):
+                    raise AssertionError("Proved UK PCPR tariff was not evaluated on its exact connector")
+                if screenshots and gb["ukPcprPriced"]:
+                    browser.execute_script("document.getElementById('results').scrollIntoView()")
+                    browser.save_screenshot(str(screenshots / "prepared-gb-source-ev-pcpr.png"))
             midhope = None
             if "GB:connected_kerb_midhope_verified" in source_ids:
                 midhope = compare(51.30955, -0.56473, "GB", "Woking fixture", radius=10)

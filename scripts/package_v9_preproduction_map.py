@@ -108,6 +108,7 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
             ("runtime-owned/assets/v9/preproduction-candidate-loader.js", "preproduction-candidate-loader.js"),
             ("runtime-owned/assets/v9/data-engine.js", "data-engine.js"),
             ("runtime-overrides/assets/v9/map-price-engine.js", "map-price-engine.js"),
+            ("runtime-overrides/assets/v9/adapters/uk-open-feeds.js", "adapters/uk-open-feeds.js"),
         ):
             output = assets / target
             output.parent.mkdir(parents=True, exist_ok=True)

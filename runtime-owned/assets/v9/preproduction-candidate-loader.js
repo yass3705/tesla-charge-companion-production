@@ -53,6 +53,7 @@
           const fragments=adapter.toFragments(data);
           const rawOffers=new Map(data.offers.map(row=>[row.id,row]));
           const rawEvses=new Map(data.evses.map(row=>[row.id,row]));
+          const rawConnectors=new Map(data.connectors.map(row=>[row.id,row]));
           const offerCounts=new Map(),connectorOfferCounts=new Map();
           if(id==='BE:nap_static')for(const row of data.offers)
             offerCounts.set(row.scope?.evseId,(offerCounts.get(row.scope?.evseId)||0)+1);
@@ -90,6 +91,47 @@
                 ['pricePerKwh','chargePerMinute','connectionFee','idlePerMinute'].every(name=>
                   typeof rule[name]==='number'&&Number.isFinite(rule[name])&&rule[name]>=0)&&
                 rule.pricePerKwh>0;
+            }
+            if(['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(id)){
+              const raw=rawOffers.get(offer?.id),evse=rawEvses.get(raw?.scope?.evseId);
+              const connector=rawConnectors.get(raw?.scope?.connectorId),tariff=raw?.rawOffer;
+              const local=fragment.evses.find(row=>row.id===evse?.id);
+              const recipe=root?.TCCV9Adapters?.ukOpenFeeds?.pcprDirectPricing?.(tariff);
+              const restriction=tariff?.elements?.[0]?.restrictions||{};
+              const components=tariff?.elements?.[0]?.price_components;
+              const componentKinds=(components||[]).map(row=>row.type);
+              return fragment.countryCode==='GB'&&offer?.kind==='direct'&&offer.currency==='GBP'&&
+                offer.metadata?.verified===true&&offer.metadata.identityMode==='exact_canonical_connector_pcpr'&&
+                offer.metadata.sourceId===id&&offer.metadata.artifactSha256===data.source.artifactSha256&&
+                offer.metadata.sourceTariffKey===raw?.sourceTariffKey&&offer.metadata.timeZone==='Europe/London'&&
+                raw?.channel==='Direct'&&raw.calculationStatus==='not_evaluated'&&
+                raw.scope?.evseId===evse?.id&&raw.scope?.connectorId===connector?.id&&
+                connector?.evseId===evse?.id&&connector.powerKw>0&&
+                local?.connectors.some(row=>row.id===connector.id&&row.powerKw===connector.powerKw)&&
+                Array.isArray(offer.evseIds)&&offer.evseIds.length===1&&offer.evseIds[0]===evse.id&&
+                Array.isArray(offer.connectorIds)&&offer.connectorIds.length===1&&offer.connectorIds[0]===connector.id&&
+                Array.isArray(connector.rawSourceFields?.tariff_ids)&&connector.rawSourceFields.tariff_ids.length===1&&
+                connector.rawSourceFields.tariff_ids[0]===raw.sourceTariffKey&&
+                JSON.stringify(connector.rawSourceFields.sourceTariffIds)===JSON.stringify([raw.sourceTariffKey])&&
+                tariff?.id===raw.sourceTariffKey&&
+                JSON.stringify(tariff)===JSON.stringify(data.tariffCatalog?.[raw.sourceTariffKey])&&
+                tariff.currency==='GBP'&&tariff.tccPriceBasis==='GBP_including_public_UK_VAT'&&
+                tariff.tccSourcePriceBasis==='OCPI_2.2.1_excluding_VAT'&&
+                tariff.elements?.length===1&&Object.keys(restriction).join(',')==='start_date'&&
+                typeof restriction.start_date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(restriction.start_date)&&
+                !Number.isNaN(Date.parse(restriction.start_date+'T00:00:00Z'))&&
+                new Date(restriction.start_date+'T00:00:00Z').toISOString().slice(0,10)===restriction.start_date&&
+                Array.isArray(components)&&components.length>0&&
+                componentKinds.includes('ENERGY')&&new Set(componentKinds).size===componentKinds.length&&
+                components.every(row=>['ENERGY','FLAT'].includes(row.type)&&
+                  typeof row.price==='number'&&Number.isFinite(row.price)&&row.price>=0&&
+                  Number.isInteger(row.step_size)&&row.step_size>=1&&row.tccVatRateAppliedPct===20&&
+                  Object.keys(row).sort().join(',')===
+                    'price,sourcePriceExVat,step_size,tccVatOrigin,tccVatRateAppliedPct,type,vat')&&
+                components.find(row=>row.type==='ENERGY').price>0&&
+                recipe?.type==='component_groups'&&recipe.ocpiFirstMatch===true&&
+                recipe.taxIncluded===true&&recipe.timeZone==='Europe/London'&&
+                JSON.stringify(offer.pricing)===JSON.stringify(recipe);
             }
             if(fragment.countryCode!==id.slice(0,2)||offer?.metadata?.sourceId!==id||
                offer.metadata.verified!==true||offer.metadata.artifactSha256!==data.source.artifactSha256||

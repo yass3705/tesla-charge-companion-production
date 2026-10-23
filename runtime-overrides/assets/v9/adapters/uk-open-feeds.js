@@ -184,5 +184,5 @@
     }
     return out;
   }
-  return{normalizePayload,normalizeLocation,tariffPricing,powerKw,connectorKind};
+  return{normalizePayload,normalizeLocation,tariffPricing,pcprDirectPricing,powerKw,connectorKind};
 });

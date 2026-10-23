@@ -1,8 +1,8 @@
 (function(root,factory){
-  const api=factory();
+  const api=factory(root);
   if(typeof module==='object'&&module.exports)module.exports=api;
   if(root)root.TCCV9CanonicalAdapter=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(){
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){
   'use strict';
   function coordinates(row){
     if(Number.isFinite(row.latitude)&&Number.isFinite(row.longitude))return[row.latitude,row.longitude];
@@ -189,6 +189,50 @@
       metadata:{verified:true,identityMode:'exact_canonical_emsp_evse',sourceId:data.source.id,
         artifactSha256:data.source.artifactSha256,sourceOfferId:raw.id,timeZone:'Europe/Paris'}};
   }
+  function provedUkPcprOffer(data,offer,index){
+    if(!['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(data.source?.id)||
+       offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated'||
+       !offer.scope?.connectorId||index.connectorOfferCounts.get(offer.scope.connectorId)!==1)return null;
+    const converter=root?.TCCV9Adapters?.ukOpenFeeds?.pcprDirectPricing;
+    if(typeof converter!=='function')return null;
+    const connector=index.connectorsById.get(offer.scope.connectorId),evse=index.evses.get(offer.scope.evseId);
+    const raw=offer.rawOffer,key=offer.sourceTariffKey;
+    if(!connector||connector.evseId!==evse?.id||!(connector.powerKw>0)||
+       !['AC','DC'].some(kind=>String(connector.rawSourceFields?.power_type||'').startsWith(kind))||
+       !Array.isArray(connector.rawSourceFields?.tariff_ids)||
+       connector.rawSourceFields.tariff_ids.length!==1||connector.rawSourceFields.tariff_ids[0]!==key||
+       JSON.stringify(connector.rawSourceFields.sourceTariffIds)!==JSON.stringify([key])||
+       !raw||raw.id!==key||JSON.stringify(raw)!==JSON.stringify(data.tariffCatalog?.[key])||
+       raw.currency!=='GBP'||raw.tccPriceBasis!=='GBP_including_public_UK_VAT'||
+       raw.tccSourcePriceBasis!=='OCPI_2.2.1_excluding_VAT'||
+       !Array.isArray(raw.elements)||raw.elements.length!==1)return null;
+    const element=raw.elements[0],restriction=element?.restrictions||{};
+    if(Object.keys(restriction).join(',')!=='start_date'||typeof restriction.start_date!=='string'||
+       !/^\d{4}-\d{2}-\d{2}$/.test(restriction.start_date)||
+       Number.isNaN(Date.parse(restriction.start_date+'T00:00:00Z'))||
+       new Date(restriction.start_date+'T00:00:00Z').toISOString().slice(0,10)!==restriction.start_date||
+       !Array.isArray(element.price_components)||!element.price_components.length)return null;
+    const kinds=new Set();let paidEnergy=false;
+    for(const component of element.price_components){
+      const kind=component?.type;
+      if(!['ENERGY','FLAT'].includes(kind)||kinds.has(kind)||
+         typeof component.price!=='number'||!Number.isFinite(component.price)||component.price<0||
+         !Number.isInteger(component.step_size)||component.step_size<1||
+         component.tccVatRateAppliedPct!==20||
+         Object.keys(component).sort().join(',')!==
+           'price,sourcePriceExVat,step_size,tccVatOrigin,tccVatRateAppliedPct,type,vat')return null;
+      kinds.add(kind);if(kind==='ENERGY'&&component.price>0)paidEnergy=true;
+    }
+    if(!paidEnergy)return null;
+    const pricing=converter(raw),cpo=index.cpos.get(evse.cpoId);
+    if(!pricing||!cpo||pricing.type!=='component_groups'||pricing.ocpiFirstMatch!==true||
+       pricing.timeZone!=='Europe/London'||pricing.taxIncluded!==true)return null;
+    return{id:offer.id,provider:cpo.name||cpo.sourceOperatorId,kind:'direct',currency:'GBP',
+      countries:['GB'],operatorIds:[cpo.sourceOperatorId],evseIds:[evse.id],
+      connectorIds:[connector.id],subscriptionId:null,pricing,
+      metadata:{verified:true,identityMode:'exact_canonical_connector_pcpr',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,sourceTariffKey:key,timeZone:'Europe/London'}};
+  }
   function toFragments(data){
     if(data?.schemaVersion!==1||!Array.isArray(data?.stations)||!Array.isArray(data?.evses)||!Array.isArray(data?.connectors)||!Array.isArray(data?.offers))throw new Error('canonical schema invalid');
     const cpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
@@ -198,7 +242,8 @@
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];list.push(row);proofIndex.connectors.set(row.evseId,list);}
       for(const row of data.offers)proofIndex.offerCounts.set(row.scope?.evseId,(proofIndex.offerCounts.get(row.scope?.evseId)||0)+1);
     }
-    if(data.source?.id==='NL:dotnl_static'){
+    if(data.source?.id==='NL:dotnl_static'||
+       ['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(data.source?.id)){
       for(const row of data.connectors)proofIndex.connectorsById.set(row.id,row);
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
@@ -219,14 +264,17 @@
       const evse=evses.get(row.evseId);
       if(!evse)throw new Error('canonical connector EVSE missing');
       evse.output.connectors.push({id:row.id,sourceConnectorId:row.sourceConnectorId||null,
-        officialConnectorId:row.officialConnectorId||null,kind:row.kind||row.rawSourceFields?.kind||null,
+        officialConnectorId:row.officialConnectorId||null,kind:row.kind||row.rawSourceFields?.kind||
+          (String(row.rawSourceFields?.power_type||'').startsWith('DC')?'DC':
+            String(row.rawSourceFields?.power_type||'').startsWith('AC')?'AC':null),
         plugType:row.plugType||null,powerKw:row.powerKw??null});
     }
     for(const offer of data.offers){
       const evse=evses.get(offer.scope?.evseId);
       if(!evse)throw new Error('canonical offer EVSE missing');
       const proved=provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
-        provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex);
+        provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
+        provedUkPcprOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({id:offer.id,channel:offer.channel,scope:offer.scope,
         rawOffer:offer.rawOffer??null,sourceTariffKey:offer.sourceTariffKey||null,
