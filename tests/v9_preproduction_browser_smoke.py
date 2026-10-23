@@ -48,6 +48,19 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             """)
             if not guidance["tab"] or guidance["steps"] != 5 or not guidance["feedback"]:
                 raise AssertionError(f"Preview validation flow missing: {guidance}")
+            preview_accessibility = browser.execute_script("""
+                const tab=document.getElementById('v9ValidationTab');
+                const panel=document.getElementById(tab?.getAttribute('aria-controls'));
+                const feedback=document.getElementById('v9FeedbackText');
+                const share=document.getElementById('v9FeedbackShare');
+                return {tabNamed:!!tab?.textContent.trim(),targetExists:!!panel,
+                  feedbackLabelled:!!feedback?.labels?.length,
+                  shareNamed:!!share?.textContent.trim(),statusLive:document.getElementById('v9FeedbackStatus')?.getAttribute('aria-live')};
+            """)
+            if preview_accessibility != {"tabNamed": True, "targetExists": True,
+                                          "feedbackLabelled": True, "shareNamed": True,
+                                          "statusLive": "polite"}:
+                raise AssertionError(f"Preview guidance accessibility failed: {preview_accessibility}")
             invalid_vehicle = browser.execute_async_script("""
                 const done=arguments[0],field=document.getElementById('v9BatteryCapacity');
                 if(!field){done({error:'battery control missing'});return;}
@@ -84,7 +97,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     document.getElementById('simMinPowerKw').value=minPower==null?'':String(minPower);
                 """, lat, lon, country, label, min_power, radius)
                 result = browser.execute_async_script("""
-                    const done=arguments[0];window.compare().then(area=>{if(!area){done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)});return;}
+                    const done=arguments[0],began=performance.now();window.compare().then(area=>{if(!area){done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)});return;}
                       const compoundIds=new Set(area.stations.flatMap(s=>s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='NL:dotnl_static'&&o.pricing?.rules?.some(r=>
                           r.chargePerMinute>0||r.connectionFee>0||r.idlePerMinute>0)).map(o=>o.id));
@@ -94,6 +107,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         [row?.best,...(row?.alternatives||[]),...(row?.incomplete||[])]).filter(Boolean);
                       done({
                       count:area.stations.length,prepared:area.preproductionCandidate,
+                      queryDurationMs:Math.round(performance.now()-began),
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
                       emspPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='FR:emsp_exact'&&o.provider==='Electroverse').length,0),
@@ -179,6 +193,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     emsp_totals = browser.execute_script("return [...document.querySelectorAll('#results .v9-tariff-row[data-v9-lane-label=\"Electroverse\"][data-v9-effective-total]')].map(row=>Number(row.dataset.v9EffectiveTotal))")
                     if not any(total > 0 for total in emsp_totals):
                         raise AssertionError("Proved Electroverse offer did not reach the tariff comparison")
+                    if "Durée de charge estimée :" not in browser.execute_script(
+                            "return document.getElementById('results').innerText"):
+                        raise AssertionError("Calculated charging duration was not visible with the session price")
+                if screenshots:
+                    browser.execute_script("document.getElementById('results').scrollIntoView()")
+                    browser.save_screenshot(str(screenshots / "prepared-fr-electroverse-exact.png"))
             gb = compare(51.507, -0.128, "GB", "London fixture")
             gb_text = browser.execute_script("return document.getElementById('results').innerText")
             if "IONITY Direct · UK" not in gb_text:
@@ -233,6 +253,9 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if netherlands["compoundPriced"] and not netherlands["compoundFees"]:
                     raise AssertionError("Proved DOT-NL compound fees did not reach session calculations")
                 netherlands["calculatedCards"] = len(nl_totals)
+                if screenshots:
+                    browser.execute_script("document.getElementById('results').scrollIntoView()")
+                    browser.save_screenshot(str(screenshots / "prepared-nl-compound.png"))
             zephyre = None
             if "FR:zephyre_epowerdirect_exact" in source_ids:
                 zephyre = compare(43.579, 3.880, "FR", "Lattes fixture", radius=20)
@@ -264,6 +287,11 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             viewport = browser.execute_script("return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth}")
             if viewport["width"] != 390 or viewport["scrollWidth"] > viewport["width"]:
                 raise AssertionError(f"Mobile station list overflows: {viewport}")
+            if screenshots:
+                browser.execute_script("document.getElementById('results').scrollIntoView()")
+                browser.switch_to.default_content()
+                browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-list-390.png"))
+                browser.switch_to.frame("v9-mobile-fixture")
             browser.execute_script("document.querySelector('.v9-view-map').click()")
             mobile_map = browser.execute_script("""
                 return {width:document.querySelector('.v9-real-map').getBoundingClientRect().width,

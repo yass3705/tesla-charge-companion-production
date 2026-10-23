@@ -743,7 +743,7 @@
         const evaluation=consistentLaneEvaluation(rawEvaluation,variant,selectedSubscriptions);
         const score=scoreEngine.scoreStation(variant,evaluation,plan.effectiveSession,{route:{byStationId:routeMap},plan});
         const line={kind:group.kind,powerKw:group.powerKw,count:group.evseKeys.size};
-        variants.push({...row,station:variant,powerLine:line,evaluation,score,total:num(pricedBest(evaluation)?.total),costPerKm:num(pricedBest(evaluation)?.costPerRecoveredKm),recoveredKm:num(evaluation?.recoveredKm),displayKey:[text(station.name),line.kind,line.powerKw,group.offerIds.join(',')].join('|')});
+        variants.push({...row,station:variant,powerLine:line,plan,evaluation,score,total:num(pricedBest(evaluation)?.total),costPerKm:num(pricedBest(evaluation)?.costPerRecoveredKm),recoveredKm:num(evaluation?.recoveredKm),displayKey:[text(station.name),line.kind,line.powerKw,group.offerIds.join(',')].join('|')});
       }
       if(unknownEvses.size){
         const evses=[...unknownEvses].map(([index,connectors])=>({...station.evses[index],connectors}));
@@ -812,7 +812,7 @@
       selectedSubscriptions:context.selectedSubscriptions||[],targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}
     });
     const score=engine.scoreStation?.(station,evaluation,plan.effectiveSession||session,{route,plan})||row.score;
-    return{...row,station,evaluation,score,total:num(pricedBest(evaluation)?.total),costPerKm:num(pricedBest(evaluation)?.costPerRecoveredKm),distanceKm:num(score?.distanceKm??row.distanceKm)};
+    return{...row,station,plan,evaluation,score,total:num(pricedBest(evaluation)?.total),costPerKm:num(pricedBest(evaluation)?.costPerRecoveredKm),distanceKm:num(score?.distanceKm??row.distanceKm)};
   }
   function combinedEvaluation(group){
     const selected=group.evaluation;
@@ -998,6 +998,7 @@
       '<div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(station))+
       ((station.provenance||[]).some(row=>row.generatedAt)?' · Extraction : '+esc((station.provenance||[]).find(row=>row.generatedAt).generatedAt):'')+'</div>'+renderStationLinks(station)+
       '<div class="v9-station-best"><b>Meilleure option du scénario</b> · '+esc(bestLabel)+'</div>'+powerHtml+
+      (best&&num(best.row.plan?.chargingMinutes)!=null?'<div class="small">Durée de charge estimée : '+esc(formatMinutes(best.row.plan.chargingMinutes))+'</div>':'')+
       (Number.isFinite(card.distanceKm)?'<div class="small">'+card.distanceKm.toFixed(1)+(card.distanceEstimated?' km à vol d’oiseau':' km')+'</div>':'')+
       renderCostPerKm(card)+'</article>';
   }
