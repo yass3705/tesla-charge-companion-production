@@ -192,15 +192,27 @@
   }
   async function createEngine(w,cfg){
     if(!w.TCCV9RuntimeEngine||!w.TCCV9BrowserLoaders||!w.TCCV9BrowserRouting)throw new Error('V9 runtime dependency missing');
-    const base=String(cfg.runtimeBase||'.').replace(/\/$/,''),[registry,vehicleProfiles]=await Promise.all([
+    const base=String(cfg.runtimeBase||'.').replace(/\/$/,''),[historicalRegistry,vehicleProfiles]=await Promise.all([
       w.fetch(`${base}/data/v9/source-registry.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`registry ${r.status}`);return r.json();}),
       w.fetch(`${base}/data/v9/vehicle-profiles.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`vehicle profiles ${r.status}`);return r.json();})
     ]);
     const exchangeUrl=new URL('../data/exchange_rates.json',w.location.href).toString();
     const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null);
-    const loaders=w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),routeProvider=w.TCCV9BrowserRouting.osrmProvider();
+    let registry=historicalRegistry,loaders=w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),preparedCandidate=null;
+    if(cfg.preproductionCandidateBase){
+      // NEVER blend unevaluated candidate tariffs into the historical priced catalog.
+      if(cfg.mode!=='candidate'||cfg.preproductionIsolated!==true||!w.TCCV9PreparedCandidate?.loadPrepared||!w.TCCV9CanonicalAdapter?.toFragments)
+        throw new Error('isolated preproduction candidate not configured safely');
+      const preview=await w.TCCV9PreparedCandidate.loadPrepared({
+        baseUrl:cfg.preproductionCandidateBase,fetchImpl:w.fetch.bind(w),adapter:w.TCCV9CanonicalAdapter,
+        cryptoImpl:w.crypto,origin:w.location.href
+      });
+      registry=preview.registry;loaders=preview.loaders;preparedCandidate=preview.candidate;
+    }
+    const routeProvider=w.TCCV9BrowserRouting.osrmProvider();
     const engine=w.TCCV9RuntimeEngine.createEngine({registry,loaders,routeProvider,vehicleProfiles});
     engine.__tccFxRates=verifiedExchangeRates(exchange);
+    engine.__tccPreparedCandidate=preparedCandidate;
     return engine;
   }
   function straightLineDistanceKm(origin,station){
@@ -483,7 +495,19 @@
   function tariffLaneState(evaluation,station,category){
     const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])]
       .filter(item=>item&&offerPriceCategory(item)===category);
-    if(!offers.length)return{status:'missing',item:null,offers:[],diagnostics:[]};
+    if(!offers.length){
+      const evseIds=new Set((station?.evses||[]).map(evse=>text(evse.id)).filter(Boolean));
+      const connectorIds=new Set((station?.evses||[]).flatMap(evse=>(evse.connectors||[]).map(c=>text(c.id))).filter(Boolean));
+      const pending=(station?.unparsedOffers||[]).filter(raw=>{
+        const lane=text(raw.channel).toLowerCase();
+        const scope=raw.scope||{};
+        return lane===category&&evseIds.has(text(scope.evseId))&&
+          (!scope.connectorId||connectorIds.has(text(scope.connectorId)))&&raw.calculationStatus==='not_evaluated';
+      }).map(raw=>({offerId:raw.id,provider:raw.channel,reason:'raw_candidate_not_evaluated'}));
+      return pending.length?{status:'unresolved',item:null,offers:pending,
+        diagnostics:pending.map(offer=>({offerId:offer.offerId,reason:offer.reason}))}
+        :{status:'missing',item:null,offers:[],diagnostics:[]};
+    }
     const sourceOffers=station?.offers||[];
     const localEvseIds=new Set((station?.evses||[]).flatMap(evse=>[text(evse.id),text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)]).filter(Boolean));
     const diagnostics=offers.map(item=>({offerId:text(item.offerId),reason:text(item.result?.reason||item.incompletePricingReason||'')}));
@@ -906,7 +930,8 @@
     const station=card.station,best=card.bestChoice,fx=area?.displayFxRates||{},subs=area?.selectedSubscriptions||[];
     const laneNames={direct:'Direct',electra:'Electra',electroverse:'Electroverse'};
     const bestLabel=best?(laneNames[best.lane]||best.lane)+' · '+displayAmount({...best.item,total:best.total},fx)+' · '+best.row.powerLine?.powerKw+' kW '+best.row.powerLine?.kind:
-      card.variants.some(row=>[row.evaluation?.best,...(row.evaluation?.alternatives||[]),...(row.evaluation?.incomplete||[])].some(Boolean))?'Tarif incalculable':'Prix non disponible';
+      card.variants.some(row=>(row.station?.unparsedOffers||[]).some(offer=>offer.calculationStatus==='not_evaluated')||
+        [row.evaluation?.best,...(row.evaluation?.alternatives||[]),...(row.evaluation?.incomplete||[])].some(Boolean))?'Tarif incalculable':'Prix non disponible';
     const powerHtml=card.powerGroups.map(group=>{
       const lanes=[['direct','Direct','#f4a64a'],['electra','Electra','#74d7ec'],['electroverse','Electroverse','#c9b3f4']];
       const summary='<span class="v9-power-lane-grid">'+lanes.map(([id,label,color])=>
@@ -960,7 +985,10 @@
     const results=w.document.getElementById('results'),routeStatus=w.document.getElementById('routeStatus');if(!results)throw new Error('stable results container missing');
     if(routeStatus)routeStatus.innerHTML='<span class="good">Moteur V9 canary · '+rows.length+' station(s) classée(s) depuis '+esc(originLabel)+'.</span>';
     if(!rows.length){renderMapSummary(w,area,rows);results.innerHTML='<div class="warn">Aucune station V9 exploitable pour cette recherche.</div>';return;}
-    results.innerHTML='<div class="small box"><b>Moteur V9</b> · une carte par station, toutes les puissances et tous les PDC.</div>'+rows.map((row,i)=>renderStationCard(row,i,area)).join('');
+    const preview=area?.preproductionCandidate;
+    const previewBanner=preview?'<div class="small box" role="status"><b>Préproduction isolée · données candidates non publiées</b> · tarifs bruts non évalués : exclus du classement et des coûts simulés.'+
+      (preview.status==='partial_failure'?' · Sources refusées : '+esc((preview.rejected||[]).map(r=>r.source).join(', ')||'voir journal'):'')+'</div>':'';
+    results.innerHTML=previewBanner+'<div class="small box"><b>Moteur V9</b> · une carte par station, toutes les puissances et tous les PDC.</div>'+rows.map((row,i)=>renderStationCard(row,i,area)).join('');
 
     renderMapSummary(w,area,rows);
   }
@@ -995,7 +1023,7 @@
     const selected=selectedSubscriptions(w);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
     if(queryMode==='tesla-only'&&!area.stations?.some(isTeslaStation))throw new Error(`no Tesla V9 station in ${countryCode}`);
-    area.selectedSubscriptions=selected;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),cards=stationCards(eligible,selected),rows=rankRows(cards,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
+    area.selectedSubscriptions=selected;area.preproductionCandidate=engine.__tccPreparedCandidate||null;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),cards=stationCards(eligible,selected),rows=rankRows(cards,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
     const d=w.document;
@@ -1404,7 +1432,7 @@
     }
       try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode,await subscriptionCataloguePromise),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
         diagnosticStore(w,{mode:'candidate',outcome:'v9-error',reason:err.message,operatorIds:input.operatorIds||[]});
-        if(input.operatorIds?.length){
+        if(cfg.preproductionCandidateBase||input.operatorIds?.length){
           const status=w.document.getElementById('routeStatus'),results=w.document.getElementById('results');
           if(status)status.innerHTML='<span class="warn">Le calcul V9 a échoué pour le filtre opérateur sélectionné.</span>';
           if(results)results.innerHTML='<div class="warn">Les résultats filtrés n’ont pas pu être recalculés : '+esc(err.message||'erreur inconnue')+'. Relance la simulation après vérification de la source.</div>';
