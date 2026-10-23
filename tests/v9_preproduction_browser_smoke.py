@@ -138,6 +138,11 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 switzerland = compare(47.376, 8.541, "CH", "Zurich fixture", radius=100)
                 if "CH:swiss_integration" not in switzerland["sourceIds"]:
                     raise AssertionError("Swiss national candidate source missing")
+            belgium = None
+            if "BE:nap_static" in source_ids:
+                belgium = compare(50.850, 4.352, "BE", "Brussels fixture", radius=50)
+                if "BE:nap_static" not in belgium["sourceIds"] or belgium["priced"] != 0:
+                    raise AssertionError("Belgium NAP physical archive was lost or raw rates were priced")
             zephyre = None
             if "FR:zephyre_epowerdirect_exact" in source_ids:
                 zephyre = compare(43.579, 3.880, "FR", "Lattes fixture", radius=20)
@@ -182,7 +187,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
             return {"fr": fr, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
-                    "ch": switzerland, "zephyre": zephyre, "ozecar": ozecar,
+                    "ch": switzerland, "be": belgium, "zephyre": zephyre, "ozecar": ozecar,
                     "minPower300": filtered["count"], "map": map_state,
                     "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:
