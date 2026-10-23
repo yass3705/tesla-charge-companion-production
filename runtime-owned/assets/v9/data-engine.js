@@ -49,7 +49,7 @@
   function rank(source,family,fragment){return{score:priorityFor(source,family,fragment),sourceId:text(source?.id)||'unknown'};}
   function rankWins(next,current){if(!current)return true;if(next.score!==current.score)return next.score>current.score;return next.sourceId.localeCompare(current.sourceId)<0;}
 
-  const FAMILY_FIELDS={identity:['countryCode','name','address','latitude','longitude','physicalOperator','networkBrand'],connectors:['evses'],access:['access'],status:['status']};
+  const FAMILY_FIELDS={identity:['countryCode','name','address','latitude','longitude','physicalOperator','networkBrand'],connectors:['evses'],access:['access'],status:['status'],rawOfferProvenance:['unparsedOffers']};
 
   function fragmentKeys(fragment,source){
     const keys=[];
