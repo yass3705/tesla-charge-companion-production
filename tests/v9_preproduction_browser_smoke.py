@@ -104,6 +104,16 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             gb_text = browser.execute_script("return document.getElementById('results').innerText")
             if "IONITY Direct · UK" not in gb_text:
                 raise AssertionError("UK candidate provenance missing")
+            midhope = None
+            if "GB:connected_kerb_midhope_verified" in source_ids:
+                midhope = compare(51.30955, -0.56473, "GB", "Woking fixture", radius=10)
+                woking_text = browser.execute_script("""
+                    document.querySelectorAll('.v9-power-group,.v9-pdc-detail').forEach(item=>{item.open=true});
+                    return document.getElementById('results').innerText;
+                """)
+                if ("GB:connected_kerb_midhope_verified" not in midhope["sourceIds"] or
+                        "GB*CK0*E19825" not in woking_text or "IEC_62196_T2" not in woking_text):
+                    raise AssertionError("Midhope exact EVSE/connector archive missing from candidate view")
             italy = None
             if "IT:atlante_direct" in source_ids:
                 italy = compare(45.464, 9.19, "IT", "Milano fixture")
@@ -153,7 +163,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
-            return {"fr": fr, "gb": gb, "it": italy, "zephyre": zephyre, "ozecar": ozecar,
+            return {"fr": fr, "gb": gb, "midhope": midhope, "it": italy, "zephyre": zephyre, "ozecar": ozecar,
                     "minPower300": filtered["count"], "map": map_state,
                     "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:
