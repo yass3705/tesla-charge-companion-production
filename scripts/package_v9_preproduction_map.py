@@ -54,8 +54,10 @@ def check_candidate(candidate: Path) -> dict:
 
 def package(site: Path, candidate: Path, destination: Path) -> dict:
     site, candidate, destination = site.resolve(), candidate.resolve(), destination.resolve()
-    if destination.exists() or destination == ROOT or ROOT in destination.parents:
-        raise ValueError("Output must be a new directory outside Production checkout")
+    if (destination.exists() or destination == ROOT or ROOT in destination.parents or
+            destination == site or site in destination.parents or
+            destination == candidate or candidate in destination.parents):
+        raise ValueError("Output must be a NEW directory outside checkout, source site and candidate")
     if not (site / "index.html").is_file():
         raise ValueError("Built site entry point missing")
     shell = site / "v9-production-shell"
