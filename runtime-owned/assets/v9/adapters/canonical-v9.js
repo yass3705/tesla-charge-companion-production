@@ -50,6 +50,7 @@
       return{canonicalId:row.id,sourceStationId:row.sourceStationId,countryCode:row.country,
         name:row.name||row.names?.[0]?.value||row.sourceStationId,
         address:address(row),latitude,longitude,
+        networkBrand:row.networkBrand||null,
         physicalOperator:{id:cpo.sourceOperatorId,name:cpo.name||cpo.sourceOperatorId},
         evses:evses.sort((a,b)=>a.id.localeCompare(b.id)),offers:[],unparsedOffers:offers,
         provenance:[{sourceId:data.source?.id,artifactSha256:data.source?.artifactSha256,
