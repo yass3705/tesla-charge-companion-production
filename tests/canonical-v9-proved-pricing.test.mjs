@@ -7,6 +7,7 @@ const {evaluateOffer}=require('../runtime-owned/assets/v9/pricing-engine.js');
 const {evaluateStation}=require('../runtime-owned/assets/v9/session-engine.js');
 const {loadPrepared}=require('../runtime-owned/assets/v9/preproduction-candidate-loader.js');
 const {simpleEnergyPrice}=require('../runtime-overrides/assets/v9/adapters/atlante-italy-exact.js');
+const {directEnergyPrice}=require('../runtime-overrides/assets/v9/adapters/belgium-nap.js');
 
 const source={schemaVersion:1,source:{id:'FR:ionity_direct',artifactSha256:'a'.repeat(64)},
   cpos:[{id:'operator',name:'IONITY',sourceOperatorId:'IONITY_CPO'}],
@@ -78,4 +79,42 @@ for(const mutation of [
   const changed=structuredClone(atlante);mutation(changed);
   assert.equal(toFragments(changed)[0].offers.length,0,'complex or inconsistent tariff stays out of ranking');
 }
-console.log('Canonical V9: proved FR/IT energy rates, exact connectors, unsupported terms unpriced');
+const bePrice={rateId:'R1',ratePolicy:'adHoc',currency:'EUR',priceType:'pricePerKWh',
+  value:0.35,taxIncluded:false,taxRate:21};
+const belgium={...structuredClone(source),source:{id:'BE:nap_static',artifactSha256:'c'.repeat(64)}};
+belgium.stations[0].country='BE';
+belgium.evses[0].unclassifiedPrices=[];
+belgium.evses[0].archiveVariants=[];
+belgium.connectors[0].plugType='iec62196T2';
+belgium.connectors[0].powerKw=22;
+belgium.offers=[{id:'be-energy',channel:'Direct',scope:{evseId:'evse-a',connectorId:null},
+  rawOffer:bePrice,calculationStatus:'not_evaluated'}];
+assert.equal(directEnergyPrice([bePrice]).grossEurPerKwh,0.4235);
+const beFragment=toFragments(belgium)[0];
+assert.equal(beFragment.offers.length,1);
+assert.deepEqual(beFragment.offers[0].connectorIds,['plug-a']);
+assert.equal(evaluateOffer(beFragment.offers[0],{energyKwh:20,startAt:'2026-10-23T12:00:00Z'}).totalEur,8.47);
+for(const mutation of [
+  d=>{d.offers[0].rawOffer.priceType='pricePerMinute';},
+  d=>{d.offers.push({...d.offers[0],id:'conflicting-rate',rawOffer:{...bePrice,value:0.40}});},
+  d=>{d.evses[0].unclassifiedPrices=[{ratePolicy:'contract'}];},
+  d=>{d.connectors[0].powerKw=null;},
+]){
+  const changed=structuredClone(belgium);mutation(changed);
+  assert.equal(toFragments(changed)[0].offers.length,0,'unsupported BE rate stays unpriced');
+}
+const beBytes=new TextEncoder().encode(JSON.stringify(belgium));
+const beSha=createHash('sha256').update(beBytes).digest('hex');
+const beIndex={schemaVersion:1,status:'prepared',bundleId:'be-test',rejected:[],
+  sources:[{source:'BE:nap_static',path:'sources/BE__nap_static.json',sha256:beSha}]};
+const beFetch=async url=>({ok:true,arrayBuffer:async()=>
+  url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(beIndex)).buffer:beBytes.buffer});
+const bePrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:beFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await bePrepared.loaders['prepared:BE:nap_static']())[0].offers.length,1);
+const beTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:beFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){
+    const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].unknownFee=1;return fragments;
+  }}});
+await assert.rejects(beTampered.loaders['prepared:BE:nap_static'](),/candidate pricing isolation violated/);
+console.log('Canonical V9: proved FR/IT/BE energy rates, exact connector and VAT rules');

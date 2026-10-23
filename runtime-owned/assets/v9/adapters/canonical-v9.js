@@ -20,6 +20,7 @@
   }
   // The archived FR IONITY connector rate matches the existing all-day kWh rule.
   function provedDirectOffer(data,offer){
+    if(data.source?.id!=='FR:ionity_direct'&&data.source?.id!=='IT:atlante_direct')return null;
     if(offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated')return null;
     const raw=offer.rawOffer;
     if(!raw||typeof raw!=='object'||Array.isArray(raw)||!offer.scope?.connectorId)return null;
@@ -68,9 +69,44 @@
       metadata:{verified:true,identityMode:'exact_canonical_connector',sourceId:data.source.id,
         artifactSha256:data.source.artifactSha256}};
   }
+  function provedBelgiumOffer(data,offer,index){
+    if(data.source?.id!=='BE:nap_static'||offer.channel!=='Direct'||
+       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const evse=index.evses.get(offer.scope?.evseId);
+    const scopedCount=index.offerCounts.get(offer.scope?.evseId)||0;
+    const raw=offer.rawOffer,cpo=index.cpos.get(evse?.cpoId);
+    const allowed=['currency','lastUpdated','priceType','rateId','ratePolicy','taxIncluded','taxRate','value'];
+    if(!evse||!cpo||scopedCount!==1||evse.unclassifiedPrices?.length||
+       !raw||Object.keys(raw).some(name=>!allowed.includes(name))||
+       raw.priceType!=='pricePerKWh'||raw.ratePolicy!=='adHoc'||raw.currency!=='EUR'||
+       raw.taxIncluded!==false||raw.taxRate!==21||typeof raw.rateId!=='string'||!raw.rateId||
+       typeof raw.value!=='number'||!Number.isFinite(raw.value)||raw.value<0||raw.value>3||
+       (evse.archiveVariants||[]).some(row=>row.prices?.length!==1||
+         JSON.stringify(row.prices[0])!==JSON.stringify(raw)))return null;
+    const supported=new Set(['iec62196T2','iec62196T2COMBO','domesticE']);
+    const connectors=(index.connectors.get(evse.id)||[]).filter(row=>
+      supported.has(row.plugType)&&typeof row.powerKw==='number'&&row.powerKw>0);
+    if(!connectors.length)return null;
+    const rate=Math.round(raw.value*1.21*1e8)/1e8;
+    return{id:offer.id,provider:cpo.name||cpo.sourceOperatorId,kind:'direct',currency:'EUR',
+      countries:['BE'],operatorIds:[cpo.sourceOperatorId],evseIds:[evse.id],
+      connectorIds:connectors.map(row=>row.id),subscriptionId:null,
+      pricing:{type:'rules',rules:[{scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',
+        currency:'EUR',pricePerKwh:rate,chargePerMinute:0,connectionFee:0,
+        idlePerMinute:0,afterMinutesRate:0,afterMinutesThreshold:0}]},
+      metadata:{verified:true,identityMode:'exact_canonical_evse_supported_connectors',
+        sourceId:data.source.id,artifactSha256:data.source.artifactSha256,rateId:raw.rateId,
+        vatRate:21,timeZone:'Europe/Brussels'}};
+  }
   function toFragments(data){
     if(data?.schemaVersion!==1||!Array.isArray(data?.stations)||!Array.isArray(data?.evses)||!Array.isArray(data?.connectors)||!Array.isArray(data?.offers))throw new Error('canonical schema invalid');
     const cpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
+    const proofIndex={cpos,evses:new Map(data.evses.map(row=>[row.id,row])),
+      connectors:new Map(),offerCounts:new Map()};
+    if(data.source?.id==='BE:nap_static'){
+      for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];list.push(row);proofIndex.connectors.set(row.evseId,list);}
+      for(const row of data.offers)proofIndex.offerCounts.set(row.scope?.evseId,(proofIndex.offerCounts.get(row.scope?.evseId)||0)+1);
+    }
     const stations=new Map(data.stations.map(row=>[row.id,{row,evses:[],offers:[],pricedOffers:[]}]));
     const evses=new Map();
     for(const row of data.evses){
@@ -89,7 +125,7 @@
     for(const offer of data.offers){
       const evse=evses.get(offer.scope?.evseId);
       if(!evse)throw new Error('canonical offer EVSE missing');
-      const proved=provedDirectOffer(data,offer);
+      const proved=provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({id:offer.id,channel:offer.channel,scope:offer.scope,
         rawOffer:offer.rawOffer??null,calculationStatus:'not_evaluated'});
