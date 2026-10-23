@@ -7,7 +7,7 @@ const {toFragments}=require('../runtime-owned/assets/v9/adapters/canonical-v9.js
 const {createEngine}=require('../runtime-owned/assets/v9/data-engine.js');
 const sha=v=>createHash('sha256').update(v).digest('hex');
 
-const payload={schemaVersion:1,source:{id:'FR:ionity_direct',artifactSha256:'a'.repeat(64)},
+const payload={schemaVersion:1,source:{id:'FR:ionity_direct',artifactSha256:'a'.repeat(64),generatedAt:'2026-10-20T00:00:00Z'},
   cpos:[{id:'cpo',sourceOperatorId:'ionity',name:'IONITY'}],
   stations:[{id:'station',country:'FR',cpoId:'cpo',sourceStationId:'real-station',name:'IONITY archive',latitude:48,longitude:2}],
   evses:[{id:'evse',cpoId:'cpo',stationId:'station',officialEvseId:null,sourceEvseId:'real-source-evse'}],
@@ -32,6 +32,8 @@ assert.equal(station.evses[0].connectors[0].powerKw,350);
 assert.equal(station.offers.length,0,'raw monetary fields cannot enter price engine/ranking');
 assert.equal(station.unparsedOffers[0].calculationStatus,'not_evaluated');
 assert.equal(station.unparsedOffers[0].scope.connectorId,'plug');
+assert.equal(station.provenance[0].sourceId,'FR:ionity_direct');
+assert.equal(station.provenance[0].generatedAt,'2026-10-20T00:00:00Z');
 assert.equal(prepared.candidate.status,'prepared');
 assert.equal(result.diagnostics.sources['prepared:FR:ionity_direct'].loaded,true);
 

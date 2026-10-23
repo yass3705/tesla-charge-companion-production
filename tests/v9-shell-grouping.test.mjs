@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea, stationDisplayName } = require('../v9-production-shell/bridge.js');
+const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea, stationDisplayName, stationBaseSource } = require('../v9-production-shell/bridge.js');
+
+assert.equal(stationBaseSource({countryCode:'FR',physicalOperator:{name:'IONITY'},provenance:[{sourceId:'FR:ionity_direct'}]}),'IONITY Direct · FR');
+assert.equal(stationBaseSource({countryCode:'FR',physicalOperator:{name:'IONITY'},provenance:[{sourceId:'prepared:FR:ionity_direct'}]}),'IONITY Direct · FR');
 
 assert.equal(stationDisplayName({name:'LFR3148EVCP01',address:"Rue de l'Aérostation Maritime, 78210, SAINT CYR L'ECOLE, 78545",physicalOperator:{name:'Lidl France'}}),"Lidl France · Rue de l'Aérostation Maritime");
 assert.equal(stationDisplayName({name:'LFR3148EVCP01',physicalOperator:{name:'Lidl France'}}),'LFR3148EVCP01','without a verified address keep the technical name');

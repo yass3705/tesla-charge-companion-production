@@ -20,7 +20,21 @@ node tests/v9-shell-grouping.test.mjs
 python3 -m unittest tests.test_package_v9_preproduction_map tests.test_build_v9_preproduction_data tests.test_import_v9_bundle -q
 ```
 
-Les essais de compilation/données exécutés depuis ChatGPT sont limités à des tests JS en mémoire. **Les tests ci-dessus, l'assemblage d'un site complet et les essais navigateur réels restent à exécuter par Codex.**
+Les tests ci-dessus sont à rejouer lorsque leurs entrées changent. Le replay navigateur local ci-dessous vérifie le raccordement sur un candidat préparé réel ; il ne constitue pas une recette G7/G8 complète.
+
+## Replay navigateur hors ligne du 23 octobre
+
+Une copie locale minimale des fichiers du site public du snapshot `2026-10-15-v9-tesla-mac-ingress-verified` a été téléchargée en lecture seule et chaque fichier a été vérifié contre le manifeste SHA public. Le site et le candidat IONITY FR/GB ont ensuite été empaquetés dans un nouveau dossier temporaire, sans remplacer le site public. Le candidat est épinglé par son `bundleId` et les SHA des sources sont revérifiés dans le navigateur.
+
+`tests/v9_preproduction_browser_smoke.py` utilise Firefox headless et un serveur lié à `127.0.0.1`. L'origine Paris/Londres est fixée localement pour éviter toute requête de géocodage ; les entrées de station et les tarifs proviennent des archives préparées. Résultat sur ce bundle : stations FR et GB visibles, trois canaux affichés, classement limité aux offres réellement évaluées, filtre de puissance actif, provenance IONITY et date d'extraction exactes, vue liste et carte OpenStreetMap avec marqueurs sélectionnables. Une erreur de tuile révèle un avertissement tout en laissant les marqueurs utilisables. [Capture liste](v9-rebuild/evidence/prepared-fr-station-list-20261023.png) et [capture carte](v9-rebuild/evidence/prepared-fr-map-20261023.png).
+
+Commande reproductible après packaging et installation locale de Selenium :
+
+```bash
+python3 tests/v9_preproduction_browser_smoke.py --site /chemin/absolu/vers/preview-tcc-neuf
+```
+
+Ce replay couvre deux pays et une famille CPO, avec offres brutes volontairement non chiffrées. Il ne valide ni le moteur tarifaire complet, ni tous les pays, ni une URL de préproduction accessible à l'utilisateur, ni le responsive sous 500 px dans Firefox headless. G7/G8 restent FAIL.
 
 ## Essai local, sans publication
 

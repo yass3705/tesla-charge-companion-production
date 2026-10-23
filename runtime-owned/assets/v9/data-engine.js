@@ -89,7 +89,13 @@
   function mergeFragment(entity,fragment,source){
     for(const family of Object.keys(FAMILY_FIELDS))applyFamily(entity,fragment,source,family);
     const aliases=fragmentKeys(fragment,source);entity.aliases=uniq([...entity.aliases,...aliases]);for(const k of aliases)entity._keys.add(k);
-    entity.provenance.push({sourceId:source.id,sourceStationId:text(fragment?.sourceStationId||fragment?.id),updatedAt:fragment?.updatedAt||null});mergeOffers(entity,fragment,source);return entity;
+    const preparedId=text(source?.id).startsWith('prepared:')?text(source.id).slice('prepared:'.length):null;
+    const preparedEvidence=preparedId?(fragment?.provenance||[]).find(row=>text(row?.sourceId)===preparedId):null;
+    entity.provenance.push(preparedEvidence?{
+      sourceId:preparedId,sourceStationId:text(fragment?.sourceStationId||fragment?.id),
+      artifactSha256:preparedEvidence.artifactSha256||null,generatedAt:preparedEvidence.generatedAt||null,
+      updatedAt:fragment?.updatedAt||null
+    }:{sourceId:source.id,sourceStationId:text(fragment?.sourceStationId||fragment?.id),updatedAt:fragment?.updatedAt||null});mergeOffers(entity,fragment,source);return entity;
   }
   function publicEntity(entity){const out={...entity};delete out._fieldRanks;delete out._offerRanks;delete out._keys;out.aliases=uniq(out.aliases).sort();out.provenance=out.provenance.slice().sort((a,b)=>`${a.sourceId}|${a.sourceStationId}`.localeCompare(`${b.sourceId}|${b.sourceStationId}`));out.offers=out.offers.slice().sort((a,b)=>offerSemanticKey(a,out.countryCode).localeCompare(offerSemanticKey(b,out.countryCode)));return out;}
   function resolveEntities(items){
