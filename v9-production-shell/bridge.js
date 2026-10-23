@@ -168,10 +168,10 @@
     const powerSelect=get('simPowerType'),acCheckbox=get('simPowerAc'),dcCheckbox=get('simPowerDc'),connectorKinds=acCheckbox&&dcCheckbox?[...(acCheckbox.checked?['AC']:[]),...(dcCheckbox.checked?['DC']:[])]:powerSelect?.multiple?[...powerSelect.selectedOptions].map(option=>text(option.value)).filter(v=>v==='AC'||v==='DC'):(text(powerSelect?.value)&&text(powerSelect?.value)!=='all'?[text(powerSelect.value)]:[]);
     const minPowerInput=num(get('simMinPowerKw')?.value),maxPowerInput=num(get('simMaxPowerKw')?.value);
     const minPowerKw=minPowerInput!=null?Math.max(1,minPowerInput):null,maxPowerKw=maxPowerInput!=null?Math.max(1,maxPowerInput):null;
-    return{startSoc:num(get('simNow')?.value),targetSoc:num(get('simTarget')?.value),date,time,startAt,disconnectAt,condition:get('simCondition')?.value||'normal',profile:get('simProfile')?.value||'realistic',operatorMode,operatorIds,connectorKinds,minPowerKw,maxPowerKw,rankingMode:get('simRanking')?.value||'balanced',radiusKm:radius,originText:text(get('simOrigin')?.value)};
+    return{startSoc:num(get('simNow')?.value),targetSoc:num(get('simTarget')?.value),date,time,startAt,disconnectAt,condition:get('simCondition')?.value||'normal',profile:get('simProfile')?.value||'realistic',batteryCapacityKwh:num(get('v9BatteryCapacity')?.value),consumptionKwhPer100Km:num(get('v9Consumption')?.value),vehicleMaxAcKw:num(get('v9MaxAc')?.value),vehicleMaxDcKw:num(get('v9MaxDc')?.value),operatorMode,operatorIds,connectorKinds,minPowerKw,maxPowerKw,rankingMode:get('simRanking')?.value||'balanced',radiusKm:radius,originText:text(get('simOrigin')?.value)};
   }
   function currencyForCountry(countryCode){return{CH:'CHF',GB:'GBP',MA:'MAD'}[text(countryCode).toUpperCase()]||'EUR';}
-  function buildSession(input,countryCode){return{startSoc:input.startSoc,targetSoc:input.targetSoc,startAt:input.startAt,disconnectAt:input.disconnectAt,targetCurrency:currencyForCountry(countryCode),batteryCapacityKwh:75,consumptionKwhPer100Km:15,vehicleMaxAcKw:11,vehicleMaxDcKw:250,chargeEfficiency:.92,chargeCurve:dcCurve(input.condition,input.profile)};}
+  function buildSession(input,countryCode){const bounded=(value,min,max,fallback)=>typeof value==='number'&&Number.isFinite(value)&&value>=min&&value<=max?value:fallback;return{startSoc:input.startSoc,targetSoc:input.targetSoc,startAt:input.startAt,disconnectAt:input.disconnectAt,targetCurrency:currencyForCountry(countryCode),batteryCapacityKwh:bounded(input.batteryCapacityKwh,10,250,75),consumptionKwhPer100Km:bounded(input.consumptionKwhPer100Km,5,60,15),vehicleMaxAcKw:bounded(input.vehicleMaxAcKw,1,43,11),vehicleMaxDcKw:bounded(input.vehicleMaxDcKw,1,500,250),chargeEfficiency:.92,chargeCurve:dcCurve(input.condition,input.profile)};}
   function diagnosticStore(w,event){try{const key='tccV9ProductionShellDiagnosticsV1',rows=JSON.parse(w.localStorage.getItem(key)||'[]');rows.unshift({...event,at:new Date().toISOString()});w.localStorage.setItem(key,JSON.stringify(rows.slice(0,20)));}catch(_){}}
   async function countryCodeForOrigin(w,origin){
     const cacheKey=`tcc-v9-country:${Number(origin.lat).toFixed(3)},${Number(origin.lon).toFixed(3)}`;
@@ -1390,6 +1390,18 @@
       {title:'Priorité de classement',ids:['simRanking']}
     ];
     const captured=groups.map(group=>({group,nodes:group.ids.map(field).filter(Boolean)}));
+    const battery=captured.find(row=>row.group.title==='Batterie et objectif');
+    if(w.__TCC_V9_SHELL_CONFIG__?.preproductionIsolated===true&&battery){
+      for(const [id,label,value,min,max,step] of [
+        ['v9BatteryCapacity','Capacité utile de batterie (kWh)',75,10,250,1],
+        ['v9Consumption','Consommation (kWh/100 km)',15,5,60,0.1],
+        ['v9MaxAc','Puissance AC maximale du véhicule (kW)',11,1,43,1],
+        ['v9MaxDc','Puissance DC maximale du véhicule (kW)',250,1,500,1]]){
+        const wrapper=w.document.createElement('label');wrapper.textContent=label;
+        const input=w.document.createElement('input');input.id=id;input.type='number';input.min=String(min);input.max=String(max);input.step=String(step);input.value=String(value);input.required=true;
+        wrapper.appendChild(input);battery.nodes.push(wrapper);
+      }
+    }
     grid.innerHTML='';origin.classList.add('full');grid.appendChild(origin);
     for(const {group,nodes} of captured){
       if(group.title==='Réseaux affichés'){

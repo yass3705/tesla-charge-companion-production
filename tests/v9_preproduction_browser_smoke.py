@@ -40,6 +40,19 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             marker = browser.execute_script("return window.__TCC_V9_SHELL__")
             if marker.get("ready") is not True:
                 raise AssertionError(f"TCC shell did not load: {marker}")
+            vehicle = browser.execute_script("""
+                const values={v9BatteryCapacity:90,v9Consumption:18,v9MaxAc:22,v9MaxDc:180};
+                for(const [id,value] of Object.entries(values)){
+                  const input=document.getElementById(id);
+                  if(!input)return {error:`missing ${id}`};
+                  input.value=String(value);
+                }
+                const session=TCCV9ProductionShell.buildSession(TCCV9ProductionShell.readInputs(window),'FR');
+                return {capacity:session.batteryCapacityKwh,consumption:session.consumptionKwhPer100Km,
+                  ac:session.vehicleMaxAcKw,dc:session.vehicleMaxDcKw};
+            """)
+            if vehicle != {"capacity": 90, "consumption": 18, "ac": 22, "dc": 180}:
+                raise AssertionError(f"Vehicle settings did not reach the session: {vehicle}")
 
             def compare(lat: float, lon: float, country: str, label: str, min_power: int | None = None,
                         radius: int = 200, require_raw: bool = True) -> dict:

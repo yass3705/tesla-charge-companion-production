@@ -3,7 +3,15 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea, stationDisplayName, stationBaseSource,
-  variantsByPower, stationCards, renderStationCard } = require('../v9-production-shell/bridge.js');
+  variantsByPower, stationCards, renderStationCard, buildSession } = require('../v9-production-shell/bridge.js');
+
+const chosenVehicle=buildSession({startSoc:20,targetSoc:80,batteryCapacityKwh:90,consumptionKwhPer100Km:18,vehicleMaxAcKw:22,vehicleMaxDcKw:180},'FR');
+assert.equal(chosenVehicle.batteryCapacityKwh,90);
+assert.equal(chosenVehicle.consumptionKwhPer100Km,18);
+assert.equal(chosenVehicle.vehicleMaxAcKw,22);
+assert.equal(chosenVehicle.vehicleMaxDcKw,180);
+assert.equal(buildSession({batteryCapacityKwh:-1,vehicleMaxDcKw:999},'FR').batteryCapacityKwh,75);
+assert.equal(buildSession({batteryCapacityKwh:-1,vehicleMaxDcKw:999},'FR').vehicleMaxDcKw,250);
 
 const unknownPowerStation={id:'ozecar-fixture',countryCode:'FR',name:'OZECAR test',physicalOperator:{name:'OZECAR'},
   evses:[{id:'internal-a',officialEvseId:'FROZEE3430505',connectors:[{id:'plug-a',plugType:'Type 2',powerKw:null}]},
