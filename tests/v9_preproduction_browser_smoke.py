@@ -98,6 +98,9 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       emspRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
                         o.channel==='Electra'||o.channel==='Electroverse').length,0),
+                      emspMisScoped:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        (o.channel==='Electra'||o.channel==='Electroverse')&&
+                        !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId)).length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
                     });}).catch(error=>done({error:String(error)}));
@@ -149,8 +152,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if target is None:
                     raise AssertionError("Exact eMSP source has no archived national station coordinates")
                 emsp = compare(target["latitude"], target["longitude"], "FR", "Exact eMSP fixture", radius=2)
-                if emsp["emspRaw"] <= 0:
-                    raise AssertionError("Exact eMSP raw offer was lost before reaching the map")
+                if emsp["emspRaw"] <= 0 or emsp["emspMisScoped"] != 0:
+                    raise AssertionError("Exact eMSP raw offer was lost or moved to another EVSE")
             gb = compare(51.507, -0.128, "GB", "London fixture")
             gb_text = browser.execute_script("return document.getElementById('results').innerText")
             if "IONITY Direct · UK" not in gb_text:
