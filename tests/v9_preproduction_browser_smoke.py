@@ -147,6 +147,11 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if belgium["priced"] and not any(total > 0 for total in be_totals):
                     raise AssertionError("Proved Belgium energy-only tariff did not reach the UI")
                 belgium["calculatedCards"] = len(be_totals)
+            netherlands = None
+            if "NL:dotnl_static" in source_ids:
+                netherlands = compare(52.367, 4.904, "NL", "Amsterdam fixture", radius=30)
+                if "NL:dotnl_static" not in netherlands["sourceIds"] or netherlands["priced"] != 0:
+                    raise AssertionError("DOT-NL national archive missing or raw tariffs entered ranking")
             zephyre = None
             if "FR:zephyre_epowerdirect_exact" in source_ids:
                 zephyre = compare(43.579, 3.880, "FR", "Lattes fixture", radius=20)
@@ -191,7 +196,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
             return {"fr": fr, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
-                    "ch": switzerland, "be": belgium, "zephyre": zephyre, "ozecar": ozecar,
+                    "ch": switzerland, "be": belgium, "nl": netherlands,
+                    "zephyre": zephyre, "ozecar": ozecar,
                     "minPower300": filtered["count"], "map": map_state,
                     "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:
