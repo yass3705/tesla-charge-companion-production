@@ -45,6 +45,10 @@
       'assets/v9/adapters/france-emsp-compact.js','assets/v9/adapters/france-crosswalk.js','assets/v9/adapters/france-irve-status.js',
       'assets/v9/adapters/morocco-public.js','assets/v9/adapters/morocco-kilowatt-tariff.js','assets/v9/browser-loaders.js'
     ];
+    if(cfg.preproductionCandidateBase){
+      if(cfg.mode!=='candidate'||cfg.preproductionIsolated!==true)throw new Error('preproduction isolation required');
+      dependencies.push('assets/v9/adapters/canonical-v9.js','assets/v9/preproduction-candidate-loader.js','assets/v9/map-price-engine.js');
+    }
     for(const path of dependencies){const script=parsed.createElement('script');script.defer=true;script.src=`${runtimeBase}/${path}`;parsed.body.append(script);}
     const bridge=parsed.createElement('script');bridge.defer=true;bridge.src='v9-production-shell/bridge.js';parsed.body.append(bridge);
 
