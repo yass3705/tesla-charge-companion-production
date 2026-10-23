@@ -586,6 +586,14 @@
   }
   function evaluateOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=offerTimeZone(offer,session);
+    if(offer?.metadata?.identityMode==='exact_canonical_connector_ocpi'){
+      const canonicalRules=Array.isArray(pricing.rules)?pricing.rules:[];
+      if(canonicalRules.some(rule=>(num(rule?.chargePerMinute)??0)>0)&&
+         (num(session.durationMinutes)==null||num(session.chargingMinutes)==null))
+        return{complete:false,reason:'charging_duration_required',offerId:offer?.id||null,timeZone};
+      if(canonicalRules.some(rule=>(num(rule?.idlePerMinute)??0)>0)&&num(session.postChargeMinutes)==null)
+        return{complete:false,reason:'post_charge_duration_required',offerId:offer?.id||null,timeZone};
+    }
     if(pricing.type==='connected_kerb_midhope_guest_verified')return evaluateVerifiedMidhope(offer,session);
     const rules=[...(pricing.rules||[]),...(pricing.componentGroups||[]).flatMap(group=>group.rules||[])];
     const needsLocalTime=rules.some(rule=>rule.scope==='timeWindow'||rule.daysOfWeek!=null||rule.days!=null||rule.holidayOnly===true||rule.excludeHolidays===true||rule.validFromDate!=null||rule.validThroughDate!=null);

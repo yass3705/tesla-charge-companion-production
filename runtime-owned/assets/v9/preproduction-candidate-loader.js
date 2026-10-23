@@ -68,12 +68,18 @@
                offer.pricing.rules?.length!==1)return false;
             const rule=offer.pricing.rules[0],raw=rawOffers.get(offer.id);
             const ordinaryRule='afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,end,idlePerMinute,pricePerKwh,scope,start';
-            const nlRule='afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,end,energyStepWh,idlePerMinute,pricePerKwh,scope,start';
-            if(Object.keys(rule).sort().join(',')!==(id==='NL:dotnl_static'?nlRule:ordinaryRule)||
+            const nlRequired=['afterMinutesRate','afterMinutesThreshold','billing','chargePerMinute','connectionFee','currency','end','energyStepWh','idlePerMinute','pricePerKwh','scope','start'];
+            const nlAllowed=new Set([...nlRequired,'chargingTimeStepSeconds','parkingTimeStepSeconds']);
+            if((id==='NL:dotnl_static'?
+                 nlRequired.some(key=>!Object.prototype.hasOwnProperty.call(rule,key))||
+                   Object.keys(rule).some(key=>!nlAllowed.has(key)):
+                 Object.keys(rule).sort().join(',')!==ordinaryRule)||
                rule.scope!=='allDay'||rule.billing!=='kwh'||rule.start!=='00:00'||rule.end!=='24:00'||
                rule.currency!=='EUR'||!Number.isFinite(rule.pricePerKwh)||rule.pricePerKwh<0||
-               !['chargePerMinute','connectionFee','idlePerMinute','afterMinutesRate','afterMinutesThreshold']
-                 .every(key=>rule[key]===0)||!raw||raw.channel!=='Direct'||
+               (id==='NL:dotnl_static'?
+                 !['afterMinutesRate','afterMinutesThreshold'].every(key=>rule[key]===0):
+                 !['chargePerMinute','connectionFee','idlePerMinute','afterMinutesRate','afterMinutesThreshold']
+                   .every(key=>rule[key]===0))||!raw||raw.channel!=='Direct'||
                raw.scope?.evseId!==offer.evseIds[0]||raw.calculationStatus!=='not_evaluated')return false;
             const local=fragment.evses.find(evse=>evse.id===offer.evseIds[0]);
             if(!local||!offer.connectorIds.every(connectorId=>
@@ -95,6 +101,18 @@
               const element=tariff?.elements?.[0],components=element?.priceComponents;
               const restrictions=element?.restrictions;
               const energy=Array.isArray(components)?components.filter(component=>component.type==='ENERGY'):[];
+              const byType=new Map();
+              if(!Array.isArray(components))return false;
+              for(const component of components){
+                if(!['ENERGY','TIME','FLAT','PARKING_TIME'].includes(component.type)||
+                   byType.has(component.type)||!Number.isFinite(component.priceInclVat)||
+                   component.priceInclVat<0||!Number.isInteger(component.stepSize)||
+                   component.stepSize<0||
+                   (component.priceInclVat>0&&component.type!=='FLAT'&&component.stepSize<1))return false;
+                byType.set(component.type,component);
+              }
+              const paidTime=byType.get('TIME')?.priceInclVat||0;
+              const paidParking=byType.get('PARKING_TIME')?.priceInclVat||0;
               return offer.metadata.identityMode==='exact_canonical_connector_ocpi'&&
                 offer.connectorIds.length===1&&raw.scope?.connectorId===offer.connectorIds[0]&&
                 connectorOfferCounts.get(offer.connectorIds[0])===1&&
@@ -109,9 +127,14 @@
                 energy.length===1&&energy[0].priceInclVat===rule.pricePerKwh&&
                 energy[0].stepSize===rule.energyStepWh&&
                 Number.isInteger(rule.energyStepWh)&&rule.energyStepWh>=1&&
-                components.every(component=>['ENERGY','TIME','FLAT','PARKING_TIME'].includes(component.type)&&
-                  typeof component.priceInclVat==='number'&&component.priceInclVat>=0&&
-                  (component.type==='ENERGY'||component.priceInclVat===0));
+                rule.connectionFee===(byType.get('FLAT')?.priceInclVat||0)&&
+                rule.idlePerMinute===paidParking/60&&
+                rule.chargePerMinute===paidTime/60&&
+                (paidTime>0?
+                  rule.chargingTimeStepSeconds===byType.get('TIME').stepSize:
+                  rule.chargingTimeStepSeconds==null)&&
+                (paidParking>0?rule.parkingTimeStepSeconds===byType.get('PARKING_TIME').stepSize:
+                  rule.parkingTimeStepSeconds==null);
             }
             if(!['FR:ionity_direct','IT:atlante_direct'].includes(id)||
                offer.metadata.identityMode!=='exact_canonical_connector'||

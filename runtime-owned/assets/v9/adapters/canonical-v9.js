@@ -115,7 +115,7 @@
     if(restriction&&Object.values(restriction).some(value=>Array.isArray(value)?value.length:value!=null&&value!==''))return null;
     const components=element?.priceComponents;
     if(!Array.isArray(components)||!components.length)return null;
-    let energy=null,step=null;
+    let energy=null,step=null,time=null,timeStep=null,flat=null,parking=null,parkingStep=null;
     for(const component of components){
       const type=component?.type,amount=component?.priceInclVat,billingStep=component?.stepSize;
       if(!['ENERGY','TIME','FLAT','PARKING_TIME'].includes(type)||
@@ -124,7 +124,16 @@
       if(type==='ENERGY'){
         if(energy!=null||!(billingStep>=1))return null;
         energy=amount;step=billingStep;
-      }else if(amount!==0)return null;
+      }else if(type==='TIME'){
+        if(time!=null||(amount>0&&!(billingStep>=1)))return null;
+        time=amount;timeStep=billingStep;
+      }else if(type==='FLAT'){
+        if(flat!=null)return null;
+        flat=amount;
+      }else if(type==='PARKING_TIME'){
+        if(parking!=null||(amount>0&&!(billingStep>=1)))return null;
+        parking=amount;parkingStep=billingStep;
+      }
     }
     if(energy==null)return null;
     const cpo=index.cpos.get(evse.cpoId);
@@ -132,6 +141,9 @@
     const rule={scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',
       pricePerKwh:energy,chargePerMinute:0,connectionFee:0,idlePerMinute:0,
       afterMinutesRate:0,afterMinutesThreshold:0,energyStepWh:step};
+    if(time>0){rule.chargePerMinute=time/60;rule.chargingTimeStepSeconds=timeStep;}
+    if(flat>0)rule.connectionFee=flat;
+    if(parking>0){rule.idlePerMinute=parking/60;rule.parkingTimeStepSeconds=parkingStep;}
     return{id:offer.id,provider:cpo.name||cpo.sourceOperatorId,kind:'direct',currency:'EUR',
       countries:['NL'],operatorIds:[cpo.sourceOperatorId],evseIds:[evse.id],
       connectorIds:[connector.id],subscriptionId:null,pricing:{type:'rules',rules:[rule]},

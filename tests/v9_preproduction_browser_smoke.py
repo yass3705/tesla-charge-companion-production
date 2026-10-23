@@ -76,16 +76,29 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     document.getElementById('simMinPowerKw').value=minPower==null?'':String(minPower);
                 """, lat, lon, country, label, min_power, radius)
                 result = browser.execute_async_script("""
-                    const done=arguments[0];window.compare().then(area=>area?done({
+                    const done=arguments[0];window.compare().then(area=>{if(!area){done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)});return;}
+                      const compoundIds=new Set(area.stations.flatMap(s=>s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='NL:dotnl_static'&&o.pricing?.rules?.some(r=>
+                          r.chargePerMinute>0||r.connectionFee>0||r.idlePerMinute>0)).map(o=>o.id));
+                      const evaluated=Object.values(area.sessionEvaluations||{}).flatMap(row=>
+                        [row?.best,...(row?.alternatives||[]),...(row?.incomplete||[])]).filter(Boolean);
+                      done({
                       count:area.stations.length,prepared:area.preproductionCandidate,
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
+                      compoundPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='NL:dotnl_static'&&o.pricing?.rules?.some(r=>
+                          r.chargePerMinute>0||r.connectionFee>0||r.idlePerMinute>0)).length,0),
+                      compoundEvaluated:evaluated.filter(row=>compoundIds.has(row.offerId)&&row.result?.complete).length,
+                      compoundFees:evaluated.filter(row=>compoundIds.has(row.offerId)&&row.result?.complete&&
+                        (row.result.components?.connectionFee>0||row.result.components?.chargingTime>0||
+                          row.result.components?.parkingTime>0)).length,
                       pricedOutsideProved:area.stations.flatMap(s=>s.offers||[]).filter(o=>
                         !['FR:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
                         !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi'].includes(o.metadata?.identityMode)).length,
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
-                    }):done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)})).catch(error=>done({error:String(error)}));
+                    });}).catch(error=>done({error:String(error)}));
                 """)
                 if "error" in result:
                     raise AssertionError(result)
@@ -178,6 +191,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 nl_totals = browser.execute_script("return [...document.querySelectorAll('#results .v9-tariff-row[data-v9-effective-total]')].map(row=>Number(row.dataset.v9EffectiveTotal))")
                 if netherlands["priced"] and not any(total > 0 for total in nl_totals):
                     raise AssertionError("Proved DOT-NL energy-only tariff did not reach the UI")
+                if netherlands["compoundPriced"] and not netherlands["compoundFees"]:
+                    raise AssertionError("Proved DOT-NL compound fees did not reach session calculations")
                 netherlands["calculatedCards"] = len(nl_totals)
             zephyre = None
             if "FR:zephyre_epowerdirect_exact" in source_ids:

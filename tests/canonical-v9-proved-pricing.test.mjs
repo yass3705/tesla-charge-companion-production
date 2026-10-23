@@ -3,7 +3,9 @@ import {createRequire} from 'node:module';
 import {createHash,webcrypto} from 'node:crypto';
 const require=createRequire(import.meta.url);
 const {toFragments}=require('../runtime-owned/assets/v9/adapters/canonical-v9.js');
-const {evaluateOffer}=require('../runtime-owned/assets/v9/pricing-engine.js');
+const {evaluateOffer}=require('../runtime-overrides/assets/v9/pricing-engine.js');
+const historicalPricing=require('../runtime-overrides/assets/v9/pricing-engine.js');
+const historicalOcpi=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
 const {evaluateStation}=require('../runtime-owned/assets/v9/session-engine.js');
 const {loadPrepared}=require('../runtime-owned/assets/v9/preproduction-candidate-loader.js');
 const {simpleEnergyPrice}=require('../runtime-overrides/assets/v9/adapters/atlante-italy-exact.js');
@@ -134,7 +136,6 @@ assert.equal(nlFragment.offers.length,1);
 assert.equal(evaluateOffer(nlFragment.offers[0],{energyKwh:1.2,startAt:'2026-10-23T12:00:00Z'}).totalEur,1.14,
   'historical DOT-NL 1000 Wh billing oracle');
 for(const mutation of [
-  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents[1].priceInclVat=0.1;},
   d=>{d.offers.push({...d.offers[0],id:'another-tariff'});},
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_kwh:2};},
   d=>{d.connectors[0].powerKw=null;},
@@ -142,6 +143,50 @@ for(const mutation of [
   const changed=structuredClone(netherlands);mutation(changed);
   assert.equal(toFragments(changed)[0].offers.length,0,'unsupported NL tariff stays unpriced');
 }
+const compoundNl=structuredClone(netherlands);
+compoundNl.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents=[
+  {type:'ENERGY',priceInclVat:0.57,stepSize:1000},
+  {type:'TIME',priceInclVat:3.6,stepSize:60},
+  {type:'FLAT',priceInclVat:1.2,stepSize:0},
+  {type:'PARKING_TIME',priceInclVat:1.2,stepSize:300}
+];
+const compoundOffer=toFragments(compoundNl)[0].offers[0];
+const compoundSession={energyKwh:1.2,durationMinutes:55,
+  chargingMinutes:43,postChargeMinutes:12,startAt:'2026-10-23T12:00:00Z'};
+const compoundQuote=evaluateOffer(compoundOffer,compoundSession);
+assert.equal(compoundQuote.totalEur,5.22,
+  'OCPI energy step, charging minute, flat fee and parking step must all be billed');
+const historicalCompiled=historicalOcpi.tariffPricing({currency:'EUR',elements:[{price_components:[
+  {type:'ENERGY',price:0.57,step_size:1000},{type:'TIME',price:3.6,step_size:60},
+  {type:'FLAT',price:1.2,step_size:0},{type:'PARKING_TIME',price:1.2,step_size:300}
+]}]});
+const historicalQuote=historicalPricing.evaluateOffer({...compoundOffer,pricing:historicalCompiled},compoundSession);
+assert.equal(compoundQuote.totalEur,historicalQuote.totalEur,
+  'candidate compound total must match the historical component engine');
+for(const key of ['energy','chargingTime','connectionFee','parkingTime'])
+  assert.equal(compoundQuote.components[key],historicalQuote.components[key],`component ${key} parity`);
+assert.equal(evaluateOffer(compoundOffer,{energyKwh:1.2,startAt:'2026-10-23T12:00:00Z'}).complete,false,
+  'paid time must not disappear when session duration is missing');
+for(const mutation of [
+  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents.push({type:'TIME',priceInclVat:1,stepSize:60});},
+  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents.push({type:'UNKNOWN',priceInclVat:1,stepSize:60});},
+  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={start_time:'18:00'};},
+]){const changed=structuredClone(compoundNl);mutation(changed);
+  assert.equal(toFragments(changed)[0].offers.length,0,'ambiguous or restricted component remains unparsed');}
+const compoundBytes=new TextEncoder().encode(JSON.stringify(compoundNl));
+const compoundIndex={schemaVersion:1,status:'prepared',bundleId:'nl-compound-test',rejected:[],
+  sources:[{source:'NL:dotnl_static',path:'sources/NL__dotnl_static.json',
+    sha256:createHash('sha256').update(compoundBytes).digest('hex')}]};
+const compoundFetch=async url=>({ok:true,arrayBuffer:async()=>
+  url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(compoundIndex)).buffer:compoundBytes.buffer});
+const compoundPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:compoundFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await compoundPrepared.loaders['prepared:NL:dotnl_static']())[0].offers.length,1,
+  'compound OCPI recipe reaches the prepared candidate loader');
+const compoundTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:compoundFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
+    fragments[0].offers[0].pricing.rules[0].connectionFee=0;return fragments;}}});
+await assert.rejects(compoundTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
 const nlBytes=new TextEncoder().encode(JSON.stringify(netherlands));
 const nlSha=createHash('sha256').update(nlBytes).digest('hex');
 const nlIndex={schemaVersion:1,status:'prepared',bundleId:'nl-test',rejected:[],

@@ -40,6 +40,15 @@ assert.match(rendered,/5,00 €/);
 assert.match(rendered,/8,00 €/);
 assert.equal((rendered.match(/Prix calculé/g)||[]).length,2,'only complete Direct and Electroverse lanes have calculated prices');
 assert.doesNotMatch(rendered,/Prix calculé · Tarif incalculable/);
+const compoundStation=station('ocpi');
+compoundStation.offers=[{id:'ocpi-compound',provider:'DOT-NL',kind:'direct',currency:'EUR',pricing:{type:'rules',rules:[
+  {scope:'allDay',start:'00:00',end:'24:00',pricePerKwh:.57,chargePerMinute:.06,connectionFee:1.2,idlePerMinute:.02}
+]}}];
+const compoundEvaluation={best:{...direct,offerId:'ocpi-compound',provider:'DOT-NL',total:5.22,
+  result:{complete:true,totalEur:5.22,components:{energy:1.14,chargingTime:2.58,connectionFee:1.2,parkingTime:.3}}},alternatives:[],incomplete:[]};
+const compoundMarkup=ui.renderTariffs(compoundEvaluation,compoundStation,{EUR:1});
+for(const label of ['Énergie : 1,14 €','Temps de charge : 2,58 €','Frais fixes : 1,20 €','Stationnement : 0,30 €'])
+  assert.ok(compoundMarkup.includes(label),`visible billed component: ${label}`);
 const pricedA={station:s,evaluation:{best:direct,alternatives:[electraA,electroverse],incomplete:[]},distanceKm:2,total:5};
 const s2=station('b');s2.offers=s.offers;
 const pricedB={station:s2,evaluation:{best:direct,alternatives:[electraB,electroverse],incomplete:[]},distanceKm:2,total:5};

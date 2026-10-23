@@ -612,8 +612,14 @@
       const fullLabels=detail?tariffRateLabels(detail):[];
       const source=text(detail?.metadata?.source||detail?.source||detail?.sourceId);
       const sourceDate=text(detail?.metadata?.fetchedAt||detail?.metadata?.validatedAt||detail?.metadata?.collectedAt||detail?.generatedAt);
+      const billed=item?.result?.components||{};
+      const feeRows=state.status==='priced'&&item?.result?.complete===true?
+        [['energy','Énergie'],['chargingTime','Temps de charge'],['connectionFee','Frais fixes'],['parkingTime','Stationnement']]
+          .filter(([key])=>num(billed[key])!=null&&num(billed[key])!==0)
+          .map(([key,name])=>'<div>'+esc(name)+' : '+esc(formatCurrencyAmount(billed[key],item.currency||detail?.currency||'EUR'))+'</div>').join(''):'';
       const history=detail?'<details class="v9-tariff-detail" style="grid-column:1/-1;font-size:12px"><summary>Détail du tarif · '+esc(category.label)+'</summary>'+
         (fullLabels.length?'<div>Grilles et conditions : '+esc(fullLabels.join(' · '))+'</div>':'')+
+        feeRows+
         (source?'<div>Source : '+esc(source)+'</div>':'')+(sourceDate?'<div>Date : '+esc(sourceDate)+'</div>':'')+
         '<div>Offre : '+esc(detail.id||item?.offerId||'')+'</div></details>':'';
       return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'" data-v9-tariff-state="'+esc(state.status)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
