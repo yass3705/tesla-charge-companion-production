@@ -1,4 +1,5 @@
 import importlib.util
+import copy
 import unittest
 from pathlib import Path
 
@@ -42,6 +43,30 @@ class ExactJoinTest(unittest.TestCase):
         self.assertEqual(MODULE.match_offers(self.national, [self.source(connector_id=None)])["unmatched"][0]["reason"], "official_connector_id_missing")
         self.national["evses"].append({"id": "n3", "country": "FR", "officialEvseId": "FR*ABC*E1", "stationId": "other"})
         self.assertEqual(MODULE.match_offers(self.national, [self.source()])["unmatched"][0]["reason"], "ambiguous_exact_evse")
+
+    def test_archived_electra_nl_connector_crosswalk(self):
+        tariff = "NL:ELD:ELECTRA-PAYG:d2f126b4e593a5d4"
+        national = {"schemaVersion": "1.0.0", "stations": [{"stationId": "NL:ELD:NL*ELD*PBARDB",
+            "countryCode": "NL", "partyId": "ELD", "evses": [{"evseId": "NL*ELD*EA69Y",
+            "connectors": [{"id": "combo-ccs-eu_2", "tariffKeys": [tariff]},
+                           {"id": "combo-ccs-eu_1", "tariffKeys": []}]}]}]}
+        overlay = {"country": "NL", "tariffs": {tariff: {"tariffKey": tariff}}, "matches": [{
+            "stationId": "NL:ELD:NL*ELD*PBARDB", "evseId": "NL*ELD*EA69Y",
+            "connectorId": "combo-ccs-eu_2", "tariffKey": tariff,
+            "sourceConnectorId": "155671df-cd06-4cf5-bbbb-f7bfdc243d9c",
+            "match": "exact_evse_unique_connector"}]}
+        result = MODULE.match_archived_electra_nl(national, overlay)
+        self.assertEqual(result["matches"][0]["nationalConnectorId"], "combo-ccs-eu_2")
+        self.assertEqual(result["matches"][0]["channel"], "Direct")
+        self.assertEqual(result["unmatched"], [])
+        wrong = copy.deepcopy(overlay)
+        wrong["matches"][0]["connectorId"] = "combo-ccs-eu_1"
+        self.assertEqual(MODULE.match_archived_electra_nl(national, wrong)["unmatched"][0]["reason"],
+                         "national_connector_or_tariff_not_exact")
+        duplicate = copy.deepcopy(overlay)
+        duplicate["matches"].append(copy.deepcopy(duplicate["matches"][0]))
+        self.assertEqual(MODULE.match_archived_electra_nl(national, duplicate)["unmatched"][0]["reason"],
+                         "duplicate_archived_match")
 
 
 if __name__ == "__main__":

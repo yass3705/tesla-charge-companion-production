@@ -64,3 +64,45 @@ def match_offers(national: dict, tariff_sources: list[dict]) -> dict:
     return {"matches": matches, "unmatched": unmatched,
             "statistics": {"nationalEvseCount": len(national_evse), "matchedOfferCount": len(matches),
                            "unmatchedOfferCount": len(unmatched)}}
+
+
+def match_archived_electra_nl(national: dict, overlay: dict) -> dict:
+    """Replay the archived NL Electra exact EVSE/connector crosswalk, fail closed.
+
+    The overlay's connector UUID is retained as provenance. The national
+    connector identifier comes only from its already approved match row.
+    """
+    if national.get("schemaVersion") != "1.0.0" or overlay.get("country") != "NL" or not isinstance(overlay.get("tariffs"), dict):
+        raise ValueError("Electra NL archive schema invalid")
+    stations = defaultdict(list)
+    for station in national.get("stations", []):
+        if station.get("countryCode") == "NL" and station.get("partyId") == "ELD":
+            stations[station.get("stationId")].append(station)
+    matched, unmatched, seen = [], [], set()
+    for row in overlay.get("matches", []):
+        identity = (row.get("stationId"), row.get("evseId"), row.get("connectorId"), row.get("tariffKey"))
+        if identity in seen:
+            unmatched.append({"identity": identity, "reason": "duplicate_archived_match"})
+            continue
+        seen.add(identity)
+        if row.get("match") != "exact_evse_unique_connector" or not all(identity) or row.get("tariffKey") not in overlay["tariffs"]:
+            unmatched.append({"identity": identity, "reason": "archived_proof_or_tariff_invalid"})
+            continue
+        station_rows = stations.get(identity[0], [])
+        if len(station_rows) != 1:
+            unmatched.append({"identity": identity, "reason": "national_station_not_unique"})
+            continue
+        evses = [evse for evse in station_rows[0].get("evses", []) if evse.get("evseId") == identity[1]]
+        if len(evses) != 1:
+            unmatched.append({"identity": identity, "reason": "national_evse_not_unique"})
+            continue
+        connectors = [connector for connector in evses[0].get("connectors", []) if connector.get("id") == identity[2]]
+        if len(connectors) != 1 or identity[3] not in (connectors[0].get("tariffKeys") or []):
+            unmatched.append({"identity": identity, "reason": "national_connector_or_tariff_not_exact"})
+            continue
+        matched.append({"stationId": identity[0], "officialEvseId": identity[1],
+                        "nationalConnectorId": identity[2], "tariffKey": identity[3],
+                        "sourceConnectorId": row.get("sourceConnectorId"),
+                        "channel": "Direct", "proof": "archived_exact_evse_unique_connector"})
+    return {"matches": matched, "unmatched": unmatched,
+            "statistics": {"matchedOfferCount": len(matched), "unmatchedOfferCount": len(unmatched)}}

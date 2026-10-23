@@ -33,6 +33,29 @@ def bundle(root, marker):
 
 
 class ImportV9BundleTest(unittest.TestCase):
+    def test_hash_correct_but_invented_official_identity_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            original = bundle(root, "a")
+            payload = json.loads((original / "FR__ionity_direct.json").read_bytes())
+            payload["cpos"] = [{"id": "cpo"}]
+            payload["stations"] = [{"id": "station", "cpoId": "cpo", "country": "FR"}]
+            payload["evses"] = [{"id": "evse", "stationId": "station", "cpoId": "cpo", "country": "FR",
+                                 "sourceEvseId": "FR*ABC*E1", "officialEvseId": "FR*ABC*E1"}]
+            payload["connectors"] = [{"id": "plug", "evseId": "evse", "sourceConnectorId": "1",
+                                       "officialConnectorId": "2"}]
+            source_bytes = json.dumps(payload).encode()
+            manifest = json.loads((original / "manifest.json").read_bytes())
+            manifest["sources"][1]["sha256"] = MODULE.sha256(source_bytes)
+            manifest_bytes = (json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()
+            forged = root / MODULE.sha256(manifest_bytes)
+            forged.mkdir()
+            (forged / "manifest.json").write_bytes(manifest_bytes)
+            (forged / "FR__ionity_direct.json").write_bytes(source_bytes)
+            (forged / "CH__swiss_integration.json").write_bytes((original / "CH__swiss_integration.json").read_bytes())
+            with self.assertRaisesRegex(ValueError, "official connector identity"):
+                MODULE.verify(forged)
+
     def test_source_isolation_and_rollback(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
