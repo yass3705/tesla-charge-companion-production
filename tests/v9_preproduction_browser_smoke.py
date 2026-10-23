@@ -155,6 +155,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         o.metadata?.sourceId==='GB:source_ev_pcpr_direct'&&
                         !(s.evses||[]).some(evse=>o.evseIds?.includes(evse.id)&&
                           o.connectorIds?.every(id=>(evse.connectors||[]).some(c=>c.id===id)))).length,0),
+                      spainNationalPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='ES:reve_static').length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
                     });}).catch(error=>done({error:String(error)}));
@@ -293,6 +295,16 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 germany = compare(52.520, 13.405, "DE", "Berlin fixture")
                 if "DE:ionity_direct" not in germany["sourceIds"]:
                     raise AssertionError("IONITY Germany candidate source missing")
+            spain = None
+            if "ES:reve_static" in source_ids:
+                spain = compare(40.416, -3.703, "ES", "Madrid fixture", radius=50, require_raw=False)
+                spanish_view = browser.execute_script("""
+                    return {groups:document.querySelectorAll('#results .v9-power-group').length,
+                        text:document.getElementById('results').innerText};
+                """)
+                if ("ES:reve_static" not in spain["sourceIds"] or spain["spainNationalPriced"] or
+                        spanish_view["groups"] <= 0 or "Prix non disponible" not in spanish_view["text"]):
+                    raise AssertionError(f"Spanish source identity, power groups or unavailable prices failed: {spain}")
             switzerland = None
             if "CH:swiss_integration" in source_ids:
                 switzerland = compare(47.376, 8.541, "CH", "Zurich fixture", radius=100)
@@ -373,7 +385,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
-            return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
+            return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "it": italy, "de": germany, "es": spain,
                     "ch": switzerland, "be": belgium, "nl": netherlands,
                     "zephyre": zephyre, "ozecar": ozecar,
                     "minPower300": filtered["count"], "map": map_state,

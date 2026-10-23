@@ -33,6 +33,28 @@ def bundle(root, marker):
 
 
 class ImportV9BundleTest(unittest.TestCase):
+    def test_source_identifier_without_official_evse_is_preserved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            original = bundle(root, "a")
+            payload = json.loads((original / "FR__ionity_direct.json").read_bytes())
+            payload["cpos"] = [{"id": "cpo"}]
+            payload["stations"] = [{"id": "station", "cpoId": "cpo", "country": "FR"}]
+            payload["evses"] = [{"id": "evse", "stationId": "station", "cpoId": "cpo", "country": "FR",
+                                 "sourceEvseId": "native-config-1", "officialEvseId": None}]
+            payload["connectors"] = [{"id": "plug", "evseId": "evse", "sourceConnectorId": "1",
+                                       "officialConnectorId": None}]
+            source_bytes = json.dumps(payload).encode()
+            manifest = json.loads((original / "manifest.json").read_bytes())
+            manifest["sources"][1]["sha256"] = MODULE.sha256(source_bytes)
+            manifest_bytes = (json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()
+            candidate = root / MODULE.sha256(manifest_bytes)
+            candidate.mkdir()
+            (candidate / "manifest.json").write_bytes(manifest_bytes)
+            (candidate / "FR__ionity_direct.json").write_bytes(source_bytes)
+            (candidate / "CH__swiss_integration.json").write_bytes((original / "CH__swiss_integration.json").read_bytes())
+            MODULE.verify(candidate)
+
     def test_hash_correct_but_invented_official_identity_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

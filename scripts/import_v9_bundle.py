@@ -61,7 +61,7 @@ def verify(bundle: Path, *, selected_source: str | None = None) -> dict:
             station = stations_by_id[evse["stationId"]]
             if evse["cpoId"] != station["cpoId"] or evse.get("country") != station.get("country"):
                 raise ValueError("Bundle EVSE ownership invalid")
-            if evse.get("officialEvseId") != evse.get("sourceEvseId"):
+            if evse.get("officialEvseId") is not None and evse.get("officialEvseId") != evse.get("sourceEvseId"):
                 raise ValueError("Bundle official EVSE identity altered")
         for connector in payload["connectors"]:
             if connector.get("evseId") not in known["evses"]:
