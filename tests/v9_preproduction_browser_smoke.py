@@ -57,8 +57,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       count:area.stations.length,prepared:area.preproductionCandidate,
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
                       pricedOutsideProved:area.stations.flatMap(s=>s.offers||[]).filter(o=>
-                        !['FR:ionity_direct','IT:atlante_direct','BE:nap_static'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
-                        !['exact_canonical_connector','exact_canonical_evse_supported_connectors'].includes(o.metadata?.identityMode)).length,
+                        !['FR:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
+                        !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi'].includes(o.metadata?.identityMode)).length,
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
@@ -150,8 +150,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             netherlands = None
             if "NL:dotnl_static" in source_ids:
                 netherlands = compare(52.367, 4.904, "NL", "Amsterdam fixture", radius=30)
-                if "NL:dotnl_static" not in netherlands["sourceIds"] or netherlands["priced"] != 0:
-                    raise AssertionError("DOT-NL national archive missing or raw tariffs entered ranking")
+                if "NL:dotnl_static" not in netherlands["sourceIds"]:
+                    raise AssertionError("DOT-NL national archive missing")
+                nl_totals = browser.execute_script("return [...document.querySelectorAll('#results .v9-tariff-row[data-v9-effective-total]')].map(row=>Number(row.dataset.v9EffectiveTotal))")
+                if netherlands["priced"] and not any(total > 0 for total in nl_totals):
+                    raise AssertionError("Proved DOT-NL energy-only tariff did not reach the UI")
+                netherlands["calculatedCards"] = len(nl_totals)
             zephyre = None
             if "FR:zephyre_epowerdirect_exact" in source_ids:
                 zephyre = compare(43.579, 3.880, "FR", "Lattes fixture", radius=20)

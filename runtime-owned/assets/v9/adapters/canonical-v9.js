@@ -98,14 +98,60 @@
         sourceId:data.source.id,artifactSha256:data.source.artifactSha256,rateId:raw.rateId,
         vatRate:21,timeZone:'Europe/Brussels'}};
   }
+  function provedNetherlandsOffer(data,offer,index){
+    if(data.source?.id!=='NL:dotnl_static'||offer.channel!=='Direct'||
+       offer.calculationStatus!=='not_evaluated'||!offer.scope?.connectorId||
+       index.connectorOfferCounts.get(offer.scope.connectorId)!==1)return null;
+    const connector=index.connectorsById.get(offer.scope.connectorId),evse=index.evses.get(offer.scope.evseId);
+    const raw=data.tariffCatalog?.[offer.sourceTariffKey];
+    if(!connector||connector.evseId!==evse?.id||!(connector.powerKw>0)||
+       !['AC','DC'].includes(connector.kind)||!raw||
+       Object.keys(offer.rawOffer||{}).join(',')!=='tariffKey'||
+       offer.rawOffer.tariffKey!==offer.sourceTariffKey||raw.tariffKey!==offer.sourceTariffKey||
+       ![null,'REGULAR','AD_HOC_PAYMENT'].includes(raw.type)||raw.currency!=='EUR'||
+       raw.startDateTime!=null||raw.endDateTime!=null||raw.minPrice!=null||raw.maxPrice!=null||
+       !Array.isArray(raw.elements)||raw.elements.length!==1)return null;
+    const element=raw.elements[0],restriction=element?.restrictions;
+    if(restriction&&Object.values(restriction).some(value=>Array.isArray(value)?value.length:value!=null&&value!==''))return null;
+    const components=element?.priceComponents;
+    if(!Array.isArray(components)||!components.length)return null;
+    let energy=null,step=null;
+    for(const component of components){
+      const type=component?.type,amount=component?.priceInclVat,billingStep=component?.stepSize;
+      if(!['ENERGY','TIME','FLAT','PARKING_TIME'].includes(type)||
+         typeof amount!=='number'||!Number.isFinite(amount)||amount<0||
+         (billingStep!=null&&(!Number.isInteger(billingStep)||billingStep<0)))return null;
+      if(type==='ENERGY'){
+        if(energy!=null||!(billingStep>=1))return null;
+        energy=amount;step=billingStep;
+      }else if(amount!==0)return null;
+    }
+    if(energy==null)return null;
+    const cpo=index.cpos.get(evse.cpoId);
+    if(!cpo)return null;
+    const rule={scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',
+      pricePerKwh:energy,chargePerMinute:0,connectionFee:0,idlePerMinute:0,
+      afterMinutesRate:0,afterMinutesThreshold:0,energyStepWh:step};
+    return{id:offer.id,provider:cpo.name||cpo.sourceOperatorId,kind:'direct',currency:'EUR',
+      countries:['NL'],operatorIds:[cpo.sourceOperatorId],evseIds:[evse.id],
+      connectorIds:[connector.id],subscriptionId:null,pricing:{type:'rules',rules:[rule]},
+      metadata:{verified:true,identityMode:'exact_canonical_connector_ocpi',
+        sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
+        sourceTariffKey:offer.sourceTariffKey,timeZone:'Europe/Amsterdam'}};
+  }
   function toFragments(data){
     if(data?.schemaVersion!==1||!Array.isArray(data?.stations)||!Array.isArray(data?.evses)||!Array.isArray(data?.connectors)||!Array.isArray(data?.offers))throw new Error('canonical schema invalid');
     const cpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
     const proofIndex={cpos,evses:new Map(data.evses.map(row=>[row.id,row])),
-      connectors:new Map(),offerCounts:new Map()};
+      connectors:new Map(),offerCounts:new Map(),connectorsById:new Map(),connectorOfferCounts:new Map()};
     if(data.source?.id==='BE:nap_static'){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];list.push(row);proofIndex.connectors.set(row.evseId,list);}
       for(const row of data.offers)proofIndex.offerCounts.set(row.scope?.evseId,(proofIndex.offerCounts.get(row.scope?.evseId)||0)+1);
+    }
+    if(data.source?.id==='NL:dotnl_static'){
+      for(const row of data.connectors)proofIndex.connectorsById.set(row.id,row);
+      for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
+        (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
     }
     const stations=new Map(data.stations.map(row=>[row.id,{row,evses:[],offers:[],pricedOffers:[]}]));
     const evses=new Map();
@@ -125,10 +171,12 @@
     for(const offer of data.offers){
       const evse=evses.get(offer.scope?.evseId);
       if(!evse)throw new Error('canonical offer EVSE missing');
-      const proved=provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex);
+      const proved=provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
+        provedNetherlandsOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({id:offer.id,channel:offer.channel,scope:offer.scope,
-        rawOffer:offer.rawOffer??null,calculationStatus:'not_evaluated'});
+        rawOffer:offer.rawOffer??null,sourceTariffKey:offer.sourceTariffKey||null,
+        calculationStatus:'not_evaluated'});
     }
     return [...stations.values()].map(({row,evses,offers,pricedOffers})=>{
       const cpo=cpos.get(row.cpoId);

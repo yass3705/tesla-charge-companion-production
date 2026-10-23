@@ -53,9 +53,11 @@
           const fragments=adapter.toFragments(data);
           const rawOffers=new Map(data.offers.map(row=>[row.id,row]));
           const rawEvses=new Map(data.evses.map(row=>[row.id,row]));
-          const offerCounts=new Map();
+          const offerCounts=new Map(),connectorOfferCounts=new Map();
           if(id==='BE:nap_static')for(const row of data.offers)
             offerCounts.set(row.scope?.evseId,(offerCounts.get(row.scope?.evseId)||0)+1);
+          if(id==='NL:dotnl_static')for(const row of data.offers)
+            connectorOfferCounts.set(row.scope?.connectorId,(connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
           const provedOffer=(fragment,offer)=>{
             if(fragment.countryCode!==id.slice(0,2)||offer?.metadata?.sourceId!==id||
                offer.metadata.verified!==true||offer.metadata.artifactSha256!==data.source.artifactSha256||
@@ -65,8 +67,9 @@
                offer.pricing?.type!=='rules'||Object.keys(offer.pricing).sort().join(',')!=='rules,type'||
                offer.pricing.rules?.length!==1)return false;
             const rule=offer.pricing.rules[0],raw=rawOffers.get(offer.id);
-            if(Object.keys(rule).sort().join(',')!==
-                 'afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,end,idlePerMinute,pricePerKwh,scope,start'||
+            const ordinaryRule='afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,end,idlePerMinute,pricePerKwh,scope,start';
+            const nlRule='afterMinutesRate,afterMinutesThreshold,billing,chargePerMinute,connectionFee,currency,end,energyStepWh,idlePerMinute,pricePerKwh,scope,start';
+            if(Object.keys(rule).sort().join(',')!==(id==='NL:dotnl_static'?nlRule:ordinaryRule)||
                rule.scope!=='allDay'||rule.billing!=='kwh'||rule.start!=='00:00'||rule.end!=='24:00'||
                rule.currency!=='EUR'||!Number.isFinite(rule.pricePerKwh)||rule.pricePerKwh<0||
                !['chargePerMinute','connectionFee','idlePerMinute','afterMinutesRate','afterMinutesThreshold']
@@ -86,6 +89,29 @@
                 Math.round(price.value*1.21*1e8)/1e8===rule.pricePerKwh&&
                 (source.archiveVariants||[]).every(row=>row.prices?.length===1&&
                   JSON.stringify(row.prices[0])===JSON.stringify(price));
+            }
+            if(id==='NL:dotnl_static'){
+              const tariff=data.tariffCatalog?.[raw.sourceTariffKey];
+              const element=tariff?.elements?.[0],components=element?.priceComponents;
+              const restrictions=element?.restrictions;
+              const energy=Array.isArray(components)?components.filter(component=>component.type==='ENERGY'):[];
+              return offer.metadata.identityMode==='exact_canonical_connector_ocpi'&&
+                offer.connectorIds.length===1&&raw.scope?.connectorId===offer.connectorIds[0]&&
+                connectorOfferCounts.get(offer.connectorIds[0])===1&&
+                Object.keys(raw.rawOffer||{}).join(',')==='tariffKey'&&
+                raw.rawOffer.tariffKey===raw.sourceTariffKey&&
+                tariff?.tariffKey===raw.sourceTariffKey&&
+                [null,'REGULAR','AD_HOC_PAYMENT'].includes(tariff.type)&&
+                tariff.currency==='EUR'&&tariff.startDateTime==null&&tariff.endDateTime==null&&
+                tariff.minPrice==null&&tariff.maxPrice==null&&tariff.elements.length===1&&
+                (!restrictions||Object.values(restrictions).every(value=>
+                  Array.isArray(value)?value.length===0:value==null||value===''))&&
+                energy.length===1&&energy[0].priceInclVat===rule.pricePerKwh&&
+                energy[0].stepSize===rule.energyStepWh&&
+                Number.isInteger(rule.energyStepWh)&&rule.energyStepWh>=1&&
+                components.every(component=>['ENERGY','TIME','FLAT','PARKING_TIME'].includes(component.type)&&
+                  typeof component.priceInclVat==='number'&&component.priceInclVat>=0&&
+                  (component.type==='ENERGY'||component.priceInclVat===0));
             }
             if(!['FR:ionity_direct','IT:atlante_direct'].includes(id)||
                offer.metadata.identityMode!=='exact_canonical_connector'||

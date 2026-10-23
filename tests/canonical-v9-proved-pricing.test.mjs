@@ -117,4 +117,43 @@ const beTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',ori
     const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].unknownFee=1;return fragments;
   }}});
 await assert.rejects(beTampered.loaders['prepared:BE:nap_static'](),/candidate pricing isolation violated/);
-console.log('Canonical V9: proved FR/IT/BE energy rates, exact connector and VAT rules');
+const nlTariff={tariffKey:'NL:ABC:T1',type:'AD_HOC_PAYMENT',countryCode:'NL',partyId:'ABC',
+  currency:'EUR',startDateTime:null,endDateTime:null,minPrice:null,maxPrice:null,
+  elements:[{restrictions:null,priceComponents:[
+    {type:'FLAT',priceInclVat:0,stepSize:0},
+    {type:'TIME',priceInclVat:0,stepSize:1},
+    {type:'ENERGY',priceInclVat:0.57,stepSize:1000}]}]};
+const netherlands={...structuredClone(source),source:{id:'NL:dotnl_static',artifactSha256:'d'.repeat(64)},
+  tariffCatalog:{'NL:ABC:T1':nlTariff}};
+netherlands.stations[0].country='NL';
+netherlands.connectors[0].kind='AC';
+netherlands.offers=[{id:'nl-energy',channel:'Direct',scope:{evseId:'evse-a',connectorId:'plug-a'},
+  sourceTariffKey:'NL:ABC:T1',rawOffer:{tariffKey:'NL:ABC:T1'},calculationStatus:'not_evaluated'}];
+const nlFragment=toFragments(netherlands)[0];
+assert.equal(nlFragment.offers.length,1);
+assert.equal(evaluateOffer(nlFragment.offers[0],{energyKwh:1.2,startAt:'2026-10-23T12:00:00Z'}).totalEur,1.14,
+  'historical DOT-NL 1000 Wh billing oracle');
+for(const mutation of [
+  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents[1].priceInclVat=0.1;},
+  d=>{d.offers.push({...d.offers[0],id:'another-tariff'});},
+  d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_kwh:2};},
+  d=>{d.connectors[0].powerKw=null;},
+]){
+  const changed=structuredClone(netherlands);mutation(changed);
+  assert.equal(toFragments(changed)[0].offers.length,0,'unsupported NL tariff stays unpriced');
+}
+const nlBytes=new TextEncoder().encode(JSON.stringify(netherlands));
+const nlSha=createHash('sha256').update(nlBytes).digest('hex');
+const nlIndex={schemaVersion:1,status:'prepared',bundleId:'nl-test',rejected:[],
+  sources:[{source:'NL:dotnl_static',path:'sources/NL__dotnl_static.json',sha256:nlSha}]};
+const nlFetch=async url=>({ok:true,arrayBuffer:async()=>
+  url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(nlIndex)).buffer:nlBytes.buffer});
+const nlPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:nlFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await nlPrepared.loaders['prepared:NL:dotnl_static']())[0].offers.length,1);
+const nlTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:nlFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){
+    const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].connectionFee=1;return fragments;
+  }}});
+await assert.rejects(nlTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
+console.log('Canonical V9: proved FR/IT/BE/NL energy rates, exact scope and historic oracles');
