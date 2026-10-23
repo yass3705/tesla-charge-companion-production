@@ -232,6 +232,23 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if screenshots and gb["ukPcprPriced"]:
                     browser.execute_script("document.getElementById('results').scrollIntoView()")
                     browser.save_screenshot(str(screenshots / "prepared-gb-source-ev-pcpr.png"))
+                multiple_operators = browser.execute_async_script("""
+                    const done=arguments[0],select=document.getElementById('simOperatorFilter');
+                    if(!select?.multiple){done({error:'operator multi-select unavailable'});return;}
+                    const options=[...select.options].filter(option=>option.value&&option.value!=='tesla');
+                    if(options.length<2){done({error:'two UK operators unavailable'});return;}
+                    const selected=options.slice(0,2).map(option=>option.value);
+                    for(const option of select.options)option.selected=selected.includes(option.value);
+                    select.dataset.v9Mode='selected';
+                    window.compare().then(area=>done({selected,requested:TCCV9ProductionShell.readInputs(window).operatorIds,
+                      observed:[...new Set((area?.stations||[]).map(station=>TCCV9DataEngine.operatorId(station.physicalOperator)))],
+                      count:area?.stations?.length??null})).catch(error=>done({error:String(error)}));
+                """)
+                if ("error" in multiple_operators or multiple_operators["requested"] != multiple_operators["selected"] or
+                        not set(multiple_operators["observed"]).issubset(multiple_operators["selected"]) or
+                        not multiple_operators["count"] or multiple_operators["count"] > gb["count"]):
+                    raise AssertionError(f"UK operator multi-select failed: {multiple_operators}")
+                gb["multiOperator"] = multiple_operators
             midhope = None
             if "GB:connected_kerb_midhope_verified" in source_ids:
                 midhope = compare(51.30955, -0.56473, "GB", "Woking fixture", radius=10)
