@@ -104,6 +104,22 @@
     return entities.map(publicEntity).sort((a,b)=>a.id.localeCompare(b.id));
   }
 
+  // Resolve every fragment that can contribute to a station in the requested
+  // radius, including distant or coordinate-less overlays with an exact key.
+  // The final radius check still runs after identity and field priorities merge.
+  function fragmentsForRadius(items,origin,radiusKm){
+    if(!origin||!Number.isFinite(Number(radiusKm)))return items;
+    const radius=Number(radiusKm),keysByItem=[],byKey=new Map(),selected=new Set(),queue=[];
+    items.forEach((item,index)=>{
+      const keys=fragmentKeys(item.fragment,item.source);keysByItem.push(keys);
+      for(const key of keys){const rows=byKey.get(key)||[];rows.push(index);byKey.set(key,rows);}
+      if(distanceKm(origin,item.fragment)<=radius+1e-9){selected.add(index);queue.push(index);}
+    });
+    for(let cursor=0;cursor<queue.length;cursor++)for(const key of keysByItem[queue[cursor]])
+      for(const index of byKey.get(key)||[])if(!selected.has(index)){selected.add(index);queue.push(index);}
+    return items.filter((_,index)=>selected.has(index));
+  }
+
   function stationConnectorKinds(station){const out=new Set();for(const evse of station?.evses||[])for(const c of evse?.connectors||[])if(text(c?.kind))out.add(text(c.kind).toUpperCase());return out;}
   function stationPowers(station){const out=[];for(const evse of station?.evses||[])for(const c of evse?.connectors||[]){const p=number(c?.powerKw);if(p!=null)out.push(p);}return out;}
   function addIdentityToken(out,value){const v=text(value);if(!v)return;out.add(v);if(v.startsWith('alias:')&&v.length>6)out.add(v.slice(6));}
@@ -179,7 +195,7 @@
         const error=new Error(`required data source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
         error.code='TCC_V9_REQUIRED_SOURCE_FAILED';error.failures=requiredFailures;error.diagnostics=diagnostics;throw error;
       }
-      const resolved=resolveEntities(items),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
+      const resolved=resolveEntities(fragmentsForRadius(items,query.origin,query.radiusKm)),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
       const stationLimit=Math.floor(number(query.stationLimit)||0),preselected=selectRoutingCandidates(baseFiltered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2}),selected=stationLimit>0&&baseFiltered.length>stationLimit?preselected.slice(0,stationLimit):baseFiltered;
       const filtered=applyOfferRules(selected,ruleItems),operators=deriveOperators(filtered),routingCandidates=selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
       return{query:clone(query),stations:filtered,operators,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationLimit,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};

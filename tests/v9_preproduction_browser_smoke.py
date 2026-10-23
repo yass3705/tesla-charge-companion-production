@@ -253,6 +253,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if netherlands["compoundPriced"] and not netherlands["compoundFees"]:
                     raise AssertionError("Proved DOT-NL compound fees did not reach session calculations")
                 netherlands["calculatedCards"] = len(nl_totals)
+                repeated = compare(52.367, 4.904, "NL", "Amsterdam fixture", radius=30)
+                if repeated["count"] != netherlands["count"] or repeated["compoundEvaluated"] != netherlands["compoundEvaluated"]:
+                    raise AssertionError("Repeated candidate query changed stations or evaluated offers")
+                netherlands["repeatQueryDurationMs"] = repeated["queryDurationMs"]
                 if screenshots:
                     browser.execute_script("document.getElementById('results').scrollIntoView()")
                     browser.save_screenshot(str(screenshots / "prepared-nl-compound.png"))
