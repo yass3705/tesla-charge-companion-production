@@ -96,6 +96,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         !['FR:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
                         !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi'].includes(o.metadata?.identityMode)).length,
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
+                      emspRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        o.channel==='Electra'||o.channel==='Electroverse').length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
                     });}).catch(error=>done({error:String(error)}));
@@ -140,6 +142,15 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             filtered = compare(48.856, 2.352, "FR", "Paris fixture", 300, require_raw=False)
             if filtered["count"] > fr["count"]:
                 raise AssertionError("Minimum power filter expanded result set")
+            emsp = None
+            if "FR:emsp_exact" in source_ids:
+                emsp_data = json.loads((site / "prepared-v9/sources/FR__emsp_exact.json").read_bytes())
+                target = next((row for row in emsp_data["stations"] if row.get("latitude") is not None and row.get("longitude") is not None), None)
+                if target is None:
+                    raise AssertionError("Exact eMSP source has no archived national station coordinates")
+                emsp = compare(target["latitude"], target["longitude"], "FR", "Exact eMSP fixture", radius=2)
+                if emsp["emspRaw"] <= 0:
+                    raise AssertionError("Exact eMSP raw offer was lost before reaching the map")
             gb = compare(51.507, -0.128, "GB", "London fixture")
             gb_text = browser.execute_script("return document.getElementById('results').innerText")
             if "IONITY Direct · UK" not in gb_text:
@@ -237,7 +248,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
-            return {"fr": fr, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
+            return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
                     "ch": switzerland, "be": belgium, "nl": netherlands,
                     "zephyre": zephyre, "ozecar": ozecar,
                     "minPower300": filtered["count"], "map": map_state,

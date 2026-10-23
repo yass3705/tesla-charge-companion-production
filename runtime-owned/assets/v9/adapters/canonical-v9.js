@@ -202,6 +202,7 @@
       if(!cpo)throw new Error('canonical station CPO missing');
       const [latitude,longitude]=coordinates(row);
       return{canonicalId:row.id,sourceStationId:row.sourceStationId,countryCode:row.country,
+        ...(data.source?.id==='FR:emsp_exact'?{fieldPriority:{identity:0,connectors:0,rawOfferProvenance:110}}:{}),
         name:row.name||row.names?.[0]?.value||row.sourceStationId,
         address:address(row),latitude,longitude,
         networkBrand:row.networkBrand||null,
