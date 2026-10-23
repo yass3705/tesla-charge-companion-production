@@ -53,9 +53,14 @@ def verify(bundle: Path, *, selected_source: str | None = None) -> dict:
         for station in payload["stations"]:
             if station.get("cpoId") not in known["cpos"]:
                 raise ValueError("Bundle station ownership invalid")
+        stations_by_id = {row["id"]: row for row in payload["stations"]}
+        connectors_by_id = {row["id"]: row for row in payload["connectors"]}
         for evse in payload["evses"]:
             if evse.get("stationId") not in known["stations"] or evse.get("cpoId") not in known["cpos"]:
                 raise ValueError("Bundle EVSE relation invalid")
+            station = stations_by_id[evse["stationId"]]
+            if evse["cpoId"] != station["cpoId"] or evse.get("country") != station.get("country"):
+                raise ValueError("Bundle EVSE ownership invalid")
         for connector in payload["connectors"]:
             if connector.get("evseId") not in known["evses"]:
                 raise ValueError("Bundle connector relation invalid")
@@ -65,6 +70,8 @@ def verify(bundle: Path, *, selected_source: str | None = None) -> dict:
                 raise ValueError("Bundle offer scope invalid")
             if scope.get("connectorId") is not None and scope["connectorId"] not in known["connectors"]:
                 raise ValueError("Bundle offer connector scope invalid")
+            if scope.get("connectorId") is not None and connectors_by_id[scope["connectorId"]]["evseId"] != scope["evseId"]:
+                raise ValueError("Bundle offer connector ownership invalid")
     if {path.name for path in bundle.iterdir()} != names:
         raise ValueError("Bundle file set mismatch")
     return manifest
