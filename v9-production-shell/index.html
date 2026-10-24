@@ -20,7 +20,9 @@
     const cfg=await cfgResponse.json();
     if(cfg.schemaVersion!==1||!['shadow','candidate'].includes(cfg.mode))throw new Error('invalid shell config');
     if(cfg.preproductionIsolated===true){
-      if(cfg.mode!=='candidate'||cfg.preproductionCandidateBase!=='../prepared-v9'||!/^[a-f0-9]{64}$/.test(cfg.preparedBundleId||''))throw new Error('prepared bundle is not pinned');
+      if(cfg.mode!=='candidate'||cfg.preproductionCandidateBase!=='../prepared-v9'||
+         !/^[a-f0-9]{64}$/.test(cfg.preparedBundleId||'')||
+         !/^[a-f0-9]{64}$/.test(cfg.preparedIndexSha256||''))throw new Error('prepared bundle is not pinned');
     }else if(cfg.observedCandidateSha!=='8d2c20b7c76004389edd8f4a3b80d6b314900ba0')throw new Error('candidate SHA is not pinned');
     const controlResponse=await fetch(cfg.controlIndex,{cache:'no-store'});
     if(!controlResponse.ok)throw new Error(`control index ${controlResponse.status}`);

@@ -18,7 +18,17 @@ from selenium.webdriver.support.ui import WebDriverWait
 def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
     if not (site / "prepared-v9/index.json").is_file() or not (site / "v9-production-shell/index.html").is_file():
         raise ValueError("Isolated packaged site required")
-    source_ids = {row["source"] for row in json.loads((site / "prepared-v9/index.json").read_bytes())["sources"]}
+    candidate_index = json.loads((site / "prepared-v9/index.json").read_bytes())
+    source_ids = {row["source"] for row in candidate_index["sources"]}
+    def archived_source(source_id):
+        entry = next(row for row in candidate_index["sources"] if row["source"] == source_id)
+        if candidate_index["schemaVersion"] == 1:
+            return json.loads((site / "prepared-v9" / entry["path"]).read_bytes())
+        parts = [json.loads((site / "prepared-v9" / part["path"]).read_bytes())
+                 for part in entry["shards"]]
+        return {name: sorted((item for part in parts for item in part[name]),
+                             key=lambda item: item["id"])
+                for name in ("stations", "evses", "connectors", "offers")}
     class QuietHandler(SimpleHTTPRequestHandler):
         def log_message(self, *_args):
             pass
@@ -203,7 +213,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 raise AssertionError("Minimum power filter expanded result set")
             emsp = None
             if "FR:emsp_exact" in source_ids:
-                emsp_data = json.loads((site / "prepared-v9/sources/FR__emsp_exact.json").read_bytes())
+                emsp_data = archived_source("FR:emsp_exact")
                 target = next((row for row in emsp_data["stations"] if row.get("latitude") is not None and row.get("longitude") is not None), None)
                 if target is None:
                     raise AssertionError("Exact eMSP source has no archived national station coordinates")

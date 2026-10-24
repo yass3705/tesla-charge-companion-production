@@ -16,7 +16,7 @@
     const hash=new Uint8Array(await impl.subtle.digest('SHA-256',bytes));
     return Array.from(hash,b=>b.toString(16).padStart(2,'0')).join('');
   }
-  async function loadPrepared({baseUrl,fetchImpl,adapter,cryptoImpl,origin}={}){
+  async function loadPrepared({baseUrl,fetchImpl,adapter,cryptoImpl,origin,expectedIndexSha256}={}){
     if(!adapter?.toFragments)throw new Error('canonical adapter missing');
     const base=new URL(String(baseUrl||''),origin||root?.location?.href||'http://localhost/');
     if(base.protocol!=='https:'&&base.hostname!=='localhost'&&base.hostname!=='127.0.0.1')
@@ -31,22 +31,43 @@
       if(expectedSha&&await sha256Hex(raw,cryptoImpl)!==expectedSha)throw new Error('candidate source SHA mismatch');
       return JSON.parse(new TextDecoder().decode(raw));
     }
-    const index=await jsonAt(candidateUrl(base,'index.json'));
-    if(index?.schemaVersion!==1||!['prepared','partial_failure'].includes(index.status)||
+    if(expectedIndexSha256!=null&&!shaPattern.test(expectedIndexSha256))
+      throw new Error('pinned candidate index SHA invalid');
+    const index=await jsonAt(candidateUrl(base,'index.json'),expectedIndexSha256);
+    if(![1,2].includes(index?.schemaVersion)||!['prepared','partial_failure'].includes(index.status)||
        !Array.isArray(index.sources)||!Array.isArray(index.rejected)||!index.sources.length)
       throw new Error('candidate index invalid');
     const sources=[],loaders={},seen=new Set();
+    function shardApplies(descriptor,query){
+      if(descriptor.bbox==null||!query?.origin||!Number.isFinite(Number(query.radiusKm)))return true;
+      const lat=Number(query.origin.lat??query.origin.latitude),lon=Number(query.origin.lon??query.origin.longitude);
+      if(!Number.isFinite(lat)||!Number.isFinite(lon))return true;
+      const [south,west,north,east]=descriptor.bbox,radius=Math.max(0,Number(query.radiusKm));
+      const latMargin=radius/100+0.1;
+      const polar=Math.min(89.99,Math.max(Math.abs(lat)+latMargin,Math.abs(south),Math.abs(north)));
+      const lonMargin=Math.min(180,radius/(100*Math.max(.01,Math.cos(polar*Math.PI/180)))+0.1);
+      return lat>=south-latMargin&&lat<=north+latMargin&&lon>=west-lonMargin&&lon<=east+lonMargin;
+    }
     for(const entry of index.sources){
       const id=entry?.source,path=entry?.path,expectedPath='sources/'+String(id||'').replace(':','__')+'.json';
-      if(!sourcePattern.test(id)||seen.has(id)||path!==expectedPath||!shaPattern.test(entry.sha256))
+      if(!sourcePattern.test(id)||seen.has(id)||
+         (index.schemaVersion===1?(path!==expectedPath||!shaPattern.test(entry.sha256)):
+           !shaPattern.test(entry.sourceSha256)||!shaPattern.test(entry.sourceArtifactSha256)||
+           !Array.isArray(entry.shards)||!entry.shards.length||entry.shards.some((shard,i)=>
+             shard.path!==`shards/${id.replace(':','__')}__${String(i).padStart(4,'0')}.json`||
+             !shaPattern.test(shard.sha256)||!Number.isInteger(shard.bytes)||shard.bytes<1||
+             !Number.isInteger(shard.stationCount)||shard.stationCount<1||
+             (shard.bbox!=null&&(!Array.isArray(shard.bbox)||shard.bbox.length!==4||
+               shard.bbox.some(value=>!Number.isFinite(value)))))))
         throw new Error('candidate source descriptor invalid');
       seen.add(id);
       const registryId='prepared:'+id;
       sources.push({id:registryId,countries:[id.slice(0,2)],priority:100,active:true,optional:false});
       let pending=null;
-      loaders[registryId]=async function(){
-        if(!pending)pending=jsonAt(candidateUrl(base,path),entry.sha256).then(data=>{
+      const shardPending=new Map();
+      const adaptData=data=>{
           if(data?.schemaVersion!==1||data?.source?.id!==id||
+             (index.schemaVersion===2&&data.source.artifactSha256!==entry.sourceArtifactSha256)||
              !Array.isArray(data.stations)||!Array.isArray(data.evses)||
              !Array.isArray(data.connectors)||!Array.isArray(data.offers))
             throw new Error('candidate source schema or identity invalid');
@@ -269,7 +290,26 @@
              f.offers.some(offer=>!provedOffer(f,offer))))
             throw new Error('candidate pricing isolation violated');
           return fragments;
-        }).catch(error=>{pending=null;throw error;});
+      };
+      loaders[registryId]=async function(query){
+        if(index.schemaVersion===2){
+          // Exact French national/eMSP links can use distant fragments as
+          // transitive identity bridges. Keep that whole country loaded until
+          // an exact-key shard index can prove the same closure.
+          const chosen=id.startsWith('FR:')?entry.shards:
+            entry.shards.filter(shard=>shardApplies(shard,query));
+          const results=await Promise.all(chosen.map(shard=>{
+            if(!shardPending.has(shard.path)){
+              const task=jsonAt(candidateUrl(base,shard.path),shard.sha256).then(adaptData)
+                .catch(error=>{shardPending.delete(shard.path);throw error;});
+              shardPending.set(shard.path,task);
+            }
+            return shardPending.get(shard.path);
+          }));
+          return results.flat();
+        }
+        if(!pending)pending=jsonAt(candidateUrl(base,path),entry.sha256).then(adaptData)
+          .catch(error=>{pending=null;throw error;});
         return pending;
       };
     }

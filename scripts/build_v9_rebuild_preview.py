@@ -83,17 +83,24 @@ def build(datalab: Path, built_site: Path, destination: Path,
         if (final_index.get("status") != "prepared" or final_index.get("rejected") or
                 len(final_index.get("sources", [])) != len(inputs)):
             raise ValueError("Final canonical import incomplete")
+        sharded = run(sys.executable, ROOT / "scripts/shard_v9_preproduction_data.py",
+                      "--prepared", stage / "prepared", "--out", stage / "sharded")
+        if (sharded.get("status") != "prepared" or sharded.get("bundleId") != bundle.name or
+                sharded.get("sourceCount") != len(inputs) or not sharded.get("shardCount")):
+            raise ValueError("Spatial candidate incomplete")
         # The signed final bundle retains all inputs; discard only redundant
         # intermediate copies before packaging the site.
         shutil.rmtree(stage / "base")
         shutil.rmtree(stage / "base-prepared")
+        shutil.rmtree(stage / "prepared")
         packaged = run(sys.executable, ROOT / "scripts/package_v9_preproduction_map.py",
-                       "--site", built_site, "--prepared", stage / "prepared",
+                       "--site", built_site, "--prepared", stage / "sharded",
                        "--out", stage / "site")
         if packaged.get("status") != "packaged_preview_only" or packaged.get("notPublished") is not True:
             raise ValueError("Isolated preview packaging failed")
         report = {"schemaVersion": 1, "status": "prepared_local_only", "bundleId": bundle.name,
                   "sourceCount": len(verified["sources"]), "countries": packaged["countries"],
+                  "shardCount": sharded["shardCount"],
                   "joinReportSha256": join["sha256"], "sitePath": "site/v9-production-shell/",
                   "published": False}
         (stage / "rebuild-report.json").write_text(
