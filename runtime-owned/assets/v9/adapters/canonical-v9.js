@@ -20,17 +20,24 @@
   }
   // The archived FR IONITY connector rate matches the existing all-day kWh rule.
   function provedDirectOffer(data,offer){
-    if(data.source?.id!=='FR:ionity_direct'&&data.source?.id!=='IT:atlante_direct')return null;
+    if(!['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','IT:atlante_direct'].includes(data.source?.id))return null;
     if(offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated')return null;
     const raw=offer.rawOffer;
     if(!raw||typeof raw!=='object'||Array.isArray(raw)||!offer.scope?.connectorId)return null;
     const connector=data.connectors.find(row=>row.id===offer.scope.connectorId&&row.evseId===offer.scope.evseId);
     if(!connector||typeof connector.powerKw!=='number'||!Number.isFinite(connector.powerKw)||connector.powerKw<=0)return null;
-    let price=null,provider=null,country=null,operator=null;
-    if(data.source?.id==='FR:ionity_direct'){
-      if(Object.keys(raw).length!==1||!Object.prototype.hasOwnProperty.call(raw,'pricePerKwhEur'))return null;
-      if(!['AC','DC'].includes(connector.rawSourceFields?.kind))return null;
-      price=raw.pricePerKwhEur;provider='IONITY Direct';country='FR';operator='ionity';
+    let price=null,provider=null,country=null,operator=null,currency='EUR';
+    if(['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct'].includes(data.source?.id)){
+      const field=data.source.id==='GB:ionity_direct'?'pricePerKwhGbp':'pricePerKwhEur';
+      if(Object.keys(raw).length!==1||!Object.prototype.hasOwnProperty.call(raw,field))return null;
+      const source=connector.rawSourceFields;
+      if(!['AC','DC'].includes(source?.kind)||source[field]!==raw[field]||
+         !offer.sourceConnectorId||offer.sourceConnectorId!==connector.sourceConnectorId||
+         source.uuid!==connector.sourceConnectorId||
+         data.cpos?.find(row=>row.id===data.evses?.find(evse=>evse.id===offer.scope.evseId)?.cpoId)
+           ?.sourceOperatorId!=='IONITY_CPO')return null;
+      price=raw[field];provider='IONITY Direct';country=data.source.id.slice(0,2);operator='ionity';
+      if(country==='GB')currency='GBP';
     }else if(data.source?.id==='IT:atlante_direct'){
       const source=connector?.rawSourceFields,components=raw.priceComponents;
       const sameConnector=data.offers.filter(row=>row.scope?.connectorId===offer.scope.connectorId);
@@ -60,11 +67,11 @@
       provider='Atlante direct';country='IT';operator='atlante';
     }else return null;
     if(typeof price!=='number'||!Number.isFinite(price)||price<=0)return null;
-    return{id:offer.id,provider,kind:'direct',currency:'EUR',
+    return{id:offer.id,provider,kind:'direct',currency,
       countries:[country],operatorIds:[operator],evseIds:[offer.scope.evseId],
       connectorIds:[offer.scope.connectorId],subscriptionId:null,
       pricing:{type:'rules',rules:[{scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',
-        currency:'EUR',pricePerKwh:price,chargePerMinute:0,connectionFee:0,
+        currency,pricePerKwh:price,chargePerMinute:0,connectionFee:0,
         idlePerMinute:0,afterMinutesRate:0,afterMinutesThreshold:0}]},
       metadata:{verified:true,identityMode:'exact_canonical_connector',sourceId:data.source.id,
         artifactSha256:data.source.artifactSha256}};

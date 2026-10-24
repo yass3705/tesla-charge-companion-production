@@ -75,6 +75,7 @@
           const rawOffers=new Map(data.offers.map(row=>[row.id,row]));
           const rawEvses=new Map(data.evses.map(row=>[row.id,row]));
           const rawConnectors=new Map(data.connectors.map(row=>[row.id,row]));
+          const rawCpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
           const offerCounts=new Map(),connectorOfferCounts=new Map();
           if(id==='BE:nap_static')for(const row of data.offers)
             offerCounts.set(row.scope?.evseId,(offerCounts.get(row.scope?.evseId)||0)+1);
@@ -156,7 +157,7 @@
             }
             if(fragment.countryCode!==id.slice(0,2)||offer?.metadata?.sourceId!==id||
                offer.metadata.verified!==true||offer.metadata.artifactSha256!==data.source.artifactSha256||
-               offer.kind!=='direct'||offer.currency!=='EUR'||
+               offer.kind!=='direct'||offer.currency!==(id==='GB:ionity_direct'?'GBP':'EUR')||
                !Array.isArray(offer.evseIds)||offer.evseIds.length!==1||
                !Array.isArray(offer.connectorIds)||!offer.connectorIds.length||
                offer.pricing?.type!=='rules'||Object.keys(offer.pricing).sort().join(',')!=='rules,type'||
@@ -174,7 +175,8 @@
                (id!=='NL:dotnl_static'&&
                  (rule.scope!=='allDay'||rule.start!=='00:00'||rule.end!=='24:00'))||
                rule.billing!=='kwh'||
-               rule.currency!=='EUR'||!Number.isFinite(rule.pricePerKwh)||rule.pricePerKwh<0||
+               rule.currency!==(id==='GB:ionity_direct'?'GBP':'EUR')||
+               !Number.isFinite(rule.pricePerKwh)||rule.pricePerKwh<0||
                (id==='NL:dotnl_static'?
                  !['afterMinutesRate','afterMinutesThreshold'].every(key=>rule[key]===0):
                  !['chargePerMinute','connectionFee','idlePerMinute','afterMinutesRate','afterMinutesThreshold']
@@ -276,12 +278,23 @@
                 (paidParking>0?rule.parkingTimeStepSeconds===byType.get('PARKING_TIME').stepSize:
                   rule.parkingTimeStepSeconds==null);
             }
-            if(!['FR:ionity_direct','IT:atlante_direct'].includes(id)||
+            if(!['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','IT:atlante_direct'].includes(id)||
                offer.metadata.identityMode!=='exact_canonical_connector'||
                offer.connectorIds.length!==1||raw.scope?.connectorId!==offer.connectorIds[0]||
                rule.pricePerKwh<=0)return false;
-            if(id==='FR:ionity_direct')return offer.provider==='IONITY Direct'&&
-              Object.keys(raw.rawOffer||{}).length===1&&raw.rawOffer.pricePerKwhEur===rule.pricePerKwh;
+            if(['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct'].includes(id)){
+              const connector=rawConnectors.get(raw.scope.connectorId);
+              const evse=rawEvses.get(raw.scope.evseId);
+              const field=id==='GB:ionity_direct'?'pricePerKwhGbp':'pricePerKwhEur';
+              return offer.provider==='IONITY Direct'&&
+                Object.keys(raw.rawOffer||{}).join(',')===field&&
+                raw.rawOffer[field]===rule.pricePerKwh&&
+                connector?.evseId===evse?.id&&connector?.sourceConnectorId===raw.sourceConnectorId&&
+                connector?.rawSourceFields?.uuid===raw.sourceConnectorId&&
+                connector?.rawSourceFields?.[field]===rule.pricePerKwh&&
+                ['AC','DC'].includes(connector.rawSourceFields.kind)&&
+                rawCpos.get(evse?.cpoId)?.sourceOperatorId==='IONITY_CPO';
+            }
             return offer.provider==='Atlante direct'&&raw.rawOffer?.priceComponents?.length===1&&
               raw.rawOffer.priceComponents[0]?.priceDimension==='ENERGY'&&
               raw.rawOffer.priceComponents[0]?.price?.incl_vat===rule.pricePerKwh;

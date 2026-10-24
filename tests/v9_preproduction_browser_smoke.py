@@ -107,18 +107,24 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     document.getElementById('simMinPowerKw').value=minPower==null?'':String(minPower);
                 """, lat, lon, country, label, min_power, radius)
                 result = browser.execute_async_script("""
-                    const done=arguments[0],began=performance.now();window.compare().then(area=>{if(!area){done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)});return;}
+                    const country=arguments[0],done=arguments[1],began=performance.now();window.compare().then(area=>{if(!area){done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)});return;}
                       const compoundIds=new Set(area.stations.flatMap(s=>s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='NL:dotnl_static'&&o.pricing?.rules?.some(r=>
                           r.chargePerMinute>0||r.connectionFee>0||r.idlePerMinute>0)).map(o=>o.id));
                       const emspIds=new Set(area.stations.flatMap(s=>s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='FR:emsp_exact').map(o=>o.id));
+                      const ionityIds=new Set(area.stations.flatMap(s=>s.offers||[]).filter(o=>
+                        o.metadata?.sourceId===country+':ionity_direct').map(o=>o.id));
                       const evaluated=Object.values(area.sessionEvaluations||{}).flatMap(row=>
                         [row?.best,...(row?.alternatives||[]),...(row?.incomplete||[])]).filter(Boolean);
                       done({
                       count:area.stations.length,prepared:area.preproductionCandidate,
                       queryDurationMs:Math.round(performance.now()-began),
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
+                      ionityPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId===country+':ionity_direct').length,0),
+                      ionityEvaluated:evaluated.filter(row=>ionityIds.has(row.offerId)&&
+                        row.result?.complete&&Number.isFinite(row.costPerRecoveredKm)).length,
                       emspPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='FR:emsp_exact'&&o.provider==='Electroverse').length,0),
                       emspEvaluated:evaluated.filter(row=>emspIds.has(row.offerId)&&row.result?.complete).length,
@@ -134,7 +140,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         (row.result.components?.connectionFee>0||row.result.components?.chargingTime>0||
                           row.result.components?.parkingTime>0)).length,
                       pricedOutsideProved:area.stations.flatMap(s=>s.offers||[]).filter(o=>
-                        !['FR:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact','GB:source_ev_pcpr_direct'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
+                        !['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact','GB:source_ev_pcpr_direct'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
                         !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi','exact_canonical_emsp_evse','exact_canonical_connector_pcpr'].includes(o.metadata?.identityMode)).length,
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       emspRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
@@ -170,7 +176,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
                       sourceIds:[...new Set(area.stations.flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))].sort()
                     });}).catch(error=>done({error:String(error)}));
-                """)
+                """, country)
                 if "error" in result:
                     raise AssertionError(result)
                 if result["count"] <= 0 or result["pricedOutsideProved"] != 0 or (require_raw and result["raw"] <= 0):
@@ -252,6 +258,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             gb = compare(51.507, -0.128, "GB", "London fixture")
             if "GB:ionity_direct" not in gb["sourceIds"]:
                 raise AssertionError("UK candidate provenance missing")
+            if gb["ionityPriced"] and not gb["ionityEvaluated"]:
+                raise AssertionError("UK IONITY direct rate lacks complete FX/session evaluation")
             if "GB:blink_pcpr_direct" in source_ids:
                 expected_pcpr = {"GB:blink_pcpr_direct", "GB:allego_pcpr_direct",
                                  "GB:source_ev_pcpr_direct"}
@@ -299,12 +307,18 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 priced_totals = browser.execute_script("return [...document.querySelectorAll('#results .v9-tariff-row[data-v9-effective-total]')].map(row=>Number(row.dataset.v9EffectiveTotal))")
                 if italy["priced"] and not any(total > 0 for total in priced_totals):
                     raise AssertionError("Proved Atlante tariff was loaded but no calculated offer reached the UI")
+                if "IT:ionity_direct" in italy["sourceIds"] and (
+                        not italy["ionityPriced"] or not italy["ionityEvaluated"]):
+                    raise AssertionError("Exact IONITY Italy offers missing from tariff comparison")
                 italy["calculatedCards"] = len(priced_totals)
             germany = None
             if "DE:ionity_direct" in source_ids:
-                germany = compare(52.520, 13.405, "DE", "Berlin fixture")
+                germany = compare(52.520, 13.405, "DE", "Berlin fixture", require_raw=False)
                 if "DE:ionity_direct" not in germany["sourceIds"]:
                     raise AssertionError("IONITY Germany candidate source missing")
+                if not germany["ionityEvaluated"] or not browser.execute_script(
+                        "return [...document.querySelectorAll('#results .v9-tariff-row[data-v9-effective-total]')].some(row=>Number(row.dataset.v9EffectiveTotal)>0)"):
+                    raise AssertionError("Exact IONITY Germany tariff did not reach session comparison")
             spain = None
             if "ES:reve_static" in source_ids:
                 spain = compare(40.416, -3.703, "ES", "Madrid fixture", radius=50, require_raw=False)

@@ -16,10 +16,11 @@ const source={schemaVersion:1,source:{id:'FR:ionity_direct',artifactSha256:'a'.r
   stations:[{id:'station',country:'FR',cpoId:'operator',sourceStationId:'site',name:'Site'}],
   evses:[{id:'evse-a',stationId:'station',cpoId:'operator'},
     {id:'evse-b',stationId:'station',cpoId:'operator'}],
-  connectors:[{id:'plug-a',evseId:'evse-a',powerKw:150,rawSourceFields:{kind:'DC'}},
+  connectors:[{id:'plug-a',evseId:'evse-a',sourceConnectorId:'source-plug-a',powerKw:150,
+    rawSourceFields:{kind:'DC',uuid:'source-plug-a',pricePerKwhEur:0.70}},
     {id:'plug-b',evseId:'evse-b',powerKw:150,rawSourceFields:{kind:'DC'}}],
   offers:[{id:'offer-a',channel:'Direct',scope:{evseId:'evse-a',connectorId:'plug-a'},
-    rawOffer:{pricePerKwhEur:0.70},calculationStatus:'not_evaluated'},
+    sourceConnectorId:'source-plug-a',rawOffer:{pricePerKwhEur:0.70},calculationStatus:'not_evaluated'},
     {id:'offer-b',channel:'Direct',scope:{evseId:'evse-b',connectorId:'plug-b'},
       rawOffer:{pricePerKwhEur:0.90,unknownFee:1},calculationStatus:'not_evaluated'}]};
 
@@ -41,7 +42,41 @@ for(const invalid of [0,-1,NaN,'0.70',null]){
 }
 const otherCountry=structuredClone(source);
 otherCountry.source.id='GB:ionity_direct';
-assert.equal(toFragments(otherCountry)[0].offers.length,0,'country without matched oracle remains unpriced');
+assert.equal(toFragments(otherCountry)[0].offers.length,0,'UK EUR-shaped payload stays unpriced');
+const ukIonity=structuredClone(source);
+ukIonity.source.id='GB:ionity_direct';ukIonity.stations[0].country='GB';
+ukIonity.connectors[0].rawSourceFields={kind:'DC',uuid:'source-plug-a',pricePerKwhGbp:0.83};
+ukIonity.offers[0].rawOffer={pricePerKwhGbp:0.83};
+const ukOffer=toFragments(ukIonity)[0].offers[0];
+assert.equal(ukOffer.currency,'GBP');
+assert.equal(evaluateOffer(ukOffer,{energyKwh:20,startAt:'2026-10-23T12:00:00Z'}).totalEur,16.6);
+const ukStation=toFragments(ukIonity)[0];
+assert.equal(evaluateStation(ukStation,{energyKwh:20,startAt:'2026-10-23T12:00:00Z'},
+  {fxRates:{GBP_EUR:1.2}}).best?.total,19.92,'UK direct rate is converted by existing FX engine');
+assert.equal(evaluateStation(ukStation,{energyKwh:20,startAt:'2026-10-23T12:00:00Z'}).comparableOfferCount,0,
+  'UK offer without conversion stays out of EUR ranking');
+for(const country of ['DE','IT','GB']){
+  const local=structuredClone(source);
+  local.source.id=`${country}:ionity_direct`;
+  local.stations[0].country=country;
+  if(country==='GB'){
+    local.connectors[0].rawSourceFields={kind:'DC',uuid:'source-plug-a',pricePerKwhGbp:0.83};
+    local.offers[0].rawOffer={pricePerKwhGbp:0.83};
+  }
+  const result=toFragments(local)[0];
+  assert.equal(result.offers.length,1,`${country} exact historical connector rate is calculable`);
+  assert.equal(result.offers[0].countries[0],country);
+  assert.equal(evaluateOffer(result.offers[0],{energyKwh:20,startAt:'2026-10-23T12:00:00Z'}).totalEur,
+    country==='GB'?16.6:14);
+  for(const mutate of [
+    copy=>{copy.connectors[0].rawSourceFields[country==='GB'?'pricePerKwhGbp':'pricePerKwhEur']=0.71;},
+    copy=>{copy.offers[0].sourceConnectorId='wrong';},
+    copy=>{copy.cpos[0].sourceOperatorId='OTHER';},
+  ]){
+    const changed=structuredClone(local);mutate(changed);
+    assert.equal(toFragments(changed)[0].offers.length,0,`${country} altered provenance stays unpriced`);
+  }
+}
 const bytes=new TextEncoder().encode(JSON.stringify(source));
 const sha=createHash('sha256').update(bytes).digest('hex');
 const index={schemaVersion:1,status:'prepared',bundleId:'test',rejected:[],
@@ -56,6 +91,28 @@ const tampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
     const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].unknownFee=1;return fragments;
   }}});
 await assert.rejects(tampered.loaders['prepared:FR:ionity_direct'](),/candidate pricing isolation violated/);
+for(const country of ['DE','IT','GB']){
+  const local=structuredClone(source);
+  local.source.id=`${country}:ionity_direct`;local.stations[0].country=country;
+  if(country==='GB'){
+    local.connectors[0].rawSourceFields={kind:'DC',uuid:'source-plug-a',pricePerKwhGbp:0.83};
+    local.offers[0].rawOffer={pricePerKwhGbp:0.83};
+  }
+  const payload=new TextEncoder().encode(JSON.stringify(local));
+  const localIndex={...index,sources:[{source:local.source.id,
+    path:`sources/${country}__ionity_direct.json`,sha256:createHash('sha256').update(payload).digest('hex')}]};
+  const fetchLocal=async url=>({ok:true,arrayBuffer:async()=>
+    url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(localIndex)).buffer:payload.buffer});
+  const valid=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+    origin:'http://127.0.0.1/',fetchImpl:fetchLocal,cryptoImpl:webcrypto,adapter:{toFragments}});
+  assert.equal((await valid.loaders[`prepared:${local.source.id}`]())[0].offers.length,1);
+  const mutated=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+    origin:'http://127.0.0.1/',fetchImpl:fetchLocal,cryptoImpl:webcrypto,adapter:{toFragments(data){
+      const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].pricePerKwh=0.71;
+      return fragments;
+    }}});
+  await assert.rejects(mutated.loaders[`prepared:${local.source.id}`](),/candidate pricing isolation violated/);
+}
 const component={conditions:[],currency:'EUR',price:{excl_vat:0.65,incl_vat:0.79},
   priceDimension:'ENERGY',stepSize:null,surchargeName:null,
   validity:{absolute:{daysOfWeekValidity:[],validitySchemes:[]},relative:{displayText:[],maxDurationInMinutes:null}}};
@@ -321,4 +378,4 @@ const emspTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',o
   fetchImpl:emspFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
     fragments[0].offers[0].pricing.rules[0].idlePerMinute=0;return fragments;}}});
 await assert.rejects(emspTampered.loaders['prepared:FR:emsp_exact'](),/candidate pricing isolation violated/);
-console.log('Canonical V9: proved FR/IT/BE/NL energy rates, exact scope and historic oracles');
+console.log('Canonical V9: proved FR/DE/IT/GB IONITY and FR/IT/BE/NL rates, exact scope and historic oracles');
