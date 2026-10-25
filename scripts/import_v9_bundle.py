@@ -44,6 +44,13 @@ def verify(bundle: Path, *, selected_source: str | None = None) -> dict:
         for collection in ("cpos", "stations", "evses", "connectors", "offers"):
             if not isinstance(payload.get(collection), list):
                 raise ValueError("Bundle canonical schema invalid")
+        country = source[:2]
+        if (not isinstance(payload.get("countries"), list) or
+                any(not isinstance(row, dict) or row.get("code") != country
+                    for row in payload["countries"]) or
+                any(row.get("country") != country for collection in ("cpos", "stations", "evses")
+                    for row in payload[collection])):
+            raise ValueError("Bundle source country scope invalid")
         known = {}
         for collection in ("cpos", "stations", "evses", "connectors", "offers"):
             keys = [row.get("id") for row in payload[collection]]
