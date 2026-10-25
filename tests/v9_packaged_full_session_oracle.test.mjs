@@ -102,4 +102,13 @@ assert.equal(combinedRanking.best?.total,12);
 assert.equal(combinedRanking.best?.costPerRecoveredKm,.24);
 assert.equal(pricing.evaluateOffer(combined,{...combinedSession,targetSoc:undefined}).complete,false,
   'missing congestion state cannot yield a partial price');
+for(const [rule,session,reason] of [
+  [{scope:'allDay',pricePerMinute:.1},{energyKwh:10},'duration_required'],
+  [{scope:'allDay',chargePerMinute:.1},{energyKwh:10,durationMinutes:30},'charging_duration_required'],
+  [{scope:'allDay',idlePerMinute:.1},{energyKwh:10,durationMinutes:30,chargingMinutes:30},'post_charge_duration_required']
+]){
+  assert.equal(pricing.evaluateOffer({id:'missing-duration',currency:'EUR',
+    pricing:{type:'rules',rules:[rule]}},session).reason,reason,
+  'paid time dimensions require explicit session data even without a canonical identity tag');
+}
 console.log('Packaged V9 full-session component, channel, subscription and FX oracle: pass');

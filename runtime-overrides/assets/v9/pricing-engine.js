@@ -600,19 +600,24 @@
     if(pricingParts.some(part=>part?.minPrice!=null||part?.maxPrice!=null||
        part?.min_price!=null||part?.max_price!=null))
       return{complete:false,reason:'unverified_ocpi_price_bound',offerId:offer?.id||null,timeZone};
-    if(['exact_canonical_connector_ocpi','exact_canonical_emsp_evse',
-        'exact_canonical_connector_pcpr'].includes(offer?.metadata?.identityMode)){
-      const canonicalRules=[...(Array.isArray(pricing.rules)?pricing.rules:[]),
-        ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
-          .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
-      if(canonicalRules.some(rule=>(num(rule?.chargePerMinute)??num(rule?.chargingTimePerMinuteEur)??0)>0)&&
-         (num(session.durationMinutes)==null||num(session.chargingMinutes)==null))
-        return{complete:false,reason:'charging_duration_required',offerId:offer?.id||null,timeZone};
-      if(canonicalRules.some(rule=>(num(rule?.idlePerMinute)??0)>0)&&num(session.postChargeMinutes)==null)
-        return{complete:false,reason:'post_charge_duration_required',offerId:offer?.id||null,timeZone};
-    }
+    const rules=[...(Array.isArray(pricing.rules)?pricing.rules:[]),
+      ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
+        .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
+    const paidBand=(rule,kind)=>Array.isArray(rule?.ocpiDurationBands)&&
+      rule.ocpiDurationBands.some(b=>Array.isArray(b)&&b[2]===kind&&(num(b[3])??0)>0);
+    if(rules.some(rule=>(num(rule?.pricePerMinute)??num(rule?.connectedTimePerMinuteEur)??0)>0||
+       (num(rule?.connectedTimeBlockEur)??0)>0||
+       (num(rule?.connectedTimePerMinuteAfterFreeEur)??0)>0||
+       (num(rule?.connectedTimeInitialFlatEur)??0)>0)&&num(session.durationMinutes)==null)
+      return{complete:false,reason:'duration_required',offerId:offer?.id||null,timeZone};
+    if(rules.some(rule=>(num(rule?.chargePerMinute)??num(rule?.chargingTimePerMinuteEur)??0)>0||
+       paidBand(rule,'TIME'))&&
+       (num(session.durationMinutes)==null||num(session.chargingMinutes)==null))
+      return{complete:false,reason:'charging_duration_required',offerId:offer?.id||null,timeZone};
+    if(rules.some(rule=>(num(rule?.idlePerMinute)??0)>0||paidBand(rule,'PARKING_TIME'))&&
+       num(session.postChargeMinutes)==null)
+      return{complete:false,reason:'post_charge_duration_required',offerId:offer?.id||null,timeZone};
     if(pricing.type==='connected_kerb_midhope_guest_verified')return evaluateVerifiedMidhope(offer,session);
-    const rules=[...(pricing.rules||[]),...(pricing.componentGroups||[]).flatMap(group=>group.rules||[])];
     const needsLocalTime=rules.some(rule=>rule.scope==='timeWindow'||rule.daysOfWeek!=null||rule.days!=null||rule.holidayOnly===true||rule.excludeHolidays===true||rule.validFromDate!=null||rule.validThroughDate!=null);
     if(needsLocalTime&&!timeZone)return{complete:false,reason:'missing_tariff_time_zone',offerId:offer?.id||null};
     if(timeZone){
