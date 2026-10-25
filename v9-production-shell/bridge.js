@@ -1104,7 +1104,21 @@
     const preview=area?.preproductionCandidate;
     const previewBanner=preview?'<div class="small box" role="status"><b>Préproduction isolée · données candidates non publiées</b> · tarifs bruts non évalués : exclus du classement et des coûts simulés.'+
       (preview.status==='partial_failure'?' · Sources refusées : '+esc((preview.rejected||[]).map(r=>r.source).join(', ')||'voir journal'):'')+'</div>':'';
-    results.innerHTML=previewBanner+'<div class="small box"><b>Moteur V9</b> · une carte par station, toutes les puissances et tous les PDC.</div>'+rows.map((row,i)=>renderStationCard(row,i,area)).join('');
+    const batchSize=80,initial=Math.min(rows.length,batchSize);
+    results.innerHTML=previewBanner+'<div class="small box"><b>Moteur V9</b> · une carte par station, toutes les puissances et tous les PDC.</div>'+
+      rows.slice(0,initial).map((row,i)=>renderStationCard(row,i,area)).join('')+
+      (initial<rows.length?'<button type="button" class="secondary v9-more-stations" style="margin-top:12px">Afficher les stations suivantes · '+initial+' / '+rows.length+'</button>':'');
+    if(initial<rows.length){
+      let shown=initial;
+      const more=results.querySelector('.v9-more-stations');
+      more.addEventListener('click',()=>{
+        const next=Math.min(rows.length,shown+batchSize);
+        more.insertAdjacentHTML('beforebegin',rows.slice(shown,next).map((row,i)=>renderStationCard(row,shown+i,area)).join(''));
+        shown=next;
+        if(shown===rows.length)more.remove();
+        else more.textContent='Afficher les stations suivantes · '+shown+' / '+rows.length;
+      });
+    }
 
     renderMapSummary(w,area,rows);
   }
@@ -1139,7 +1153,7 @@
     const selected=selectedSubscriptionsForConfig(w,cfg);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
     if(queryMode==='tesla-only'&&!area.stations?.some(isTeslaStation))throw new Error(`no Tesla V9 station in ${countryCode}`);
-    area.selectedSubscriptions=selected;area.preproductionCandidate=engine.__tccPreparedCandidate||null;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),cards=stationCards(eligible,selected),rows=rankRows(cards,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
+    area.selectedSubscriptions=selected;area.preproductionCandidate=engine.__tccPreparedCandidate||null;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),cards=stationCards(eligible,selected),rows=rankRows(cards,input.rankingMode,cards.length);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
   function normalizeLegacyChrome(w){
     const d=w.document;

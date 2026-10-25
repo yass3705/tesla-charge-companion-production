@@ -271,6 +271,18 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     raise AssertionError(f"FR station view missing {label!r}")
             if "Base source : IRVE" in text:
                 raise AssertionError("Canonical CPO provenance replaced by national fallback")
+            if fr["count"] > 80:
+                page = browser.execute_script("""
+                    const results=document.getElementById('results');
+                    const before=results.querySelectorAll('.v9-result-card').length;
+                    const more=results.querySelector('.v9-more-stations');
+                    more?.click();
+                    return {before,after:results.querySelectorAll('.v9-result-card').length,
+                      remaining:!!results.querySelector('.v9-more-stations')};
+                """)
+                if page["before"] != 80 or page["after"] != 160 or not page["remaining"]:
+                    raise AssertionError(f"Station card pagination lost data: {page}")
+                fr["listPagination"] = page
             if screenshots:
                 screenshots.mkdir(parents=True, exist_ok=True)
                 browser.execute_script("document.getElementById('results').scrollIntoView()")
@@ -280,9 +292,13 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 "return document.querySelectorAll('.v9-map-marker').length>0"))
             map_state = browser.execute_script("""
                 return {markers:document.querySelectorAll('.v9-map-marker').length,
+                    stationPoints:[...document.querySelectorAll('.v9-map-marker')].reduce((n,marker)=>
+                      n+(marker.dataset.indices?.split(',').filter(Boolean).length||0),0),
                     tiles:document.querySelectorAll('.v9-map-tiles img').length,
                     help:document.querySelector('#v9MapSummary .small').innerText};
             """)
+            if fr["count"] > 80 and map_state["stationPoints"] < fr["listPagination"]["after"]:
+                raise AssertionError(f"Map dropped stations beyond first list page: {map_state}")
             if map_state["markers"] <= 0 or "sans prix simulé" not in map_state["help"]:
                 raise AssertionError(f"Prepared map invalid: {map_state}")
             browser.execute_script("document.querySelector('.v9-map-marker').click()")
