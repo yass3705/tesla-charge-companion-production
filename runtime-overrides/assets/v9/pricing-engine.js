@@ -594,7 +594,7 @@
         .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
     if(pricingParts.some(part=>(num(part?.pricePerKwh)??0)>0||
        (Array.isArray(part?.ocpiDurationBands)&&part.ocpiDurationBands.some(b=>
-         Array.isArray(b)&&b[2]==='ENERGY'&&(num(b[3])??0)>0)))&&
+         Array.isArray(b)&&String(b[0]).toUpperCase()==='ENERGY'&&(num(b[3])??0)>0)))&&
        num(session.energyKwh)==null)
       return{complete:false,reason:'energy_required',offerId:offer?.id||null,timeZone};
     if(pricingParts.some(part=>part?.minPrice!=null||part?.maxPrice!=null||
@@ -604,7 +604,8 @@
       ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
         .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
     const paidBand=(rule,kind)=>Array.isArray(rule?.ocpiDurationBands)&&
-      rule.ocpiDurationBands.some(b=>Array.isArray(b)&&b[2]===kind&&(num(b[3])??0)>0);
+      rule.ocpiDurationBands.some(b=>Array.isArray(b)&&String(b[0]).toUpperCase()===kind&&
+        (num(b[3])??0)>0);
     if(rules.some(rule=>(num(rule?.pricePerMinute)??num(rule?.connectedTimePerMinuteEur)??0)>0||
        (num(rule?.connectedTimeBlockEur)??0)>0||
        (num(rule?.connectedTimePerMinuteAfterFreeEur)??0)>0||

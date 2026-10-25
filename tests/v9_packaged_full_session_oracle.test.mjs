@@ -111,4 +111,13 @@ for(const [rule,session,reason] of [
     pricing:{type:'rules',rules:[rule]}},session).reason,reason,
   'paid time dimensions require explicit session data even without a canonical identity tag');
 }
+for(const [dimension,session,reason] of [
+  ['ENERGY',{durationMinutes:30,chargingMinutes:30,postChargeMinutes:0},'energy_required'],
+  ['TIME',{energyKwh:10,durationMinutes:30,postChargeMinutes:0},'charging_duration_required'],
+  ['PARKING_TIME',{energyKwh:10,durationMinutes:30,chargingMinutes:30},'post_charge_duration_required']
+]){
+  assert.equal(pricing.evaluateOffer({currency:'EUR',pricing:{type:'rules',rules:[{
+    scope:'allDay',ocpiDurationBands:[[dimension,0,null,.1]]}]}},session).reason,reason,
+  'a duration-band component cannot bypass missing session input checks');
+}
 console.log('Packaged V9 full-session component, channel, subscription and FX oracle: pass');
