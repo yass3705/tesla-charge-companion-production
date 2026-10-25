@@ -614,6 +614,33 @@
       }
     });
   }
+  function feeBreakdown(components={},omitCongestion=false){
+    const rows=[];
+    const add=(key,label,value)=>{
+      const amount=num(value);
+      if(amount!=null&&amount!==0)rows.push({key,label,amount});
+    };
+    const cost=value=>typeof value==='object'&&value!==null?
+      (value.costEur??value.costGbp??value.totalEur):value;
+    for(const [key,label] of [
+      ['energy','Énergie'],['chargingTime','Temps de charge'],
+      ['connectionFee','Frais fixes'],['sessionFee','Frais de session'],
+      ['connectedTimePerMinute','Temps connecté'],['connectedTimeBlocks','Temps connecté par bloc'],
+      ['connectedTimeAfterFree','Temps connecté après franchise'],
+      ['connectedTimeInitialTier','Temps connecté par palier'],
+      ['connectedTimeComponent','Forfait de connexion'],['parkingTime','Stationnement'],
+      ['idleSupplement','Supplément après charge'],['postCharge','Frais après charge'],
+      ['conditionalSessionFees','Frais conditionnels']])add(key,label,cost(components[key]));
+    if(!omitCongestion)add('congestionTime','Congestion',cost(components.congestionTime));
+    add('minimumSession','Complément au minimum de session',components.minimumSession?.topUpEur);
+    add('minimumTotal','Complément au minimum de facturation',components.minimumTotal?.topUpEur);
+    if(components.energy==null)add('energyTimeline','Énergie',components.energyTimeline?.costEur);
+    const hasBaseCharge=()=>rows.some(row=>row.key!=='minimumSession'&&row.key!=='minimumTotal');
+    if(!hasBaseCharge()&&Array.isArray(components.componentGroups))
+      components.componentGroups.forEach((group,index)=>add('componentGroup'+index,'Composante tarifaire '+(index+1),group.costEur));
+    if(!hasBaseCharge())add('segmentedPricing','Tarif horaire',components.segmentedPricing?.totalEur);
+    return rows;
+  }
   function renderTariffs(evaluation,station,fxRates={},selectedSubscriptionIds=[]){
     const evaluated=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])].filter(Boolean);
     const subs=[...new Set((selectedSubscriptionIds||[]).map(text).filter(Boolean))];
@@ -648,12 +675,17 @@
       const sourceDate=text(detail?.metadata?.fetchedAt||detail?.metadata?.validatedAt||detail?.metadata?.collectedAt||detail?.generatedAt);
       const billed=item?.result?.components||{};
       const feeRows=state.status==='priced'&&item?.result?.complete===true?
-        [['energy','Énergie'],['chargingTime','Temps de charge'],['connectionFee','Frais fixes'],['parkingTime','Stationnement']]
-          .filter(([key])=>num(billed[key])!=null&&num(billed[key])!==0)
-          .map(([key,name])=>'<div>'+esc(name)+' : '+esc(formatCurrencyAmount(billed[key],item.currency||detail?.currency||'EUR'))+'</div>').join(''):'';
+        feeBreakdown(billed,hasCongestion&&!including)
+          .map(row=>'<div>'+esc(row.label)+' : '+esc(formatCurrencyAmount(row.amount,item.currency||detail?.currency||'EUR'))+'</div>').join(''):'';
+      const preauthorisation=billed.guestPreAuthorisation;
+      const preauthorisationAmount=preauthorisation?.includedInTotal===false?
+        num(preauthorisation.amountGbp??preauthorisation.amountEur):null;
+      const preauthorisationRow=state.status==='priced'&&preauthorisationAmount!=null?
+        '<div>Préautorisation non facturée : '+esc(formatCurrencyAmount(preauthorisationAmount,
+          preauthorisation.amountGbp!=null?'GBP':'EUR'))+'</div>':'';
       const history=detail?'<details class="v9-tariff-detail" style="grid-column:1/-1;font-size:12px"><summary>Détail du tarif · '+esc(category.label)+'</summary>'+
         (fullLabels.length?'<div>Grilles et conditions : '+esc(fullLabels.join(' · '))+'</div>':'')+
-        feeRows+
+        feeRows+preauthorisationRow+
         (source?'<div>Source : '+esc(source)+'</div>':'')+(sourceDate?'<div>Date : '+esc(sourceDate)+'</div>':'')+
         '<div>Offre : '+esc(detail.id||item?.offerId||'')+'</div></details>':'';
       return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'" data-v9-tariff-state="'+esc(state.status)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+
@@ -1579,6 +1611,6 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,evseIdentityLabels,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,selectedSubscriptionsForConfig,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,evseIdentityLabels,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,feeBreakdown,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,selectedSubscriptionsForConfig,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 
 });
