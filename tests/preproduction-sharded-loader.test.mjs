@@ -79,4 +79,27 @@ const invalid=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin
   cryptoImpl:webcrypto,adapter:{toFragments}});
 await assert.rejects(invalid.loaders['prepared:'+sourceId]({origin:{lat:48.856,lon:2.352},radiusKm:10}),
   /candidate decoded length mismatch/);
+const frSource='FR:irve_static';
+const frItems=items.map(item=>({...item,source:{...item.source,id:frSource},
+  stations:item.stations.map(station=>({...station,country:'FR'})),
+  evses:item.evses.map(evse=>({...evse,country:'FR'}))}));
+const frBytes=frItems.map(item=>new TextEncoder().encode(JSON.stringify(item)));
+const frShards=frBytes.map((raw,i)=>({...shards[i],
+  path:`shards/FR__irve_static__${String(i).padStart(4,'0')}.json`,
+  sha256:hash(raw),bytes:raw.length}));
+const frIndex={...index,sources:[{source:frSource,sourceSha256:'d'.repeat(64),
+  sourceArtifactSha256:artifact,shards:frShards}]};
+const frSeen=[];
+const frFetch=async url=>{
+  if(url.endsWith('index.json'))return {ok:true,arrayBuffer:async()=>new TextEncoder().encode(JSON.stringify(frIndex)).buffer};
+  const i=frShards.findIndex(shard=>url.endsWith(shard.path));
+  assert.ok(i>=0);frSeen.push(i);
+  const raw=frBytes[i];return{ok:true,arrayBuffer:async()=>raw.buffer};
+};
+const frPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+  origin:'http://127.0.0.1/',fetchImpl:frFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await frPrepared.loaders['prepared:'+frSource]({origin:{lat:48.856,lon:2.352},radiusKm:10})).length,1);
+assert.deepEqual(frSeen,[0],'French national loading must use spatial shards too');
+assert.equal((await frPrepared.loaders['prepared:'+frSource]({})).length,2,
+  'unbounded French loading still includes all shards');
 console.log('V9 sharded candidate: spatial fetch, complete fallback and SHA failure pass');

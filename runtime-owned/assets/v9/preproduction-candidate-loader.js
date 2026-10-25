@@ -321,11 +321,10 @@
       };
       loaders[registryId]=async function(query){
         if(index.schemaVersion===2){
-          // Exact French national/eMSP links can use distant fragments as
-          // transitive identity bridges. Keep that whole country loaded until
-          // an exact-key shard index can prove the same closure.
-          const chosen=id.startsWith('FR:')?entry.shards:
-            entry.shards.filter(shard=>shardApplies(shard,query));
+          // The exact French eMSP derivative copies national station identity
+          // and coordinates. Coordinate-less source shards have a null bbox
+          // and are still loaded so they can join through an exact key.
+          const chosen=entry.shards.filter(shard=>shardApplies(shard,query));
           const results=await Promise.all(chosen.map(shard=>{
             if(!shardPending.has(shard.path)){
               const task=jsonAt(candidateUrl(base,shard.path),shard.sha256,shard.encoding,
