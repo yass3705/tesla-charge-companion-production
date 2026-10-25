@@ -1,12 +1,21 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 import path from 'node:path';
 const require=createRequire(import.meta.url);
 const pricing=require('../runtime-overrides/assets/v9/pricing-engine.js');
 const uk=require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js');
 const atlante=require('../runtime-overrides/assets/v9/adapters/atlante-italy-exact.js');
-const snapshotRoot=path.resolve(process.argv[2]||'dist/v9-global-preview');
-const session=require(path.join(snapshotRoot,'runtime/assets/v9/session-engine.js'));
+let session;
+if(process.argv[2])session=require(path.join(path.resolve(process.argv[2]),'runtime/assets/v9/session-engine.js'));
+else{
+  const browser={TCCV9OfferEngine:require('../runtime-owned/assets/v9/offer-engine.js'),
+    TCCV9PricingEngine:pricing};
+  browser.globalThis=browser;
+  runInNewContext(readFileSync(new URL('../runtime-overrides/assets/v9/session-engine.js',import.meta.url),'utf8'),browser);
+  session=browser.TCCV9SessionEngine;
+}
 
 
 const components=[
