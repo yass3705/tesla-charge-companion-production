@@ -18,6 +18,8 @@ assert.equal(station.offers.length,0);
 assert.equal(station.unparsedOffers[0].scope.connectorId,'connector');
 assert.equal(station.unparsedOffers[0].calculationStatus,'not_evaluated');
 assert.equal(station.provenance[0].sourceId,'FR:archived_source');
+assert.equal(toFragments({...source,stations:[{...source.stations[0],publicAccessDecision:'exclude_non_public'}]}).length,0,
+  'a nationally validated non-public station must stay archived but outside the map');
 const ukArchive={...source,source:{...source.source,id:'GB:gridserve_pcpr_direct'},
   stations:[{...source.stations[0],country:'GB',rawSourceFields:{publish:true,parking_type:'ON_STREET'}}]};
 assert.equal(toFragments(ukArchive).length,1);
