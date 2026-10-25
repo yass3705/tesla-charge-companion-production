@@ -35,6 +35,13 @@ assert.equal(oracle.complete,true);
 assert.equal(oracle.totalEur,14);
 assert.equal(evaluateOffer(station.offers[0],{startAt:'2026-10-23T12:00:00Z'}).reason,
   'energy_required','a paid energy component cannot become a zero-price quote');
+for(const [field,value] of [['energyKwh',-1],['energyKwh','invalid'],
+  ['durationMinutes',-1],['chargingMinutes',-1],['postChargeMinutes',-1]]){
+  const quote=evaluateOffer(station.offers[0],{energyKwh:20,[field]:value,startAt:'2026-10-23T12:00:00Z'});
+  assert.equal(quote.complete,false);
+  assert.equal(quote.reason,'invalid_session_measurement');
+  assert.equal(quote.field,field);
+}
 assert.equal(evaluateStation({...station,evses:[station.evses[1]]},{energyKwh:20,startAt:'2026-10-23T12:00:00Z'}).comparableOfferCount,0,
   'exact connector offer cannot price another EVSE');
 for(const invalid of [0,-1,NaN,'0.70',null]){

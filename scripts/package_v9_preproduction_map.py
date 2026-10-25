@@ -237,6 +237,8 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
         # to preview visitors. The runtime keeps its own required data files.
         if (stage / "snapshot-inputs").is_dir():
             shutil.rmtree(stage / "snapshot-inputs")
+        if (stage / "prepared-v9").is_dir():
+            shutil.rmtree(stage / "prepared-v9")
         # Candidate mode uses only pinned canonical offers. Keep legacy runtime
         # scripts for the shell, but do not serve their older offer catalogs.
         for historical_offers in (stage / runtime / "data/v9").glob("*-offers.json"):

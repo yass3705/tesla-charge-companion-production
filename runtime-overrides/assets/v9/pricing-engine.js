@@ -595,6 +595,13 @@
     const warning=offer?.metadata?.incompletePricingReason||pricing.incompletePricingReason;
     if(warning)return{complete:false,reason:'incomplete_pricing',detail:String(warning),
       offerId:offer?.id||null,timeZone};
+    for(const field of ['energyKwh','durationMinutes','chargingMinutes','postChargeMinutes']){
+      const value=session[field];
+      if(value!==null&&value!==undefined&&value!==''&&
+         (num(value)==null||num(value)<0))
+        return{complete:false,reason:'invalid_session_measurement',field,
+          offerId:offer?.id||null,timeZone};
+    }
     const pricingParts=[pricing,...(Array.isArray(pricing.rules)?pricing.rules:[]),
       ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
         .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
