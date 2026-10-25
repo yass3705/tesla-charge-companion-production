@@ -76,4 +76,30 @@ const cappedStation=sessionEngine.evaluateStation({...station,offers:[capped,...
 assert.equal(cappedStation.comparableOfferCount,1);
 assert.equal(cappedStation.incomplete.find(row=>row.offerId==='fixture-uk')?.result?.reason,
   'unverified_ocpi_price_bound');
+// Independent arithmetic for a complete session that crosses the 80% SOC
+// congestion threshold. These are synthetic component values, not supplier tariffs.
+const combined={id:'fixture-combined',provider:'Fixture',kind:'direct',currency:'EUR',
+  evseIds:['fixture-evse'],connectorIds:['fixture-plug'],
+  pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:.3,
+    chargePerMinute:.1,connectionFee:1,idlePerMinute:.2,
+    congestionTimePerMinute:.05,congestionStartSoc:80,minimumSessionEur:12}]}};
+const combinedSession={startAt:'2026-10-23T12:00:00Z',energyKwh:10,
+  durationMinutes:50,chargingMinutes:40,postChargeMinutes:10,
+  arrivalSoc:70,targetSoc:90,consumptionKwhPer100Km:20};
+const combinedQuote=pricing.evaluateOffer(combined,combinedSession);
+assert.equal(combinedQuote.complete,true);
+assert.equal(combinedQuote.components.energy,3);
+assert.equal(combinedQuote.components.chargingTime,4);
+assert.equal(combinedQuote.components.connectionFee,1);
+assert.equal(combinedQuote.components.parkingTime,2);
+assert.equal(combinedQuote.components.congestionTime.totalEur,1.5,
+  '20 charging minutes above 80% plus 10 minutes after charging');
+assert.equal(combinedQuote.components.minimumSession.topUpEur,.5);
+assert.equal(combinedQuote.totalEur,12);
+const combinedRanking=sessionEngine.evaluateStation({...station,offers:[combined]},
+  combinedSession,{targetCurrency:'EUR'});
+assert.equal(combinedRanking.best?.total,12);
+assert.equal(combinedRanking.best?.costPerRecoveredKm,.24);
+assert.equal(pricing.evaluateOffer(combined,{...combinedSession,targetSoc:undefined}).complete,false,
+  'missing congestion state cannot yield a partial price');
 console.log('Packaged V9 full-session component, channel, subscription and FX oracle: pass');
