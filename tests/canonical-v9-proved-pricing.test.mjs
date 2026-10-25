@@ -275,12 +275,18 @@ await assert.rejects(boundedTampered.loaders['prepared:NL:dotnl_static'](),/cand
 for(const mutation of [
   d=>{d.offers.push({...d.offers[0],id:'another-tariff'});},
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={min_kwh:2};},
+  d=>{d.tariffCatalog['NL:ABC:T1'].maxPrice=1.5;},
+  d=>{d.tariffCatalog['NL:ABC:T1'].minPrice=.5;},
   d=>{d.tariffCatalog['NL:ABC:T1'].elements[0].restrictions={start_date:'2026-02-30'};},
   d=>{d.connectors[0].powerKw=null;},
 ]){
   const changed=structuredClone(netherlands);mutation(changed);
   assert.equal(toFragments(changed)[0].offers.length,0,'unsupported NL tariff stays unpriced');
 }
+const cappedNl=structuredClone(netherlands);
+cappedNl.tariffCatalog['NL:ABC:T1'].maxPrice=1.5;
+assert.equal(toFragments(cappedNl)[0].unparsedOffers.length,1,
+  'an unproved OCPI price cap must remain visible as raw, not disappear or be ignored');
 const compoundNl=structuredClone(netherlands);
 compoundNl.tariffCatalog['NL:ABC:T1'].elements[0].priceComponents=[
   {type:'ENERGY',priceInclVat:0.57,stepSize:1000},

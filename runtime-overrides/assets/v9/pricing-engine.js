@@ -586,6 +586,15 @@
   }
   function evaluateOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=offerTimeZone(offer,session);
+    const warning=offer?.metadata?.incompletePricingReason||pricing.incompletePricingReason;
+    if(warning)return{complete:false,reason:'incomplete_pricing',detail:String(warning),
+      offerId:offer?.id||null,timeZone};
+    const pricingParts=[pricing,...(Array.isArray(pricing.rules)?pricing.rules:[]),
+      ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
+        .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
+    if(pricingParts.some(part=>part?.minPrice!=null||part?.maxPrice!=null||
+       part?.min_price!=null||part?.max_price!=null))
+      return{complete:false,reason:'unverified_ocpi_price_bound',offerId:offer?.id||null,timeZone};
     if(['exact_canonical_connector_ocpi','exact_canonical_emsp_evse',
         'exact_canonical_connector_pcpr'].includes(offer?.metadata?.identityMode)){
       const canonicalRules=[...(Array.isArray(pricing.rules)?pricing.rules:[]),

@@ -63,4 +63,17 @@ const noParking=sessionEngine.evaluateStation(station,{...session,postChargeMinu
   {targetCurrency:'EUR',fxRates:{GBP_EUR:1.2}});
 assert.equal(noParking.comparableOfferCount,0,'two paid parking rules require an explicit duration');
 assert.ok(noParking.incomplete.every(row=>row.result?.reason==='post_charge_duration_required'));
+const warned=structuredClone(station.offers[0]);
+warned.metadata.incompletePricingReason='unresolved_conditions:fixture';
+assert.equal(pricing.evaluateOffer(warned,session).reason,'incomplete_pricing',
+  'a source warning must stop the total itself, not only remove it from ranking');
+const capped=structuredClone(station.offers[0]);
+capped.pricing.maxPrice=1.5;
+assert.equal(pricing.evaluateOffer(capped,session).reason,'unverified_ocpi_price_bound',
+  'an OCPI cap without an approved calculation rule cannot be silently ignored');
+const cappedStation=sessionEngine.evaluateStation({...station,offers:[capped,...station.offers.slice(1)]},
+  session,{targetCurrency:'EUR',fxRates:{GBP_EUR:1.2}});
+assert.equal(cappedStation.comparableOfferCount,1);
+assert.equal(cappedStation.incomplete.find(row=>row.offerId==='fixture-uk')?.result?.reason,
+  'unverified_ocpi_price_bound');
 console.log('Packaged V9 full-session component, channel, subscription and FX oracle: pass');
