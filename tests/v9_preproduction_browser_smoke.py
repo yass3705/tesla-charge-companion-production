@@ -312,6 +312,28 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             if {"GB:gridserve_pcpr_direct", "GB:ubitricity_pcpr_direct"}.issubset(source_ids) and (
                     gb["ukNewMisScoped"] or gb["ukNewPriced"]):
                 raise AssertionError("New UK OCPI archives leaked a price or lost exact connector scope")
+            if {"GB:gridserve_pcpr_direct", "GB:ubitricity_pcpr_direct"}.issubset(gb["sourceIds"]):
+                labels = browser.execute_script("return document.getElementById('results')?.textContent||''")
+                if "EVSE_ID officiel :" not in labels:
+                    raise AssertionError("Official EVSE identifier label missing from UK cards")
+            if "GB:gridserve_pcpr_direct" in source_ids:
+                gridserve = archived_source("GB:gridserve_pcpr_direct")
+                offer_evses = {row["scope"]["evseId"] for row in gridserve["offers"]}
+                offer_station_ids = {row["stationId"] for row in gridserve["evses"]
+                                     if row["id"] in offer_evses and row.get("officialEvseId") is None}
+                source_station = next((row for row in gridserve["stations"]
+                                       if row["id"] in offer_station_ids and
+                                       row.get("latitude") is not None and row.get("longitude") is not None and
+                                       row.get("rawSourceFields", {}).get("publish") is not False and
+                                       row.get("rawSourceFields", {}).get("parking_type") != "PARKING_GARAGE"), None)
+                if source_station:
+                    gridserve_view = compare(source_station["latitude"], source_station["longitude"],
+                                             "GB", "Gridserve source UID fixture", radius=2)
+                    labels = browser.execute_script("return document.getElementById('results')?.textContent||''")
+                    if ("GB:gridserve_pcpr_direct" not in gridserve_view["sourceIds"] or
+                            "Identifiant EVSE source :" not in labels):
+                        raise AssertionError("Source-only Gridserve EVSE was displayed as an official ID")
+                    compare(51.507, -0.128, "GB", "London fixture restored")
             if gb["ionityPriced"] and not gb["ionityEvaluated"]:
                 raise AssertionError("UK IONITY direct rate lacks complete FX/session evaluation")
             if "GB:blink_pcpr_direct" in source_ids:

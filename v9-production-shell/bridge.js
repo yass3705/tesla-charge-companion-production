@@ -989,6 +989,17 @@
     if(states.every(state=>state.status==='ambiguous'||state.status==='unresolved'))return'Tarif incalculable';
     return'Tarifs selon PDC · voir détails';
   }
+  function evseIdentityLabels(evses){
+    const unique=values=>[...new Set(values.map(text).filter(Boolean))];
+    const official=unique(evses.map(evse=>evse.officialEvseId));
+    const source=unique(evses.filter(evse=>!text(evse.officialEvseId)).map(evse=>evse.sourceEvseId));
+    const internal=unique(evses.filter(evse=>!text(evse.officialEvseId)&&!text(evse.sourceEvseId))
+      .map(evse=>evse.id));
+    return [official.length?'EVSE_ID officiel : '+official.join(', '):null,
+      source.length?'Identifiant EVSE source : '+source.join(', '):null,
+      internal.length?'Clé interne : '+internal.join(', '):null].filter(Boolean).join(' · ')||
+      'Identifiant EVSE non fourni';
+  }
   function renderStationCard(card,index,area){
     const station=card.station,best=card.bestChoice,fx=area?.displayFxRates||{},subs=area?.selectedSubscriptions||[];
     const laneNames={direct:'Direct',electra:'Electra',electroverse:'Electroverse'};
@@ -1008,7 +1019,7 @@
         const connectors=[...new Set(allEvses.flatMap(evse=>(evse.connectors||[]).map(connector=>
           [text(connector.plugName||connector.type||connector.standard||connector.plugType||connector.kind||'Prise'),
             num(connector.powerKw)!=null?connector.powerKw+' kW':''].filter(Boolean).join(' · '))))];
-        const evseIds=[...new Set(allEvses.map(evse=>text(evse.officialEvseId||evse.sourceEvseId||evse.evseId||evse.id)).filter(Boolean))];
+        const evseIdentity=evseIdentityLabels(allEvses);
         const status=allEvses.map(evse=>text(evse.status?.state||evse.status?.value||
           (typeof evse.status==='string'?evse.status:null)||variants[0].row.station.status?.state)).filter(Boolean);
         const source=text(allEvses[0]?.sourceId||allEvses[0]?.provenance?.sourceId)||stationBaseSource(variants[0].row.station);
@@ -1020,7 +1031,7 @@
             renderTariffs(row.evaluation,scoped,fx,subs);
         }).join('');
         return'<details class="v9-pdc-detail"><summary><b>'+esc(pdc.label)+'</b> · '+esc(connectors.join(' / ')||group.kind+' '+group.powerKw+' kW')+'</summary>'+
-          '<div class="small">EVSE : '+esc(evseIds.join(', ')||'non fourni')+' · Statut : '+esc([...new Set(status)].join(', ')||'non renseigné')+' · Source : '+esc(source)+'</div>'+
+          '<div class="small">'+esc(evseIdentity)+' · Statut : '+esc([...new Set(status)].join(', ')||'non renseigné')+' · Source : '+esc(source)+'</div>'+
           tariffs+'</details>';
       }).join('');
       return'<details class="v9-power-group"><summary><b>'+esc(group.powerKw==null?'Puissance non renseignée':group.powerKw+' kW '+group.kind)+'</b> · '+group.pointCount+' PDC'+summary+'</summary>'+
@@ -1568,6 +1579,6 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,selectedSubscriptionsForConfig,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,evseIdentityLabels,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,selectedSubscriptionsForConfig,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 
 });

@@ -3,6 +3,12 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const ui=require('../v9-production-shell/bridge.js');
 const station={id:'S',countryCode:'FR',physicalOperator:{name:'Tesla',id:'tesla'},evses:[{id:'E',connectors:[{kind:'DC',powerKw:150}]}],offers:[]};
+assert.equal(ui.evseIdentityLabels([{id:'internal-1',officialEvseId:'GB*UBI*E1',sourceEvseId:'GB*UBI*E1'}]),
+  'EVSE_ID officiel : GB*UBI*E1');
+assert.equal(ui.evseIdentityLabels([{id:'internal-2',officialEvseId:null,sourceEvseId:'gridserve-uid'}]),
+  'Identifiant EVSE source : gridserve-uid');
+assert.equal(ui.evseIdentityLabels([{id:'internal-3',officialEvseId:null,sourceEvseId:null}]),
+  'Clé interne : internal-3');
 const noPrice=ui.renderTariffs({best:null,alternatives:[],incomplete:[]},station);
 assert.match(noPrice,/data-v9-tariff-state="missing"/);
 assert.match(noPrice,/Aucune offre exploitable trouvée/);
