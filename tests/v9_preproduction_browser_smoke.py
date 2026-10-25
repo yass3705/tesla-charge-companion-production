@@ -178,6 +178,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         o.rawOffer?.sourceMetadata?.provider==='Electra'&&
                         !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId&&
                           (evse.connectors||[]).some(c=>c.id===o.scope?.connectorId))).length,0),
+                      nlElectraProvenanceMissing:area.stations.reduce((n,s)=>n+
+                        (s.unparsedOffers||[]).filter(o=>o.rawOffer?.sourceMetadata?.provider==='Electra'&&
+                          (o.proof!=='archived_exact_evse_unique_connector'||
+                           !o.sourceConnectorId||o.sourceId!=='prepared:NL:electra_direct_exact')).length,0),
                       nlElectraPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='NL:electra_direct_exact').length,0),
                       ukPcprRaw:area.stations.filter(s=>(s.provenance||[]).some(p=>
@@ -433,10 +437,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                                     "Electra NL exact fixture", radius=5)
                     if ("NL:electra_direct_exact" not in exact["sourceIds"] or
                             exact["nlElectraRaw"] <= 0 or exact["nlElectraMisScoped"] or
+                            exact["nlElectraProvenanceMissing"] or
                             exact["nlElectraPriced"]):
                         raise AssertionError(f"Archived NL Electra exact connector became absent or priced: {exact}")
                     netherlands["electraExact"] = {key: exact[key] for key in
-                                                   ("nlElectraRaw", "nlElectraMisScoped", "nlElectraPriced")}
+                                                   ("nlElectraRaw", "nlElectraMisScoped",
+                                                    "nlElectraProvenanceMissing", "nlElectraPriced")}
                 if screenshots:
                     browser.execute_script("document.getElementById('results').scrollIntoView()")
                     browser.save_screenshot(str(screenshots / "prepared-nl-compound.png"))

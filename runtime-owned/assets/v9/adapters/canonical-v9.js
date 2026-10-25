@@ -314,9 +314,7 @@
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
         provedUkPcprOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
-      else evse.station.offers.push({id:offer.id,channel:offer.channel,scope:offer.scope,
-        rawOffer:offer.rawOffer??null,sourceTariffKey:offer.sourceTariffKey||null,
-        calculationStatus:'not_evaluated'});
+      else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
     return [...stations.values()].map(({row,evses,offers,pricedOffers})=>{
       const cpo=cpos.get(row.cpoId);

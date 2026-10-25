@@ -11,12 +11,15 @@ const canonical={schemaVersion:1,source:{id:'FR:fixture',artifactSha256:'a'.repe
   evses:[{id:'e1',stationId:'s',cpoId:'cpo'},{id:'e2',stationId:'s',cpoId:'cpo'}],
   connectors:[{id:'c1',evseId:'e1',powerKw:150,plugType:'CCS',rawSourceFields:{kind:'DC'}},
               {id:'c2',evseId:'e2',powerKw:22,plugType:'TYPE_2',rawSourceFields:{kind:'AC'}}],
-  offers:[{id:'raw-direct',channel:'Direct',scope:{evseId:'e1',connectorId:'c1'},rawOffer:{unvalidatedRate:999}},
+  offers:[{id:'raw-direct',channel:'Direct',scope:{evseId:'e1',connectorId:'c1'},
+    sourceConnectorId:'source-plug',proof:'archived_exact_connector',rawOffer:{unvalidatedRate:999}},
           {id:'raw-electroverse',channel:'Electroverse',scope:{evseId:'e2',connectorId:'c2'},rawOffer:{unvalidatedRate:777}}]};
 const fragment=toFragments(canonical)[0];
 const station=resolveEntities([{fragment,source:{id:'prepared:FR:fixture',priority:100}}])[0];
 assert.equal(station.offers.length,0);
 assert.equal(station.unparsedOffers.length,2);
+assert.equal(station.unparsedOffers.find(offer=>offer.id==='raw-direct').sourceConnectorId,'source-plug');
+assert.equal(station.unparsedOffers.find(offer=>offer.id==='raw-direct').proof,'archived_exact_connector');
 const fast={...station,evses:station.evses.filter(x=>x.id==='e1')};
 const slow={...station,evses:station.evses.filter(x=>x.id==='e2')};
 assert.equal(tariffLaneState(null,fast,'direct').status,'unresolved');
