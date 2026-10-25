@@ -1619,6 +1619,12 @@
       const input=readInputs(w);if(cfg.mode==='shadow'){
       const stable=await legacyCompare.apply(this,arguments);enginePromise.then(engine=>executeV9(w,engine,cfg,input)).then(run=>diagnosticStore(w,{mode:'shadow',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0,partialRadius:run.partialRadius})).catch(err=>diagnosticStore(w,{mode:'shadow',outcome:'v9-fallback',reason:err.message}));return stable;
     }
+      const pendingResults=w.document.getElementById('results');
+      if(cfg.preproductionIsolated===true){
+        const pendingStatus=w.document.getElementById('routeStatus');
+        if(pendingStatus)pendingStatus.textContent='Chargement des stations V9…';
+        pendingResults?.setAttribute('aria-busy','true');
+      }
       try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode,await subscriptionCataloguePromise),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
         diagnosticStore(w,{mode:'candidate',outcome:'v9-error',reason:err.message,operatorIds:input.operatorIds||[]});
         if(cfg.preproductionCandidateBase||input.operatorIds?.length){
@@ -1628,6 +1634,8 @@
           return null;
         }
         return legacyCompare.apply(this,arguments);
+      }finally{
+        pendingResults?.removeAttribute('aria-busy');
       }
     };
     marker.pending=false;marker.ready=true;

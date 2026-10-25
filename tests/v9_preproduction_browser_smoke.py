@@ -147,7 +147,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     document.getElementById('simMinPowerKw').value=minPower==null?'':String(minPower);
                 """, lat, lon, country, label, min_power, radius)
                 result = browser.execute_async_script("""
-                    const country=arguments[0],done=arguments[1],began=performance.now();window.compare().then(area=>{if(!area){done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)});return;}
+                    const country=arguments[0],done=arguments[1],began=performance.now();
+                    const pending=window.compare(),wasBusy=document.getElementById('results')?.getAttribute('aria-busy')==='true',
+                      pendingText=document.getElementById('routeStatus')?.innerText;
+                    pending.then(area=>{if(!area){done({error:'compare returned no area',diagnostics:localStorage.getItem('tccV9ProductionShellDiagnosticsV1'),resultText:document.getElementById('results')?.innerText?.slice(0,1200)});return;}
                       const compoundIds=new Set(area.stations.flatMap(s=>s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='NL:dotnl_static'&&o.pricing?.rules?.some(r=>
                           r.chargePerMinute>0||r.connectionFee>0||r.idlePerMinute>0)).map(o=>o.id));
@@ -160,6 +163,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       done({
                       count:area.stations.length,prepared:area.preproductionCandidate,
                       queryDurationMs:Math.round(performance.now()-began),
+                      wasBusy,pendingText,busyAfter:document.getElementById('results')?.getAttribute('aria-busy')==='true',
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
                       ionityPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId===country+':ionity_direct').length,0),
@@ -260,6 +264,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 return result
 
             fr = compare(48.856, 2.352, "FR", "Paris fixture")
+            if not fr["wasBusy"] or "Chargement des stations V9" not in fr["pendingText"] or fr["busyAfter"]:
+                raise AssertionError("Candidate search did not expose and clear its loading state")
             subscription_text = browser.execute_script(
                 "return document.getElementById('v9SubscriptionSelector')?.innerText||''")
             if "Aucun tarif d’abonnement vérifié" not in subscription_text:
