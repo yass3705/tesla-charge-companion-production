@@ -6,8 +6,9 @@
   "packaging": "packaged_preview_only",
   "hostingCheck": {
     "status": "hosting_ready_local_only",
-    "files": 2650,
-    "bytes": 265067631,
+    "files": 2636,
+    "bytes": 251384867,
+    "historicalRuntimeOfferFiles": 0,
     "largestAssetBytes": 11669931,
     "deployed": false
   },
@@ -27,7 +28,7 @@
   },
   "limitations": [
     "Tesla snapshot tariff rules are not promoted into the candidate without a matching oracle.",
-    "The full nine-country browser report is reproducible-gzip-tesla-browser-20261025.json.",
+    "The final nine-country browser report is reproducible-gzip-final-browser-20261025.json.",
     "GitHub handoff and remote hosting remain unverified; G2-G8 remain FAIL."
   ]
 }

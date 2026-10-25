@@ -20,6 +20,7 @@ class PreparedMapPackageTests(unittest.TestCase):
             (site / "v9-production-runtime/assets/v9/runtime-engine.js").write_text("/* fixture */")
             (site / "v9-production-runtime/data/v9").mkdir(parents=True)
             (site / "v9-production-runtime/data/v9/italy-offers.json").write_text("historical")
+            (site / "v9-production-runtime/data/v9/france-direct-offers.json").write_text("historical")
             tesla = b'[{"id":"tesla-fixture","countryCode":"FR","latitude":48.8,"longitude":2.3}]'
             (site / "v9-production-runtime/data/tesla_stations.json").write_bytes(tesla)
             (site / "v9-production-runtime/data/v9/source-registry.json").write_text(json.dumps({
@@ -57,6 +58,7 @@ class PreparedMapPackageTests(unittest.TestCase):
                              (Path(__file__).resolve().parents[1] /
                               "runtime-overrides/assets/v9/pricing-engine.js").read_bytes())
             self.assertFalse((output / "v9-production-runtime/data/v9/italy-offers.json").exists())
+            self.assertFalse((output / "v9-production-runtime/data/v9/france-direct-offers.json").exists())
             self.assertTrue((site / "v9-production-runtime/data/v9/italy-offers.json").is_file())
             self.assertIn('url=./v9-production-shell/', (output / 'index.html').read_text())
             self.assertIn('X-Robots-Tag: noindex', (output / '_headers').read_text())

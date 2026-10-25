@@ -34,7 +34,8 @@ def check(site: Path) -> dict:
             'X-Robots-Tag: noindex' not in (site / "_headers").read_text() or
             'Disallow: /' not in (site / "robots.txt").read_text()):
         raise ValueError("Preview entry or noindex controls missing")
-    if (site / "snapshot-inputs").exists() or (site / "runtime/data/v9/italy-offers.json").exists():
+    if ((site / "snapshot-inputs").exists() or
+            list((site / runtime / "data/v9").glob("*-offers.json"))):
         raise ValueError("Historical build inputs or offers leaked into preview")
     files = [path for path in site.rglob("*") if path.is_file()]
     if any(path.is_symlink() for path in site.rglob("*")):

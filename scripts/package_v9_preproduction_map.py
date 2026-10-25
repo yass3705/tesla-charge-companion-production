@@ -188,12 +188,10 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
         # to preview visitors. The runtime keeps its own required data files.
         if (stage / "snapshot-inputs").is_dir():
             shutil.rmtree(stage / "snapshot-inputs")
-        # Candidate mode replaces the historical offer registry. The old
-        # Italy offer corpus exceeds static-host asset limits and must not be
-        # available as an accidental fallback in the isolated preview.
-        historical_italy = stage / runtime / "data/v9/italy-offers.json"
-        if historical_italy.is_file():
-            historical_italy.unlink()
+        # Candidate mode uses only pinned canonical offers. Keep legacy runtime
+        # scripts for the shell, but do not serve their older offer catalogs.
+        for historical_offers in (stage / runtime / "data/v9").glob("*-offers.json"):
+            historical_offers.unlink()
         shutil.copytree(candidate, stage / "prepared-v9")
         assets = stage / runtime / "assets/v9"
         for source, target in (

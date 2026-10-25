@@ -2,7 +2,7 @@
 
 Statut : préparation technique seulement. Aucun projet Cloudflare Pages n'a été créé et aucune URL distante n'a été validée.
 
-Le site V9 est produit hors des dépôts par `scripts/build_v9_rebuild_preview.py`. Son index et chaque fragment sont vérifiés par SHA. `scripts/check_v9_preview_hosting.py --site <sortie>/site` contrôle la racine V9, la configuration épinglée, l'absence des entrées historiques de construction et les limites de fichiers avant tout transfert.
+Le site V9 est produit hors des dépôts par `scripts/build_v9_rebuild_preview.py`. Son index et chaque fragment sont vérifiés par SHA. `scripts/check_v9_preview_hosting.py --site <sortie>/site` contrôle la racine V9, la configuration épinglée, l'inventaire Tesla par SHA, l'absence des entrées de construction et des anciens catalogues d'offres runtime, ainsi que les limites de fichiers avant tout transfert. Dans cet aperçu, le sélecteur d'abonnements n'importe que les offres prouvées du candidat.
 
 Hébergement proposé : **un projet Cloudflare Pages Direct Upload distinct du Worker/site public TCC**. La [documentation Cloudflare Pages](https://developers.cloudflare.com/pages/platform/limits/) fixe pour le forfait gratuit 20 000 fichiers et 25 MiB par fichier ; le [transfert direct](https://developers.cloudflare.com/pages/get-started/direct-upload/) accepte un dossier de fichiers construits. `_headers` applique `X-Robots-Tag: noindex` à l'aperçu, selon la [syntaxe Pages officielle](https://developers.cloudflare.com/pages/configuration/headers/). Ces limites sont des contraintes de transport, sans rapport avec les volumes de stations ou d'EVSE.
 

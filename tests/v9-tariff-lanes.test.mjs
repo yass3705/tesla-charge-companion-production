@@ -133,6 +133,16 @@ const fastnedSubscription={id:'fastned-gold',subscriptionId:'fastned-gold',opera
 const nearbyFastned={...station('near'),physicalOperator:{id:'fastned',name:'Fastned'}};
 assert.ok(ui.subscriptionOptionsForArea({stations:[nearbyFastned]},'FR',[fastnedSubscription]).some(x=>x.id==='fastned-gold'));
 assert.ok(!ui.subscriptionOptionsForArea({stations:[station('far')]},'FR',[fastnedSubscription]).some(x=>x.id==='fastned-gold'));
+const previewCatalogue=await ui.loadSubscriptionCatalogue({fetch(){throw new Error('historical offers fetched');}},
+  {runtimeBase:'runtime',preproductionCandidateBase:'../prepared-v9'});
+assert.deepEqual(previewCatalogue,[],'isolated preview cannot import historical subscription prices');
+const previewElectra={preproductionCandidate:{bundleId:'fixture'},stations:[{
+  ...station('electra'),physicalOperator:{id:'electra',name:'Electra'}}]};
+assert.deepEqual(ui.subscriptionOptionsForArea(previewElectra,'FR',[]),[],
+  'historical Electra plans cannot appear as verified candidate subscriptions');
+const stored={localStorage:{getItem:()=>JSON.stringify(['electra-plus-smart','candidate-plan'])}};
+assert.deepEqual(ui.selectedSubscriptionsForConfig(stored,{preproductionCandidateBase:'../prepared-v9'}),
+  ['candidate-plan'],'an old Electra discount selection cannot synthesize a candidate offer');
 const pricing=require('../runtime-overrides/assets/v9/pricing-engine.js');
 const priceAt=(rate)=>({scope:'allDay',start:'00:00',end:'24:00',pricePerKwh:rate});
 const overlap=pricing.evaluateOffer({id:'overlap',currency:'EUR',pricing:{type:'rules',rules:[priceAt(.4),priceAt(.55)]}},{startAt:'2026-10-08T14:00:00Z',energyKwh:10,durationMinutes:30});

@@ -49,6 +49,10 @@
   function selectedSubscriptions(w){
     try{const raw=JSON.parse(w.localStorage.getItem(SUBSCRIPTION_KEY)||'[]');return Array.isArray(raw)?[...new Set(raw.map(text).filter(Boolean))]:[];}catch(_){return[];}
   }
+  function selectedSubscriptionsForConfig(w,cfg){
+    const selected=selectedSubscriptions(w);
+    return cfg?.preproductionCandidateBase?selected.filter(id=>!ELECTRA_PLUS_PLANS.some(plan=>plan.id===id)):selected;
+  }
   function saveSelectedSubscriptions(w,ids){const clean=[...new Set((ids||[]).map(text).filter(Boolean))];try{w.localStorage.setItem(SUBSCRIPTION_KEY,JSON.stringify(clean));}catch(_){}return clean;}
   function subscriptionLabel(row){const provider=text(row?.provider),label=text(row?.label),id=text(row?.id);if(label&&label!==id)return label;if(provider&&provider!==id)return provider;return id;}
   function subscriptionOptionsForArea(area,countryCode,catalogue=[]){
@@ -74,12 +78,13 @@
       if(!options.has(id))options.set(id,{id,label,provider:text(offer?.provider)||label,countries:[country],monthlyFeeEur,annualFeeEur,feeNote:feeCurrent?'':'Mensualité à vérifier après promotion',coverageNote:text(metadata.coverageNote||offer?.coverageNote),source:text(metadata.source||offer?.source),validationDate:text(metadata.validationDate||metadata.validatedAt)});
     }
     const localElectra=stations.some(st=>/electra/i.test(text(st.physicalOperator?.id)+' '+text(st.physicalOperator?.name)))||allOperators.some(op=>/electra/i.test(text(op.id)+' '+text(op.name)));
-    if(country==='FR'&&localElectra)for(const plan of ELECTRA_PLUS_PLANS){
+    if(!area?.preproductionCandidate&&country==='FR'&&localElectra)for(const plan of ELECTRA_PLUS_PLANS){
       if(!options.has(plan.id))options.set(plan.id,{...plan,countries:['FR'],coverageNote:'Bornes Electra avec tarif direct unique vérifié · −'+plan.discountPerKwhEur.toFixed(2)+' €/kWh',source:'Electra+',validationDate:'2026-10-13'});
     }
     return [...options.values()].sort((a,b)=>subscriptionLabel(a).localeCompare(subscriptionLabel(b),'fr'));
   }
   async function loadSubscriptionCatalogue(w,cfg){
+    if(cfg.preproductionCandidateBase)return[];
     const base=String(cfg.runtimeBase||'.').replace(/\/$/,'');
     const files=['france-direct-offers.json','electra-direct-france.json'];
     const results=await Promise.all(files.map(async file=>{
@@ -219,7 +224,10 @@
     ]);
     const exchangeUrl=new URL('../data/exchange_rates.json',w.location.href).toString();
     const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null);
-    let registry=historicalRegistry,loaders=w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),preparedCandidate=null;
+    let registry=historicalRegistry,
+      loaders=cfg.preproductionCandidateBase?{}:
+        w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),
+      preparedCandidate=null;
     if(cfg.preproductionCandidateBase){
       // NEVER blend unevaluated candidate tariffs into the historical priced catalog.
       if(cfg.mode!=='candidate'||cfg.preproductionIsolated!==true||!w.TCCV9PreparedCandidate?.loadPrepared||!w.TCCV9CanonicalAdapter?.toFragments)
@@ -1077,7 +1085,7 @@
     const queryMode=countryQueryMode(countryCode,scope,input.operatorIds||[]);
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input,countryCode);session.fxRates=engine.__tccFxRates||{};
     if(queryMode==='tesla-only')filters.operatorIds=['tesla'];
-    const selected=selectedSubscriptions(w);
+    const selected=selectedSubscriptionsForConfig(w,cfg);
     const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:500,sortBy:'finalCost'});
     if(queryMode==='tesla-only'&&!area.stations?.some(isTeslaStation))throw new Error(`no Tesla V9 station in ${countryCode}`);
     area.selectedSubscriptions=selected;area.preproductionCandidate=engine.__tccPreparedCandidate||null;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),cards=stationCards(eligible,selected),rows=rankRows(cards,input.rankingMode,20);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
@@ -1560,6 +1568,6 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,selectedSubscriptionsForConfig,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
 
 });

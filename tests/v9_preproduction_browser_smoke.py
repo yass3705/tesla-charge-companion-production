@@ -196,6 +196,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 return result
 
             fr = compare(48.856, 2.352, "FR", "Paris fixture")
+            subscription_text = browser.execute_script(
+                "return document.getElementById('v9SubscriptionSelector')?.innerText||''")
+            if "Aucun tarif d’abonnement vérifié" not in subscription_text:
+                raise AssertionError("Historical subscriptions leaked into the isolated candidate")
             text = browser.execute_script("return document.getElementById('results').innerText")
             fr_source_label = "Belib · FR" if "FR:belib_stations" in source_ids else "IONITY Direct · FR"
             for label in (fr_source_label, "Extraction :", "Tarif incalculable", "Prix non disponible", "Direct", "Electra", "Electroverse"):
