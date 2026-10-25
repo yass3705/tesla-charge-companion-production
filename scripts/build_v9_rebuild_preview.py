@@ -67,6 +67,13 @@ def build(datalab: Path, built_site: Path, destination: Path,
         if emsp.get("source") != "FR:emsp_exact" or hashlib.sha256(
                 (stage / "FR__emsp_exact.json").read_bytes()).hexdigest() != emsp.get("sha256"):
             raise ValueError("Exact eMSP canonical output invalid")
+        electra_nl = run(sys.executable, datalab / "scripts/build_v9_electra_nl_exact_canonical.py",
+                         "--national", datalab / "data/national/netherlands_dotnl/normalized.json.gz",
+                         "--overlay", datalab / "data/operator_direct/electra_nl_graphql_exact_overlay.json",
+                         "--out", stage / "NL__electra_direct_exact.json")
+        if electra_nl.get("source") != "NL:electra_direct_exact" or hashlib.sha256(
+                (stage / "NL__electra_direct_exact.json").read_bytes()).hexdigest() != electra_nl.get("sha256"):
+            raise ValueError("Archived Electra NL exact canonical output invalid")
         sys.path.insert(0, str(datalab))
         from v9_rebuild.snapshot import prepare, verify  # noqa: E402
         manifest = json.loads((base_bundle / "manifest.json").read_bytes())
@@ -74,6 +81,9 @@ def build(datalab: Path, built_site: Path, destination: Path,
         if "FR:emsp_exact" in inputs:
             raise ValueError("eMSP source already present in base")
         inputs["FR:emsp_exact"] = stage / "FR__emsp_exact.json"
+        if "NL:electra_direct_exact" in inputs:
+            raise ValueError("Electra NL source already present in base")
+        inputs["NL:electra_direct_exact"] = stage / "NL__electra_direct_exact.json"
         bundle = prepare(inputs, stage / "bundles")
         verified = verify(bundle)
         if expected_bundle_id is not None and bundle.name != expected_bundle_id:

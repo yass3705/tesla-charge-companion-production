@@ -49,7 +49,7 @@
   function rank(source,family,fragment){return{score:priorityFor(source,family,fragment),sourceId:text(source?.id)||'unknown'};}
   function rankWins(next,current){if(!current)return true;if(next.score!==current.score)return next.score>current.score;return next.sourceId.localeCompare(current.sourceId)<0;}
 
-  const FAMILY_FIELDS={identity:['countryCode','name','address','latitude','longitude','physicalOperator','networkBrand'],connectors:['evses'],access:['access'],status:['status'],rawOfferProvenance:['unparsedOffers']};
+  const FAMILY_FIELDS={identity:['countryCode','name','address','latitude','longitude','physicalOperator','networkBrand'],connectors:['evses'],access:['access'],status:['status']};
 
   function fragmentKeys(fragment,source){
     const keys=[];
@@ -61,7 +61,7 @@
   function deterministicFragmentKey(item){const f=item.fragment,s=item.source;return[String(9999-priorityFor(s,'identity',f)).padStart(4,'0'),text(s?.id),text(f?.canonicalId),text(f?.id),text(f?.name),String(f?.latitude??''),String(f?.longitude??'')].join('|');}
   function newEntity(fragment,source){
     const baseId=text(fragment?.canonicalId)||`station:${text(source?.id)}:${text(fragment?.sourceStationId||fragment?.id||norm(fragment?.name)||'unknown')}`;
-    return{id:baseId,aliases:[],countryCode:'',name:'',address:'',latitude:null,longitude:null,physicalOperator:{id:'unknown',name:'Unknown'},networkBrand:'',evses:[],access:null,status:null,offers:[],provenance:[],_fieldRanks:{},_offerRanks:{},_keys:new Set()};
+    return{id:baseId,aliases:[],countryCode:'',name:'',address:'',latitude:null,longitude:null,physicalOperator:{id:'unknown',name:'Unknown'},networkBrand:'',evses:[],access:null,status:null,offers:[],unparsedOffers:[],provenance:[],_fieldRanks:{},_offerRanks:{},_rawOfferRanks:{},_rawOfferIndexes:new Map(),_keys:new Set()};
   }
   function normalizeOperator(value){const name=text(typeof value==='object'?value?.name:value)||'Unknown';return{id:operatorId(typeof value==='object'?(value?.id||name):name),name};}
   function applyFamily(entity,fragment,source,family){
@@ -86,6 +86,18 @@
       const index=entity.offers.findIndex(o=>offerSemanticKey(o,entity.countryCode)===key);if(index>=0)entity.offers[index]=offer;else entity.offers.push(offer);entity._offerRanks[key]=nextRank;
     }
   }
+  function mergeRawOffers(entity,fragment,source){
+    for(const [index,raw] of (fragment?.unparsedOffers||[]).entries()){
+      const id=text(raw?.id||raw?.offerId),key=id||`${text(source?.id)}:${index}`;
+      const nextRank=rank(source,'rawOfferProvenance',fragment),current=entity._rawOfferRanks[key];
+      if(current&&!rankWins(nextRank,current))continue;
+      const offer={...clone(raw),sourceId:text(source?.id)};
+      const at=entity._rawOfferIndexes.get(key);
+      if(at!=null)entity.unparsedOffers[at]=offer;
+      else{entity._rawOfferIndexes.set(key,entity.unparsedOffers.length);entity.unparsedOffers.push(offer);}
+      entity._rawOfferRanks[key]=nextRank;
+    }
+  }
   function mergeFragment(entity,fragment,source){
     for(const family of Object.keys(FAMILY_FIELDS))applyFamily(entity,fragment,source,family);
     const aliases=fragmentKeys(fragment,source);entity.aliases=uniq([...entity.aliases,...aliases]);for(const k of aliases)entity._keys.add(k);
@@ -95,9 +107,9 @@
       sourceId:preparedId,sourceStationId:text(fragment?.sourceStationId||fragment?.id),
       artifactSha256:preparedEvidence.artifactSha256||null,generatedAt:preparedEvidence.generatedAt||null,
       updatedAt:fragment?.updatedAt||null
-    }:{sourceId:source.id,sourceStationId:text(fragment?.sourceStationId||fragment?.id),updatedAt:fragment?.updatedAt||null});mergeOffers(entity,fragment,source);return entity;
+    }:{sourceId:source.id,sourceStationId:text(fragment?.sourceStationId||fragment?.id),updatedAt:fragment?.updatedAt||null});mergeOffers(entity,fragment,source);mergeRawOffers(entity,fragment,source);return entity;
   }
-  function publicEntity(entity){const out={...entity};delete out._fieldRanks;delete out._offerRanks;delete out._keys;out.aliases=uniq(out.aliases).sort();out.provenance=out.provenance.slice().sort((a,b)=>`${a.sourceId}|${a.sourceStationId}`.localeCompare(`${b.sourceId}|${b.sourceStationId}`));out.offers=out.offers.slice().sort((a,b)=>offerSemanticKey(a,out.countryCode).localeCompare(offerSemanticKey(b,out.countryCode)));return out;}
+  function publicEntity(entity){const out={...entity};delete out._fieldRanks;delete out._offerRanks;delete out._rawOfferRanks;delete out._rawOfferIndexes;delete out._keys;out.aliases=uniq(out.aliases).sort();out.provenance=out.provenance.slice().sort((a,b)=>`${a.sourceId}|${a.sourceStationId}`.localeCompare(`${b.sourceId}|${b.sourceStationId}`));out.offers=out.offers.slice().sort((a,b)=>offerSemanticKey(a,out.countryCode).localeCompare(offerSemanticKey(b,out.countryCode)));out.unparsedOffers=out.unparsedOffers.slice().sort((a,b)=>`${a.sourceId}|${a.id||a.offerId||''}`.localeCompare(`${b.sourceId}|${b.id||b.offerId||''}`));return out;}
   function resolveEntities(items){
     const ordered=items.slice().sort((a,b)=>deterministicFragmentKey(a).localeCompare(deterministicFragmentKey(b))),entities=[],keyIndex=new Map();
     for(const item of ordered){const keys=fragmentKeys(item.fragment,item.source);let entity=null;for(const key of keys){if(keyIndex.has(key)){entity=keyIndex.get(key);break;}}if(!entity){entity=newEntity(item.fragment,item.source);entities.push(entity);}mergeFragment(entity,item.fragment,item.source);for(const key of entity._keys)keyIndex.set(key,entity);}

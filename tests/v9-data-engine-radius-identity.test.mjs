@@ -28,6 +28,8 @@ assert.equal(local.stations[0].id,'FR:station:1');
 assert.equal(local.stations[0].latitude,48.85,'distant overlay must not move the physical site');
 assert.equal(local.stations[0].unparsedOffers[0].id,'raw-exact',
   'exact identity overlay must survive radius preselection');
+assert.deepEqual(local.stations[0].unparsedOffers.map(row=>row.id),['raw-exact','raw-secondary'],
+  'raw offers from independent exact sources must not overwrite each other');
 assert.deepEqual(local.stations[0].provenance.map(row=>row.sourceId),
   ['exact-overlay','national','secondary']);
 const all=await engine.queryArea({countryCode:'FR'});

@@ -172,6 +172,14 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         o.metadata?.sourceId==='FR:emsp_exact'&&
                         !(s.evses||[]).some(evse=>o.evseIds?.includes(evse.id)&&
                           o.connectorIds?.every(id=>(evse.connectors||[]).some(c=>c.id===id)))).length,0),
+                      nlElectraRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        o.channel==='Direct'&&o.rawOffer?.sourceMetadata?.provider==='Electra').length,0),
+                      nlElectraMisScoped:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        o.rawOffer?.sourceMetadata?.provider==='Electra'&&
+                        !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId&&
+                          (evse.connectors||[]).some(c=>c.id===o.scope?.connectorId))).length,0),
+                      nlElectraPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='NL:electra_direct_exact').length,0),
                       ukPcprRaw:area.stations.filter(s=>(s.provenance||[]).some(p=>
                         ['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(p.sourceId)))
                         .reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
@@ -418,6 +426,17 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if repeated["count"] != netherlands["count"] or repeated["compoundEvaluated"] != netherlands["compoundEvaluated"]:
                     raise AssertionError("Repeated candidate query changed stations or evaluated offers")
                 netherlands["repeatQueryDurationMs"] = repeated["queryDurationMs"]
+                if "NL:electra_direct_exact" in source_ids:
+                    exact_source = archived_source("NL:electra_direct_exact")
+                    station = exact_source["stations"][0]
+                    exact = compare(station["latitude"], station["longitude"], "NL",
+                                    "Electra NL exact fixture", radius=5)
+                    if ("NL:electra_direct_exact" not in exact["sourceIds"] or
+                            exact["nlElectraRaw"] <= 0 or exact["nlElectraMisScoped"] or
+                            exact["nlElectraPriced"]):
+                        raise AssertionError(f"Archived NL Electra exact connector became absent or priced: {exact}")
+                    netherlands["electraExact"] = {key: exact[key] for key in
+                                                   ("nlElectraRaw", "nlElectraMisScoped", "nlElectraPriced")}
                 if screenshots:
                     browser.execute_script("document.getElementById('results').scrollIntoView()")
                     browser.save_screenshot(str(screenshots / "prepared-nl-compound.png"))
