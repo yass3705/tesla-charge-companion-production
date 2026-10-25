@@ -27,9 +27,9 @@ def fixture(root: Path) -> Path:
             "connectors": [{"id": "plug-one", "evseId": "evse-one"},
                            {"id": "plug-two", "evseId": "evse-two"}],
             "offers": [{"id": "offer-one", "channel": "Direct", "scope": {"evseId": "evse-one", "connectorId": "plug-one"},
-                        "sourceTariffKey": "T1"},
+                        "sourceTariffKey": "T1", "calculationStatus": "not_evaluated"},
                        {"id": "offer-two", "channel": "Direct", "scope": {"evseId": "evse-two", "connectorId": "plug-two"},
-                        "sourceTariffKey": "T2"}],
+                        "sourceTariffKey": "T2", "calculationStatus": "not_evaluated"}],
             "tariffCatalog": {"T1": {"id": "T1"}, "T2": {"id": "T2"}}}
     raw = json.dumps(data).encode()
     (candidate / "sources/NL__dotnl_static.json").write_bytes(raw)
@@ -73,6 +73,22 @@ class ShardV9PreproductionTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "SHA"):
                 MODULE.check_candidate(out)
             shard_path.write_bytes(original_bytes)
+            changed = json.loads(gzip.decompress(original_bytes))
+            changed["offers"][0]["scope"]["connectorId"] = "plug-from-another-station"
+            changed_bytes = json.dumps(changed).encode()
+            tampered = gzip.compress(changed_bytes, mtime=0)
+            shard_path.write_bytes(tampered)
+            index["sources"][0]["shards"][0].update({
+                "bytes": len(tampered), "sha256": hashlib.sha256(tampered).hexdigest(),
+                "uncompressedBytes": len(changed_bytes)})
+            (out / "index.json").write_text(json.dumps(index))
+            with self.assertRaisesRegex(ValueError, "exact scope"):
+                MODULE.check_candidate(out)
+            shard_path.write_bytes(original_bytes)
+            index["sources"][0]["shards"][0].update({
+                "bytes": len(original_bytes), "sha256": hashlib.sha256(original_bytes).hexdigest(),
+                "uncompressedBytes": len(gzip.decompress(original_bytes))})
+            (out / "index.json").write_text(json.dumps(index))
             index["sources"][0]["shards"][0]["uncompressedBytes"] += 1
             (out / "index.json").write_text(json.dumps(index))
             with self.assertRaisesRegex(ValueError, "decompressed length"):

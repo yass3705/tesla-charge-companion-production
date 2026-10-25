@@ -63,7 +63,7 @@ def check_candidate(candidate: Path) -> dict:
                     not re.fullmatch(r"[a-f0-9]{64}", str(entry.get("sourceArtifactSha256", ""))) or
                     not isinstance(entry.get("shards"), list) or not entry["shards"]):
                 raise ValueError("Prepared shard source descriptor invalid")
-            station_ids = set()
+            station_ids, source_evse_ids, source_connector_ids, source_offer_ids = set(), set(), set(), set()
             for number, shard in enumerate(entry["shards"]):
                 encoding = shard.get("encoding")
                 if encoding not in (None, "gzip"):
@@ -97,9 +97,58 @@ def check_candidate(candidate: Path) -> dict:
                         len(data["stations"]) != shard["stationCount"]):
                     raise ValueError("Prepared shard provenance or station count invalid")
                 ids = [row.get("id") for row in data["stations"]]
-                if len(ids) != len(set(ids)) or station_ids.intersection(ids):
+                if None in ids or len(ids) != len(set(ids)) or station_ids.intersection(ids):
                     raise ValueError("Prepared shard station identity collision")
                 station_ids.update(ids)
+                shard_station_ids = set(ids)
+                cpo_rows = data.get("cpos")
+                if not isinstance(cpo_rows, list):
+                    raise ValueError("Prepared shard CPO section missing")
+                cpos = {row.get("id") for row in cpo_rows}
+                if None in cpos or len(cpos) != len(cpo_rows):
+                    raise ValueError("Prepared shard CPO identity collision")
+                if any(row.get("cpoId") not in cpos for row in data["stations"]):
+                    raise ValueError("Prepared shard station CPO relation invalid")
+                evses = data.get("evses")
+                connectors = data.get("connectors")
+                offers = data.get("offers")
+                if not all(isinstance(rows, list) for rows in (evses, connectors, offers)):
+                    raise ValueError("Prepared shard canonical sections missing")
+                evse_by_id = {row.get("id"): row for row in evses}
+                connector_by_id = {row.get("id"): row for row in connectors}
+                offer_ids = {row.get("id") for row in offers}
+                if (None in evse_by_id or len(evse_by_id) != len(evses) or
+                        source_evse_ids.intersection(evse_by_id) or
+                        None in connector_by_id or len(connector_by_id) != len(connectors) or
+                        source_connector_ids.intersection(connector_by_id) or
+                        None in offer_ids or len(offer_ids) != len(offers) or
+                        source_offer_ids.intersection(offer_ids)):
+                    raise ValueError("Prepared shard EVSE, connector or offer identity collision")
+                source_evse_ids.update(evse_by_id)
+                source_connector_ids.update(connector_by_id)
+                source_offer_ids.update(offer_ids)
+                if any(row.get("stationId") not in shard_station_ids or row.get("cpoId") not in cpos or
+                       (row.get("officialEvseId") is not None and
+                        row.get("officialEvseId") != row.get("sourceEvseId")) for row in evses):
+                    raise ValueError("Prepared shard EVSE station or official identity invalid")
+                if any(row.get("evseId") not in evse_by_id for row in connectors):
+                    raise ValueError("Prepared shard connector EVSE relation invalid")
+                for offer in offers:
+                    scope = offer.get("scope") or {}
+                    evse_id, connector_id = scope.get("evseId"), scope.get("connectorId")
+                    if (offer.get("channel") not in {"Direct", "Electra", "Electroverse"} or
+                            offer.get("calculationStatus") != "not_evaluated" or "pricing" in offer or
+                            evse_id not in evse_by_id or
+                            (connector_id is not None and
+                             (connector_id not in connector_by_id or
+                              connector_by_id[connector_id].get("evseId") != evse_id))):
+                        raise ValueError("Prepared shard tariff channel or exact scope invalid")
+                    tariff_key = offer.get("sourceTariffKey")
+                    # An exact overlay may carry its full raw tariff inline even
+                    # when a separate national catalogue has no such key.
+                    if tariff_key is not None and isinstance(data.get("tariffCatalog"), dict) and \
+                            tariff_key not in data["tariffCatalog"] and offer.get("rawOffer") is None:
+                        raise ValueError("Prepared shard tariff catalogue reference invalid")
                 bbox = shard.get("bbox")
                 if bbox is not None and (not isinstance(bbox, list) or len(bbox) != 4 or
                                          not all(isinstance(value, (int, float)) for value in bbox) or
