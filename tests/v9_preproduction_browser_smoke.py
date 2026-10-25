@@ -162,6 +162,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         [row?.best,...(row?.alternatives||[]),...(row?.incomplete||[])]).filter(Boolean);
                       done({
                       count:area.stations.length,prepared:area.preproductionCandidate,
+                      stationLimitApplied:area.diagnostics?.stationLimitApplied===true,
+                      matchingCount:area.diagnostics?.sourceStationCount??null,
                       queryDurationMs:Math.round(performance.now()-began),
                       wasBusy,pendingText,busyAfter:document.getElementById('results')?.getAttribute('aria-busy')==='true',
                       priced:area.stations.reduce((n,s)=>n+(s.offers||[]).length,0),
@@ -277,6 +279,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     raise AssertionError(f"FR station view missing {label!r}")
             if "Base source : IRVE" in text:
                 raise AssertionError("Canonical CPO provenance replaced by national fallback")
+            if fr["stationLimitApplied"] and ("Recherche large" not in text or
+                    "Réduis le rayon" not in text or
+                    str(fr["matchingCount"]) not in text):
+                raise AssertionError("Dense-area result limit was not disclosed to the user")
             if fr["count"] > 80:
                 page = browser.execute_script("""
                     const results=document.getElementById('results');

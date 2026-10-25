@@ -140,7 +140,8 @@ let capturedQuery;
 const growingEngine={queryArea:async query=>{
   capturedQuery=query;
   return{stations:query.stationLimit?growingArea.slice(0,query.stationLimit):growingArea,
-    query,sessionEvaluations:{}};
+    query,sessionEvaluations:{},diagnostics:{sourceStationCount:growingArea.length,
+      stationLimitApplied:growingArea.length>query.stationLimit}};
 },__tccFxRates:{}};
 const growingWindow={resolveOrigin:async()=>({lat:48,lon:2,label:'Fixture origin'}),
   sessionStorage:{getItem:()=> 'FR'},localStorage:{getItem:()=>null},
@@ -150,8 +151,10 @@ const growingWindow={resolveOrigin:async()=>({lat:48,lon:2,label:'Fixture origin
 const growingResult=await executeV9(growingWindow,growingEngine,
   {mode:'candidate',engineScopeCountries:['FR']},
   {originText:'Fixture origin',radiusKm:20,startSoc:20,targetSoc:80});
-assert.equal(capturedQuery.stationLimit,undefined,'source growth must not trigger a hidden display cap');
-assert.equal(growingResult.rows.length,growingArea.length,'unknown-power stations remain in the ranked list');
+assert.equal(capturedQuery.stationLimit,500,'the dense-area display budget stays separate from routing');
+assert.equal(growingResult.area.diagnostics.sourceStationCount,growingArea.length,
+  'the full result count must remain available to disclose omitted stations');
+assert.equal(growingResult.rows.length,500,'displayed stations retain unknown-power details');
 assert.ok(growingResult.rows.every(row=>row.total==null),'unknown prices must not become zero');
 
 console.log('V9 shell grouping OK');
