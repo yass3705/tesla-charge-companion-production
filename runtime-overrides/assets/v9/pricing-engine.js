@@ -428,6 +428,7 @@
     const windows=Array.isArray(fee?.exemptLocalWindows)?fee.exemptLocalWindows.filter(Boolean):[];
     if(afterGrace<=0)return{complete:true,duration,grace,afterGrace,billableMinutes:0,exemptMinutes:0};
     if(!windows.length)return{complete:true,duration,grace,afterGrace,billableMinutes:afterGrace,exemptMinutes:0};
+    if(!timeZone)return{complete:false,reason:'post_charge_exemption_requires_time_zone',duration,grace,afterGrace};
     if(!postChargeStartAt)return{complete:false,reason:'post_charge_exemption_requires_start_time',duration,grace,afterGrace};
     const start=new Date(postChargeStartAt);if(Number.isNaN(start.getTime()))return{complete:false,reason:'invalid_post_charge_start_time',duration,grace,afterGrace};
     const billableStartMs=start.getTime()+grace*60000;let remaining=afterGrace,offset=0,billable=0,exempt=0;
@@ -443,7 +444,12 @@
     if(!fee)return{totalEur:0,component:null};
     if(num(session.postChargeMinutes)==null)
       return{complete:false,totalEur:0,component:null,reason:'post_charge_duration_required'};
-    const span=postChargeBillableMinutes(fee,session,timeZone);if(span.complete===false)return{totalEur:0,component:null,complete:false,reason:span.reason};
+    const charging=num(session.chargingMinutes),started=new Date(session.startAt||'');
+    const derivedStart=!session.postChargeStartAt&&charging!=null&&charging>=0&&
+      !Number.isNaN(started.getTime())?new Date(started.getTime()+charging*60000).toISOString():null;
+    const span=postChargeBillableMinutes(fee,{...session,
+      postChargeStartAt:session.postChargeStartAt||derivedStart},timeZone);
+    if(span.complete===false)return{totalEur:0,component:null,complete:false,reason:span.reason};
     const duration=span.duration,grace=span.grace,billable=span.billableMinutes,exemptMinutes=span.exemptMinutes;
     const baseComponent={postChargeMinutes:duration,graceMinutes:grace,billableMinutes:billable,exemptMinutes,costEur:0};
     if(billable<=0)return{totalEur:0,component:baseComponent};

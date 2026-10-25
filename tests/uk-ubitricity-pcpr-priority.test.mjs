@@ -32,7 +32,15 @@ assert.equal(idle('2026-11-02T18:30:00Z',120).totalEur,1.5,'only 19:30-20:00 is 
 assert.equal(idle('2026-11-02T19:30:00Z',120).totalEur,0,'night remains free');
 assert.equal(idle('2026-11-02T06:30:00Z',120).totalEur,1.5,'billing resumes at 08:00');
 assert.equal(idle('2026-11-02T20:00:00Z',600).totalEur,0,'overnight parking stays free');
+assert.equal(pricingEngine.evaluateOffer(offer,{startAt:'2026-11-02T08:00:00Z',
+  durationMinutes:60,chargingMinutes:60,energyKwh:0,postChargeMinutes:61}).totalEur,0.05,
+  'explicit charging duration derives the post-charge start without a guessed clock time');
 const unknown=pricingEngine.evaluateOffer(offer,{startAt:'2026-11-02T09:00:00Z',
   durationMinutes:0,energyKwh:0,postChargeMinutes:61});
 assert.equal(unknown.complete,false,'missing end-of-charge time cannot be ranked');
+const noZone=structuredClone(offer);delete noZone.pricing.timeZone;
+assert.equal(pricingEngine.evaluateOffer(noZone,{startAt:'2026-11-02T09:00:00Z',
+  durationMinutes:0,energyKwh:0,postChargeStartAt:'2026-11-02T09:00:00Z',
+  postChargeMinutes:61}).reason,'post_charge_exemption_requires_time_zone',
+  'local exemption cannot use the host time zone');
 console.log('Ubitricity PCPR priority adapter: pass');
