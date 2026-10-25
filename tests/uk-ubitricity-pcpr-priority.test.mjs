@@ -43,4 +43,10 @@ assert.equal(pricingEngine.evaluateOffer(noZone,{startAt:'2026-11-02T09:00:00Z',
   durationMinutes:0,energyKwh:0,postChargeStartAt:'2026-11-02T09:00:00Z',
   postChargeMinutes:61}).reason,'post_charge_exemption_requires_time_zone',
   'local exemption cannot use the host time zone');
+const badWindow=structuredClone(offer);
+badWindow.pricing.postChargeFee.exemptLocalWindows=[{start:'invalid',end:'08:00'}];
+assert.equal(pricingEngine.evaluateOffer(badWindow,{startAt:'2026-11-02T09:00:00Z',
+  durationMinutes:0,energyKwh:0,postChargeStartAt:'2026-11-02T09:00:00Z',
+  postChargeMinutes:61}).reason,'invalid_post_charge_exemption_window',
+  'a malformed exemption must not be silently ignored and charged');
 console.log('Ubitricity PCPR priority adapter: pass');

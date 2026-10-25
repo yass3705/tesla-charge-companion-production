@@ -426,6 +426,8 @@
   function postChargeBillableMinutes(fee,{postChargeMinutes=0,postChargeStartAt=null}={},timeZone=null){
     const duration=Math.max(0,num(postChargeMinutes)??0),grace=Math.max(0,num(fee?.graceMinutes)??0),afterGrace=Math.max(0,duration-grace);
     const windows=Array.isArray(fee?.exemptLocalWindows)?fee.exemptLocalWindows.filter(Boolean):[];
+    if(windows.some(window=>hm(window?.start,null)==null||hm(window?.end,null)==null))
+      return{complete:false,reason:'invalid_post_charge_exemption_window',duration,grace,afterGrace};
     if(afterGrace<=0)return{complete:true,duration,grace,afterGrace,billableMinutes:0,exemptMinutes:0};
     if(!windows.length)return{complete:true,duration,grace,afterGrace,billableMinutes:afterGrace,exemptMinutes:0};
     if(!timeZone)return{complete:false,reason:'post_charge_exemption_requires_time_zone',duration,grace,afterGrace};
