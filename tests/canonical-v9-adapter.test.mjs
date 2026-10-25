@@ -18,6 +18,15 @@ assert.equal(station.offers.length,0);
 assert.equal(station.unparsedOffers[0].scope.connectorId,'connector');
 assert.equal(station.unparsedOffers[0].calculationStatus,'not_evaluated');
 assert.equal(station.provenance[0].sourceId,'FR:archived_source');
+const ukArchive={...source,source:{...source.source,id:'GB:gridserve_pcpr_direct'},
+  stations:[{...source.stations[0],country:'GB',rawSourceFields:{publish:true,parking_type:'ON_STREET'}}]};
+assert.equal(toFragments(ukArchive).length,1);
+assert.equal(toFragments({...ukArchive,stations:[{...ukArchive.stations[0],
+  rawSourceFields:{publish:false,parking_type:'ON_STREET'}}]}).length,0,
+  'an unpublished archived UK location must stay out of the map');
+assert.equal(toFragments({...ukArchive,stations:[{...ukArchive.stations[0],
+  rawSourceFields:{publish:true,parking_type:'PARKING_GARAGE'}}]}).length,0,
+  'a parking garage must stay out of the map');
 const nationalAc=toFragments({...source,connectors:[{...source.connectors[0],kind:'AC',powerKw:43,rawSourceFields:['compact-group']}]})[0];
 assert.equal(nationalAc.evses[0].connectors[0].kind,'AC','source AC/DC must win over power heuristic');
 assert.equal(toFragments({...source,stations:[{...source.stations[0],networkBrand:"Belib'"}]})[0].networkBrand,"Belib'");

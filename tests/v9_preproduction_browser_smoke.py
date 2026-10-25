@@ -70,6 +70,13 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             """)
             if missing_time.get("complete") is not False or missing_time.get("reason") != "charging_duration_required":
                 raise AssertionError(f"Packaged tariff engine priced missing duration: {missing_time}")
+            missing_energy = browser.execute_script("""
+                return TCCV9PricingEngine.evaluateOffer({id:'missing-energy',currency:'EUR',
+                  pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0.4}]}},
+                  {startAt:'2026-10-24T12:00:00Z'});
+            """)
+            if missing_energy.get("complete") is not False or missing_energy.get("reason") != "energy_required":
+                raise AssertionError(f"Packaged tariff engine priced missing energy: {missing_energy}")
             guidance = browser.execute_script("""
                 const panel=document.getElementById('v9ValidationPanel');
                 return {tab:!!document.getElementById('v9ValidationTab'),

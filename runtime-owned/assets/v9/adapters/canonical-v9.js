@@ -316,7 +316,10 @@
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
-    return [...stations.values()].map(({row,evses,offers,pricedOffers})=>{
+    const ukOcpiArchive=['GB:gridserve_pcpr_direct','GB:ubitricity_pcpr_direct'].includes(data.source?.id);
+    return [...stations.values()].filter(({row})=>!ukOcpiArchive||
+      (row.rawSourceFields?.publish!==false&&row.rawSourceFields?.parking_type!=='PARKING_GARAGE'))
+      .map(({row,evses,offers,pricedOffers})=>{
       const cpo=cpos.get(row.cpoId);
       if(!cpo)throw new Error('canonical station CPO missing');
       const [latitude,longitude]=coordinates(row);
