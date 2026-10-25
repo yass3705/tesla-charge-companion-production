@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea, stationDisplayName, stationBaseSource,
-  variantsByPower, stationCards, renderStationCard, buildSession } = require('../v9-production-shell/bridge.js');
+  variantsByPower, stationCards, renderStationCard, buildSession, executeV9 } = require('../v9-production-shell/bridge.js');
 
 const chosenVehicle=buildSession({startSoc:20,targetSoc:80,batteryCapacityKwh:90,consumptionKwhPer100Km:18,vehicleMaxAcKw:22,vehicleMaxDcKw:180},'FR');
 assert.equal(chosenVehicle.batteryCapacityKwh,90);
@@ -132,5 +132,26 @@ assert.equal(unsafe[0].total,null);
 assert.equal(unsafe[0].costPerKm,null);
 assert.equal(groupRows(unsafe)[0].total,null);
 assert.equal(rankRows([{...unsafe[0],total:1,distanceKm:1}, {...teslaTracker,total:8,distanceKm:2}], 'price')[0].station.id,'tesla-le-chesnay-france','a numeric incomplete row must not outrank a complete offer');
+
+const growingArea=Array.from({length:501},(_,i)=>({id:`station-${i}`,countryCode:'FR',
+  name:`Fixture ${i}`,latitude:48+i*.00001,longitude:2,physicalOperator:{id:'fixture',name:'Fixture'},
+  evses:[{id:`evse-${i}`,connectors:[{id:`plug-${i}`,powerKw:null}]}],offers:[],unparsedOffers:[]}));
+let capturedQuery;
+const growingEngine={queryArea:async query=>{
+  capturedQuery=query;
+  return{stations:query.stationLimit?growingArea.slice(0,query.stationLimit):growingArea,
+    query,sessionEvaluations:{}};
+},__tccFxRates:{}};
+const growingWindow={resolveOrigin:async()=>({lat:48,lon:2,label:'Fixture origin'}),
+  sessionStorage:{getItem:()=> 'FR'},localStorage:{getItem:()=>null},
+  TCCV9SessionPlannerEngine:{planStation(){}},
+  TCCV9SessionEngine:{evaluateStation(){},offerMatchesChargingKind(){}},
+  TCCV9StationScoreEngine:{scoreStation(){}}};
+const growingResult=await executeV9(growingWindow,growingEngine,
+  {mode:'candidate',engineScopeCountries:['FR']},
+  {originText:'Fixture origin',radiusKm:20,startSoc:20,targetSoc:80});
+assert.equal(capturedQuery.stationLimit,undefined,'source growth must not trigger a hidden display cap');
+assert.equal(growingResult.rows.length,growingArea.length,'unknown-power stations remain in the ranked list');
+assert.ok(growingResult.rows.every(row=>row.total==null),'unknown prices must not become zero');
 
 console.log('V9 shell grouping OK');
