@@ -586,9 +586,12 @@
   }
   function evaluateOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=offerTimeZone(offer,session);
-    if(['exact_canonical_connector_ocpi','exact_canonical_emsp_evse'].includes(offer?.metadata?.identityMode)){
-      const canonicalRules=Array.isArray(pricing.rules)?pricing.rules:[];
-      if(canonicalRules.some(rule=>(num(rule?.chargePerMinute)??0)>0)&&
+    if(['exact_canonical_connector_ocpi','exact_canonical_emsp_evse',
+        'exact_canonical_connector_pcpr'].includes(offer?.metadata?.identityMode)){
+      const canonicalRules=[...(Array.isArray(pricing.rules)?pricing.rules:[]),
+        ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
+          .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
+      if(canonicalRules.some(rule=>(num(rule?.chargePerMinute)??num(rule?.chargingTimePerMinuteEur)??0)>0)&&
          (num(session.durationMinutes)==null||num(session.chargingMinutes)==null))
         return{complete:false,reason:'charging_duration_required',offerId:offer?.id||null,timeZone};
       if(canonicalRules.some(rule=>(num(rule?.idlePerMinute)??0)>0)&&num(session.postChargeMinutes)==null)

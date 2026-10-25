@@ -253,7 +253,7 @@
     const kinds=new Set();let paidEnergy=false;
     for(const component of element.price_components){
       const kind=component?.type;
-      if(!['ENERGY','FLAT'].includes(kind)||kinds.has(kind)||
+      if(!['ENERGY','TIME','FLAT','PARKING_TIME'].includes(kind)||kinds.has(kind)||
          typeof component.price!=='number'||!Number.isFinite(component.price)||component.price<0||
          !Number.isInteger(component.step_size)||component.step_size<1||
          component.tccVatRateAppliedPct!==20||

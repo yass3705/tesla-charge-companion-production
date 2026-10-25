@@ -160,7 +160,7 @@
                 new Date(restriction.start_date+'T00:00:00Z').toISOString().slice(0,10)===restriction.start_date&&
                 Array.isArray(components)&&components.length>0&&
                 componentKinds.includes('ENERGY')&&new Set(componentKinds).size===componentKinds.length&&
-                components.every(row=>['ENERGY','FLAT'].includes(row.type)&&
+                components.every(row=>['ENERGY','TIME','FLAT','PARKING_TIME'].includes(row.type)&&
                   typeof row.price==='number'&&Number.isFinite(row.price)&&row.price>=0&&
                   Number.isInteger(row.step_size)&&row.step_size>=1&&row.tccVatRateAppliedPct===20&&
                   Object.keys(row).sort().join(',')===
