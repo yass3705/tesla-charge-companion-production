@@ -63,6 +63,9 @@ class PreparedMapPackageTests(unittest.TestCase):
             self.assertIn('Disallow: /', (output / 'robots.txt').read_text())
             self.assertIn('TCC control', (site / 'index.html').read_text())
             self.assertEqual(check_hosting(output)["status"], "hosting_ready_local_only")
+            (output / "v9-production-runtime/data/tesla_stations.json").write_bytes(b"tampered")
+            with self.assertRaisesRegex(ValueError, "Tesla inventory SHA mismatch"):
+                check_hosting(output)
             (site / "v9-production-runtime/data/tesla_stations.json").write_bytes(b"tampered")
             with self.assertRaisesRegex(ValueError, "Tesla import SHA mismatch"):
                 package(site, candidate, root / "bad-tesla")

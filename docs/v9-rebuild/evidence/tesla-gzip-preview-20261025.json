@@ -7,7 +7,7 @@
   "hostingCheck": {
     "status": "hosting_ready_local_only",
     "files": 2650,
-    "bytes": 265067529,
+    "bytes": 265067631,
     "largestAssetBytes": 11669931,
     "deployed": false
   },

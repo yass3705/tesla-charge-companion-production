@@ -24,6 +24,12 @@ def check(site: Path) -> dict:
             config.get("preparedBundleId") != index["bundleId"] or
             config.get("preparedIndexSha256") != digest(index_path.read_bytes())):
         raise ValueError("Preview configuration or pinned candidate mismatch")
+    runtime = Path(config.get("runtimeBase") or "")
+    tesla_path = site / runtime / "data/tesla_stations.json"
+    if (not runtime.parts or runtime.is_absolute() or ".." in runtime.parts or
+            not tesla_path.is_file() or
+            config.get("teslaArtifactSha256") != digest(tesla_path.read_bytes())):
+        raise ValueError("Preview Tesla inventory SHA mismatch")
     if ('url=./v9-production-shell/' not in (site / "index.html").read_text() or
             'X-Robots-Tag: noindex' not in (site / "_headers").read_text() or
             'Disallow: /' not in (site / "robots.txt").read_text()):
