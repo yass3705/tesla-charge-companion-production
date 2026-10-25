@@ -16,4 +16,6 @@ Executed tests, all PASS:
 - `PYTHONPATH=/tmp/tcc-v9-selenium python3 tests/v9_preproduction_browser_smoke.py --site <isolated-site>`: nine countries, UK PCPR, desktop and 390 px mobile PASS.
 - `git diff --check`: PASS; Production branch GitHub Actions runs: `[]`.
 
+After the 21-source package was built, `node tests/v9_packaged_full_session_oracle.test.mjs <isolated-site>` also passed against the **packaged** pricing, session and offer engines. Its synthetic session combines kWh, charging time, fixed and parking fees; checks independent component arithmetic, Direct/Electroverse/Electra ranking, subscription selection, cost/km, explicit GBP→EUR conversion and exclusion when FX or paid parking duration is absent. Its fixture values are test data, not supplier prices or new candidate tariffs.
+
 The isolated site is `.tcc-v9-cache/reproducible-gzip-preview-2026-10-25/site-uk-compound` outside both Git checkouts. This is a local proof. G6, G7 and G8 remain FAIL pending complete documented tariff coverage and a remotely accessible isolated preproduction.
