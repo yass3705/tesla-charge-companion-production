@@ -26,6 +26,24 @@ assert.deepEqual(shell.feeBreakdown({segmentedPricing:{totalEur:4},
 assert.deepEqual(shell.feeBreakdown({energyTimeline:{costEur:2},segmentedPricing:{totalEur:3},
   postCharge:{costEur:1}}).map(row=>row.amount),[1,2,3],
   'timeline energy and its independent time-window base must both remain visible');
+const grouped=pricing.evaluateOffer({currency:'EUR',pricing:{type:'component_groups',componentGroups:[
+  {kind:'energy',rules:[{scope:'allDay',pricePerKwh:.5}]},
+  {kind:'time',rules:[{scope:'allDay',chargePerMinute:.2,connectionFee:1}]}
+]}},{energyKwh:5,durationMinutes:20,chargingMinutes:20,postChargeMinutes:0,
+  startAt:'2026-10-08T11:00:00Z'});
+assert.equal(grouped.complete,true);
+assert.equal(grouped.totalEur,7.5);
+assert.deepEqual(shell.feeBreakdown(grouped.components).map(row=>row.amount),[2.5,4,1],
+  'proved OCPI component groups must expose energy, charging and fixed charges');
+const groupedHtml=shell.renderTariffs({best:{offerId:'grouped',provider:'Direct',kind:'direct',
+  currency:'EUR',targetCurrency:'EUR',total:7.5,comparable:true,result:grouped}},
+  {id:'grouped-station',evses:[],offers:[{id:'grouped',provider:'Direct',currency:'EUR'}]});
+assert.match(groupedHtml,/Énergie \(composante 1\) : 2,50 €/);
+assert.match(groupedHtml,/Temps de charge \(composante 2\) : 4,00 €/);
+assert.match(groupedHtml,/Frais fixes \(composante 2\) : 1,00 €/);
+assert.deepEqual(shell.feeBreakdown({componentGroups:[{costEur:5,
+  components:{energy:2}}]}).map(row=>row.amount),[5],
+  'a non-reconciling group must show its full charge, never a partial detail');
 
 const source=JSON.parse(zlib.gunzipSync(fs.readFileSync(
   new URL('./fixtures/v9-tariff-133/midhope-source.json.gz',import.meta.url))));

@@ -614,7 +614,7 @@
       }
     });
   }
-  function feeBreakdown(components={},omitCongestion=false){
+  function feeBreakdown(components={},omitCongestion=false,depth=0){
     const rows=[];
     const add=(key,label,value)=>{
       const amount=num(value);
@@ -638,7 +638,14 @@
     const supplements=new Set(['minimumSession','minimumTotal','postCharge','conditionalSessionFees','energyTimeline']);
     const hasRuleCharge=()=>rows.some(row=>!supplements.has(row.key));
     if(!hasRuleCharge()&&Array.isArray(components.componentGroups))
-      components.componentGroups.forEach((group,index)=>add('componentGroup'+index,'Composante tarifaire '+(index+1),group.costEur));
+      components.componentGroups.forEach((group,index)=>{
+        const nested=depth<3&&group?.components?feeBreakdown(group.components,omitCongestion,depth+1):[];
+        const subtotal=nested.reduce((sum,row)=>sum+row.amount,0),groupTotal=num(group?.costEur);
+        if(nested.length&&groupTotal!=null&&Math.abs(subtotal-groupTotal)<0.02)
+          rows.push(...nested.map(row=>({...row,key:'componentGroup'+index+'.'+row.key,
+            label:row.label+' (composante '+(index+1)+')'})));
+        else add('componentGroup'+index,'Composante tarifaire '+(index+1),groupTotal);
+      });
     if(!hasRuleCharge())add('segmentedPricing','Tarif horaire',components.segmentedPricing?.totalEur);
     return rows;
   }
