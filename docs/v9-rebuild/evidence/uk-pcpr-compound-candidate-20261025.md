@@ -20,4 +20,6 @@ After the 21-source package was built, `node tests/v9_packaged_full_session_orac
 
 The packaged engine now returns an explicit incomplete result for archived `incompletePricingReason` and unverified OCPI `minPrice`/`maxPrice` bounds, including bounds nested in rules. The canonical DOT-NL adapter keeps such offers raw. The full-session fixture verifies that neither a partial warning nor an ignored cap can enter station ranking. Congestion and DST oracles, canonical pricing tests and the nine-country Firefox replay passed after this guard. Final local package `.tcc-v9-cache/reproducible-21-preview-2026-10-25/site-failclosed`; browser result `/tmp/tcc-v9-21-browser-failclosed.json`. Cap calculation itself remains unproved and G6 FAIL.
 
+A compact, versioned summary of the last Firefox run is `docs/v9-rebuild/evidence/v9-21-source-browser-20261025.json`. The full local browser output remains under `/tmp` for the current session.
+
 The isolated site is `.tcc-v9-cache/reproducible-gzip-preview-2026-10-25/site-uk-compound` outside both Git checkouts. This is a local proof. G6, G7 and G8 remain FAIL pending complete documented tariff coverage and a remotely accessible isolated preproduction.

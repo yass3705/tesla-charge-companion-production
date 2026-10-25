@@ -1,0 +1,108 @@
+{
+  "bundleId": "5a476c1821b72563cd12d8a80cdaf52a62bdf32953c0b0c43b189393fd876368",
+  "candidate": "isolated-local-only",
+  "countries": [
+    "BE",
+    "CH",
+    "DE",
+    "ES",
+    "FR",
+    "GB",
+    "IT",
+    "MA",
+    "NL"
+  ],
+  "firefox": {
+    "be": {
+      "count": 119,
+      "priced": 91,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 6917,
+      "raw": 742
+    },
+    "ch": {
+      "count": 80,
+      "priced": 0,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 2332,
+      "raw": 181
+    },
+    "de": {
+      "count": 72,
+      "priced": 26,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 709,
+      "raw": 0
+    },
+    "emsp": {
+      "count": 21,
+      "priced": 8,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 317,
+      "raw": 0
+    },
+    "es": {
+      "count": 111,
+      "priced": 0,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 1235,
+      "raw": 0
+    },
+    "fr": {
+      "count": 304,
+      "priced": 0,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 7022,
+      "raw": 56
+    },
+    "gb": {
+      "count": 80,
+      "priced": 4,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 1167,
+      "raw": 286
+    },
+    "it": {
+      "count": 444,
+      "priced": 248,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 1171,
+      "raw": 557
+    },
+    "ma": {
+      "count": 10,
+      "priced": 0,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 122,
+      "raw": 0
+    },
+    "nl": {
+      "count": 80,
+      "priced": 49,
+      "pricedOutsideProved": 0,
+      "queryDurationMs": 10290,
+      "raw": 116
+    }
+  },
+  "mobile390": {
+    "map": {
+      "markers": 4,
+      "scrollWidth": 390,
+      "width": 316
+    },
+    "stations": 304,
+    "viewport": {
+      "scrollWidth": 390,
+      "width": 390
+    }
+  },
+  "nlElectraExact": {
+    "nlElectraMisScoped": 0,
+    "nlElectraPriced": 0,
+    "nlElectraProvenanceMissing": 0,
+    "nlElectraRaw": 5
+  },
+  "published": false,
+  "schemaVersion": 1,
+  "sourceCount": 21
+}
