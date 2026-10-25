@@ -32,6 +32,14 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                              key=lambda item: item["id"])
                 for name in ("stations", "evses", "connectors", "offers")}
     class QuietHandler(SimpleHTTPRequestHandler):
+        fail_config = False
+
+        def do_GET(self):
+            if self.fail_config and self.path == '/v9-production-shell/shell-config.json':
+                self.send_error(503)
+                return
+            super().do_GET()
+
         def log_message(self, *_args):
             pass
 
@@ -461,6 +469,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
+            QuietHandler.fail_config = True
+            browser.get(f"http://127.0.0.1:{server.server_port}/v9-production-shell/")
+            WebDriverWait(browser, 10).until(lambda driver:
+                "Préproduction indisponible" in driver.find_element(By.TAG_NAME, "body").text)
+            if not browser.current_url.endswith('/v9-production-shell/'):
+                raise AssertionError("Broken preview redirected back to its root")
             return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
                     "es": spain, "ma": morocco,
                     "ch": switzerland, "be": belgium, "nl": netherlands,

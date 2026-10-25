@@ -7,7 +7,7 @@
   "hostingCheck": {
     "status": "hosting_ready_local_only",
     "files": 2636,
-    "bytes": 251384867,
+    "bytes": 251385155,
     "historicalRuntimeOfferFiles": 0,
     "largestAssetBytes": 11669931,
     "deployed": false
@@ -17,6 +17,7 @@
     "nodeCanonicalAndSharded": "2 PASS",
     "ocpiComponentCoverageOnPackagedSite": "PASS",
     "firefoxDesktopAndMobileNineCountries": "PASS",
+    "missingShellConfigShowsErrorWithoutRedirectLoop": "PASS",
     "teslaOnlyAalst": {
       "source": "tesla-global",
       "stationCount": 1,

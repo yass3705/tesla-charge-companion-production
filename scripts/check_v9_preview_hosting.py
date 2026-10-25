@@ -31,6 +31,7 @@ def check(site: Path) -> dict:
             config.get("teslaArtifactSha256") != digest(tesla_path.read_bytes())):
         raise ValueError("Preview Tesla inventory SHA mismatch")
     if ('url=./v9-production-shell/' not in (site / "index.html").read_text() or
+            'const CONTROL_FALLBACK=null;' not in (site / "v9-production-shell/index.html").read_text() or
             'X-Robots-Tag: noindex' not in (site / "_headers").read_text() or
             'Disallow: /' not in (site / "robots.txt").read_text()):
         raise ValueError("Preview entry or noindex controls missing")

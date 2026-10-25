@@ -13,7 +13,14 @@
 (async function(){
   'use strict';
   const CONTROL_FALLBACK='../';
-  const failClosed=(reason)=>{console.error('[TCC V9 shell] fail closed:',reason);location.replace(CONTROL_FALLBACK);};
+  const failClosed=(reason)=>{
+    console.error('[TCC V9 shell] fail closed:',reason);
+    if(CONTROL_FALLBACK===null){
+      document.body.innerHTML='<div class="boot" role="alert"><h1>Préproduction indisponible</h1><p>Les données V9 ne peuvent pas être vérifiées pour le moment. Réessaie plus tard ou signale le problème.</p></div>';
+      return;
+    }
+    location.replace(CONTROL_FALLBACK);
+  };
   try{
     const cfgResponse=await fetch('./shell-config.json',{cache:'no-store'});
     if(!cfgResponse.ok)throw new Error(`shell config ${cfgResponse.status}`);

@@ -205,7 +205,13 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
             output = assets / target
             output.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / source, output)
-        shutil.copy2(ROOT / "v9-production-shell/index.html", stage / "v9-production-shell/index.html")
+        shell_html = (ROOT / "v9-production-shell/index.html").read_text(encoding="utf-8")
+        fallback = "const CONTROL_FALLBACK='../';"
+        if shell_html.count(fallback) != 1:
+            raise ValueError("Candidate shell fail-closed contract missing")
+        (stage / "v9-production-shell/index.html").write_text(
+            shell_html.replace(fallback, "const CONTROL_FALLBACK=null;"), encoding="utf-8"
+        )
         shutil.copy2(ROOT / "v9-production-shell/bridge.js", stage / "v9-production-shell/bridge.js")
         config.update({
             "preproductionCandidateBase": "../prepared-v9",

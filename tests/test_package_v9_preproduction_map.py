@@ -61,6 +61,10 @@ class PreparedMapPackageTests(unittest.TestCase):
             self.assertFalse((output / "v9-production-runtime/data/v9/france-direct-offers.json").exists())
             self.assertTrue((site / "v9-production-runtime/data/v9/italy-offers.json").is_file())
             self.assertIn('url=./v9-production-shell/', (output / 'index.html').read_text())
+            self.assertIn('const CONTROL_FALLBACK=null;',
+                          (output / 'v9-production-shell/index.html').read_text())
+            self.assertIn("const CONTROL_FALLBACK='../';",
+                          (Path(__file__).resolve().parents[1] / 'v9-production-shell/index.html').read_text())
             self.assertIn('X-Robots-Tag: noindex', (output / '_headers').read_text())
             self.assertIn('Disallow: /', (output / 'robots.txt').read_text())
             self.assertIn('TCC control', (site / 'index.html').read_text())
