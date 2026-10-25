@@ -98,6 +98,19 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                                           "feedbackLabelled": True, "shareNamed": True,
                                           "statusLive": "polite"}:
                 raise AssertionError(f"Preview guidance accessibility failed: {preview_accessibility}")
+            current_position = browser.execute_script("""
+                const button=document.getElementById('v9UseCurrentPosition');
+                const input=document.getElementById('simOrigin');
+                if(!button||!input)return {error:'current position control missing'};
+                Object.defineProperty(navigator,'geolocation',{configurable:true,value:{
+                  getCurrentPosition:success=>success({coords:{latitude:48.856,longitude:2.352}})}});
+                button.click();
+                return {value:input.value,coordinates:input.dataset.v9Coordinates,
+                  disabled:button.disabled,label:button.getAttribute('aria-label')};
+            """)
+            if current_position != {"value": "48.856000, 2.352000", "coordinates": "true",
+                                    "disabled": False, "label": "Utiliser ma position actuelle"}:
+                raise AssertionError(f"Current position control failed: {current_position}")
             invalid_vehicle = browser.execute_async_script("""
                 const done=arguments[0],field=document.getElementById('v9BatteryCapacity');
                 if(!field){done({error:'battery control missing'});return;}

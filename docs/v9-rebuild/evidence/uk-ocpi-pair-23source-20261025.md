@@ -16,4 +16,6 @@ The package checker now validates every spatial shard's CPO, station, EVSE, conn
 
 The station details now label an official EVSE_ID, a source-only EVSE identifier and a technical fallback separately. Firefox verified both an official identifier in the London results and a source-only Gridserve UID at an archived public station. The first browser attempt exposed a test setup issue: the targeted Gridserve query left the subsequent London multi-select test in a rural area; restoring the London query corrected the test. The final nine-country/mobile replay, package integrity and session oracle passed on `site-identity-label`. Full local result: `/tmp/tcc-v9-23-identity-browser.json`.
 
+The same browser path now checks the current-position control with a simulated browser geolocation callback, including its accessible label and coordinate transfer into the search field. Nine-country/mobile replay passed; no real device location was accessed. Full local result: `/tmp/tcc-v9-23-geolocation-browser.json`.
+
 G2–G8 remain FAIL: the 120 GitHub handoffs, full tariff coverage, complete technical acceptance and isolated remote URL are not verified. Data Lab Actions remain disabled; neither Tesla/Mac acquisition nor the public TCC site changed.
