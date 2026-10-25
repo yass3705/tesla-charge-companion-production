@@ -231,6 +231,14 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                           (evse.connectors||[]).some(connector=>connector.id===o.scope?.connectorId))).length,0),
                       ukNewPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         ['GB:gridserve_pcpr_direct','GB:ubitricity_pcpr_direct'].includes(o.metadata?.sourceId)).length,0),
+                      ecoRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        o.sourceId==='prepared:GB:eco_movement_pcpr_raw').length,0),
+                      ecoMisScoped:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        o.sourceId==='prepared:GB:eco_movement_pcpr_raw'&&
+                        !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId&&
+                          (evse.connectors||[]).some(connector=>connector.id===o.scope?.connectorId))).length,0),
+                      ecoPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='GB:eco_movement_pcpr_raw').length,0),
                       powerdotRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
                         ['prepared:FR:powerdot_direct','prepared:BE:powerdot_direct'].includes(o.sourceId)).length,0),
                       powerdotMisScoped:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
@@ -395,6 +403,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if ("GB:connected_kerb_midhope_verified" not in midhope["sourceIds"] or
                         "GB*CK0*E19825" not in woking_text or "IEC_62196_T2" not in woking_text):
                     raise AssertionError("Midhope exact EVSE/connector archive missing from candidate view")
+            eco = None
+            if "GB:eco_movement_pcpr_raw" in source_ids:
+                eco = compare(54.924689, -2.953343, "GB", "Eco-Movement archived fixture", radius=10)
+                if ("GB:eco_movement_pcpr_raw" not in eco["sourceIds"] or eco["ecoRaw"] <= 0 or
+                        eco["ecoMisScoped"] or eco["ecoPriced"]):
+                    raise AssertionError("Unverified Eco-Movement PCPR offers escaped raw exact scope")
             italy = None
             if "IT:atlante_direct" in source_ids:
                 italy = compare(45.464, 9.19, "IT", "Milano fixture")
@@ -581,7 +595,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 "Préproduction indisponible" in driver.find_element(By.TAG_NAME, "body").text)
             if not browser.current_url.endswith('/v9-production-shell/'):
                 raise AssertionError("Broken preview redirected back to its root")
-            return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
+            return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "eco": eco,
+                    "it": italy, "de": germany,
                     "es": spain, "ma": morocco,
                     "ch": switzerland, "be": belgium, "nl": netherlands,
                     "zephyre": zephyre, "ozecar": ozecar, "powerdot": powerdot,

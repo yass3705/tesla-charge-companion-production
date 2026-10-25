@@ -316,7 +316,8 @@
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
-    const ukOcpiArchive=['GB:gridserve_pcpr_direct','GB:ubitricity_pcpr_direct'].includes(data.source?.id);
+    const ukOcpiArchive=['GB:gridserve_pcpr_direct','GB:ubitricity_pcpr_direct',
+      'GB:eco_movement_pcpr_raw'].includes(data.source?.id);
     return [...stations.values()].filter(({row})=>row.publicAccessDecision!=='exclude_non_public'&&
       (!ukOcpiArchive||(row.rawSourceFields?.publish!==false&&row.rawSourceFields?.parking_type!=='PARKING_GARAGE')))
       .map(({row,evses,offers,pricedOffers})=>{

@@ -29,6 +29,14 @@ assert.equal(toFragments({...ukArchive,stations:[{...ukArchive.stations[0],
 assert.equal(toFragments({...ukArchive,stations:[{...ukArchive.stations[0],
   rawSourceFields:{publish:true,parking_type:'PARKING_GARAGE'}}]}).length,0,
   'a parking garage must stay out of the map');
+const ecoRaw={...ukArchive,source:{...ukArchive.source,id:'GB:eco_movement_pcpr_raw'},
+  offers:[{...source.offers[0],channel:'Direct',calculationStatus:'not_evaluated'}]};
+assert.equal(toFragments(ecoRaw)[0].offers.length,0,
+  'unverified Eco-Movement PCPR arithmetic must never become a calculated offer');
+assert.equal(toFragments(ecoRaw)[0].unparsedOffers.length,1);
+assert.equal(toFragments({...ecoRaw,stations:[{...ecoRaw.stations[0],
+  rawSourceFields:{publish:false}}]}).length,0,
+  'an explicitly unpublished Eco-Movement location must stay outside the map');
 const nationalAc=toFragments({...source,connectors:[{...source.connectors[0],kind:'AC',powerKw:43,rawSourceFields:['compact-group']}]})[0];
 assert.equal(nationalAc.evses[0].connectors[0].kind,'AC','source AC/DC must win over power heuristic');
 assert.equal(toFragments({...source,stations:[{...source.stations[0],networkBrand:"Belib'"}]})[0].networkBrand,"Belib'");
