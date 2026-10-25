@@ -545,8 +545,14 @@
     const energy=num(session.energyKwh),duration=num(session.durationMinutes);
     const charging=num(session.chargingMinutes)??duration;
     const after=num(session.postChargeMinutes)??0;
-    if([energy,duration,charging,after].some(v=>v==null||v<0||!Number.isInteger(v))||charging>duration)return fail('midhope_requires_explicit_valid_session_durations');
-    const occupied=duration+after,idle=occupied-charging;
+    if([energy,duration,charging,after].some(v=>v==null||v<0||!Number.isInteger(v))||charging>duration||
+       (energy>0&&charging===0))return fail('midhope_requires_explicit_valid_session_durations');
+    // The pinned historical oracle uses total occupancy for durationMinutes;
+    // the current UI uses charging occupancy plus a separate post-charge span.
+    // Accept either only when the explicit parts make the basis unambiguous.
+    if(after>0&&duration!==charging&&duration!==charging+after)
+      return fail('midhope_ambiguous_session_duration');
+    const occupied=duration===charging?duration+after:duration,idle=occupied-charging;
     if(occupied>1440)return fail('midhope_session_exceeds_verified_max_duration');
     const per30=num(p.parkingPerStarted30minGbp),rate=num(p.energyPerKwhGbp),idleRate=num(p.idleSupplementPerMinuteGbp);
     if(p.verifiedSourceVersion!=='2026-10-10-midhope-exact-4'||!p.includesVat||
