@@ -49,4 +49,8 @@ assert.equal(pricingEngine.evaluateOffer(badWindow,{startAt:'2026-11-02T09:00:00
   durationMinutes:0,energyKwh:0,postChargeStartAt:'2026-11-02T09:00:00Z',
   postChargeMinutes:61}).reason,'invalid_post_charge_exemption_window',
   'a malformed exemption must not be silently ignored and charged');
+badWindow.pricing.postChargeFee.exemptLocalWindows={start:'20:00',end:'08:00'};
+assert.equal(pricingEngine.evaluateOffer(badWindow,{startAt:'2026-11-02T09:00:00Z',
+  durationMinutes:0,energyKwh:0,postChargeStartAt:'2026-11-02T09:00:00Z',
+  postChargeMinutes:61}).reason,'invalid_post_charge_exemption_window');
 console.log('Ubitricity PCPR priority adapter: pass');

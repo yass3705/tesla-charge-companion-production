@@ -425,7 +425,9 @@
   }
   function postChargeBillableMinutes(fee,{postChargeMinutes=0,postChargeStartAt=null}={},timeZone=null){
     const duration=Math.max(0,num(postChargeMinutes)??0),grace=Math.max(0,num(fee?.graceMinutes)??0),afterGrace=Math.max(0,duration-grace);
-    const windows=Array.isArray(fee?.exemptLocalWindows)?fee.exemptLocalWindows.filter(Boolean):[];
+    if(fee?.exemptLocalWindows!=null&&!Array.isArray(fee.exemptLocalWindows))
+      return{complete:false,reason:'invalid_post_charge_exemption_window',duration,grace,afterGrace};
+    const windows=Array.isArray(fee?.exemptLocalWindows)?fee.exemptLocalWindows:[];
     if(windows.some(window=>hm(window?.start,null)==null||hm(window?.end,null)==null))
       return{complete:false,reason:'invalid_post_charge_exemption_window',duration,grace,afterGrace};
     if(afterGrace<=0)return{complete:true,duration,grace,afterGrace,billableMinutes:0,exemptMinutes:0};
@@ -444,6 +446,8 @@
   }
   function evaluatePostChargeFee(fee,session={},timeZone=null){
     if(!fee)return{totalEur:0,component:null};
+    if(fee.localRateWindows!=null&&!Array.isArray(fee.localRateWindows))
+      return{complete:false,totalEur:0,component:null,reason:'invalid_post_charge_rate_windows'};
     if(num(session.postChargeMinutes)==null)
       return{complete:false,totalEur:0,component:null,reason:'post_charge_duration_required'};
     const charging=num(session.chargingMinutes),started=new Date(session.startAt||'');

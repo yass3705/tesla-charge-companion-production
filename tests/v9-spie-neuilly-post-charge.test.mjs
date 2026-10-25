@@ -41,4 +41,9 @@ delete noZone.pricing.timeZone;
 assert.equal(pricing.evaluateOffer(noZone,{startAt:'2026-10-13T17:45:00Z',chargingMinutes:0,
   durationMinutes:0,energyKwh:0,postChargeMinutes:20}).complete,false,
   'local-rate windows without a proven time zone cannot use the host time zone');
+const malformed=structuredClone(offer);
+malformed.pricing.postChargeFee.localRateWindows={start:'08:00',end:'20:00',eurPerMinute:.2};
+assert.equal(pricing.evaluateOffer(malformed,{startAt:'2026-10-13T17:45:00Z',chargingMinutes:0,
+  durationMinutes:0,energyKwh:0,postChargeMinutes:20}).reason,'invalid_post_charge_rate_windows',
+  'malformed rate windows must not be ignored');
 console.log('Métropolis Neuilly time-window post-charge oracle: pass');
