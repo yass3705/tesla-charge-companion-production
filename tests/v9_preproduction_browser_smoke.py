@@ -210,6 +210,14 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         o.metadata?.sourceId==='GB:source_ev_pcpr_direct'&&
                         !(s.evses||[]).some(evse=>o.evseIds?.includes(evse.id)&&
                           o.connectorIds?.every(id=>(evse.connectors||[]).some(c=>c.id===id)))).length,0),
+                      ukNewRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        ['prepared:GB:gridserve_pcpr_direct','prepared:GB:ubitricity_pcpr_direct'].includes(o.sourceId)).length,0),
+                      ukNewMisScoped:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        ['prepared:GB:gridserve_pcpr_direct','prepared:GB:ubitricity_pcpr_direct'].includes(o.sourceId)&&
+                        !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId&&
+                          (evse.connectors||[]).some(connector=>connector.id===o.scope?.connectorId))).length,0),
+                      ukNewPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        ['GB:gridserve_pcpr_direct','GB:ubitricity_pcpr_direct'].includes(o.metadata?.sourceId)).length,0),
                       spainNationalPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='ES:reve_static').length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
@@ -301,6 +309,9 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             gb = compare(51.507, -0.128, "GB", "London fixture")
             if "GB:ionity_direct" not in gb["sourceIds"]:
                 raise AssertionError("UK candidate provenance missing")
+            if {"GB:gridserve_pcpr_direct", "GB:ubitricity_pcpr_direct"}.issubset(source_ids) and (
+                    gb["ukNewMisScoped"] or gb["ukNewPriced"]):
+                raise AssertionError("New UK OCPI archives leaked a price or lost exact connector scope")
             if gb["ionityPriced"] and not gb["ionityEvaluated"]:
                 raise AssertionError("UK IONITY direct rate lacks complete FX/session evaluation")
             if "GB:blink_pcpr_direct" in source_ids:

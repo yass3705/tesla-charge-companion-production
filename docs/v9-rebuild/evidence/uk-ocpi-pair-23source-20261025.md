@@ -10,4 +10,6 @@ The shared pricing engine also rejects paid connected time, charging time and pa
 
 The same missing-input guard now covers OCPI duration bands in all three paid dimensions, using the archived band tuple layout (dimension at index 0). The packaged oracle and Firefox nine-country/mobile replay passed on `site-band-guard`, with unchanged functional browser results. Full local result: `/tmp/tcc-v9-23-band-browser.json`.
 
+A final Firefox replay checks the exact EVSE and connector scope of the two new UK sources after multi-source station merging. In the London query, 82 archived offers were observed as raw, none moved to another connector and none entered pricing; the observed count is descriptive only. Full result: `/tmp/tcc-v9-23-scope-browser.json`.
+
 G2–G8 remain FAIL: the 120 GitHub handoffs, full tariff coverage, complete technical acceptance and isolated remote URL are not verified. Data Lab Actions remain disabled; neither Tesla/Mac acquisition nor the public TCC site changed.
