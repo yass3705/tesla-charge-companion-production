@@ -102,6 +102,21 @@ assert.equal(combinedRanking.best?.total,12);
 assert.equal(combinedRanking.best?.costPerRecoveredKm,.24);
 assert.equal(pricing.evaluateOffer(combined,{...combinedSession,targetSoc:undefined}).complete,false,
   'missing congestion state cannot yield a partial price');
+const conditional={id:'fixture-conditional',currency:'EUR',pricing:{type:'rules',
+  rules:[{scope:'allDay',connectionFee:1}],conditionalSessionFees:[
+    {amountEur:2,conditions:[{kind:'energy_above_kwh',value:10}]},
+    {amountEur:3,conditions:[{kind:'session_duration_after_minutes',value:30}]}
+  ]}};
+assert.equal(pricing.evaluateOffer(conditional,{energyKwh:12,durationMinutes:40}).totalEur,6);
+assert.equal(pricing.evaluateOffer(conditional,{durationMinutes:40}).reason,
+  'conditional_fee_energy_required','missing energy cannot silently waive a conditional fee');
+assert.equal(pricing.evaluateOffer(conditional,{energyKwh:12}).reason,
+  'conditional_fee_duration_required','missing duration cannot silently waive a conditional fee');
+const postFee={id:'fixture-post-charge',currency:'EUR',pricing:{type:'rules',
+  rules:[{scope:'allDay',pricePerKwh:.4}],postChargeFee:{graceMinutes:10,eurPerMinute:.2}}};
+assert.equal(pricing.evaluateOffer(postFee,{energyKwh:10,postChargeMinutes:20}).totalEur,6);
+assert.equal(pricing.evaluateOffer(postFee,{energyKwh:10}).reason,'post_charge_duration_required',
+  'missing post-charge duration cannot yield only the energy subtotal');
 for(const [rule,session,reason] of [
   [{scope:'allDay',pricePerMinute:.1},{energyKwh:10},'duration_required'],
   [{scope:'allDay',chargePerMinute:.1},{energyKwh:10,durationMinutes:30},'charging_duration_required'],

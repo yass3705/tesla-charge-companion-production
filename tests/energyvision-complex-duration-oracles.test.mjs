@@ -27,6 +27,8 @@ const opts={startAt:'2026-10-13T12:00:00+02:00',energyKwh:20,durationMinutes:180
 assert.equal(engine.evaluateOffer(idle,{...opts,postChargeMinutes:0}).totalEur,12.2);
 assert.equal(engine.evaluateOffer(idle,{...opts,postChargeMinutes:45}).totalEur,12.2);
 assert.equal(engine.evaluateOffer(idle,{...opts,postChargeMinutes:60}).totalEur,17.15);
+assert.equal(engine.evaluateOffer(idle,opts).reason,'post_charge_duration_required',
+  'missing post-charge span cannot silently skip a documented fee');
 const connected=offer([part('pricePerKWh',0.37),part('basePrice',2.04),part('pricePerMinute',0.02,1080)]);
 assert.ok(connected);assert.equal(connected.pricing.rules[0].connectedTimeFreeMinutes,1080);
 assert.equal(engine.evaluateOffer(connected,{...opts,durationMinutes:1080,postChargeMinutes:0}).totalEur,9.44);

@@ -402,8 +402,12 @@
         const threshold=num(condition?.value);if(threshold==null||threshold<0)return{complete:false,totalEur:0,component:null,reason:'invalid_conditional_fee_threshold'};
         let matched=false,detail=null;
         if(condition?.kind==='energy_above_kwh'){
+          if(num(session.energyKwh)==null)
+            return{complete:false,totalEur:0,component:null,reason:'conditional_fee_energy_required'};
           matched=energy>threshold;detail={kind:'energy_above_kwh',value:threshold,actualEnergyKwh:energy,matched};
         }else if(condition?.kind==='session_duration_after_minutes'){
+          if(num(session.durationMinutes)==null)
+            return{complete:false,totalEur:0,component:null,reason:'conditional_fee_duration_required'};
           matched=duration>threshold;detail={kind:'session_duration_after_minutes',value:threshold,actualDurationMinutes:duration,matched};
         }else return{complete:false,totalEur:0,component:null,reason:'unsupported_conditional_fee_condition',conditionKind:condition?.kind||null};
         evaluated.push(detail);if(!matched)applies=false;
@@ -437,6 +441,8 @@
   }
   function evaluatePostChargeFee(fee,session={},timeZone=null){
     if(!fee)return{totalEur:0,component:null};
+    if(num(session.postChargeMinutes)==null)
+      return{complete:false,totalEur:0,component:null,reason:'post_charge_duration_required'};
     const span=postChargeBillableMinutes(fee,session,timeZone);if(span.complete===false)return{totalEur:0,component:null,complete:false,reason:span.reason};
     const duration=span.duration,grace=span.grace,billable=span.billableMinutes,exemptMinutes=span.exemptMinutes;
     const baseComponent={postChargeMinutes:duration,graceMinutes:grace,billableMinutes:billable,exemptMinutes,costEur:0};
