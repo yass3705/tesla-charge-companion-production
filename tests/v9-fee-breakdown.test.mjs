@@ -23,6 +23,9 @@ assert.deepEqual(shell.feeBreakdown({componentGroups:[{costEur:2},{costEur:3}],
 assert.deepEqual(shell.feeBreakdown({segmentedPricing:{totalEur:4},
   minimumTotal:{topUpEur:1}}).map(row=>row.amount),[1,4],
   'time-window charges remain visible alongside a minimum top-up');
+assert.deepEqual(shell.feeBreakdown({energyTimeline:{costEur:2},segmentedPricing:{totalEur:3},
+  postCharge:{costEur:1}}).map(row=>row.amount),[1,2,3],
+  'timeline energy and its independent time-window base must both remain visible');
 
 const source=JSON.parse(zlib.gunzipSync(fs.readFileSync(
   new URL('./fixtures/v9-tariff-133/midhope-source.json.gz',import.meta.url))));

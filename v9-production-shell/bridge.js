@@ -635,10 +635,11 @@
     add('minimumSession','Complément au minimum de session',components.minimumSession?.topUpEur);
     add('minimumTotal','Complément au minimum de facturation',components.minimumTotal?.topUpEur);
     if(components.energy==null)add('energyTimeline','Énergie',components.energyTimeline?.costEur);
-    const hasBaseCharge=()=>rows.some(row=>row.key!=='minimumSession'&&row.key!=='minimumTotal');
-    if(!hasBaseCharge()&&Array.isArray(components.componentGroups))
+    const supplements=new Set(['minimumSession','minimumTotal','postCharge','conditionalSessionFees','energyTimeline']);
+    const hasRuleCharge=()=>rows.some(row=>!supplements.has(row.key));
+    if(!hasRuleCharge()&&Array.isArray(components.componentGroups))
       components.componentGroups.forEach((group,index)=>add('componentGroup'+index,'Composante tarifaire '+(index+1),group.costEur));
-    if(!hasBaseCharge())add('segmentedPricing','Tarif horaire',components.segmentedPricing?.totalEur);
+    if(!hasRuleCharge())add('segmentedPricing','Tarif horaire',components.segmentedPricing?.totalEur);
     return rows;
   }
   function renderTariffs(evaluation,station,fxRates={},selectedSubscriptionIds=[]){
