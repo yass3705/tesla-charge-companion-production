@@ -232,13 +232,13 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       ukNewPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         ['GB:gridserve_pcpr_direct','GB:ubitricity_pcpr_direct'].includes(o.metadata?.sourceId)).length,0),
                       powerdotRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
-                        o.sourceId==='prepared:FR:powerdot_direct').length,0),
+                        ['prepared:FR:powerdot_direct','prepared:BE:powerdot_direct'].includes(o.sourceId)).length,0),
                       powerdotMisScoped:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
-                        o.sourceId==='prepared:FR:powerdot_direct'&&
+                        ['prepared:FR:powerdot_direct','prepared:BE:powerdot_direct'].includes(o.sourceId)&&
                         !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId&&
                           (evse.connectors||[]).some(connector=>connector.id===o.scope?.connectorId))).length,0),
                       powerdotPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
-                        o.metadata?.sourceId==='FR:powerdot_direct').length,0),
+                        ['FR:powerdot_direct','BE:powerdot_direct'].includes(o.metadata?.sourceId)).length,0),
                       spainNationalPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='ES:reve_static').length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
@@ -523,23 +523,26 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 """)
                 if "OZECAR" not in corsica_text or "FROZEE" not in corsica_text or "Type 2" not in corsica_text:
                     raise AssertionError(f"OZECAR station and exact EVSE are not visible: {corsica_text[:1200]}")
-            powerdot = None
-            if "FR:powerdot_direct" in source_ids:
-                powerdot_data = archived_source("FR:powerdot_direct")
+            powerdot = {}
+            for powerdot_source in ("FR:powerdot_direct", "BE:powerdot_direct"):
+                if powerdot_source not in source_ids:
+                    continue
+                powerdot_country = powerdot_source[:2]
+                powerdot_data = archived_source(powerdot_source)
                 offer_evse_ids = {row["scope"]["evseId"] for row in powerdot_data["offers"]}
                 station_ids = {row["stationId"] for row in powerdot_data["evses"]
                                if row["id"] in offer_evse_ids}
                 station = next((row for row in powerdot_data["stations"]
-                                if row["id"] in station_ids and row["country"] == "FR" and
+                                if row["id"] in station_ids and row["country"] == powerdot_country and
                                 row.get("latitude") is not None and row.get("longitude") is not None), None)
                 if station is None:
-                    raise AssertionError("Archived Powerdot connector source has no station coordinate")
-                powerdot = compare(station["latitude"], station["longitude"], "FR",
-                                   "Powerdot archived source fixture", radius=2)
-                if ("FR:powerdot_direct" not in powerdot["sourceIds"] or
-                        powerdot["powerdotRaw"] <= 0 or powerdot["powerdotMisScoped"] or
-                        powerdot["powerdotPriced"]):
-                    raise AssertionError(f"Powerdot raw connector scope or price isolation failed: {powerdot}")
+                    raise AssertionError(f"Archived {powerdot_source} has no station coordinate")
+                view = compare(station["latitude"], station["longitude"], powerdot_country,
+                               f"{powerdot_country} Powerdot archived source fixture", radius=2)
+                if (powerdot_source not in view["sourceIds"] or view["powerdotRaw"] <= 0 or
+                        view["powerdotMisScoped"] or view["powerdotPriced"]):
+                    raise AssertionError(f"{powerdot_source} raw connector scope or price isolation failed: {view}")
+                powerdot[powerdot_country] = view
             # A same-origin iframe supplies a real 390 CSS-pixel viewport even
             # when headless Firefox enforces a 500-pixel minimum outer window.
             browser.get(f"http://127.0.0.1:{server.server_port}/control/index.html")
