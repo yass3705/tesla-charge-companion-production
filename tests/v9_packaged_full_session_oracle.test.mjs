@@ -102,6 +102,28 @@ assert.equal(combinedRanking.best?.total,12);
 assert.equal(combinedRanking.best?.costPerRecoveredKm,.24);
 assert.equal(pricing.evaluateOffer(combined,{...combinedSession,targetSoc:undefined}).complete,false,
   'missing congestion state cannot yield a partial price');
+// Independent whole-session arithmetic across a proved local tariff window:
+// 6 kWh before 10:00, 4 kWh after; charging and parking remain separate,
+// while the connection fee is charged once. No supplier amount is implied.
+const windowed={id:'fixture-windowed',provider:'Fixture',kind:'direct',currency:'EUR',
+  evseIds:['fixture-evse'],connectorIds:['fixture-plug'],pricing:{type:'rules',timeZone:'Europe/London',rules:[
+    {scope:'timeWindow',start:'00:00',end:'10:00',pricePerKwh:.2,
+      chargePerMinute:.1,idlePerMinute:.2,connectionFee:1},
+    {scope:'timeWindow',start:'10:00',end:'24:00',pricePerKwh:.4,
+      chargePerMinute:.1,idlePerMinute:.2,connectionFee:1}
+  ]}};
+const windowedSession={startAt:'2026-10-23T08:30:00Z',energyKwh:10,
+  durationMinutes:60,chargingMinutes:50,postChargeMinutes:10,
+  consumptionKwhPer100Km:20};
+const windowedQuote=pricing.evaluateOffer(windowed,windowedSession);
+assert.equal(windowedQuote.complete,true);
+assert.equal(windowedQuote.totalEur,10.8,
+  'energy 1.2 + 1.6, charging 5, parking 2 and one fixed fee 1');
+assert.equal(windowedQuote.components.segmentedPricing.segments.length,2);
+const windowedRanking=sessionEngine.evaluateStation({...station,offers:[windowed]},
+  windowedSession,{targetCurrency:'EUR'});
+assert.equal(windowedRanking.best?.total,10.8);
+assert.equal(windowedRanking.best?.costPerRecoveredKm,.216);
 const conditional={id:'fixture-conditional',currency:'EUR',pricing:{type:'rules',
   rules:[{scope:'allDay',connectionFee:1}],conditionalSessionFees:[
     {amountEur:2,conditions:[{kind:'energy_above_kwh',value:10}]},
