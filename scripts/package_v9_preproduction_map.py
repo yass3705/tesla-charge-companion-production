@@ -8,7 +8,9 @@ Run via local http://localhost (WebCrypto requires a secure context).
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
+import io
 import json
 import math
 import re
@@ -63,16 +65,31 @@ def check_candidate(candidate: Path) -> dict:
                 raise ValueError("Prepared shard source descriptor invalid")
             station_ids = set()
             for number, shard in enumerate(entry["shards"]):
-                relative = Path("shards") / f"{source.replace(':', '__')}__{number:04d}.json"
+                encoding = shard.get("encoding")
+                if encoding not in (None, "gzip"):
+                    raise ValueError("Prepared shard encoding invalid")
+                extension = ".json.bin" if encoding == "gzip" else ".json"
+                relative = Path("shards") / f"{source.replace(':', '__')}__{number:04d}{extension}"
                 if (shard.get("path") != relative.as_posix() or
                         not re.fullmatch(r"[a-f0-9]{64}", str(shard.get("sha256", ""))) or
                         not isinstance(shard.get("bytes"), int) or not 0 < shard["bytes"] <= 8_000_000 or
+                        (encoding == "gzip" and
+                         (not isinstance(shard.get("uncompressedBytes"), int) or
+                          not 0 < shard["uncompressedBytes"] <= 8_000_000)) or
                         not isinstance(shard.get("stationCount"), int) or shard["stationCount"] < 1):
                     raise ValueError("Prepared shard descriptor invalid")
                 declared.add(relative.as_posix())
                 raw = (candidate / relative).read_bytes()
                 if len(raw) != shard["bytes"] or digest(raw) != shard["sha256"]:
                     raise ValueError("Prepared shard SHA or length mismatch")
+                if encoding == "gzip":
+                    try:
+                        with gzip.GzipFile(fileobj=io.BytesIO(raw)) as stream:
+                            raw = stream.read(8_000_001)
+                    except (OSError, EOFError) as exc:
+                        raise ValueError("Prepared shard gzip invalid") from exc
+                    if len(raw) != shard["uncompressedBytes"]:
+                        raise ValueError("Prepared shard decompressed length mismatch")
                 data = json.loads(raw)
                 if (data.get("schemaVersion") != 1 or data.get("source", {}).get("id") != source or
                         data["source"].get("artifactSha256") != entry["sourceArtifactSha256"] or
@@ -146,6 +163,22 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
         raise ValueError("Runtime path is unsafe")
     if not (site / runtime / "assets/v9/runtime-engine.js").is_file():
         raise ValueError("Built runtime required")
+    historical_registry = json.loads((site / runtime / "data/v9/source-registry.json").read_bytes())
+    tesla_sources = [row for row in historical_registry.get("sources", []) if row.get("id") == "tesla-global"]
+    if (len(tesla_sources) != 1 or tesla_sources[0].get("adapter") != "tesla-json" or
+            tesla_sources[0].get("path") != "data/tesla_stations.json" or
+            tesla_sources[0].get("active") is not True):
+        raise ValueError("Historical Tesla import contract missing")
+    tesla_path = site / runtime / tesla_sources[0]["path"]
+    if not tesla_path.is_file():
+        raise ValueError("Historical Tesla import file missing")
+    tesla_bytes = tesla_path.read_bytes()
+    manifest = json.loads((site / "manifest.json").read_bytes())
+    manifest_rows = [row for row in manifest.get("files", [])
+                     if row.get("path") == (runtime / tesla_sources[0]["path"]).as_posix()]
+    if (len(manifest_rows) != 1 or manifest_rows[0].get("bytes") != len(tesla_bytes) or
+            manifest_rows[0].get("sha256") != digest(tesla_bytes)):
+        raise ValueError("Historical Tesla import SHA mismatch")
     index = check_candidate(candidate)
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="tcc-v9-isolated-", dir=destination.parent) as tmp:
@@ -155,12 +188,19 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
         # to preview visitors. The runtime keeps its own required data files.
         if (stage / "snapshot-inputs").is_dir():
             shutil.rmtree(stage / "snapshot-inputs")
+        # Candidate mode replaces the historical offer registry. The old
+        # Italy offer corpus exceeds static-host asset limits and must not be
+        # available as an accidental fallback in the isolated preview.
+        historical_italy = stage / runtime / "data/v9/italy-offers.json"
+        if historical_italy.is_file():
+            historical_italy.unlink()
         shutil.copytree(candidate, stage / "prepared-v9")
         assets = stage / runtime / "assets/v9"
         for source, target in (
             ("runtime-owned/assets/v9/adapters/canonical-v9.js", "adapters/canonical-v9.js"),
             ("runtime-owned/assets/v9/preproduction-candidate-loader.js", "preproduction-candidate-loader.js"),
             ("runtime-owned/assets/v9/data-engine.js", "data-engine.js"),
+            ("runtime-overrides/assets/v9/pricing-engine.js", "pricing-engine.js"),
             ("runtime-overrides/assets/v9/map-price-engine.js", "map-price-engine.js"),
             ("runtime-overrides/assets/v9/adapters/uk-open-feeds.js", "adapters/uk-open-feeds.js"),
         ):
@@ -174,12 +214,25 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
             "preproductionIsolated": True,
             "preparedBundleId": index["bundleId"],
             "preparedIndexSha256": digest((candidate / "index.json").read_bytes()),
+            "teslaArtifactSha256": digest(tesla_bytes),
             "engineScopeCountries": sorted({entry["source"][:2] for entry in index["sources"]}),
             "fallback": "fail-closed",
         })
         (stage / "v9-production-shell/shell-config.json").write_text(
             json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
+        # The preview hostname opens V9 directly. This changes only the copy in
+        # the isolated package, never the source snapshot or the public site.
+        (stage / "index.html").write_text(
+            '<!doctype html><html lang="fr"><meta charset="utf-8">'
+            '<meta name="robots" content="noindex,nofollow">'
+            '<meta http-equiv="refresh" content="0;url=./v9-production-shell/">'
+            '<title>TCC V9 — Préproduction</title>'
+            '<a href="./v9-production-shell/">Ouvrir TCC V9</a></html>\n',
+            encoding="utf-8",
+        )
+        (stage / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
+        (stage / "_headers").write_text("/*\n  X-Robots-Tag: noindex, nofollow\n", encoding="utf-8")
         stage.rename(destination)
     return {"status": "packaged_preview_only", "output": str(destination), 
             "countries": config["engineScopeCountries"],"sourceCount": len(index["sources"]),

@@ -24,12 +24,23 @@
     if(origin&&base.origin!==new URL(origin).origin)throw new Error('external preproduction origin blocked');
     const fetcher=fetchImpl||root?.fetch?.bind(root);
     if(typeof fetcher!=='function')throw new Error('preview fetch unavailable');
-    async function jsonAt(url,expectedSha){
+    async function jsonAt(url,expectedSha,encoding,expectedBytes,uncompressedBytes){
       const response=await fetcher(url,{cache:'no-store'});
       if(!response?.ok)throw new Error('candidate resource unavailable');
       const raw=await response.arrayBuffer();
+      if(expectedBytes!=null&&raw.byteLength!==expectedBytes)throw new Error('candidate source length mismatch');
       if(expectedSha&&await sha256Hex(raw,cryptoImpl)!==expectedSha)throw new Error('candidate source SHA mismatch');
-      return JSON.parse(new TextDecoder().decode(raw));
+      if(encoding==null)return JSON.parse(new TextDecoder().decode(raw));
+      if(encoding!=='gzip'||typeof root?.DecompressionStream!=='function'||
+         typeof root?.Response!=='function'||typeof root?.Blob!=='function')
+        throw new Error('candidate gzip decoding unavailable');
+      let decoded;
+      try{
+        decoded=await new root.Response(new root.Blob([raw]).stream()
+          .pipeThrough(new root.DecompressionStream('gzip'))).arrayBuffer();
+      }catch(_){throw new Error('candidate gzip invalid');}
+      if(decoded.byteLength!==uncompressedBytes)throw new Error('candidate decoded length mismatch');
+      return JSON.parse(new TextDecoder().decode(decoded));
     }
     if(expectedIndexSha256!=null&&!shaPattern.test(expectedIndexSha256))
       throw new Error('pinned candidate index SHA invalid');
@@ -54,8 +65,12 @@
          (index.schemaVersion===1?(path!==expectedPath||!shaPattern.test(entry.sha256)):
            !shaPattern.test(entry.sourceSha256)||!shaPattern.test(entry.sourceArtifactSha256)||
            !Array.isArray(entry.shards)||!entry.shards.length||entry.shards.some((shard,i)=>
-             shard.path!==`shards/${id.replace(':','__')}__${String(i).padStart(4,'0')}.json`||
+             ![null,'gzip'].includes(shard.encoding??null)||
+             shard.path!==`shards/${id.replace(':','__')}__${String(i).padStart(4,'0')}.json${shard.encoding==='gzip'?'.bin':''}`||
              !shaPattern.test(shard.sha256)||!Number.isInteger(shard.bytes)||shard.bytes<1||
+             shard.bytes>8000000||
+             (shard.encoding==='gzip'&&(!Number.isInteger(shard.uncompressedBytes)||
+               shard.uncompressedBytes<1||shard.uncompressedBytes>8000000))||
              !Number.isInteger(shard.stationCount)||shard.stationCount<1||
              (shard.bbox!=null&&(!Array.isArray(shard.bbox)||shard.bbox.length!==4||
                shard.bbox.some(value=>!Number.isFinite(value)))))))
@@ -313,7 +328,8 @@
             entry.shards.filter(shard=>shardApplies(shard,query));
           const results=await Promise.all(chosen.map(shard=>{
             if(!shardPending.has(shard.path)){
-              const task=jsonAt(candidateUrl(base,shard.path),shard.sha256).then(adaptData)
+              const task=jsonAt(candidateUrl(base,shard.path),shard.sha256,shard.encoding,
+                shard.bytes,shard.uncompressedBytes).then(adaptData)
                 .catch(error=>{shardPending.delete(shard.path);throw error;});
               shardPending.set(shard.path,task);
             }

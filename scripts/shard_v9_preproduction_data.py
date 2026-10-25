@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import json
 import math
@@ -94,14 +95,19 @@ def build(candidate: Path, destination: Path, *, max_bytes: int = MAX_BYTES) -> 
             for tile in sorted(buckets, key=lambda value: (value is None, value or (0, 0))):
                 rows = sorted(buckets[tile], key=lambda row: row["id"])
                 for payload, raw in pieces(data, rows, max_bytes):
-                    name = f"{source.replace(':', '__')}__{len(descriptors):04d}.json"
+                    name = f"{source.replace(':', '__')}__{len(descriptors):04d}.json.bin"
                     relative = Path("shards") / name
                     path = stage / relative
                     path.parent.mkdir(parents=True, exist_ok=True)
-                    path.write_bytes(raw)
+                    compressed = gzip.compress(raw, compresslevel=6, mtime=0)
+                    if len(compressed) > max_bytes:
+                        raise ValueError("Compressed shard exceeds preview limit")
+                    path.write_bytes(compressed)
                     descriptors.append({"path": relative.as_posix(),
-                                        "sha256": hashlib.sha256(raw).hexdigest(),
-                                        "bytes": len(raw), "stationCount": len(payload["stations"]),
+                                        "sha256": hashlib.sha256(compressed).hexdigest(),
+                                        "encoding": "gzip", "bytes": len(compressed),
+                                        "uncompressedBytes": len(raw),
+                                        "stationCount": len(payload["stations"]),
                                         "bbox": box(payload["stations"])})
             if sum(row["stationCount"] for row in descriptors) != len(data["stations"]):
                 raise ValueError("Spatial source partition incomplete")

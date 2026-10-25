@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash,webcrypto} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const {loadPrepared}=require('../runtime-owned/assets/v9/preproduction-candidate-loader.js');
@@ -32,7 +33,7 @@ function fetcher(bad=false){return async url=>{
   if(url.endsWith('index.json'))return {ok:true,arrayBuffer:async()=>new TextEncoder().encode(JSON.stringify(index)).buffer};
   const position=shards.findIndex(shard=>url.endsWith(shard.path));
   assert.ok(position>=0);seen.push(position);
-  const raw=bad&&position===0?new TextEncoder().encode('{}'):bytes[position];
+  const raw=bad&&position===0?new TextEncoder().encode('x'.repeat(bytes[position].length)):bytes[position];
   return {ok:true,arrayBuffer:async()=>raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength)};
 };}
 const prepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
@@ -54,4 +55,28 @@ await assert.rejects(corrupted.loaders['prepared:'+sourceId]({origin:{lat:48.856
 await assert.rejects(loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:fetcher(),cryptoImpl:webcrypto,adapter:{toFragments},expectedIndexSha256:'d'.repeat(64)}),
   /candidate source SHA mismatch/,'an altered index cannot point to new shard hashes');
+const compressed=bytes.map(raw=>gzipSync(raw,{mtime:0}));
+const compressedShards=shards.map((shard,i)=>({...shard,path:shard.path+'.bin',encoding:'gzip',
+  sha256:hash(compressed[i]),bytes:compressed[i].length,uncompressedBytes:bytes[i].length}));
+const compressedIndex={...index,sources:[{...index.sources[0],shards:compressedShards}]};
+const compressedFetch=async url=>{
+  if(url.endsWith('index.json')){
+    const raw=new TextEncoder().encode(JSON.stringify(compressedIndex));
+    return {ok:true,arrayBuffer:async()=>raw.buffer};
+  }
+  const position=compressedShards.findIndex(shard=>url.endsWith(shard.path));
+  assert.ok(position>=0);
+  const raw=compressed[position];
+  return {ok:true,arrayBuffer:async()=>raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength)};
+};
+const zipped=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:compressedFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await zipped.loaders['prepared:'+sourceId]({origin:{lat:48.856,lon:2.352},radiusKm:10}))[0].name,'paris');
+const wrongLength={...compressedIndex,sources:[{...compressedIndex.sources[0],
+  shards:compressedShards.map((shard,i)=>i?shard:{...shard,uncompressedBytes:shard.uncompressedBytes+1})}]};
+const invalid=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+  fetchImpl:async url=>url.endsWith('index.json')?{ok:true,arrayBuffer:async()=>new TextEncoder().encode(JSON.stringify(wrongLength)).buffer}:compressedFetch(url),
+  cryptoImpl:webcrypto,adapter:{toFragments}});
+await assert.rejects(invalid.loaders['prepared:'+sourceId]({origin:{lat:48.856,lon:2.352},radiusKm:10}),
+  /candidate decoded length mismatch/);
 console.log('V9 sharded candidate: spatial fetch, complete fallback and SHA failure pass');

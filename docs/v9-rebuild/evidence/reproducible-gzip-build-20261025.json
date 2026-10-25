@@ -1,0 +1,21 @@
+{
+  "bundleId": "b36c0eb45d75f14764dc82ab4ebd26c8726156b58659f9feabe9158f13abf9b2",
+  "countries": [
+    "BE",
+    "CH",
+    "DE",
+    "ES",
+    "FR",
+    "GB",
+    "IT",
+    "MA",
+    "NL"
+  ],
+  "joinReportSha256": "a9b369a19c4b8d8854c688bd1a8075ba4d7d464814003f45cf8d89e8f6d8e8ff",
+  "published": false,
+  "schemaVersion": 1,
+  "shardCount": 1380,
+  "sitePath": "site/v9-production-shell/",
+  "sourceCount": 20,
+  "status": "prepared_local_only"
+}

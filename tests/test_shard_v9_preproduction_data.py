@@ -1,4 +1,5 @@
 import hashlib
+import gzip
 import importlib.util
 import json
 import sys
@@ -55,7 +56,10 @@ class ShardV9PreproductionTest(unittest.TestCase):
                 raw = (out / item["path"]).read_bytes()
                 self.assertEqual(hashlib.sha256(raw).hexdigest(), item["sha256"])
                 self.assertLessEqual(len(raw), 3000)
-                shard = json.loads(raw)
+                self.assertEqual(item["encoding"], "gzip")
+                decoded = gzip.decompress(raw)
+                self.assertEqual(len(decoded), item["uncompressedBytes"])
+                shard = json.loads(decoded)
                 self.assertEqual(len(shard["stations"]), 1)
                 self.assertEqual(len(shard["evses"]), 1)
                 self.assertEqual(len(shard["connectors"]), 1)
@@ -63,6 +67,17 @@ class ShardV9PreproductionTest(unittest.TestCase):
                 self.assertEqual(list(shard["tariffCatalog"]), [shard["offers"][0]["sourceTariffKey"]])
                 rows.extend(row["id"] for row in shard["stations"])
             self.assertEqual(sorted(rows), ["one", "two"])
+            shard_path = out / index["sources"][0]["shards"][0]["path"]
+            original_bytes = shard_path.read_bytes()
+            shard_path.write_bytes(original_bytes[:-1] + bytes([original_bytes[-1] ^ 1]))
+            with self.assertRaisesRegex(ValueError, "SHA"):
+                MODULE.check_candidate(out)
+            shard_path.write_bytes(original_bytes)
+            index["sources"][0]["shards"][0]["uncompressedBytes"] += 1
+            (out / "index.json").write_text(json.dumps(index))
+            with self.assertRaisesRegex(ValueError, "decompressed length"):
+                MODULE.check_candidate(out)
+            index["sources"][0]["shards"][0]["uncompressedBytes"] -= 1
             index["sources"][0]["shards"][0]["bbox"] = [0, 0, 0, 0]
             (out / "index.json").write_text(json.dumps(index))
             with self.assertRaisesRegex(ValueError, "bounding box omits"):

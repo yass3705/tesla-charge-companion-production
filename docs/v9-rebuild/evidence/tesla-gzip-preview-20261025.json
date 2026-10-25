@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-25",
+  "candidateBundleId": "b36c0eb45d75f14764dc82ab4ebd26c8726156b58659f9feabe9158f13abf9b2",
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "teslaSnapshotSha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5",
+  "packaging": "packaged_preview_only",
+  "hostingCheck": {
+    "status": "hosting_ready_local_only",
+    "files": 2650,
+    "bytes": 265067529,
+    "largestAssetBytes": 11669931,
+    "deployed": false
+  },
+  "tests": {
+    "pythonPackageAndShards": "3 PASS",
+    "nodeCanonicalAndSharded": "2 PASS",
+    "ocpiComponentCoverageOnPackagedSite": "PASS",
+    "firefoxDesktopAndMobileNineCountries": "PASS",
+    "teslaOnlyAalst": {
+      "source": "tesla-global",
+      "stationCount": 1,
+      "physicalOperator": "tesla",
+      "evaluatedOffers": 0,
+      "display": "Prix non disponible"
+    }
+  },
+  "limitations": [
+    "Tesla snapshot tariff rules are not promoted into the candidate without a matching oracle.",
+    "GitHub handoff and remote hosting remain unverified; G2-G8 remain FAIL."
+  ]
+}

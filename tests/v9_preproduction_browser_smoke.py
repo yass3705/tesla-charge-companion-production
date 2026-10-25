@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import functools
 import json
 import threading
@@ -24,8 +25,9 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
         entry = next(row for row in candidate_index["sources"] if row["source"] == source_id)
         if candidate_index["schemaVersion"] == 1:
             return json.loads((site / "prepared-v9" / entry["path"]).read_bytes())
-        parts = [json.loads((site / "prepared-v9" / part["path"]).read_bytes())
-                 for part in entry["shards"]]
+        parts = [json.loads(gzip.decompress(raw) if part.get("encoding") == "gzip" else raw)
+                 for part in entry["shards"]
+                 for raw in [(site / "prepared-v9" / part["path"]).read_bytes()]]
         return {name: sorted((item for part in parts for item in part[name]),
                              key=lambda item: item["id"])
                 for name in ("stations", "evses", "connectors", "offers")}
@@ -44,12 +46,22 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
         with webdriver.Firefox(options=options) as browser:
             browser.set_window_size(1280, 900)
             browser.set_script_timeout(45)
-            browser.get(f"http://127.0.0.1:{server.server_port}/v9-production-shell/")
+            browser.get(f"http://127.0.0.1:{server.server_port}/")
+            WebDriverWait(browser, 10).until(lambda driver: driver.current_url.endswith('/v9-production-shell/'))
             WebDriverWait(browser, 30).until(lambda driver: driver.execute_script(
                 "return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error"))
             marker = browser.execute_script("return window.__TCC_V9_SHELL__")
             if marker.get("ready") is not True:
                 raise AssertionError(f"TCC shell did not load: {marker}")
+            missing_time = browser.execute_script("""
+                return TCCV9PricingEngine.evaluateOffer({id:'missing-time',currency:'EUR',
+                  metadata:{identityMode:'exact_canonical_connector_ocpi'},
+                  pricing:{type:'rules',rules:[{scope:'allDay',start:'00:00',end:'24:00',
+                    pricePerKwh:0.4,chargePerMinute:0.1}]}},
+                  {energyKwh:10,startAt:'2026-10-24T12:00:00Z'});
+            """)
+            if missing_time.get("complete") is not False or missing_time.get("reason") != "charging_duration_required":
+                raise AssertionError(f"Packaged tariff engine priced missing duration: {missing_time}")
             guidance = browser.execute_script("""
                 const panel=document.getElementById('v9ValidationPanel');
                 return {tab:!!document.getElementById('v9ValidationTab'),
@@ -353,6 +365,30 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if belgium["priced"] and not any(total > 0 for total in be_totals):
                     raise AssertionError("Proved Belgium energy-only tariff did not reach the UI")
                 belgium["calculatedCards"] = len(be_totals)
+                browser.execute_script("""
+                    const lat=50.921475,lon=4.032553;
+                    window.resolveOrigin=async()=>({lat,lon,label:'Tesla Aalst fixture'});
+                    sessionStorage.setItem(`tcc-v9-country:${lat.toFixed(3)},${lon.toFixed(3)}`,'BE');
+                    document.getElementById('simOrigin').value='Tesla Aalst fixture';
+                    document.getElementById('simMaxDistance').value='3';
+                    document.getElementById('simOperatorFilter').dataset.v9Mode='tesla';
+                    document.getElementById('simMinPowerKw').value='';
+                """)
+                tesla = browser.execute_async_script("""
+                    const done=arguments[0];window.compare().then(area=>done({
+                      count:area?.stations?.length??null,
+                      sourceIds:[...new Set((area?.stations||[]).flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))],
+                      operators:[...new Set((area?.stations||[]).map(s=>TCCV9DataEngine.operatorId(s.physicalOperator)))],
+                      offers:(area?.stations||[]).reduce((n,s)=>n+(s.offers||[]).length,0),
+                      priced:(area?.sessionEvaluations&&Object.values(area.sessionEvaluations).filter(x=>x?.best).length)||0,
+                      text:document.getElementById('results')?.innerText?.slice(0,1200)
+                    })).catch(error=>done({error:String(error)}));
+                """)
+                if (tesla.get("count", 0) <= 0 or tesla["operators"] != ["tesla"] or
+                        "tesla-global" not in tesla["sourceIds"] or tesla["offers"] or
+                        tesla["priced"] or "Prix non disponible" not in tesla["text"]):
+                    raise AssertionError(f"Pinned Tesla inventory was lost or unproved price escaped: {tesla}")
+                belgium["teslaInventory"] = {key: value for key, value in tesla.items() if key != "text"}
             netherlands = None
             if "NL:dotnl_static" in source_ids:
                 netherlands = compare(52.367, 4.904, "NL", "Amsterdam fixture", radius=30)

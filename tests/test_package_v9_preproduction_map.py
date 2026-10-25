@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from scripts.package_v9_preproduction_map import package
+from scripts.check_v9_preview_hosting import check as check_hosting
 
 
 class PreparedMapPackageTests(unittest.TestCase):
@@ -17,6 +18,16 @@ class PreparedMapPackageTests(unittest.TestCase):
             (site / "v9-production-runtime/assets/v9").mkdir(parents=True)
             (site / "index.html").write_text("<html><body>TCC control</body></html>")
             (site / "v9-production-runtime/assets/v9/runtime-engine.js").write_text("/* fixture */")
+            (site / "v9-production-runtime/data/v9").mkdir(parents=True)
+            (site / "v9-production-runtime/data/v9/italy-offers.json").write_text("historical")
+            tesla = b'[{"id":"tesla-fixture","countryCode":"FR","latitude":48.8,"longitude":2.3}]'
+            (site / "v9-production-runtime/data/tesla_stations.json").write_bytes(tesla)
+            (site / "v9-production-runtime/data/v9/source-registry.json").write_text(json.dumps({
+                "sources": [{"id": "tesla-global", "adapter": "tesla-json",
+                             "path": "data/tesla_stations.json", "active": True}]}))
+            (site / "manifest.json").write_text(json.dumps({"files": [{
+                "path": "v9-production-runtime/data/tesla_stations.json",
+                "bytes": len(tesla), "sha256": hashlib.sha256(tesla).hexdigest()}]}))
             (site / "v9-production-shell/shell-config.json").write_text(json.dumps({
                 "schemaVersion": 1, "mode": "candidate", "runtimeBase": "v9-production-runtime",
                 "observedCandidateSha": "fixture", "engineScopeCountries": ["CH"],
@@ -39,8 +50,23 @@ class PreparedMapPackageTests(unittest.TestCase):
             self.assertEqual(cfg["preparedBundleId"], "a" * 64)
             self.assertEqual(cfg["preparedIndexSha256"], hashlib.sha256(
                 (candidate / "index.json").read_bytes()).hexdigest())
+            self.assertEqual(cfg["teslaArtifactSha256"], hashlib.sha256(tesla).hexdigest())
             self.assertEqual(cfg["fallback"], "fail-closed")
             self.assertTrue((output / "v9-production-runtime/assets/v9/preproduction-candidate-loader.js").is_file())
+            self.assertEqual((output / "v9-production-runtime/assets/v9/pricing-engine.js").read_bytes(),
+                             (Path(__file__).resolve().parents[1] /
+                              "runtime-overrides/assets/v9/pricing-engine.js").read_bytes())
+            self.assertFalse((output / "v9-production-runtime/data/v9/italy-offers.json").exists())
+            self.assertTrue((site / "v9-production-runtime/data/v9/italy-offers.json").is_file())
+            self.assertIn('url=./v9-production-shell/', (output / 'index.html').read_text())
+            self.assertIn('X-Robots-Tag: noindex', (output / '_headers').read_text())
+            self.assertIn('Disallow: /', (output / 'robots.txt').read_text())
+            self.assertIn('TCC control', (site / 'index.html').read_text())
+            self.assertEqual(check_hosting(output)["status"], "hosting_ready_local_only")
+            (site / "v9-production-runtime/data/tesla_stations.json").write_bytes(b"tampered")
+            with self.assertRaisesRegex(ValueError, "Tesla import SHA mismatch"):
+                package(site, candidate, root / "bad-tesla")
+            (site / "v9-production-runtime/data/tesla_stations.json").write_bytes(tesla)
             self.assertEqual(json.loads((site / "v9-production-shell/shell-config.json").read_text())["engineScopeCountries"], ["CH"])
             with self.assertRaises(ValueError):
                 package(site, candidate, root / "built-site/subdirectory")

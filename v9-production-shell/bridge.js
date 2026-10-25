@@ -190,6 +190,26 @@
     }
     return rates;
   }
+  function pinnedTeslaInventory(w,base,source,expectedSha){
+    if(!/^[a-f0-9]{64}$/.test(String(expectedSha||''))||source?.id!=='tesla-global'||
+       source.adapter!=='tesla-json'||source.path!=='data/tesla_stations.json'||
+       !w.TCCV9Adapters?.teslaJson?.normalizePayload||!w.TCCV9PreparedCandidate?.sha256Hex)
+      throw new Error('pinned Tesla inventory unavailable');
+    let promise=null;
+    return async function(){
+      if(!promise)promise=w.fetch(`${base}/${source.path}`,{cache:'no-cache'}).then(async response=>{
+        if(!response.ok)throw new Error(`Tesla inventory ${response.status}`);
+        const bytes=new Uint8Array(await response.arrayBuffer());
+        if(await w.TCCV9PreparedCandidate.sha256Hex(bytes,w.crypto)!==expectedSha)
+          throw new Error('Tesla inventory SHA mismatch');
+        const stations=w.TCCV9Adapters.teslaJson.normalizePayload(JSON.parse(new TextDecoder().decode(bytes)));
+        // The historic Tesla snapshot remains available as physical inventory.
+        // Its old tariff payload has no candidate oracle, so it cannot enter ranking.
+        return stations.map(station=>({...station,offers:[]}));
+      }).catch(error=>{promise=null;throw error;});
+      return promise;
+    };
+  }
   async function createEngine(w,cfg){
     if(!w.TCCV9RuntimeEngine||!w.TCCV9BrowserLoaders||!w.TCCV9BrowserRouting)throw new Error('V9 runtime dependency missing');
     const base=String(cfg.runtimeBase||'.').replace(/\/$/,''),[historicalRegistry,vehicleProfiles]=await Promise.all([
@@ -209,6 +229,11 @@
       });
       if(preview.candidate.bundleId!==cfg.preparedBundleId)throw new Error('prepared bundle identity mismatch');
       registry=preview.registry;loaders=preview.loaders;preparedCandidate=preview.candidate;
+      const tesla=historicalRegistry.sources?.find(source=>source.id==='tesla-global');
+      const teslaLoader=pinnedTeslaInventory(w,base,tesla,cfg.teslaArtifactSha256);
+      if(registry.sources.some(source=>source.id==='tesla-global'))throw new Error('Tesla source collision');
+      registry={...registry,sources:[...registry.sources,tesla]};
+      loaders={...loaders,'tesla-global':teslaLoader};
     }
     const routeProvider=w.TCCV9BrowserRouting.osrmProvider();
     const engine=w.TCCV9RuntimeEngine.createEngine({registry,loaders,routeProvider,vehicleProfiles});
