@@ -379,6 +379,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       count:area?.stations?.length??null,
                       sourceIds:[...new Set((area?.stations||[]).flatMap(s=>(s.provenance||[]).map(p=>p.sourceId)))],
                       operators:[...new Set((area?.stations||[]).map(s=>TCCV9DataEngine.operatorId(s.physicalOperator)))],
+                      states:[...new Set((area?.stations||[]).map(s=>s.status?.state||null))],
                       offers:(area?.stations||[]).reduce((n,s)=>n+(s.offers||[]).length,0),
                       priced:(area?.sessionEvaluations&&Object.values(area.sessionEvaluations).filter(x=>x?.best).length)||0,
                       text:document.getElementById('results')?.innerText?.slice(0,1200)
@@ -386,7 +387,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 """)
                 if (tesla.get("count", 0) <= 0 or tesla["operators"] != ["tesla"] or
                         "tesla-global" not in tesla["sourceIds"] or tesla["offers"] or
-                        tesla["priced"] or "Prix non disponible" not in tesla["text"]):
+                        tesla["priced"] or tesla["states"] != ["unknown"] or
+                        "Prix non disponible" not in tesla["text"]):
                     raise AssertionError(f"Pinned Tesla inventory was lost or unproved price escaped: {tesla}")
                 belgium["teslaInventory"] = {key: value for key, value in tesla.items() if key != "text"}
             netherlands = None

@@ -20,12 +20,14 @@
       "source": "tesla-global",
       "stationCount": 1,
       "physicalOperator": "tesla",
+      "availabilityState": "unknown",
       "evaluatedOffers": 0,
       "display": "Prix non disponible"
     }
   },
   "limitations": [
     "Tesla snapshot tariff rules are not promoted into the candidate without a matching oracle.",
+    "The full nine-country browser report is reproducible-gzip-tesla-browser-20261025.json.",
     "GitHub handoff and remote hosting remain unverified; G2-G8 remain FAIL."
   ]
 }

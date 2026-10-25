@@ -205,7 +205,8 @@
         const stations=w.TCCV9Adapters.teslaJson.normalizePayload(JSON.parse(new TextDecoder().decode(bytes)));
         // The historic Tesla snapshot remains available as physical inventory.
         // Its old tariff payload has no candidate oracle, so it cannot enter ranking.
-        return stations.map(station=>({...station,offers:[]}));
+        return stations.map(station=>({...station,offers:[],status:{state:'unknown',
+          updatedAt:station.status?.updatedAt||null,sourceId:'tesla-global'}}));
       }).catch(error=>{promise=null;throw error;});
       return promise;
     };
