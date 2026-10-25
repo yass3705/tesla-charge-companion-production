@@ -231,6 +231,14 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                           (evse.connectors||[]).some(connector=>connector.id===o.scope?.connectorId))).length,0),
                       ukNewPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         ['GB:gridserve_pcpr_direct','GB:ubitricity_pcpr_direct'].includes(o.metadata?.sourceId)).length,0),
+                      powerdotRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        o.sourceId==='prepared:FR:powerdot_direct').length,0),
+                      powerdotMisScoped:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
+                        o.sourceId==='prepared:FR:powerdot_direct'&&
+                        !(s.evses||[]).some(evse=>evse.id===o.scope?.evseId&&
+                          (evse.connectors||[]).some(connector=>connector.id===o.scope?.connectorId))).length,0),
+                      powerdotPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
+                        o.metadata?.sourceId==='FR:powerdot_direct').length,0),
                       spainNationalPriced:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>
                         o.metadata?.sourceId==='ES:reve_static').length,0),
                       firstSource:area.stations[0]?.provenance?.[0]?.sourceId||null,
@@ -515,6 +523,23 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 """)
                 if "OZECAR" not in corsica_text or "FROZEE" not in corsica_text or "Type 2" not in corsica_text:
                     raise AssertionError(f"OZECAR station and exact EVSE are not visible: {corsica_text[:1200]}")
+            powerdot = None
+            if "FR:powerdot_direct" in source_ids:
+                powerdot_data = archived_source("FR:powerdot_direct")
+                offer_evse_ids = {row["scope"]["evseId"] for row in powerdot_data["offers"]}
+                station_ids = {row["stationId"] for row in powerdot_data["evses"]
+                               if row["id"] in offer_evse_ids}
+                station = next((row for row in powerdot_data["stations"]
+                                if row["id"] in station_ids and row["country"] == "FR" and
+                                row.get("latitude") is not None and row.get("longitude") is not None), None)
+                if station is None:
+                    raise AssertionError("Archived Powerdot connector source has no station coordinate")
+                powerdot = compare(station["latitude"], station["longitude"], "FR",
+                                   "Powerdot archived source fixture", radius=2)
+                if ("FR:powerdot_direct" not in powerdot["sourceIds"] or
+                        powerdot["powerdotRaw"] <= 0 or powerdot["powerdotMisScoped"] or
+                        powerdot["powerdotPriced"]):
+                    raise AssertionError(f"Powerdot raw connector scope or price isolation failed: {powerdot}")
             # A same-origin iframe supplies a real 390 CSS-pixel viewport even
             # when headless Firefox enforces a 500-pixel minimum outer window.
             browser.get(f"http://127.0.0.1:{server.server_port}/control/index.html")
@@ -556,7 +581,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "it": italy, "de": germany,
                     "es": spain, "ma": morocco,
                     "ch": switzerland, "be": belgium, "nl": netherlands,
-                    "zephyre": zephyre, "ozecar": ozecar,
+                    "zephyre": zephyre, "ozecar": ozecar, "powerdot": powerdot,
                     "minPower300": filtered["count"], "map": map_state,
                     "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:
