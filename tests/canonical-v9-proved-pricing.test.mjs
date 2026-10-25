@@ -33,6 +33,8 @@ assert.equal(station.unparsedOffers[0].id,'offer-b');
 const oracle=evaluateOffer(station.offers[0],{energyKwh:20,startAt:'2026-10-23T12:00:00Z'});
 assert.equal(oracle.complete,true);
 assert.equal(oracle.totalEur,14);
+assert.equal(evaluateOffer(station.offers[0],{startAt:'2026-10-23T12:00:00Z'}).reason,
+  'energy_required','a paid energy component cannot become a zero-price quote');
 assert.equal(evaluateStation({...station,evses:[station.evses[1]]},{energyKwh:20,startAt:'2026-10-23T12:00:00Z'}).comparableOfferCount,0,
   'exact connector offer cannot price another EVSE');
 for(const invalid of [0,-1,NaN,'0.70',null]){

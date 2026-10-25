@@ -592,6 +592,11 @@
     const pricingParts=[pricing,...(Array.isArray(pricing.rules)?pricing.rules:[]),
       ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
         .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
+    if(pricingParts.some(part=>(num(part?.pricePerKwh)??0)>0||
+       (Array.isArray(part?.ocpiDurationBands)&&part.ocpiDurationBands.some(b=>
+         Array.isArray(b)&&b[2]==='ENERGY'&&(num(b[3])??0)>0)))&&
+       num(session.energyKwh)==null)
+      return{complete:false,reason:'energy_required',offerId:offer?.id||null,timeZone};
     if(pricingParts.some(part=>part?.minPrice!=null||part?.maxPrice!=null||
        part?.min_price!=null||part?.max_price!=null))
       return{complete:false,reason:'unverified_ocpi_price_bound',offerId:offer?.id||null,timeZone};
