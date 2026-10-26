@@ -1,0 +1,47 @@
+[
+  {
+    "test": "v9-offer-exact-scope",
+    "exitCode": 0,
+    "output": "Exact offer scopes, currencies, subscriptions and unchanged per-EVSE prices PASS\nCalculated and raw offers remain distinct on the same EVSE/channel PASS\nEVSE-only eligibility and distinct validity windows PASS\nShell grouping respects exact EVSE offer identity PASS\n"
+  },
+  {
+    "test": "v9-shell-grouping",
+    "exitCode": 0,
+    "output": "V9 shell grouping OK\n"
+  },
+  {
+    "test": "v9-tariff-lanes",
+    "exitCode": 0,
+    "output": "OK V9: tariffs kept per EVSE/power; ambiguous independent lanes; CHF/EUR; subscriptions and overlay-failure isolation\n"
+  },
+  {
+    "test": "v9-strict-ranking",
+    "exitCode": 0,
+    "output": "{\"ok\":true,\"sorts\":[\"price\",\"distance\",\"totalTime\",\"costPerKm\"],\"unpricedLast\":true}\n"
+  },
+  {
+    "test": "v9-fee-breakdown",
+    "exitCode": 0,
+    "output": "V9 fee breakdown: full charges visible, preauthorisation separate\n"
+  },
+  {
+    "test": "v9-applied-tariff-description",
+    "exitCode": 0,
+    "output": "{\"ok\":true,\"appliedWindow\":\"07:00\u201323:00\",\"hiddenUnusedWindow\":\"23:00\u201307:00\"}\n"
+  },
+  {
+    "test": "v9-electra-plus-direct",
+    "exitCode": 0,
+    "output": "{\"ok\":true,\"base\":0.49,\"essential\":0.39,\"smart\":0.29,\"ambiguousSkipped\":true,\"foreignOperatorSkipped\":true}\n"
+  },
+  {
+    "test": "v9-ocpi-component-coverage",
+    "exitCode": 0,
+    "output": "V9 OCPI pricing components and restrictions: pass\n"
+  },
+  {
+    "test": "v9-pricing-time-zone",
+    "exitCode": 0,
+    "output": "V9 pricing time zones, DST and midnight: pass\n"
+  }
+]

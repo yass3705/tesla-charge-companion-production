@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 const require=createRequire(import.meta.url);
 const runtime=process.argv[2]?path.join(path.resolve(process.argv[2]),'runtime/assets/v9'):path.resolve('runtime-owned/assets/v9');
 const offers=require(path.join(runtime,'offer-engine.js'));
-const session=require(path.join(runtime,'session-engine.js'));
+const context={TCCV9OfferEngine:offers};
+if(!process.argv[2]){
+ for(const name of ['pricing-engine','session-engine'])runInNewContext(readFileSync(path.resolve('runtime-overrides/assets/v9/'+name+'.js'),'utf8'),context);
+}
+const session=process.argv[2]?require(path.join(runtime,'session-engine.js')):context.TCCV9SessionEngine;
 const shell=require('../v9-production-shell/bridge.js');
 const freeze=value=>{if(value&&typeof value==='object'){Object.freeze(value);for(const item of Object.values(value))freeze(item);}return value;};
 const make=(id,evse,connector,currency='EUR')=>({id,provider:'Fixture',kind:'direct',currency,countries:['FR'],
@@ -46,3 +52,29 @@ assert.match(html,/Prix calculé/);
 assert.match(html,/Tarif incalculable/,'a calculated direct rate must not hide an additional raw direct offer');
 assert.doesNotMatch(html,/999/,'raw amounts must remain uncalculated');
 console.log('Calculated and raw offers remain distinct on the same EVSE/channel PASS');
+
+// Session evaluation must also enforce an EVSE-only scope, without a connector filter.
+const evseOnly=inputs.map(({connectorIds,...offer})=>offer);
+for(const evse of station.evses){
+ const quote=session.evaluateStation({...station,evses:[evse],offers:evseOnly}, {energyKwh:10,durationMinutes:60});
+ assert.equal(quote.comparableOfferCount,1);
+ assert.equal(quote.best.offerId,evse.id==='evse-a'?'a':'b');
+}
+const dated=[{...inputs[0],id:'past',validThrough:'2025-12-31'}, {...inputs[0],id:'current',validFrom:'2026-01-01'}];
+const preserved=offers.dedupeOffers(dated,{countryCode:'FR'});
+assert.equal(preserved.length,2,'same-price validity windows are not interchangeable');
+const datedQuote=session.evaluateStation({...station,evses:[station.evses[0]],offers:preserved}, {startAt:'2026-10-26T12:00:00Z',energyKwh:10,durationMinutes:60});
+assert.equal(datedQuote.best.offerId,'current');
+for(const marker of [{subscriptionId:'plan'}, {equivalenceKey:'same'}])
+ for(const scope of [{operatorIds:['different']},{connectorKinds:['DC']},{validityBasis:'whole_session_local_date'},{metadata:{timeZone:'Europe/London'}}])
+  assert.equal(offers.dedupeOffers([{...inputs[0],...marker},{...inputs[0],...marker,...scope}],{countryCode:'FR'}).length,2);
+console.log('EVSE-only eligibility and distinct validity windows PASS');
+
+const equalPowerStation={...station,evses:station.evses.map(e=>({...e,connectors:e.connectors.map(c=>({...c,powerKw:22}))})),offers:inputs};
+const grouped=shell.variantsByPower({TCCV9SessionEngine:session,
+ TCCV9SessionPlannerEngine:{planStation:(_st,s)=>({effectiveSession:s})},
+ TCCV9StationScoreEngine:{scoreStation:()=>({})}},[{station:equalPowerStation}],{energyKwh:10,durationMinutes:60});
+assert.equal(grouped.length,2,'equal-power EVSEs with distinct exact offers stay separate during evaluation');
+assert.deepEqual(grouped.map(v=>v.evaluation.best.offerId).sort(),['a','b']);
+assert.ok(grouped.every(v=>v.station.evses.length===1&&v.powerLine.count===1));
+console.log('Shell grouping respects exact EVSE offer identity PASS');

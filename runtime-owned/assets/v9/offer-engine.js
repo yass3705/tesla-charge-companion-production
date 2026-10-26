@@ -53,6 +53,11 @@
     // Key construction is read-only: do not deep-copy tariffs just to compare them.
     const offer=raw?.ratesByCountry?.[cc]?{...raw,pricing:{...(raw.pricing||{}),...raw.ratesByCountry[cc]}}:(raw||{});
     const scope=stableStringify({currency:country(offer.currency),
+      operatorIds:uniq((offer.operatorIds||[]).map(providerId)).sort(),
+      connectorKinds:uniq((offer.connectorKinds||[]).map(v=>text(v).toUpperCase())).sort(),
+      validFrom:text(offer.validFrom),validThrough:text(offer.validThrough),
+      validityBasis:text(offer.validityBasis||offer.metadata?.validityBasis),
+      timeZone:text(offer.metadata?.timeZone),
       stationIds:uniq((offer.stationIds||[]).map(text)).sort(),
       evseIds:uniq((offer.evseIds||[]).map(text)).sort(),
       connectorIds:uniq((offer.connectorIds||[]).map(text)).sort(),
@@ -106,7 +111,8 @@
       if(!current){const first=offer;first.provenance=uniq([...(first.provenance||[]).map(p=>stableStringify(p)),stableStringify(provenanceEntry(first))]).map(s=>JSON.parse(s));first.aliases=uniq([...(first.aliases||[]),text(first.id||first.offerId)]).sort();groups.set(key,first);}
       else groups.set(key,mergeEquivalentOffers(current,offer));
     }
-    return [...groups.values()].sort((a,b)=>semanticKey(a,countryCode).localeCompare(semanticKey(b,countryCode)));
+    // Group keys are immutable; reuse them instead of serializing each tariff at every sort comparison.
+    return [...groups.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([,offer])=>offer);
   }
 
   function mergeStationOffers(station,incomingOffers,{countryCode}={}){

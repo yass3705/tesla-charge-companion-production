@@ -804,7 +804,7 @@
         }
         const connector={...raw,powerKw:power},kind=connectorKind(connector),connectorId=text(connector.id||connector.connectorId)||null,plug=text(connector.plugName||connector.type||connector.plugType)||null;
         const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex,evseTokens=new Set([evseKey,text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)].filter(Boolean)),connectorTokens=new Set(connectorId?[connectorId]:[]);
-        const matching=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,evseTokens,connectorTokens)&&sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId)).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
+        const matching=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,evseTokens,connectorTokens)&&sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId,[...evseTokens])).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
         const key=[kind,floorPower(power),matching.join(',')].join('|');
         const group=groups.get(key)||{kind,powerKw:floorPower(power),offerIds:matching,evseConnectors:new Map(),evseKeys:new Set(),evseTokens:new Set(),connectorIds:new Set()};
         const connectors=group.evseConnectors.get(evseIndex)||[];
