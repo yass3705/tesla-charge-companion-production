@@ -315,6 +315,14 @@
       add(rule?.connectedTimePerMinuteEur,'min',currency,' connecté'+window);
       add(rule?.idlePerMinute,'min',currency,' après charge'+window);
       add(rule?.congestionTimePerMinute,'min congestion',currency,' dès '+(num(rule?.congestionStartSoc)??80)+' %'+window);
+      const afterPhase={CONNECTED_TIME:'connexion',TIME:'charge',PARKING_TIME:'stationnement'}[rule?.afterMinutesComponent];
+      if((num(rule?.afterMinutesRate)??0)>0&&afterPhase&&num(rule?.afterMinutesThreshold)!=null){
+        add(rule.afterMinutesRate,'min',currency,' de '+afterPhase+' après '+rule.afterMinutesThreshold+' min de session'+window);
+        if((num(rule.afterMinutesCap)??0)>0&&['whole_session','night_window_local_per_night'].includes(rule.afterMinutesCapMode)){
+          const label='Plafond des frais après seuil '+formatCurrencyAmount(rule.afterMinutesCap,currency)+(rule.afterMinutesCapMode==='whole_session'?' par session':' par nuit ('+text(rule.afterMinutesCapStart)+'–'+text(rule.afterMinutesCapEnd)+')');
+          if(!seen.has(label)){seen.add(label);labels.push(label);}
+        }
+      }
       for(const [field,description] of [['connectionFee','frais de connexion'],['sessionFeeEur','frais de session'],['connectedTimeComponentEur','temps connecté']]){
         const value=num(rule?.[field]);if(value==null||value===0)continue;
         const label=formatCurrencyAmount(value,currency)+' '+description+window;
@@ -795,7 +803,9 @@
     const variants=[];
     for(const row of rows||[]){
       const station=row?.station||{},groups=new Map(),unknownEvses=new Map(),unknownConnectorIds=new Set();
-      for(const [evseIndex,evse] of (station.evses||[]).entries())for(const [connectorIndex,raw] of (evse.connectors||[]).entries()){
+      for(const [evseIndex,evse] of (station.evses||[]).entries()){
+        if(!(evse.connectors||[]).length)unknownEvses.set(evseIndex,[]);
+        for(const [connectorIndex,raw] of (evse.connectors||[]).entries()){
         const power=num(raw.powerKw??raw.power??evse.powerKw);
         if(power==null||power<=0){
           const previous=unknownEvses.get(evseIndex)||[];previous.push(raw);unknownEvses.set(evseIndex,previous);
@@ -810,6 +820,7 @@
         const connectors=group.evseConnectors.get(evseIndex)||[];
         connectors.push({connectorIndex,connector});group.evseConnectors.set(evseIndex,connectors);group.evseKeys.add(evseKey);
         evseTokens.forEach(id=>group.evseTokens.add(id));connectorTokens.forEach(id=>group.connectorIds.add(id));groups.set(key,group);
+        }
       }
       for(const group of groups.values()){
         const evses=[];
@@ -1083,15 +1094,15 @@
           return(variants.length>1?'<div class="small" style="margin-top:8px">Prise : '+esc(plug||group.kind)+'</div>':'')+
             renderTariffs(row.evaluation,scoped,fx,subs);
         }).join('');
-        return'<details class="v9-pdc-detail"><summary><b>'+esc(pdc.label)+'</b> · '+esc(connectors.join(' / ')||group.kind+' '+group.powerKw+' kW')+'</summary>'+
+        return'<details class="v9-pdc-detail"><summary><b>'+esc(pdc.label)+'</b> · '+esc(connectors.join(' / ')||(group.powerKw==null?'Puissance non renseignée':group.kind+' '+group.powerKw+' kW'))+'</summary>'+
           '<div class="small">'+esc(evseIdentity)+' · Statut : '+esc([...new Set(status)].join(', ')||'non renseigné')+' · Source : '+esc(source)+'</div>'+
           tariffs+'</details>';
       }).join('');
-      return'<details class="v9-power-group"><summary><b>'+esc(group.powerKw==null?'Puissance non renseignée':group.powerKw+' kW '+group.kind)+'</b> · '+group.pointCount+' PDC'+summary+'</summary>'+
+      return'<details class="v9-power-group"><summary><b>'+esc(group.powerKw==null?'Puissance non renseignée':group.powerKw+' kW '+group.kind)+'</b> · '+(group.pointCount>0?group.pointCount+' PDC':'Nombre de PDC non renseigné')+summary+'</summary>'+
         '<div class="v9-power-content">'+pdcs+'</div></details>';
     }).join('');
     return'<article class="box v9-result-card" data-v9-station-id="'+esc(station.id||station.canonicalId||station.stationId||'')+'" style="margin-top:10px">'+
-      '<b>'+(index+1)+'. '+esc(stationDisplayName(station))+'</b><div class="small">'+esc(station.physicalOperator?.name||'Opérateur inconnu')+' · '+card.pointCount+' PDC</div>'+
+      '<b>'+(index+1)+'. '+esc(stationDisplayName(station))+'</b><div class="small">'+esc(station.physicalOperator?.name||'Opérateur inconnu')+' · '+(card.pointCount>0?card.pointCount+' PDC':'Nombre de PDC non renseigné')+'</div>'+
       '<div class="small">'+esc(station.address||station.countryCode||'Localisation non renseignée')+'</div>'+
       '<div class="small" style="color:#9fa9b5">Base source : '+esc(stationBaseSource(station))+
       ((station.provenance||[]).some(row=>row.generatedAt)?' · Extraction : '+esc((station.provenance||[]).find(row=>row.generatedAt).generatedAt):'')+'</div>'+renderStationLinks(station)+

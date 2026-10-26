@@ -324,10 +324,12 @@
       const cpo=cpos.get(row.cpoId);
       if(!cpo)throw new Error('canonical station CPO missing');
       const [latitude,longitude]=coordinates(row);
+      const addressName=data.source?.id==='DE:bnetza_afir_archive'?
+        [row.address?.street,row.address?.houseNumber,row.address?.city].filter(Boolean).join(' '):null;
       return{canonicalId:row.id,sourceStationId:row.sourceStationId,countryCode:row.country,
         ...(data.source?.id==='FR:emsp_exact'?{fieldPriority:{identity:0,connectors:0,rawOfferProvenance:110}}:{}),
         ...(data.source?.id==='FR:izivia_fast_map'?{fieldPriority:{identity:0,connectors:0}}:{}),
-        name:row.name||row.names?.[0]?.value||row.sourceStationId,
+        name:row.name||row.names?.[0]?.value||addressName||row.sourceStationId,
         address:address(row),latitude,longitude,
         networkBrand:row.networkBrand||null,
         physicalOperator:{id:cpo.sourceOperatorId,name:cpo.name||cpo.sourceOperatorId},

@@ -17,12 +17,14 @@ Le transfert GitHub Actions Data Lab est un contrôle distinct : il reste non v�
 
 ## Aperçu local contrôlé du 26 octobre
 
-Le paquet actuel est `.tcc-v9-cache/reproducible-27-izivia-2026-10-26/site-after-minutes`, hors checkout : 27 sources, bundle `06d149100ca675108910663b2fe81f71bd0747988fc1b932b417256357eeed93`. Vérification SHA/hébergement PASS, 3 267 fichiers, 263 840 133 octets, `deployed=false`. Recettes tarifaires ciblées et neuf pays/mobile rejouées sur ce paquet : PASS fonctionnels. Limite de performance ouverte : Amsterdam 100 km : 72 301 ms au premier chargement sur le paquet d’éligibilité antérieur au complément G6 après seuil ; le budget local de 10 s est atteint à 20 km après réduction par paliers, cache chaud ; ne pas déclarer la préproduction complète/prête sur cette preuve.
+Le paquet actuel est `.tcc-v9-cache/reproducible-28-germany-2026-10-26/site`, hors checkout : 28 sources, bundle `1d22bb3d91455b6c1cd7484345325b0908f82c447c56f0a41f33cc970ff8d1c1`. Vérification SHA/hébergement PASS, 3 499 fichiers, 286 262 718 octets, `deployed=false`. Recettes tarifaires ciblées et neuf pays/mobile rejouées sur ce paquet : PASS fonctionnels. Limite de performance ouverte : Amsterdam 100 km : 72 301 ms au premier chargement sur le paquet d’éligibilité antérieur au complément G6 après seuil ; le budget local de 10 s est atteint à 20 km après réduction par paliers, cache chaud ; ne pas déclarer la préproduction complète/prête sur cette preuve.
 
 Un serveur lié uniquement à `127.0.0.1:8769` a été démarré et son HTTP 200/noindex vérifié pour l'inspection sur ce Mac : `http://127.0.0.1:8769/`. Il ne constitue ni une URL distante, ni une publication du site public. Commande de reprise après arrêt du serveur :
 
 ```sh
-python3 -m http.server 8769 --bind 127.0.0.1 --directory /Users/yassine/Projects/TCC/.tcc-v9-cache/reproducible-27-izivia-2026-10-26/site-after-minutes
+python3 -m http.server 8769 --bind 127.0.0.1 --directory /Users/yassine/Projects/TCC/.tcc-v9-cache/reproducible-28-germany-2026-10-26/site
 ```
 
 La voie Sites a été examinée uniquement par lecture de sa compétence : son parcours prévoit un dépôt source propre au nouveau Site et une synchronisation Git. Aucun Site ni dépôt supplémentaire n'a été créé, conformément au cahier des charges conservant les dépôts TCC existants et interdisant un nouveau dépôt privé. La préparation Cloudflare Pages distincte reste l'option décrite ci-dessus ; aucun accès administratif adapté n'est configuré dans cette session.
+
+Le candidat 28 sources ajoute le parcours dans une même session FR→DE→NL→FR, PASS sans mélange de pays. Berlin 100 km : 7 988 ms. NL 20 km à froid : 13 030 ms ; la limite de performance reste ouverte. Captures et preuves : [recette 28 sources](evidence/germany-national-28source-20261026.md).

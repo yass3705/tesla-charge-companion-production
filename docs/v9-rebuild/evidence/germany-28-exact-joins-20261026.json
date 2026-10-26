@@ -1,0 +1,23 @@
+{
+  "statistics": {
+    "nationalEvseCount": 57378,
+    "matchedOfferCount": 0,
+    "unmatchedOfferCount": 1589
+  },
+  "sourceInputs": [
+    {
+      "path": "sources/DE__bnetza_afir_archive.json",
+      "sha256": "58cea512e12b306e52c9a9f875f1a3152f75216aa7c0f936403959710505128b",
+      "source": "DE:bnetza_afir_archive"
+    },
+    {
+      "path": "sources/DE__ionity_direct.json",
+      "sha256": "77e20ec9a51057ad5eaffd1d6a925133f9dcce04f1a9187f206b9df1502e62aa",
+      "source": "DE:ionity_direct"
+    }
+  ],
+  "candidateBundleId": "1d22bb3d91455b6c1cd7484345325b0908f82c447c56f0a41f33cc970ff8d1c1",
+  "unmatchedReasons": {
+    "official_evse_id_missing": 1589
+  }
+}

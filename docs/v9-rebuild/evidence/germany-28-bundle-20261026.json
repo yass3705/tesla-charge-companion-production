@@ -1,0 +1,8 @@
+{
+  "status": "prepared",
+  "bundle": "/Users/yassine/Projects/TCC/.tcc-v9-cache/reproducible-28-germany-2026-10-26/bundles/1d22bb3d91455b6c1cd7484345325b0908f82c447c56f0a41f33cc970ff8d1c1",
+  "bundleId": "1d22bb3d91455b6c1cd7484345325b0908f82c447c56f0a41f33cc970ff8d1c1",
+  "sourceCount": 28,
+  "unchangedExistingSources": 27,
+  "addedSource": "DE:bnetza_afir_archive"
+}

@@ -62,3 +62,7 @@ const incomplete=sessionEngine.evaluateStation(station,session);
 assert.equal(incomplete.comparableOfferCount,0);
 assert.equal(incomplete.incomplete[0].result.reason,'after_minutes_component_unverified');
 console.log('Session-start path cannot bypass unverified fee guards PASS');
+
+const labels=shell.tariffRateLabels({currency:'EUR',pricing:{rules:[{...base,...night}]}}).join(' | ');
+assert.match(labels,/après 180 min de session/);
+assert.match(labels,/par nuit.*20:00.*08:00/);
