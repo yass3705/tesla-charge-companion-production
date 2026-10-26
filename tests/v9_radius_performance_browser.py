@@ -3,6 +3,7 @@
 import argparse
 import functools
 import json
+import sys
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -45,31 +46,47 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
                 result = browser.execute_async_script('''
                     const done=arguments[0],start=performance.now();
                     window.compare().then(area=>{
-                      const elapsed=Math.round(performance.now()-start);
                       document.querySelector('.v9-view-map')?.click();
+                      const elapsed=Math.round(performance.now()-start);
                       const map=document.querySelector('.v9-real-map');
                       done({durationMs:elapsed,pageStations:area?.stations?.length||0,
                         matchingStations:area?.diagnostics?.sourceStationCount||0,
                         mapStations:area?.mapStations?.length||0,
+                        globallyRankedStations:area?.diagnostics?.globallyRankedStationCount||0,
                         visibleMarkers:map?.querySelectorAll('.v9-map-marker').length||0,
                         nextPage:!!document.querySelector('.v9-next-page'),
+                        availableOperatorCount:area?.availableOperators?.length||0,
+                        operatorOptionCount:document.getElementById('simOperatorFilter')?.options.length||0,
                         radiusKm:Number(area?.query?.radiusKm),
                         sourceErrors:area?.diagnostics?.errors?.length||0,
+                        pricedOffers:area?.stations?.reduce((n,st)=>n+(st.offers||[]).length,0)||0,
+                        rawOffers:area?.stations?.reduce((n,st)=>n+(st.unparsedOffers||[]).length,0)||0,
+                        completeStationEvaluations:Object.values(area?.sessionEvaluations||{}).filter(e=>e?.best?.result?.complete===true).length,
+                        visibleCalculatedTariffs:document.querySelectorAll('#results [data-v9-effective-total]').length,
+                        rawLabelVisible:document.getElementById('results')?.textContent.includes('Tarif incalculable')===true,
+                        unavailableLabelVisible:document.getElementById('results')?.textContent.includes('Prix non disponible')===true,
+                        iziviaMapStations:area?.stations?.filter(st=>st.provenance?.some(p=>p.sourceId==='FR:izivia_fast_map')).length||0,
+                        iziviaMapOffers:area?.stations?.flatMap(st=>st.offers||[]).filter(o=>o.metadata?.sourceId==='FR:izivia_fast_map').length||0,
                         viewportWidth:innerWidth,scrollWidth:document.documentElement.scrollWidth});
                     }).catch(error=>done({error:String(error),durationMs:Math.round(performance.now()-start)}));
                 ''')
                 if result.get('nextPage') and not result.get('error'):
                     page = browser.execute_async_script('''
                       const done=arguments[0],before=[...document.querySelectorAll('.v9-result-card')].map(e=>e.dataset.v9StationId),start=performance.now();
+                      document.querySelector('.v9-map-zoom-in')?.click();
+                      const view=JSON.stringify(document.getElementById('v9MapSummary')?._v9MapView);
                       const button=document.querySelector('.v9-next-page');button.click();
                       const timer=setInterval(()=>{const after=[...document.querySelectorAll('.v9-result-card')].map(e=>e.dataset.v9StationId);
-                        if(after.length&&after[0]!==before[0]){clearInterval(timer);done({durationMs:Math.round(performance.now()-start),overlap:after.filter(id=>before.includes(id)).length,firstPage:before.length,nextPage:after.length,mapMarkers:document.querySelectorAll('.v9-map-marker').length});}
+                        if(after.length&&after[0]!==before[0]){clearInterval(timer);done({durationMs:Math.round(performance.now()-start),overlap:after.filter(id=>before.includes(id)).length,firstPage:before.length,nextPage:after.length,mapMarkers:document.querySelectorAll('.v9-map-marker').length,mapViewPreserved:view===JSON.stringify(document.getElementById('v9MapSummary')?._v9MapView)});}
                         else if(performance.now()-start>30000){clearInterval(timer);done({error:'page navigation timed out'});}
                       },100);
                     ''')
                     result['pagination']=page
                 rows.append({'requestedRadiusKm': radius, **result})
-                if result.get('pagination',{}).get('error') or result.get('pagination',{}).get('overlap',0):
+                print(json.dumps(rows[-1],ensure_ascii=False),file=sys.stderr,flush=True)
+                if result.get('operatorOptionCount',0) < result.get('availableOperatorCount',0):
+                    raise AssertionError(f'operator filter omitted off-page operators at {radius} km: {result}')
+                if result.get('pagination',{}).get('error') or result.get('pagination',{}).get('overlap',0) or result.get('pagination',{}).get('mapViewPreserved') is False:
                     raise AssertionError(f'pagination failed at {radius} km: {result["pagination"]}')
                 if not result.get('error') and result['durationMs'] <= budget_ms and result['mapStations'] == result['matchingStations']:
                     break

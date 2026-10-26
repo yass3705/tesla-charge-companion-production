@@ -15,7 +15,7 @@ if __name__=='__main__':
     result={}
     for country,label,lat,lon,radius in CITIES:
         row=measure(args.site,lat,lon,country,label,120000,[radius])[0]
-        if row.get('error') or row['matchingStations']!=row['mapStations'] or row['pageStations']>160 or row['visibleMarkers']<=0:
+        if row.get('error') or row['matchingStations']!=row['mapStations'] or row['globallyRankedStations']!=row['matchingStations'] or row['pageStations']>160 or row['visibleMarkers']<=0:
             raise AssertionError(f'{country}: {row}')
         result[country]=row
     mobile=measure(args.site,48.856,2.352,'FR','Paris mobile',120000,[20],390)[0]

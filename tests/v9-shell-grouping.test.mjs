@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { groupRows, rankRows, rowsFromArea, subscriptionOptionsForArea, stationDisplayName, stationBaseSource,
-  variantsByPower, stationCards, renderStationCard, buildSession, executeV9 } = require('../v9-production-shell/bridge.js');
+  variantsByPower, stationCards, renderStationCard, buildSession, operatorRows, executeV9 } = require('../v9-production-shell/bridge.js');
 
 const chosenVehicle=buildSession({startSoc:20,targetSoc:80,batteryCapacityKwh:90,consumptionKwhPer100Km:18,vehicleMaxAcKw:22,vehicleMaxDcKw:180},'FR');
 assert.equal(chosenVehicle.batteryCapacityKwh,90);
@@ -139,7 +139,7 @@ const growingArea=Array.from({length:501},(_,i)=>({id:`station-${i}`,countryCode
 let capturedQuery;
 const growingEngine={queryArea:async query=>{
   capturedQuery=query;
-  return{stations:query.stationLimit?growingArea.slice(query.stationOffset||0,(query.stationOffset||0)+query.stationLimit):growingArea,
+  return{stations:query.stationIds?growingArea.filter(st=>query.stationIds.includes(st.id)):query.stationLimit?growingArea.slice(query.stationOffset||0,(query.stationOffset||0)+query.stationLimit):growingArea,
     query,sessionEvaluations:{},diagnostics:{sourceStationCount:growingArea.length,
       stationLimitApplied:growingArea.length>query.stationLimit}};
 },__tccFxRates:{}};
@@ -152,6 +152,8 @@ const growingResult=await executeV9(growingWindow,growingEngine,
   {mode:'candidate',engineScopeCountries:['FR']},
   {originText:'Fixture origin',radiusKm:20,startSoc:20,targetSoc:80});
 assert.equal(capturedQuery.stationLimit,160,'one bounded result page stays separate from routing');
+assert.ok(operatorRows({availableOperators:[{id:'later-cpo',name:'Later CPO'}],stations:growingResult.area.stations}).has('later-cpo'),
+  'operator choices must include stations beyond the current page');
 assert.equal(growingResult.area.diagnostics.sourceStationCount,growingArea.length,
   'the full result count must remain available to disclose omitted stations');
 assert.equal(growingResult.rows.length,160,'first page retains unknown-power details');

@@ -213,11 +213,19 @@
     async function queryArea(query={}){
       const key=JSON.stringify({countryCode:query.countryCode,origin:query.origin,radiusKm:query.radiusKm,filters:query.filters});
       if(!areaCache||areaCache.key!==key){const promise=loadSpatialArea(query);areaCache={key,promise};promise.catch(()=>{if(areaCache?.promise===promise)areaCache=null;});}
-      const{items,ruleItems,diagnostics,resolved,inRadius,baseFiltered,availableOperators,subscriptionOfferPool}=await areaCache.promise;
-      const stationLimit=Math.floor(number(query.stationLimit)||0),stationOffset=Math.max(0,Math.floor(number(query.stationOffset)||0)),selected=stationLimit>0?baseFiltered.slice(stationOffset,stationOffset+stationLimit):baseFiltered;
+      const snapshot=await areaCache.promise;
+      const{items,ruleItems,diagnostics,resolved,inRadius,baseFiltered,availableOperators,subscriptionOfferPool}=snapshot;
+      const stationLimit=Math.floor(number(query.stationLimit)||0),stationOffset=Math.max(0,Math.floor(number(query.stationOffset)||0)),requestedIds=Array.isArray(query.stationIds)?new Set(query.stationIds):null,selected=requestedIds?baseFiltered.filter(st=>requestedIds.has(st.id)):(stationLimit>0?baseFiltered.slice(stationOffset,stationOffset+stationLimit):baseFiltered);
       const filtered=applyOfferRules(selected,ruleItems),operators=deriveOperators(filtered),routingCandidates=selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
-      const mapStations=baseFiltered.map((st,index)=>({id:st.id,latitude:st.latitude,longitude:st.longitude,name:st.name,countryCode:st.countryCode,physicalOperator:st.physicalOperator,hasRawOffer:(st.unparsedOffers||[]).some(o=>o.calculationStatus==='not_evaluated'),page:stationLimit>0?Math.floor(index/stationLimit):0}));
-      return{query:clone(query),stations:filtered,mapStations,operators,availableOperators,subscriptionOfferPool,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationOffset+stationLimit,stationOffset,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
+      let globalRoutingCandidates=null;
+      if(query.globalRouting){
+        const routeKey=JSON.stringify([query.routingBudget??80,query.perOperatorFloor??2]);
+        if(!snapshot.routingSelections)snapshot.routingSelections=new Map();
+        if(!snapshot.routingSelections.has(routeKey))snapshot.routingSelections.set(routeKey,selectRoutingCandidates(baseFiltered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2}));
+        globalRoutingCandidates=snapshot.routingSelections.get(routeKey);
+      }
+      const mapStations=query.omitMapInventory?[]:baseFiltered.map((st,index)=>({id:st.id,latitude:st.latitude,longitude:st.longitude,name:st.name,countryCode:st.countryCode,physicalOperator:st.physicalOperator,hasRawOffer:(st.unparsedOffers||[]).some(o=>o.calculationStatus==='not_evaluated'),page:stationLimit>0?Math.floor(index/stationLimit):0}));
+      return{query:clone(query),stations:filtered,mapStations,globalRoutingCandidates,operators,availableOperators,subscriptionOfferPool,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationOffset+stationLimit,stationOffset,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
     }
     api={queryArea,registerLoader,deriveOperators,eligibleOffers,selectRoutingCandidates,sources:()=>clone(sources)};return api;
   }

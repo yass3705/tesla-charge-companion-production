@@ -458,9 +458,9 @@
   function renderMapSummary(w,area,rows){
     const engine=w.TCCV9MapPriceEngine;if(!engine)return;
     const host=w.document.getElementById('v9MapSummary')||w.document.createElement('section');host.id='v9MapSummary';host.className='box';host.style.cssText='margin:10px 0;background:#11151a;border:1px solid #28323d';
-    const bestByStation=new Map();for(const row of rows||[]){const id=text(row?.station?.id||row?.station?.canonicalId||row?.station?.stationId);if(!id)continue;const current=bestByStation.get(id),cost=num(pricedBest(row?.evaluation)?.total),previous=num(pricedBest(current?.evaluation)?.total);if(!current||(cost!=null&&(previous==null||cost<previous)))bestByStation.set(id,row);}
+    const bestByStation=new Map();for(const row of [...(area?.mapRankingRows||[]),...(rows||[])]){const id=text(row?.station?.id||row?.station?.canonicalId||row?.station?.stationId);if(!id)continue;const current=bestByStation.get(id),cost=num(pricedBest(row?.evaluation)?.total),previous=num(pricedBest(current?.evaluation)?.total);if(!current||current.summaryOnly&&!row.summaryOnly||(cost!=null&&(previous==null||cost<previous)))bestByStation.set(id,row);}
     const currentPoints=[...bestByStation.values()],points=(area?.mapStations?.length?area.mapStations.map(st=>{const row=bestByStation.get(text(st.id));return row?{...row,mapPage:st.page}:{station:st,mapPage:st.page};}):currentPoints).filter(row=>Number.isFinite(Number(row?.station?.latitude))&&Number.isFinite(Number(row?.station?.longitude))),zoneRows=engine.summarizeZones(currentPoints,{precision:1}),visible=zoneRows.slice(0,12);
-    host.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>Résultats V9</b><div role="group" aria-label="Mode d’affichage"><button type="button" class="secondary v9-view-list" style="width:auto;padding:6px 10px">☷ Liste</button><button type="button" class="secondary v9-view-map" style="width:auto;padding:6px 10px">⌖ Carte</button></div></div><div class="small" style="margin-top:6px">'+esc(area?.preproductionCandidate?'Carte OpenStreetMap · tarifs bruts non évalués, sans prix simulé · les stations proches sont regroupées.':'Carte OpenStreetMap · étiquette = prix total simulé de la session, au meilleur tarif disponible · les stations proches sont regroupées.')+'</div><div id="v9MapZones" style="display:none;margin-top:8px"><div class="v9-real-map" role="img" aria-label="Carte des stations V9 sur fond OpenStreetMap" style="position:relative;width:100%;height:380px;overflow:hidden;border:1px solid #34404c;border-radius:8px;background:#e5e3df;touch-action:none"><div class="v9-map-tiles" style="position:absolute;inset:0"></div><div class="v9-map-markers" style="position:absolute;inset:0;pointer-events:none"></div><div style="position:absolute;right:10px;top:10px;display:grid;gap:4px"><button type="button" class="v9-map-zoom-in" aria-label="Zoomer" style="width:34px;padding:5px;background:white;color:#111">+</button><button type="button" class="v9-map-zoom-out" aria-label="Dézoomer" style="width:34px;padding:5px;background:white;color:#111">−</button></div><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="position:absolute;bottom:2px;right:4px;background:#ffffffdd;color:#222;font-size:10px">© OpenStreetMap</a></div><div class="small" style="margin-top:5px">Déplacez la carte ou zoomez ; sélectionnez un prix pour voir les tarifs.</div><div id="v9MapSelected" class="box" style="display:none;margin-top:8px"></div></div><div id="v9MapZoneSummary" style="display:none;margin-top:8px">'+(visible.length?'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">'+visible.map(z=>'<div style="padding:8px;border-radius:8px;background:#1a222b"><b>'+engine.formatPricePerKm(z.bestPricePerKm)+'</b><div class="small">'+esc(z.bestStation?stationDisplayName(z.bestStation):'Zone')+' · '+z.pricedStationCount+'/'+z.stationCount+' tarifée(s)</div></div>').join('')+'</div>':'<div class="small">Aucun prix/km vérifiable dans cette zone.</div>')+'</div>';
+    host.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>Résultats V9</b><div role="group" aria-label="Mode d’affichage"><button type="button" class="secondary v9-view-list" style="width:auto;padding:6px 10px">☷ Liste</button><button type="button" class="secondary v9-view-map" style="width:auto;padding:6px 10px">⌖ Carte</button></div></div><div class="small" style="margin-top:6px">'+esc(area?.preproductionCandidate?'Carte OpenStreetMap · prix des offres calculables ; offres brutes sans prix simulé · les stations proches sont regroupées.':'Carte OpenStreetMap · étiquette = prix total simulé de la session, au meilleur tarif disponible · les stations proches sont regroupées.')+'</div><div id="v9MapZones" style="display:none;margin-top:8px"><div class="v9-real-map" role="img" aria-label="Carte des stations V9 sur fond OpenStreetMap" style="position:relative;width:100%;height:380px;overflow:hidden;border:1px solid #34404c;border-radius:8px;background:#e5e3df;touch-action:none"><div class="v9-map-tiles" style="position:absolute;inset:0"></div><div class="v9-map-markers" style="position:absolute;inset:0;pointer-events:none"></div><div style="position:absolute;right:10px;top:10px;display:grid;gap:4px"><button type="button" class="v9-map-zoom-in" aria-label="Zoomer" style="width:34px;padding:5px;background:white;color:#111">+</button><button type="button" class="v9-map-zoom-out" aria-label="Dézoomer" style="width:34px;padding:5px;background:white;color:#111">−</button></div><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="position:absolute;bottom:2px;right:4px;background:#ffffffdd;color:#222;font-size:10px">© OpenStreetMap</a></div><div class="small" style="margin-top:5px">Déplacez la carte ou zoomez ; sélectionnez un prix pour voir les tarifs.</div><div id="v9MapSelected" class="box" style="display:none;margin-top:8px"></div></div><div id="v9MapZoneSummary" style="display:none;margin-top:8px">'+(visible.length?'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">'+visible.map(z=>'<div style="padding:8px;border-radius:8px;background:#1a222b"><b>'+engine.formatPricePerKm(z.bestPricePerKm)+'</b><div class="small">'+esc(z.bestStation?stationDisplayName(z.bestStation):'Zone')+' · '+z.pricedStationCount+'/'+z.stationCount+' tarifée(s)</div></div>').join('')+'</div>':'<div class="small">Aucun prix/km vérifiable dans cette zone.</div>')+'</div>';
     const results=w.document.getElementById('results');if(results&&host.parentNode!==results.parentNode)results.parentNode.insertBefore(host,results);
     const listButton=host.querySelector('.v9-view-list'),mapButton=host.querySelector('.v9-view-map'),zones=host.querySelector('#v9MapZones'),summary=host.querySelector('#v9MapZoneSummary'),selected=host.querySelector('#v9MapSelected'),canvas=host.querySelector('.v9-real-map'),tiles=host.querySelector('.v9-map-tiles'),markers=host.querySelector('.v9-map-markers');
     if(canvas){canvas.style.backgroundColor='#e5e3df';canvas.style.backgroundImage='linear-gradient(#c8d0d4 1px, transparent 1px),linear-gradient(90deg,#c8d0d4 1px, transparent 1px)';canvas.style.backgroundSize='64px 64px';}
@@ -468,10 +468,12 @@
     tiles?.addEventListener('error',event=>{if(event.target?.tagName==='IMG')tileWarning.style.display='block';},true);
     const project=(lat,lon,z)=>{const scale=256*2**z,clamped=Math.max(-85.0511,Math.min(85.0511,lat)),rad=clamped*Math.PI/180;return{x:(lon+180)/360*scale,y:(1-Math.log(Math.tan(rad)+1/Math.cos(rad))/Math.PI)/2*scale};};
     const unproject=(x,y,z)=>{const scale=256*2**z,n=Math.PI-2*Math.PI*y/scale;return{lat:180/Math.PI*Math.atan(Math.sinh(n)),lon:x/scale*360-180};};
+    const mapViewKey=JSON.stringify({origin:area?.query?.origin,radiusKm:area?.query?.radiusKm,filters:area?.query?.filters}),savedView=host._v9MapView?.key===mapViewKey?host._v9MapView:null;
     const lats=points.map(row=>Number(row.station.latitude)),lons=points.map(row=>Number(row.station.longitude));
     let center=points.length?{lat:(Math.min(...lats)+Math.max(...lats))/2,lon:(Math.min(...lons)+Math.max(...lons))/2}:{lat:Number(area?.query?.origin?.lat)||46.6,lon:Number(area?.query?.origin?.lon)||2.2},zoom=12,drag=null;
+    let viewInitialized=!!savedView;if(savedView){center=savedView.center;zoom=savedView.zoom;}
     const fit=()=>{if(!points.length)return;const width=Math.max(320,canvas?.clientWidth||640),height=Math.max(260,canvas?.clientHeight||380);for(let z=16;z>=3;z--){const p=points.map(row=>project(Number(row.station.latitude),Number(row.station.longitude),z));if(Math.max(...p.map(v=>v.x))-Math.min(...p.map(v=>v.x))<width-70&&Math.max(...p.map(v=>v.y))-Math.min(...p.map(v=>v.y))<height-70){zoom=z;break;}}};
-    const draw=()=>{if(!canvas||!tiles||!markers||!canvas.clientWidth)return;const width=canvas.clientWidth,height=canvas.clientHeight,mid=project(center.lat,center.lon,zoom),left=mid.x-width/2,top=mid.y-height/2,world=2**zoom;let tileHtml='';for(let tx=Math.floor(left/256);tx<=Math.floor((left+width)/256);tx++)for(let ty=Math.floor(top/256);ty<=Math.floor((top+height)/256);ty++){if(ty<0||ty>=world)continue;const wrapped=((tx%world)+world)%world;tileHtml+='<img src="https://tile.openstreetmap.org/'+zoom+'/'+wrapped+'/'+ty+'.png" alt="" draggable="false" loading="lazy" style="position:absolute;left:'+(tx*256-left).toFixed(1)+'px;top:'+(ty*256-top).toFixed(1)+'px;width:256px;height:256px;max-width:none">';}tiles.innerHTML=tileHtml;
+    const draw=()=>{if(!canvas||!tiles||!markers||!canvas.clientWidth)return;host._v9MapView={key:mapViewKey,center:{...center},zoom};const width=canvas.clientWidth,height=canvas.clientHeight,mid=project(center.lat,center.lon,zoom),left=mid.x-width/2,top=mid.y-height/2,world=2**zoom;let tileHtml='';for(let tx=Math.floor(left/256);tx<=Math.floor((left+width)/256);tx++)for(let ty=Math.floor(top/256);ty<=Math.floor((top+height)/256);ty++){if(ty<0||ty>=world)continue;const wrapped=((tx%world)+world)%world;tileHtml+='<img src="https://tile.openstreetmap.org/'+zoom+'/'+wrapped+'/'+ty+'.png" alt="" draggable="false" loading="lazy" style="position:absolute;left:'+(tx*256-left).toFixed(1)+'px;top:'+(ty*256-top).toFixed(1)+'px;width:256px;height:256px;max-width:none">';}tiles.innerHTML=tileHtml;
       const clusters=[],grid=new Map(),cell=zoom>=14?54:zoom>=10?70:90;
       points.forEach((row,index)=>{const p=project(Number(row.station.latitude),Number(row.station.longitude),zoom),x=p.x-left,y=p.y-top;
         if(x< -cell||y< -cell||x>width+cell||y>height+cell)return;
@@ -483,9 +485,9 @@
       markers.innerHTML=clusters.map((group,clusterIndex)=>{const first=points[group.indices[0]],count=group.indices.length,label=count===1?stationDisplayName(first.station):count+' stations proches',best=group.best,amount=best?formatCurrencyAmount(best.total,best.targetCurrency||currencyForCountry(first.station?.countryCode)):'—';return'<button type="button" class="v9-map-marker" data-cluster="'+clusterIndex+'" title="'+esc(label)+'" aria-label="Sélectionner '+esc(label)+' · '+esc(best?'session dès '+amount:group.hasRaw?'tarif incalculable':'prix non disponible')+'" style="position:absolute;left:'+group.x.toFixed(1)+'px;top:'+group.y.toFixed(1)+'px;min-width:58px;width:auto;height:30px;transform:translate(-50%,-50%);border:2px solid white;border-radius:16px;box-shadow:0 2px 8px #111a;background:'+(best?'#f4a64a':'#737b82')+';pointer-events:auto;cursor:pointer;padding:2px 8px;color:#111;font-size:12px;font-weight:800;white-space:nowrap">'+esc(amount)+(count>1?' <span style="font-size:10px">· '+count+'</span>':'')+'</button>';}).join('');
       canvas._v9Clusters=clusters;
     };
-    const setMode=mode=>{const map=mode==='map';if(zones)zones.style.display=map?'block':'none';if(summary)summary.style.display=map?'block':'none';if(results)results.style.display=map?'none':'';listButton?.classList.toggle('primary',!map);mapButton?.classList.toggle('primary',map);host.dataset.v9View=mode;if(map){fit();draw();}};
+    const setMode=mode=>{const map=mode==='map';if(zones)zones.style.display=map?'block':'none';if(summary)summary.style.display=map?'block':'none';if(results)results.style.display=map?'none':'';listButton?.classList.toggle('primary',!map);mapButton?.classList.toggle('primary',map);host.dataset.v9View=mode;if(map){if(!viewInitialized){fit();viewInitialized=true;}draw();}};
     const selectPoint=index=>{
-      const row=points[index];if(!row||!selected)return;if(!row.evaluation&&Number.isInteger(row.mapPage)){if(row.mapPage!==(Number(area?.query?.stationOffset)||0)/(Number(area?.query?.stationLimit)||160)){area.navigateToPage?.(row.mapPage);return;}selected.style.display='block';selected.innerHTML='<b>'+esc(stationDisplayName(row.station))+'</b><div class="small">'+(row.station.hasRawOffer?'Tarif incalculable':'Prix non disponible')+' pour cette station.</div>';return;}
+      const row=points[index];if(!row||!selected)return;if((row.summaryOnly||!row.evaluation)&&Number.isInteger(row.mapPage)){if(row.mapPage!==(Number(area?.query?.stationOffset)||0)/(Number(area?.query?.stationLimit)||160)){area.navigateToPage?.(row.mapPage);return;}selected.style.display='block';selected.innerHTML='<b>'+esc(stationDisplayName(row.station))+'</b><div class="small">'+(row.station.hasRawOffer?'Tarif incalculable':'Prix non disponible')+' pour cette station.</div>';return;}
       const st=row.station,price=num(row.costPerKm);
       selected.style.display='block';
       const selectedPower=row.bestChoice?.row?.powerLine||row.powerLine;
@@ -824,6 +826,9 @@
         const line={kind:group.kind,powerKw:group.powerKw,count:group.evseKeys.size};
         variants.push({...row,station:variant,powerLine:line,plan,evaluation,score,total:num(pricedBest(evaluation)?.total),costPerKm:num(pricedBest(evaluation)?.costPerRecoveredKm),recoveredKm:num(evaluation?.recoveredKm),displayKey:[text(station.name),line.kind,line.powerKw,group.offerIds.join(',')].join('|')});
       }
+      if(!groups.size&&!unknownEvses.size){
+        variants.push({...row,powerLine:{kind:'UNKNOWN',powerKw:null,count:0},evaluation:null,total:null,costPerKm:null});
+      }
       if(unknownEvses.size){
         const evses=[...unknownEvses].map(([index,connectors])=>({...station.evses[index],connectors}));
         const evseIds=new Set(evses.map(evse=>text(evse.id||evse.evseId)));
@@ -1113,7 +1118,7 @@
       limitedBanner=Number.isFinite(matching)&&matching>shown?'<div class="small box" role="status"><b>Recherche paginée</b> · stations '+esc(offset+1)+' à '+esc(offset+shown)+' sur '+esc(matching)+'. Les autres sont accessibles avec la pagination.</div>':'';
     const batchSize=80,initial=Math.min(rows.length,batchSize);
     results.innerHTML=previewBanner+limitedBanner+'<div class="small box"><b>Moteur V9</b> · une carte par station, toutes les puissances et tous les PDC.</div>'+
-      rows.slice(0,initial).map((row,i)=>renderStationCard(row,i,area)).join('')+
+      rows.slice(0,initial).map((row,i)=>renderStationCard(row,offset+i,area)).join('')+
       (initial<rows.length?'<button type="button" class="secondary v9-more-stations" style="margin-top:12px">Afficher les stations suivantes · '+initial+' / '+rows.length+'</button>':'')+
       (offset>0||offset+shown<matching?'<nav class="v9-page-nav" aria-label="Pages de stations" style="display:flex;gap:8px;margin-top:12px">'+(offset>0?'<button type="button" class="secondary v9-prev-page">Page précédente</button>':'')+(offset+shown<matching?'<button type="button" class="secondary v9-next-page">Page suivante</button>':'')+'</nav>':'');
     if(initial<rows.length){
@@ -1121,7 +1126,7 @@
       const more=results.querySelector('.v9-more-stations');
       more.addEventListener('click',()=>{
         const next=Math.min(rows.length,shown+batchSize);
-        more.insertAdjacentHTML('beforebegin',rows.slice(shown,next).map((row,i)=>renderStationCard(row,shown+i,area)).join(''));
+        more.insertAdjacentHTML('beforebegin',rows.slice(shown,next).map((row,i)=>renderStationCard(row,offset+shown+i,area)).join(''));
         shown=next;
         if(shown===rows.length)more.remove();
         else more.textContent='Afficher les stations suivantes · '+shown+' / '+rows.length;
@@ -1151,6 +1156,57 @@
       (input.minPowerKw==null||power!=null&&power>=input.minPowerKw)&&
       (input.maxPowerKw==null||power!=null&&power<=input.maxPowerKw);
   }
+  // Keep only compact ranking facts across batches; full EVSE/tariff cards live on one page.
+  const searchRankingCache=new WeakMap();
+  function rankingSummary(card){
+    const st=card.station,best=pricedBest(card.evaluation);
+    return{station:{id:st.id,name:st.name,countryCode:st.countryCode,latitude:st.latitude,longitude:st.longitude,
+      physicalOperator:st.physicalOperator,hasRawOffer:(st.unparsedOffers||[]).some(o=>o.calculationStatus==='not_evaluated')},
+      total:card.total,costPerKm:card.costPerKm,distanceKm:card.distanceKm,distanceEstimated:card.distanceEstimated,
+      score:{totalTimeMinutes:card.score?.totalTimeMinutes},
+      rankingChoices:(card.rankingChoices||[]).map(c=>({costPerKm:c.costPerKm,score:{totalTimeMinutes:c.score?.totalTimeMinutes}})),
+      evaluation:best?{best:{total:best.total,targetCurrency:best.targetCurrency,costPerRecoveredKm:best.costPerRecoveredKm,result:{complete:true}}}:null,
+      summaryOnly:true};
+  }
+  async function rankedPage(w,engine,query,input,origin,selected){
+    const key=JSON.stringify({...query,stationOffset:0,rankingMode:input.rankingMode});
+    const cardsFor=area=>stationCards(variantsByPower(w,rowsFromArea(area,origin),area.effectiveSession||query.session,selected)
+      .filter(row=>variantMatchesFilters(row,input)),selected);
+    let cached=searchRankingCache.get(engine);
+    if(!cached||cached.key!==key){
+      const pending=(async()=>{
+        const summaries=[];let inventory=[],count=Infinity;
+        for(let offset=0;offset<count;offset+=40){
+          const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitMapInventory:offset>0});
+          if(offset===0){count=Number(batch.diagnostics?.sourceStationCount) || batch.stations.length;inventory=batch.mapStations||[];}
+          const baseRows=rowsFromArea(batch,origin),pricedStations=baseRows.filter(row=>row.station.offers?.length),unpriced=baseRows.filter(row=>!row.station.offers?.length);
+          const evaluated=stationCards(variantsByPower(w,pricedStations,batch.effectiveSession||query.session,selected)
+            .filter(row=>variantMatchesFilters(row,input)),selected);
+          const byId=new Map(evaluated.map(card=>[card.station.id,rankingSummary(card)]));
+          for(const row of unpriced){
+            const lines=powerLines(row);
+            if((lines.length?lines:[{kind:'UNKNOWN',powerKw:null}]).some(powerLine=>variantMatchesFilters({powerLine},input)))
+              byId.set(row.station.id,rankingSummary({...row,evaluation:null,total:null,costPerKm:null}));
+          }
+          summaries.push(...baseRows.map(row=>byId.get(row.station.id)).filter(Boolean));
+          // Yield between bounded batches so input, paints and progress can run.
+          if(offset+40<count)await new Promise(resolve=>setTimeout(resolve,0));
+        }
+        const ranked=rankRows(summaries,input.rankingMode,summaries.length);
+        const ranks=new Map(ranked.map((row,index)=>[row.station.id,index]));
+        return{ranked,inventory:inventory.filter(st=>ranks.has(st.id)).map(st=>({...st,page:Math.floor(ranks.get(st.id)/160)})),count};
+      })();
+      cached={key,pending};searchRankingCache.set(engine,cached);
+      pending.catch(()=>{if(searchRankingCache.get(engine)===cached)searchRankingCache.delete(engine);});
+    }
+    const snapshot=await cached.pending,selectedRows=snapshot.ranked.slice(query.stationOffset,query.stationOffset+160);
+    const area=await engine.queryArea({...query,stationIds:selectedRows.map(row=>row.station.id),omitMapInventory:true});
+    const byId=new Map(cardsFor(area).map(row=>[row.station.id,row]));
+    const rows=selectedRows.map(row=>byId.get(row.station.id)).filter(Boolean);
+    area.mapStations=snapshot.inventory;area.mapRankingRows=snapshot.ranked;
+    area.diagnostics={...area.diagnostics,spatialStationCount:snapshot.count,sourceStationCount:snapshot.ranked.length,globallyRankedStationCount:snapshot.ranked.length};
+    return{area,rows};
+  }
   async function executeV9(w,engine,cfg,input){
     if(!(input.targetSoc>input.startSoc))throw new Error('invalid SOC target');if(!input.originText)throw new Error('origin required');
     if(cfg.mode==='candidate'&&!(input.radiusKm>0))throw new Error('unbounded radius not production-equivalent');
@@ -1160,10 +1216,12 @@
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input,countryCode);session.fxRates=engine.__tccFxRates||{};
     if(queryMode==='tesla-only')filters.operatorIds=['tesla'];
     const selected=selectedSubscriptionsForConfig(w,cfg);
-    const area=await engine.queryArea({countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},routingBudget:80,perOperatorFloor:2,stationLimit:160,stationOffset:Math.max(0,Math.floor(Number(input.stationOffset)||0)),sortBy:'finalCost'});
+    const {area,rows}=await rankedPage(w,engine,{countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},globalRouting:true,routingBudget:80,perOperatorFloor:2,stationLimit:160,stationOffset:Math.max(0,Math.floor(Number(input.stationOffset)||0)),sortBy:'finalCost'},input,origin,selected);
     if(queryMode==='tesla-only'&&!area.stations?.some(isTeslaStation))throw new Error(`no Tesla V9 station in ${countryCode}`);
-    area.selectedSubscriptions=selected;area.preproductionCandidate=engine.__tccPreparedCandidate||null;const baseSession=area.effectiveSession||session,expanded=variantsByPower(w,rowsFromArea(area,origin),baseSession,selected),eligible=expanded.filter(row=>variantMatchesFilters(row,input)),cards=stationCards(eligible,selected),rows=rankRows(cards,input.rankingMode,cards.length);area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
+    area.selectedSubscriptions=selected;area.preproductionCandidate=engine.__tccPreparedCandidate||null;
+    area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
   }
+
   function normalizeLegacyChrome(w){
     const d=w.document;
     const radiusInput=d.getElementById('simMaxDistance');if(radiusInput){radiusInput.max='100';radiusInput.setAttribute('aria-description','Rayon maximal : 100 km');}
@@ -1480,7 +1538,7 @@
   }
   function operatorRows(area){
     const operators=new Map([['tesla','Tesla']]);
-    for(const operator of area?.operators||[]){const id=text(operator?.id||'').toLowerCase(),label=text(operator?.name||'');if(id&&label&&id!=='tesla')operators.set(id,label);}
+    for(const operator of area?.availableOperators||area?.operators||[]){const id=text(operator?.id||'').toLowerCase(),label=text(operator?.name||'');if(id&&label&&id!=='tesla')operators.set(id,label);}
     for(const station of area?.stations||[]){
       const op=station.physicalOperator||station.operator||{};
       const id=text(op.id||station.operatorId||'').toLowerCase();
@@ -1636,7 +1694,7 @@
         pendingResults?.setAttribute('aria-busy','true');
       }
       try{const engine=await enginePromise,run=await executeV9(w,engine,cfg,input);refreshOperatorOptions(w,run.area);renderSubscriptionSelector(w,subscriptionOptionsForArea(run.area,run.countryCode,await subscriptionCataloguePromise),run.countryCode,run.area?.stations||[]);renderCandidate(w,run.area,run.rows,run.origin.label||input.originText);
-        let currentRun=run;const pageSize=160;const navigateToPage=async page=>{const wasMap=w.document.getElementById('v9MapSummary')?.dataset.v9View==='map';const nextInput={...input,stationOffset:Math.max(0,page*pageSize)};currentRun=await executeV9(w,engine,cfg,nextInput);currentRun.area.navigateToPage=navigateToPage;renderCandidate(w,currentRun.area,currentRun.rows,currentRun.origin.label||input.originText);if(wasMap)w.document.querySelector('.v9-view-map')?.click();};run.area.navigateToPage=navigateToPage;const resultsNode=w.document.getElementById('results');resultsNode.onclick=async event=>{const button=event.target.closest('.v9-prev-page,.v9-next-page');if(!button)return;button.disabled=true;try{const delta=button.matches('.v9-prev-page')?-pageSize:pageSize,nextInput={...input,stationOffset:Math.max(0,(Number(currentRun.area?.query?.stationOffset)||0)+delta)};await navigateToPage(nextInput.stationOffset/pageSize);w.document.querySelector('#v9MapSummary')?.scrollIntoView?.({block:'start'});}catch(error){button.disabled=false;diagnosticStore(w,{mode:'candidate',outcome:'pagination-error',reason:error.message});}};diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
+        let currentRun=run;const pageSize=160;const navigateToPage=async page=>{const wasMap=w.document.getElementById('v9MapSummary')?.dataset.v9View==='map';const nextInput={...input,stationOffset:Math.max(0,page*pageSize)};currentRun=await executeV9(w,engine,cfg,nextInput);currentRun.area.navigateToPage=navigateToPage;renderCandidate(w,currentRun.area,currentRun.rows,currentRun.origin.label||input.originText);if(wasMap)w.document.querySelector('.v9-view-map')?.click();return currentRun.area;};run.area.navigateToPage=navigateToPage;const resultsNode=w.document.getElementById('results');resultsNode.onclick=async event=>{const button=event.target.closest('.v9-prev-page,.v9-next-page');if(!button)return;button.disabled=true;try{const delta=button.matches('.v9-prev-page')?-pageSize:pageSize,nextInput={...input,stationOffset:Math.max(0,(Number(currentRun.area?.query?.stationOffset)||0)+delta)};await navigateToPage(nextInput.stationOffset/pageSize);w.document.querySelector('#v9MapSummary')?.scrollIntoView?.({block:'start'});}catch(error){button.disabled=false;diagnosticStore(w,{mode:'candidate',outcome:'pagination-error',reason:error.message});}};diagnosticStore(w,{mode:'candidate',outcome:'v9-ok',countryCode:run.countryCode,stationCount:run.area?.stations?.length||0,rankedCount:run.rows.length,selectedSubscriptionCount:run.selectedSubscriptions.length,sourceErrors:run.area?.diagnostics?.errors?.length||0,routingErrors:run.area?.diagnostics?.routingErrorCount||0});return run.area;}catch(err){
         diagnosticStore(w,{mode:'candidate',outcome:'v9-error',reason:err.message,operatorIds:input.operatorIds||[]});
         if(cfg.preproductionCandidateBase||input.operatorIds?.length){
           const status=w.document.getElementById('routeStatus'),results=w.document.getElementById('results');
@@ -1652,6 +1710,6 @@
     marker.pending=false;marker.ready=true;
     return marker;
   }
-  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,evseIdentityLabels,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,feeBreakdown,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,selectedSubscriptionsForConfig,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,executeV9,install};
+  return{congestionLaneKey,congestionAdjustedTotal,bindCongestionToggles,tariffLaneState,tariffGroupSignature,consistentLaneEvaluation,unverifiedFranceDcPower,guardUnverifiedPowerOffers,displayAmount,verifiedExchangeRates,rankingWeights,rankRows,combineDateTime,dcCurve,readInputs,buildSession,rowsFromArea,groupRows,stationCards,pdcEntries,powerLaneSummary,evseIdentityLabels,renderStationCard,powerLines,formatMinutes,tariffRateLabels,appliedTariffRateLabels,baseTariffsForPower,renderPowerLines,renderTariffs,feeBreakdown,formatCurrencyAmount,stationBaseSource,stationDisplayName,variantsByPower,offerAppliesToEvseGroup,electraPlusOffers,selectedSubscriptions,selectedSubscriptionsForConfig,saveSelectedSubscriptions,subscriptionLabel,subscriptionOptionsForArea,loadSubscriptionCatalogue,renderSubscriptionSelector,renderMapSummary,renderStationLinks,areaFiltersFromInputs,countryQueryMode,variantMatchesFilters,installV9MobileLayout,installCurrentPositionButton,installFloatingNavigation,installOperatorMultiSelect,installPowerTypeFilter,installProgressiveSearchForm,refreshOperatorOptions,operatorRows,executeV9,install};
 
 });

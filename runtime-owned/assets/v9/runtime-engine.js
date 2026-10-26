@@ -19,16 +19,26 @@
 
   function createEngine(config={}){
     const base=DataEngine.createEngine(config),coverage=coverageIndex(config.registry||{}),routeProvider=config.routeProvider||null,vehicleCatalog=VehicleProfileEngine.createCatalog(config.vehicleProfiles||[]);
+    let routingCache=null;
     function deriveSubscriptionOptions(stations,filters={}){return filterSubscriptions(applyCoverage(OfferEngine.deriveSubscriptionOptions(stations,{}),coverage),filters);}
     async function queryArea(query={}){
       const area=await base.queryArea(query),allStations=(area.stations||[]).map(st=>OfferEngine.mergeStationOffers(st,[],{countryCode:st.countryCode||query.countryCode})),allById=new Map(allStations.map(st=>[st.id,st])),baseRoutingCandidates=(area.routingCandidates||[]).map(st=>allById.get(st.id)||st),stations=allStations,stationById=new Map(stations.map(st=>[st.id,st]));
       const routingCandidates=baseRoutingCandidates.map(st=>stationById.get(st.id)).filter(Boolean),subscriptions=deriveSubscriptionOptions(stations,query.subscriptionFilters||{});
       const resolvedVehicle=VehicleProfileEngine.resolve({catalog:vehicleCatalog,profileId:query.vehicleProfileId||query.session?.vehicleProfileId,profile:query.vehicleProfile,session:query.session||{}}),session=resolvedVehicle.session;
       let routeResult={byStationId:{},errors:[],routedCount:0,requestedCount:0,timedOut:false,aborted:false};const provider=query.routeProvider||routeProvider;
-      if(query.session&&provider&&query.origin)routeResult=await RoutingEngine.routeCandidates(routingCandidates,{origin:query.origin,provider,session,concurrency:query.routingConcurrency||6,requestTimeoutMs:query.routingRequestTimeoutMs||6000,budgetMs:query.routingBudgetMs||25000,signal:query.signal});
+      if(query.session&&provider&&query.origin){
+        const candidates=query.globalRouting?(area.globalRoutingCandidates||routingCandidates):routingCandidates;
+        const routeKey=JSON.stringify({origin:query.origin,countryCode:query.countryCode,radiusKm:query.radiusKm,filters:query.filters,session,ids:candidates.map(st=>st.id)});
+        const load=()=>RoutingEngine.routeCandidates(candidates,{origin:query.origin,provider,session,concurrency:query.routingConcurrency||6,requestTimeoutMs:query.routingRequestTimeoutMs||6000,budgetMs:query.routingBudgetMs||25000,signal:query.signal});
+        if(query.globalRouting){
+          if(!routingCache||routingCache.key!==routeKey||routingCache.provider!==provider)routingCache={key:routeKey,provider,pending:load()};
+          routeResult=await routingCache.pending;
+        }else routeResult=await load();
+      }
+
       const routeMap={...(area.routes?.byStationId||area.routes||{}),...(query.route?.byStationId||query.route||{}),...(routeResult.byStationId||{})};
       let sessionPlans=null,sessionEvaluations=null,stationScores=null,rankedStations=null;
-      if(query.session){
+      if(query.session&&!query.skipSessionEvaluation){
         sessionPlans=SessionPlannerEngine.planArea(stations,session,{route:{byStationId:routeMap}});
         const selectedSubscriptions=query.selectedSubscriptions||session.selectedSubscriptions||[],targetCurrency=query.targetCurrency||session.targetCurrency||'EUR',fxRates=query.fxRates||session.fxRates||{};
         const evalRows=stations.map(st=>({station:st,evaluation:SessionEngine.evaluateStation(st,sessionPlans[st.id]?.effectiveSession||session,{selectedSubscriptions,targetCurrency,fxRates})}));

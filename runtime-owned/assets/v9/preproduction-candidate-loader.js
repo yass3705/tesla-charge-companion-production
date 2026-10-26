@@ -49,6 +49,15 @@
        !Array.isArray(index.sources)||!Array.isArray(index.rejected)||!index.sources.length)
       throw new Error('candidate index invalid');
     const sources=[],loaders={},seen=new Set();
+    // Share the decoding budget across sources, not just within one source.
+    let activeLoads=0;const waitingLoads=[];
+    async function boundedLoad(task){
+      if(activeLoads>=4)await new Promise(resolve=>waitingLoads.push(resolve));
+      else activeLoads++;
+      try{return await task();}
+      finally{const next=waitingLoads.shift();if(next)next();else activeLoads--;}
+    }
+
     function shardApplies(descriptor,query){
       if(descriptor.bbox==null||!query?.origin||!Number.isFinite(Number(query.radiusKm)))return true;
       const lat=Number(query.origin.lat??query.origin.latitude),lon=Number(query.origin.lon??query.origin.longitude);
@@ -327,8 +336,11 @@
           const chosen=entry.shards.filter(shard=>shardApplies(shard,query));
           const results=await Promise.all(chosen.map(shard=>{
             if(!shardPending.has(shard.path)){
-              const task=jsonAt(candidateUrl(base,shard.path),shard.sha256,shard.encoding,
-                shard.bytes,shard.uncompressedBytes).then(adaptData)
+              const task=boundedLoad(async()=>{
+                const data=await jsonAt(candidateUrl(base,shard.path),shard.sha256,shard.encoding,shard.bytes,shard.uncompressedBytes);
+                await new Promise(resolve=>setTimeout(resolve,0));
+                return adaptData(data);
+              })
                 .catch(error=>{shardPending.delete(shard.path);throw error;});
               shardPending.set(shard.path,task);
             }

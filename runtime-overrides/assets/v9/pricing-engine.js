@@ -6,6 +6,16 @@
   'use strict';
   const num=v=>{if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const money=v=>Math.round((Number(v)+Number.EPSILON)*1000000)/1000000;
+  // Intl formatters are immutable and expensive to construct. Share only the
+  // formatter, never a price or a date result, across station evaluations.
+  const dateFormatters=new Map();
+  function dateFormatter(locale,options){
+    const key=JSON.stringify([locale,options]);
+    if(dateFormatters.has(key))return dateFormatters.get(key);
+    const formatter=new Intl.DateTimeFormat(locale,options);
+    if(dateFormatters.size>=64)dateFormatters.delete(dateFormatters.keys().next().value);
+    dateFormatters.set(key,formatter);return formatter;
+  }
   function offerTimeZone(offer,session={}){
     return offer?.pricing?.timeZone||offer?.metadata?.timeZone||session.stationTimeZone||session.timeZone||null;
   }
@@ -14,7 +24,7 @@
     const d=value instanceof Date?value:new Date(value);if(Number.isNaN(d.getTime()))return null;
     if(timeZone){
       try{
-        const parts=new Intl.DateTimeFormat('en-GB',{timeZone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(d);
+        const parts=dateFormatter('en-GB',{timeZone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(d);
         const get=t=>Number(parts.find(p=>p.type===t)?.value||0);
         return get('hour')*60+get('minute')+get('second')/60;
       }catch(_){return null;}
@@ -25,7 +35,7 @@
     const d=value instanceof Date?value:new Date(value);if(Number.isNaN(d.getTime()))return null;
     try{
       if(timeZone){
-        const parts=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).formatToParts(d);
+        const parts=dateFormatter('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).formatToParts(d);
         const get=t=>parts.find(p=>p.type===t)?.value;
         const weekdays={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
         const weekday=weekdays[get('weekday')];
@@ -580,7 +590,7 @@
     // Guest-app 09:30-19:00 Europe/Paris is 08:30-18:00 Europe/London
     // both before and after DST. Revalidate changes in tariffs separately.
     if(startMs<Date.parse('2026-10-10T00:00:00Z'))return fail('midhope_before_observed_tariff');
-    const fmt=new Intl.DateTimeFormat('en-GB',{timeZone,weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+    const fmt=dateFormatter('en-GB',{timeZone,weekday:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
     const weekdays=new Set(['Mon','Tue','Wed','Thu','Fri','Sat']);
     let paidRun=0,parkingBlocks=0,paidMinutes=0;
     const segments=[];
@@ -653,7 +663,7 @@
     const needsLocalTime=rules.some(rule=>rule.scope==='timeWindow'||rule.daysOfWeek!=null||rule.days!=null||rule.holidayOnly===true||rule.excludeHolidays===true||rule.validFromDate!=null||rule.validThroughDate!=null);
     if(needsLocalTime&&!timeZone)return{complete:false,reason:'missing_tariff_time_zone',offerId:offer?.id||null};
     if(timeZone){
-      try{new Intl.DateTimeFormat('en-GB',{timeZone});}
+      try{dateFormatter('en-GB',{timeZone});}
       catch(_){return{complete:false,reason:'invalid_tariff_time_zone',offerId:offer?.id||null,timeZone};}
     }
     if(pricing.type==='component_groups'){
