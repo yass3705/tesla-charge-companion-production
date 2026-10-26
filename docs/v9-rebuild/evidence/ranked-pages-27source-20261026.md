@@ -23,3 +23,15 @@ G3/G5/G6/G7/G8 remain open for full source/rule coverage, remaining dense-query 
 Amsterdam 100 km exceeded Selenium's 120 s HTTP timeout on the initial final package. Caching global routing-candidate selection and limiting concurrent shard loading to four allowed the same search to finish on `site-bounded-fetch`: 62,779 matching/ranked/map stations, 109,367 ms initial query and 1,142 ms next page; 90 km took 84,328 ms. Those latencies remain unacceptable. The baseline sweep was intentionally stopped after these observations when the next correction was prepared.
 
 G6 now reuses immutable `Intl.DateTimeFormat` instances (bounded to 64 locale/options combinations) instead of constructing them repeatedly for every tariff evaluation. No tariff, quote, session amount, date conversion result or business ranking is cached by this change. Independent-session amounts, invalid-zone rejection, DST and full-session oracles pass. `site-g6-cached-formatters` is being packaged for a new measurement; do not infer performance success from the unit tests. Tests also cover the four-load budget shared across multiple sources and reuse of every shard without station truncation.
+
+## Verified current package after the G6 formatter change
+
+`site-g6-cached-formatters` passed the [hosting/SHA check](g6-hosting-20261026.json), [ten G6 oracles](g6-oracles-20261026.json), [eight exact-source Firefox tariff journeys](g6-targeted-tariffs-20261026.json) and [nine-country/mobile functional journey](g6-multicountry-20261026.json). These checks were rerun on the actual packaged files after the formatter change.
+
+[Paris](g6-paris-radius-20261026.json) at 100 km: 8,247 ms, 8,623 stations preserved, next page 430 ms. The local 10 s budget is met without decreasing the tested radius.
+
+[Amsterdam radius sweep](g6-nl-radius-20261026.json): 100/90/80/70/60/50/40/30 km took 60,011/41,977/36,613/31,763/26,847/18,135/14,459/7,594 ms. All matching stations remain represented (62,779 at 100 km), without source errors, page overlap or lost zoom. The 100 km next page took 946 ms. The first query is cold and later radius steps reuse loaded shards; the 30 km warm result is not a guarantee for a fresh 30 km search. The separate final 20 km cold smoke took 11,063 ms in Amsterdam. No UI radius is changed by these benchmark steps.
+
+The bounded map/pagination behavior and tested business invariants are validated. **Dense full-search latency is still an open technical limitation**, so G7/G8 are not declared complete. A CPU profile of the prepared NL calculation path (without network routing or DOM) is being collected outside Git to locate the remaining G6 cost before choosing any further change; no separate map redesign is started.
+
+The local review server is `http://127.0.0.1:8769/` (same Mac only). There is no remote deployment, Actions pilot run or public-site change. See [hosting preparation](../PREPRODUCTION_HOSTING.md).

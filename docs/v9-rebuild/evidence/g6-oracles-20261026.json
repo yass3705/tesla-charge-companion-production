@@ -1,0 +1,52 @@
+[
+  {
+    "test": "canonical-v9-proved-pricing",
+    "exitCode": 0,
+    "output": "Canonical V9: proved FR/DE/IT/GB IONITY and FR/IT/BE/NL rates, exact scope and historic oracles\n"
+  },
+  {
+    "test": "canonical-v9-uk-pcpr-pricing",
+    "exitCode": 0,
+    "output": "Canonical UK PCPR exact connector pricing and mutation guard OK\n"
+  },
+  {
+    "test": "v9-pricing-time-zone",
+    "exitCode": 0,
+    "output": "V9 pricing time zones, DST and midnight: pass\n"
+  },
+  {
+    "test": "v9-ocpi-component-coverage",
+    "exitCode": 0,
+    "output": "V9 OCPI pricing components and restrictions: pass\n"
+  },
+  {
+    "test": "v9-congestion-soc80",
+    "exitCode": 0,
+    "output": "V9 congestion SOC80/toggle/independent lanes: pass\n"
+  },
+  {
+    "test": "energyvision-complex-duration-oracles",
+    "exitCode": 0,
+    "output": "EnergyVision strict 45/360 post-charge and 1080 connected family oracles PASS\n"
+  },
+  {
+    "test": "netherlands-dotnl-ocpi-pricing",
+    "exitCode": 0,
+    "output": "DOT-NL OCPI exact costs, duration rounds, conditional FLAT and cross-midnight boundary: PASS\n"
+  },
+  {
+    "test": "uk-midhope-verified-pricing",
+    "exitCode": 0,
+    "output": "{\"passed\":true,\"verifiedSockets\":4,\"phaseRounding\":\"continuous_occupancy\",\"winter\":\"Europe/London_DST_supported\",\"boundaries\":[\"08:30\",\"18:00\"]}\n"
+  },
+  {
+    "test": "v9_packaged_full_session_oracle",
+    "exitCode": 0,
+    "output": "Packaged V9 full-session component, channel, subscription and FX oracle: pass\n"
+  },
+  {
+    "test": "v9-pricing-formatter-cache",
+    "exitCode": 0,
+    "output": "Pricing formatter cache: independent amounts, bounded construction, invalid-zone guard PASS\n"
+  }
+]

@@ -1,0 +1,34 @@
+[
+  {
+    "requestedRadiusKm": 100,
+    "availableOperatorCount": 126,
+    "completeStationEvaluations": 15,
+    "durationMs": 8247,
+    "globallyRankedStations": 8623,
+    "iziviaMapOffers": 0,
+    "iziviaMapStations": 0,
+    "mapStations": 8623,
+    "matchingStations": 8623,
+    "nextPage": true,
+    "operatorOptionCount": 126,
+    "pageStations": 160,
+    "pricedOffers": 28,
+    "radiusKm": 100,
+    "rawLabelVisible": true,
+    "rawOffers": 753,
+    "scrollWidth": 1280,
+    "sourceErrors": 0,
+    "unavailableLabelVisible": true,
+    "viewportWidth": 1280,
+    "visibleCalculatedTariffs": 111,
+    "visibleMarkers": 13,
+    "pagination": {
+      "durationMs": 430,
+      "firstPage": 80,
+      "mapMarkers": 32,
+      "mapViewPreserved": true,
+      "nextPage": 80,
+      "overlap": 0
+    }
+  }
+]

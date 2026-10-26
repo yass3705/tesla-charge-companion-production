@@ -13,3 +13,16 @@ Avant déploiement, il faut disposer d'un identifiant de compte Cloudflare et d'
 Après autorisation et configuration locale des identifiants : créer le projet Pages isolé avec Wrangler, transférer uniquement `<sortie>/site` sur une branche de préproduction, relever son URL, vérifier le `noindex`, les SHA distants, le parcours ordinateur/mobile et le formulaire de signalement. Ne pas invoquer le workflow `cloudflare-deploy.yml` existant : il cible le site public.
 
 Le transfert GitHub Actions Data Lab est un contrôle distinct : il reste non vérifié tant qu'Actions est désactivé, et sa réactivation requiert neutralisation des YAML historiques sur la branche active puis accord explicite.
+
+
+## Aperçu local contrôlé du 26 octobre
+
+Le paquet actuel est `.tcc-v9-cache/reproducible-27-izivia-2026-10-26/site-g6-cached-formatters`, hors checkout : 27 sources, bundle `06d149100ca675108910663b2fe81f71bd0747988fc1b932b417256357eeed93`. Vérification SHA/hébergement PASS, 3 267 fichiers, 263 830 633 octets, `deployed=false`. Recettes tarifaires ciblées et neuf pays/mobile rejouées sur ce paquet : PASS fonctionnels. Limite de performance ouverte : Amsterdam 100 km, 62 779 stations, 60 011 ms au premier chargement ; ne pas déclarer la préproduction complète/prête sur cette preuve.
+
+Un serveur lié uniquement à `127.0.0.1:8769` a été démarré et son HTTP 200/noindex vérifié pour l'inspection sur ce Mac : `http://127.0.0.1:8769/`. Il ne constitue ni une URL distante, ni une publication du site public. Commande de reprise après arrêt du serveur :
+
+```sh
+python3 -m http.server 8769 --bind 127.0.0.1 --directory /Users/yassine/Projects/TCC/.tcc-v9-cache/reproducible-27-izivia-2026-10-26/site-g6-cached-formatters
+```
+
+La voie Sites a été examinée uniquement par lecture de sa compétence : son parcours prévoit un dépôt source propre au nouveau Site et une synchronisation Git. Aucun Site ni dépôt supplémentaire n'a été créé, conformément au cahier des charges conservant les dépôts TCC existants et interdisant un nouveau dépôt privé. La préparation Cloudflare Pages distincte reste l'option décrite ci-dessus ; aucun accès administratif adapté n'est configuré dans cette session.

@@ -1,0 +1,10 @@
+{
+  "status": "hosting_ready_local_only",
+  "bundleId": "06d149100ca675108910663b2fe81f71bd0747988fc1b932b417256357eeed93",
+  "sourceCount": 27,
+  "fileCount": 3267,
+  "bytes": 263830633,
+  "largestAsset": "runtime/data/v9/france-crosswalk.json",
+  "largestBytes": 11669931,
+  "deployed": false
+}
