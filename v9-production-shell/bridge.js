@@ -637,7 +637,7 @@
       ['connectedTimeInitialTier','Temps connecté par palier'],
       ['connectedTimeComponent','Forfait de connexion'],['parkingTime','Stationnement'],
       ['idleSupplement','Supplément après charge'],['postCharge','Frais après charge'],
-      ['conditionalSessionFees','Frais conditionnels']])add(key,label,cost(components[key]));
+      ['conditionalSessionFees','Frais conditionnels'],['afterMinutes','Frais après seuil']])add(key,label,cost(components[key]));
     if(!omitCongestion)add('congestionTime','Congestion',cost(components.congestionTime));
     add('minimumSession','Complément au minimum de session',components.minimumSession?.topUpEur);
     add('minimumTotal','Complément au minimum de facturation',components.minimumTotal?.topUpEur);

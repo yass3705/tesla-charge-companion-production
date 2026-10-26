@@ -1,0 +1,13 @@
+# Frais après seuil et plafonds documentés — 26 octobre 2026
+
+Les mécanismes `afterMinutesRate`, `afterMinutesThreshold`, `afterMinutesComponent`, `afterMinutesCap` et `afterMinutesCapMode` étaient absents du moteur reconstruit. Ils pouvaient donc être ignorés au profit d’un montant partiel. La migration reprend la bibliothèque historique locale Stable (SHA fichier `56753b7d5ee9429999018f41fe8ce4d12439fe49b61c6fe232903910c23bb4c6`) et la revue Data Lab `reports/tariff-scenarios/after-minutes-production-review-2026-10-11.md`. Aucune nouvelle recherche de prix ni attribution fournisseur n’est faite.
+
+Temps connecté, temps de charge et stationnement sont séparés ; la nature non prouvée du frais interdit le calcul. Le plafond s’applique à la session entière ou à chaque nuit locale selon le contrat documenté, jamais à tous les frais de journée. Une seconde nuit a son propre plafond ; DST et fraction de minute sur la frontière nocturne sont testés. La grâce ne redémarre pas au changement de règle. Le minimum de session est appliqué après le plafond. Le chemin optimisé de tarif fixé au début de session conserve les mêmes gardes. Les frais après seuil sont visibles dans la décomposition de fiche.
+
+Limites explicites : plafond avec changement de règle non verrouillée ou composante plafonnée autre que `CONNECTED_TIME` restent incalculables en l’absence du contrat de combinaison correspondant. Aucun montant n’est inventé pour les 78 offres eMSP non justifiées. Les six contrats historiquement documentés ne sont pas automatiquement attribués à de nouvelles prises : ce lot migre le mécanisme G6 seulement.
+
+Preuves : tests synthétiques indépendants des montants fournisseurs, tests du paquet sur les caps/identités/session complète et six tests Python d’empaquetage PASS. Rejeu des deux fixtures historiques épinglées par SHA : 84 offres brutes non enrichies, 588 évaluations, zéro résultat calculé à tort et aucune mutation des entrées. Les SHA sont dans le rapport adjacent ; commande reproductible `node tests/v9_after_minutes_historical_replay.test.mjs <DataLab> <site>`.
+
+Paquet `site-after-minutes`, même bundle immuable 27 sources. Il copie les moteurs pricing/session et le shell corrigés ; la recette d’empaquetage copie maintenant explicitement le moteur de session actif. Hébergement local SHA PASS, 3 267 fichiers, 263 840 133 octets, aucun déploiement. Huit parcours tarifaires Firefox, neuf pays/mobile et interface de signalement PASS sur ce paquet. L’aperçu local peut être basculé sur ce paquet validé. Mesures denses précédentes conservées, aucune nouvelle campagne autonome de carte lancée pour ce lot G6.
+
+Main, Actions, archives et site public restent inchangés ; G2–G8 ne sont pas promus.

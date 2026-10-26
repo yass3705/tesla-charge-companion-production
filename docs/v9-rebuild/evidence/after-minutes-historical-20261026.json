@@ -1,0 +1,1 @@
+{"fixtures":[{"file":"reports/tariff-scenarios/france-real-offer-fixtures.json","sha256":"462abf9635934f86f2b971269bf4c59ae527c516346bd65c58fddb7ac36c2802"},{"file":"reports/tariff-scenarios/france-runtime-offer-fixtures.json","sha256":"289d772d97c4722f51b153f5099ece56f5c90b61b20904ca68ed2992eaa86820"}],"offers":84,"evaluations":588,"incorrectlyCalculated":[]}
