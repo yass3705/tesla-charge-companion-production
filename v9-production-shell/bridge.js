@@ -676,6 +676,8 @@
       const total=hasCongestion&&!including?item.congestion.totalWithoutCongestion:item?.total;
       const displayItem=hasCongestion&&!including?{...item,total,result:{...item.result,totalEur:item.congestion.sourceCurrencyTotalWithout}}:item;
       const calculated=value=>'Prix calculé · '+displayAmount(value,fxRates);
+      const localEvses=new Set((station?.evses||[]).map(e=>text(e.id))),localConnectors=new Set((station?.evses||[]).flatMap(e=>(e.connectors||[]).map(c=>text(c.id))));
+      const rawPending=state.status==='priced'?(station?.unparsedOffers||[]).filter(raw=>raw.calculationStatus==='not_evaluated'&&text(raw.channel).toLowerCase()===category.id&&localEvses.has(text(raw.scope?.evseId))&&(!raw.scope?.connectorId||localConnectors.has(text(raw.scope.connectorId)))):[];
       const amount=state.status==='priced'?calculated(displayItem)
         :state.status==='missing'?'Prix non disponible':'Tarif incalculable';
       const stateExplanation=state.status==='missing'?'Aucune offre exploitable trouvée pour cette voie tarifaire et ce PDC.':state.status!=='priced'?'Offre identifiée, mais les conditions ne permettent pas un calcul fiable.':'';
@@ -710,6 +712,7 @@
         (hasCongestion?'<span style="grid-column:1/-1;font-size:11px;line-height:1.3">À partir de '+esc(item.congestion.thresholdSoc)+' % de batterie'+(item.congestion.thresholdSource==='default_soc80'?' (hypothèse V9)':' (source)')+' · '+esc(num(item.congestion.minutes)?.toFixed(1)||'—')+' min au-delà du seuil</span>':'')+
         (label?'<span style="grid-column:1/-1;font-size:12px;line-height:1.3;opacity:.8;overflow-wrap:anywhere">'+esc(label)+(category.subscription?' · abonnement':'')+'</span>':'')+
         (stateExplanation?'<span class="v9-tariff-explanation" style="grid-column:1/-1;font-size:12px;line-height:1.4">'+esc(stateExplanation)+'</span>':'')+
+        (rawPending.length?'<span class="v9-raw-offers-notice" style="grid-column:1/-1;font-size:12px;line-height:1.4">Tarif incalculable · '+rawPending.length+' autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.</span>':'')+
         history+
       '</div>';
     }).join('')+'</div>';

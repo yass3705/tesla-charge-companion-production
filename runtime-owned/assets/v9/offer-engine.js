@@ -49,17 +49,26 @@
   }
 
   function semanticKey(raw,countryCode){
-    const offer=materializeOffer(raw,countryCode)||clone(raw)||{};
-    const cc=country(countryCode||offer.countryCode);
-    if(text(offer.equivalenceKey))return `explicit|${text(offer.equivalenceKey)}|${cc}`;
+    const cc=country(countryCode||raw?.countryCode);
+    // Key construction is read-only: do not deep-copy tariffs just to compare them.
+    const offer=raw?.ratesByCountry?.[cc]?{...raw,pricing:{...(raw.pricing||{}),...raw.ratesByCountry[cc]}}:(raw||{});
+    const scope=stableStringify({currency:country(offer.currency),
+      stationIds:uniq((offer.stationIds||[]).map(text)).sort(),
+      evseIds:uniq((offer.evseIds||[]).map(text)).sort(),
+      connectorIds:uniq((offer.connectorIds||[]).map(text)).sort(),
+      networkIds:uniq((offer.networkIds||[]).map(providerId)).sort(),
+      networkAliases:uniq((offer.networkAliases||[]).map(providerId)).sort(),
+      plugNames:uniq((offer.plugNames||[]).map(text)).sort(),
+      minPowerKw:offer.minPowerKw??null,maxPowerKw:offer.maxPowerKw??null});
+    if(text(offer.equivalenceKey))return `explicit|${text(offer.equivalenceKey)}|${cc}|${scope}`;
     const subscriptionId=text(offer.subscriptionId);
     const connectorKinds=uniq((offer.connectorKinds||[]).map(v=>text(v).toUpperCase())).sort();
     const operatorIds=uniq((offer.operatorIds||[]).map(providerId)).sort();
-    if(subscriptionId)return ['subscription',providerId(offer.provider),subscriptionId,connectorKinds.join(','),cc].join('|');
+    if(subscriptionId)return ['subscription',providerId(offer.provider),subscriptionId,connectorKinds.join(','),cc,scope].join('|');
     const discriminator=text(offer.tariffId||offer.planId||offer.pricingModelId);
     return [
       'offer',text(offer.kind)||'unknown',providerId(offer.provider),operatorIds.join(','),connectorKinds.join(','),
-      discriminator,stableStringify(offer.pricing||{}),cc
+      discriminator,stableStringify(offer.pricing||{}),cc,scope
     ].join('|');
   }
 
@@ -94,7 +103,7 @@
       const offer=materializeOffer(raw,countryCode);if(!offer)continue;
       const key=semanticKey(offer,countryCode);
       const current=groups.get(key);
-      if(!current){const first=clone(offer);first.provenance=uniq([...(first.provenance||[]).map(p=>stableStringify(p)),stableStringify(provenanceEntry(first))]).map(s=>JSON.parse(s));first.aliases=uniq([...(first.aliases||[]),text(first.id||first.offerId)]).sort();groups.set(key,first);}
+      if(!current){const first=offer;first.provenance=uniq([...(first.provenance||[]).map(p=>stableStringify(p)),stableStringify(provenanceEntry(first))]).map(s=>JSON.parse(s));first.aliases=uniq([...(first.aliases||[]),text(first.id||first.offerId)]).sort();groups.set(key,first);}
       else groups.set(key,mergeEquivalentOffers(current,offer));
     }
     return [...groups.values()].sort((a,b)=>semanticKey(a,countryCode).localeCompare(semanticKey(b,countryCode)));

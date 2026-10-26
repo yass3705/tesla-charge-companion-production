@@ -26,7 +26,7 @@ const targets=sources.map(source=>{
  if(!fragments.length)throw Error('No representative archived offer: '+source);
  const compound=st=>st.offers.some(o=>o.pricing?.rules?.some(r=>r.chargePerMinute>0||r.idlePerMinute>0));
  const st=fragments.find(compound)||fragments[0];
- return{source,id:st.canonicalId,lat:st.latitude,lon:st.longitude,country:st.countryCode,rawOnly,compound:compound(st)};
+ return{source,id:st.canonicalId,lat:st.latitude,lon:st.longitude,country:st.countryCode,rawOnly,compound:compound(st),pricedIds:st.offers.map(o=>o.id),rawIds:st.unparsedOffers.map(o=>o.id)};
 });
 console.log(JSON.stringify(targets));
 '''
@@ -63,8 +63,10 @@ const target=arguments[0],done=arguments[1];
  const own=o=>o.metadata?.sourceId===target.source||o.sourceId==='prepared:'+target.source||o.sourceId===target.source;
  const offers=(st.offers||[]).filter(own),raw=(st.unparsedOffers||[]).filter(own);
  const ids=new Set(offers.map(o=>o.id));
+ const missingOfferIds=target.pricedIds.filter(id=>!(st.offers||[]).some(o=>o.id===id||o.aliases?.includes(id)));
+ const missingRawIds=target.rawIds.filter(id=>!(st.unparsedOffers||[]).some(o=>o.id===id));
  const evseIds=new Set(st.evses.map(e=>e.id)),connectorIds=new Set(st.evses.flatMap(e=>e.connectors.map(c=>c.id)));
- const badScope=offers.some(o=>(o.evseIds||[]).some(id=>!evseIds.has(id))||(o.connectorIds||[]).some(id=>!connectorIds.has(id)))||
+ const badScope=offers.some(o=>(o.evseIds||[]).some(id=>!evseIds.has(id))||(o.connectorIds||[]).some(id=>!connectorIds.has(id)||!st.evses.some(e=>(o.evseIds||[]).includes(e.id)&&e.connectors.some(c=>c.id===id))))||
    raw.some(o=>!evseIds.has(o.scope?.evseId)||o.scope?.connectorId!=null&&!st.evses.some(e=>e.id===o.scope.evseId&&e.connectors.some(c=>c.id===o.scope.connectorId)));
  const e=area.sessionEvaluations?.[st.id],evaluated=[e?.best,...(e?.alternatives||[]),...(e?.incomplete||[])].filter(o=>o&&ids.has(o.offerId));
  // A page has at most 160 station cards; expose its second DOM batch if needed.
@@ -74,7 +76,7 @@ const target=arguments[0],done=arguments[1];
  card.querySelectorAll('details').forEach(el=>el.open=true);
  const text=card.textContent;
  const calculated=[...card.querySelectorAll('[data-v9-effective-total]')].map(el=>Number(el.dataset.v9EffectiveTotal));
- return{source:target.source,stationId:target.id,page:map.page,offers:offers.length,raw:raw.length,badScope,
+ return{source:target.source,stationId:target.id,page:map.page,offers:offers.length,raw:raw.length,badScope,missingOfferIds,missingRawIds,
    complete:evaluated.filter(o=>o.result?.complete&&Number.isFinite(o.costPerRecoveredKm)).length,
    compound:evaluated.some(o=>o.result?.complete&&(o.result.components?.chargingTime>0||o.result.components?.parkingTime>0)),
    calculated,rawLabel:text.includes('Tarif incalculable'),channels:['Direct','Electra','Electroverse'].every(c=>text.includes(c)),
@@ -82,7 +84,7 @@ const target=arguments[0],done=arguments[1];
 })().then(done).catch(error=>done({error:String(error),source:target.source}));
 ''', target)
                 print(json.dumps(result, ensure_ascii=False), file=sys.stderr, flush=True)
-                if result.get('error') or result.get('badScope') or result.get('sourceErrors') or not result.get('channels'):
+                if result.get('error') or result.get('badScope') or result.get('sourceErrors') or result.get('missingOfferIds') or result.get('missingRawIds') or not result.get('channels'):
                     raise AssertionError(result)
                 if target['rawOnly']:
                     if result['offers'] or not result['raw'] or not result['rawLabel']:

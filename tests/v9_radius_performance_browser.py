@@ -5,9 +5,12 @@ import functools
 import json
 import sys
 import threading
+import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+from urllib3.exceptions import HTTPError
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -21,10 +24,17 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
     options = Options(); options.add_argument('-headless')
     options.binary_location = '/Applications/Firefox.app/Contents/MacOS/firefox'
     rows = []
+    requested = list(radii if radii is not None else range(100, 0, -10))
     try:
         with webdriver.Firefox(options=options) as browser:
             browser.set_window_size(viewport_width, 900)
-            browser.set_script_timeout(150)
+            browser.set_script_timeout(90)
+            def async_call(script, *args):
+                started=time.monotonic()
+                try:
+                    return browser.execute_async_script(script, *args)
+                except (WebDriverException, HTTPError) as error:
+                    return {'error': str(error)[:300], 'durationMs': round((time.monotonic()-started)*1000), 'browserTransportFailed': True}
             browser.get(f'http://127.0.0.1:{server.server_port}/')
             WebDriverWait(browser, 30).until(lambda d: d.execute_script('return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error'))
             if viewport_width < 500:
@@ -34,7 +44,7 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
                   f'http://127.0.0.1:{server.server_port}/v9-production-shell/', viewport_width)
                 browser.switch_to.frame('v9-mobile-fixture')
                 WebDriverWait(browser, 30).until(lambda d: d.execute_script('return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error'))
-            for radius in (radii if radii is not None else range(100, 0, -10)):
+            for radius in requested:
                 browser.execute_script('''
                     const [lat,lon,country,label,radius]=arguments;
                     window.resolveOrigin=async()=>({lat,lon,label});
@@ -43,7 +53,7 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
                     document.getElementById('simMaxDistance').value=String(radius);
                     document.getElementById('simOperatorFilter').dataset.v9Mode='all';
                 ''', lat, lon, country, label, radius)
-                result = browser.execute_async_script('''
+                result = async_call('''
                     const done=arguments[0],start=performance.now();
                     window.compare().then(area=>{
                       document.querySelector('.v9-view-map')?.click();
@@ -71,7 +81,7 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
                     }).catch(error=>done({error:String(error),durationMs:Math.round(performance.now()-start)}));
                 ''')
                 if result.get('nextPage') and not result.get('error'):
-                    page = browser.execute_async_script('''
+                    page = async_call('''
                       const done=arguments[0],before=[...document.querySelectorAll('.v9-result-card')].map(e=>e.dataset.v9StationId),start=performance.now();
                       document.querySelector('.v9-map-zoom-in')?.click();
                       const view=JSON.stringify(document.getElementById('v9MapSummary')?._v9MapView);
@@ -84,6 +94,8 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
                     result['pagination']=page
                 rows.append({'requestedRadiusKm': radius, **result})
                 print(json.dumps(rows[-1],ensure_ascii=False),file=sys.stderr,flush=True)
+                if result.get('browserTransportFailed'):
+                    break
                 if result.get('operatorOptionCount',0) < result.get('availableOperatorCount',0):
                     raise AssertionError(f'operator filter omitted off-page operators at {radius} km: {result}')
                 if result.get('pagination',{}).get('error') or result.get('pagination',{}).get('overlap',0) or result.get('pagination',{}).get('mapViewPreserved') is False:
@@ -92,6 +104,12 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
                     break
     finally:
         server.shutdown(); server.server_close()
+    # A timed-out browser is closed before trying a smaller radius. Never run a
+    # second expensive search alongside the abandoned JavaScript computation.
+    if rows and rows[-1].get('browserTransportFailed'):
+        remaining=[radius for radius in requested if radius < rows[-1]['requestedRadiusKm']]
+        if remaining:
+            rows.extend(measure(site,lat,lon,country,label,budget_ms,remaining,viewport_width))
     return rows
 
 if __name__ == '__main__':
