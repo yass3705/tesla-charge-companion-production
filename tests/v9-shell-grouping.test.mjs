@@ -139,7 +139,7 @@ const growingArea=Array.from({length:501},(_,i)=>({id:`station-${i}`,countryCode
 let capturedQuery;
 const growingEngine={queryArea:async query=>{
   capturedQuery=query;
-  return{stations:query.stationLimit?growingArea.slice(0,query.stationLimit):growingArea,
+  return{stations:query.stationLimit?growingArea.slice(query.stationOffset||0,(query.stationOffset||0)+query.stationLimit):growingArea,
     query,sessionEvaluations:{},diagnostics:{sourceStationCount:growingArea.length,
       stationLimitApplied:growingArea.length>query.stationLimit}};
 },__tccFxRates:{}};
@@ -151,10 +151,14 @@ const growingWindow={resolveOrigin:async()=>({lat:48,lon:2,label:'Fixture origin
 const growingResult=await executeV9(growingWindow,growingEngine,
   {mode:'candidate',engineScopeCountries:['FR']},
   {originText:'Fixture origin',radiusKm:20,startSoc:20,targetSoc:80});
-assert.equal(capturedQuery.stationLimit,500,'the dense-area display budget stays separate from routing');
+assert.equal(capturedQuery.stationLimit,160,'one bounded result page stays separate from routing');
 assert.equal(growingResult.area.diagnostics.sourceStationCount,growingArea.length,
   'the full result count must remain available to disclose omitted stations');
-assert.equal(growingResult.rows.length,500,'displayed stations retain unknown-power details');
+assert.equal(growingResult.rows.length,160,'first page retains unknown-power details');
 assert.ok(growingResult.rows.every(row=>row.total==null),'unknown prices must not become zero');
+const nextPage=await executeV9(growingWindow,growingEngine,{mode:'candidate',engineScopeCountries:['FR']},{originText:'Fixture origin',radiusKm:20,startSoc:20,targetSoc:80,stationOffset:160});
+assert.equal(nextPage.rows.length,160);
+assert.equal(nextPage.rows[0].station.id,'station-160','the next page must advance without repeating stations');
+await assert.rejects(executeV9(growingWindow,growingEngine,{mode:'candidate',engineScopeCountries:['FR']},{originText:'Fixture origin',radiusKm:101,startSoc:20,targetSoc:80}),/100 km/);
 
 console.log('V9 shell grouping OK');

@@ -249,6 +249,7 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
             ("runtime-owned/assets/v9/adapters/canonical-v9.js", "adapters/canonical-v9.js"),
             ("runtime-owned/assets/v9/preproduction-candidate-loader.js", "preproduction-candidate-loader.js"),
             ("runtime-owned/assets/v9/data-engine.js", "data-engine.js"),
+            ("runtime-owned/assets/v9/runtime-engine.js", "runtime-engine.js"),
             ("runtime-overrides/assets/v9/pricing-engine.js", "pricing-engine.js"),
             ("runtime-overrides/assets/v9/map-price-engine.js", "map-price-engine.js"),
             ("runtime-overrides/assets/v9/adapters/uk-open-feeds.js", "adapters/uk-open-feeds.js"),

@@ -186,9 +186,9 @@
   }
 
   function createEngine({registry={sources:[]},loaders={}}={}){
-    const sources=(registry.sources||[]).map(clone),loaderMap=new Map(Object.entries(loaders||{}));let api;
-    function registerLoader(sourceId,loader){if(typeof loader!=='function')throw new Error('loader must be a function');loaderMap.set(sourceId,loader);return api;}
-    async function queryArea(query={}){
+    const sources=(registry.sources||[]).map(clone),loaderMap=new Map(Object.entries(loaders||{}));let api,areaCache=null;
+    function registerLoader(sourceId,loader){if(typeof loader!=='function')throw new Error('loader must be a function');loaderMap.set(sourceId,loader);areaCache=null;return api;}
+    async function loadSpatialArea(query){
       const applicable=sources.filter(s=>sourceApplies(s,query));
       const settled=await Promise.allSettled(applicable.map(async source=>{
         const loader=loaderMap.get(source.id);if(typeof loader!=='function')return{source,fragments:[],offerRules:[],skipped:'loader_missing'};
@@ -208,9 +208,16 @@
         error.code='TCC_V9_REQUIRED_SOURCE_FAILED';error.failures=requiredFailures;error.diagnostics=diagnostics;throw error;
       }
       const resolved=resolveEntities(fragmentsForRadius(items,query.origin,query.radiusKm)),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
-      const stationLimit=Math.floor(number(query.stationLimit)||0),preselected=selectRoutingCandidates(baseFiltered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2}),selected=stationLimit>0&&baseFiltered.length>stationLimit?preselected.slice(0,stationLimit):baseFiltered;
+      return{items,ruleItems,diagnostics,resolved,inRadius,baseFiltered,availableOperators:deriveOperators(baseFiltered),subscriptionOfferPool:baseFiltered.flatMap(st=>(st.offers||[]).filter(offer=>text(offer?.subscriptionId)))};
+    }
+    async function queryArea(query={}){
+      const key=JSON.stringify({countryCode:query.countryCode,origin:query.origin,radiusKm:query.radiusKm,filters:query.filters});
+      if(!areaCache||areaCache.key!==key){const promise=loadSpatialArea(query);areaCache={key,promise};promise.catch(()=>{if(areaCache?.promise===promise)areaCache=null;});}
+      const{items,ruleItems,diagnostics,resolved,inRadius,baseFiltered,availableOperators,subscriptionOfferPool}=await areaCache.promise;
+      const stationLimit=Math.floor(number(query.stationLimit)||0),stationOffset=Math.max(0,Math.floor(number(query.stationOffset)||0)),selected=stationLimit>0?baseFiltered.slice(stationOffset,stationOffset+stationLimit):baseFiltered;
       const filtered=applyOfferRules(selected,ruleItems),operators=deriveOperators(filtered),routingCandidates=selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
-      return{query:clone(query),stations:filtered,operators,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationLimit,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
+      const mapStations=baseFiltered.map((st,index)=>({id:st.id,latitude:st.latitude,longitude:st.longitude,name:st.name,countryCode:st.countryCode,physicalOperator:st.physicalOperator,hasRawOffer:(st.unparsedOffers||[]).some(o=>o.calculationStatus==='not_evaluated'),page:stationLimit>0?Math.floor(index/stationLimit):0}));
+      return{query:clone(query),stations:filtered,mapStations,operators,availableOperators,subscriptionOfferPool,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationOffset+stationLimit,stationOffset,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
     }
     api={queryArea,registerLoader,deriveOperators,eligibleOffers,selectRoutingCandidates,sources:()=>clone(sources)};return api;
   }
