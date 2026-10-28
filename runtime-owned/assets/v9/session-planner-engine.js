@@ -40,7 +40,9 @@
     const capacity=num(session.batteryCapacityKwh),arrival=arrivalSoc(session,route),target=targetSoc(session,arrival);
     const chargeStartAt=addMinutes(session.startAt,driveMinutes)||session.chargeStartAt||session.startAt||null;
     const available=minutesBetween(chargeStartAt,session.disconnectAt);
-    const requestedEnergy=energyBetweenSoc(capacity,arrival,target)??Math.max(0,num(session.energyKwh)??0);
+    const explicitEnergy=session.energyKwh==null||session.energyKwh===''?null:num(session.energyKwh);
+    const requestedEnergy=energyBetweenSoc(capacity,arrival,target)??
+      (explicitEnergy==null?null:Math.max(0,explicitEnergy));
     const desired=ChargeModelEngine.estimate(station,{...session,arrivalSoc:arrival,targetSoc:target,energyKwh:requestedEnergy});
     let actualSoc=target,chargingMinutes=desired.minutes,targetReached=true;
     if(available!=null&&chargingMinutes!=null&&chargingMinutes>available+1e-9){
@@ -59,7 +61,10 @@
     const postChargeMinutes=available!=null&&chargingMinutes!=null?Math.max(0,available-chargingMinutes):Math.max(0,num(session.postChargeMinutes)??0);
     const postChargeStartAt=chargeStartAt&&chargingMinutes!=null?addMinutes(chargeStartAt,chargingMinutes):null;
     const connectedMinutes=chargingMinutes!=null?chargingMinutes+postChargeMinutes:null;
-    const effectiveSession={...session,startAt:chargeStartAt,chargeStartAt,arrivalSoc:arrival,targetSoc:actualSoc,requestedTargetSoc:target,energyKwh:round(Math.max(0,delivered??0)),requestedEnergyKwh:requestedEnergy,includeRouteEnergyInCharge:false,durationMinutes:connectedMinutes,chargingMinutes,postChargeMinutes,postChargeStartAt,targetReached,chargeTimeline:Array.isArray(actualModel.timeline)?actualModel.timeline:[]};
+    const effectiveSession={...session,startAt:chargeStartAt,chargeStartAt,arrivalSoc:arrival,targetSoc:actualSoc,requestedTargetSoc:target,
+      energyKwh:requestedEnergy==null?null:round(Math.max(0,delivered??0)),
+      requestedEnergyKwh:requestedEnergy,includeRouteEnergyInCharge:false,durationMinutes:connectedMinutes,chargingMinutes,postChargeMinutes,postChargeStartAt,targetReached,
+      chargeTimeline:requestedEnergy==null?[]:(Array.isArray(actualModel.timeline)?actualModel.timeline:[])};
     return{stationId:String(station?.id||''),arrivalSoc:arrival,requestedTargetSoc:target,actualTargetSoc:actualSoc,requestedEnergyKwh:requestedEnergy,deliveredEnergyKwh:effectiveSession.energyKwh,desiredChargingMinutes:desired.minutes,chargingMinutes,postChargeMinutes,connectedMinutes,chargeStartAt,postChargeStartAt,disconnectAt:session.disconnectAt||null,targetReached,effectiveSession,chargeModel:actualModel,desiredChargeModel:desired};
   }
 

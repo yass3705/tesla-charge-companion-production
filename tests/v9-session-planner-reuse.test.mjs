@@ -23,5 +23,12 @@ try{
   assert.equal(shortened.targetReached,false);
   assert.ok(calls>1,'deadline-limited charge still recomputes the actual SOC model');
   assert.notDeepEqual(shortened.chargeModel,shortened.desiredChargeModel);
+
+  const unknown=planner.planStation(station,{startAt:session.startAt,vehicleMaxDcKw:150});
+  assert.equal(unknown.requestedEnergyKwh,null);
+  assert.equal(unknown.deliveredEnergyKwh,null);
+  assert.equal(unknown.effectiveSession.energyKwh,null,
+    'missing battery/SOC and explicit energy cannot become a free session');
+  assert.deepEqual(unknown.effectiveSession.chargeTimeline,[]);
 }finally{charge.estimate=original;}
 console.log('V9 planner identical charge model reuse and deadline guard PASS');
