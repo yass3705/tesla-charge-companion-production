@@ -18,6 +18,8 @@ Avant déploiement, il faut disposer d'un identifiant de compte Cloudflare et d'
 
 Après autorisation et configuration locale des identifiants : créer le projet Pages isolé avec Wrangler, transférer uniquement `<sortie>/site` sur une branche de préproduction, relever son URL, vérifier le `noindex`, les SHA distants, le parcours ordinateur/mobile et le formulaire de signalement. Ne pas invoquer le workflow `cloudflare-deploy.yml` existant : il cible le site public.
 
+Le contrôle en lecture seule `python3 scripts/check_v9_remote_preview.py --site <sortie>/site --url https://<projet-isole>.pages.dev/` est prêt pour l'étape distante. Il refuse l'origine publique TCC, HTTP et les chemins d'URL ; compare les SHA des fichiers critiques et d'un fragment signé avec le paquet local, puis exige l'en-tête `X-Robots-Tag: noindex`. Il indique explicitement que le parcours navigateur et le transfert GitHub restent à vérifier séparément. Test sur le paquet 30 sources par lecture locale simulant HTTP : PASS ; erreurs d'origine, de SHA et de noindex : rejetées. Aucun transfert n'a été effectué.
+
 Le transfert GitHub Actions Data Lab est un contrôle distinct : il reste non vérifié tant qu'Actions est désactivé, et sa réactivation requiert neutralisation des YAML historiques sur la branche active puis accord explicite.
 
 
