@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
+import path from 'node:path';
 const require=createRequire(import.meta.url);
-const pricing=require('../runtime-overrides/assets/v9/pricing-engine.js');
+const site=process.argv[2];
+const root=site?path.resolve(site,'runtime/assets/v9'):path.resolve('runtime-overrides/assets/v9');
+const pricing=require(path.join(root,'pricing-engine.js'));
 const context={TCCV9PricingEngine:pricing,TCCV9OfferEngine:require('../runtime-owned/assets/v9/offer-engine.js')};
-runInNewContext(readFileSync(new URL('../runtime-overrides/assets/v9/session-engine.js',import.meta.url),'utf8'),context);
+runInNewContext(readFileSync(path.join(root,'session-engine.js'),'utf8'),context);
 const sessionEngine=context.TCCV9SessionEngine;
-const shell=require('../v9-production-shell/bridge.js');
+const shell=require(site?path.resolve(site,'v9-production-shell/bridge.js'):'../v9-production-shell/bridge.js');
 
 // Frozen Belib resident Flex profile from Stable's france-belib-offers.json.
 const offer={id:'belib-resident-flex',currency:'EUR',metadata:{timeZone:'Europe/Paris'},pricing:{type:'rules',rules:[

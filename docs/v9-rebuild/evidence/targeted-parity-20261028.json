@@ -9,6 +9,7 @@
     "powerMinuteNode": "PASS, six archived Moroccan offers and exact curve/band boundaries",
     "powerMinuteFirefox": "PASS, pinned Agadir Direct 76.629483 MAD across 240 charge-curve segments; no source errors",
     "belibExactEvse": "PASS with archived Stable/Data Lab inputs",
+    "belibFlexAlignedWindow": "PASS, archived 15-minute connected block aligned at 20:00, 3.67 EUR complete on exact EVSE; 10-minute cut remains incalculable; rendered energy and connected fee separate from parking",
     "iziviaFastOracle": "PASS with archived 2026-10-15 frozen input",
     "nlZeroPriceStepMidnight": "PASS",
     "afterMinutesCap": "PASS",
@@ -16,14 +17,15 @@
     "offerExactScope": "PASS",
     "tariffLanes": "PASS",
     "previewPackageTest": "PASS",
-    "previewHostingIntegrity": "PASS, 3499 files, 286270316 bytes, local only",
+    "previewHostingIntegrity": "PASS, 3499 files, 286271877 bytes, local only",
     "nineCountryFirefoxMobile": "PASS, nine countries and mobile 390 px without horizontal overflow",
     "publicSafetyScan": "PASS on Production and Data Lab",
     "diffCheck": "PASS"
   },
   "localEvidence": [
     "/private/tmp/tcc-v9-parity-browser-20261028.json",
-    "/private/tmp/tcc-v9-parity-multicountry-20261028.json"
+    "/private/tmp/tcc-v9-parity-multicountry-20261028.json",
+    "/private/tmp/tcc-v9-parity-multicountry-20261028f.json"
   ],
   "gateDecision": "G2-G8 remain FAIL; GitHub handoffs and remote isolated preview not verified"
 }
