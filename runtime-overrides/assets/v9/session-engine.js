@@ -78,9 +78,10 @@
   function stationSession(station,session={},options={}){
     const id=text(station?.id||station?.canonicalId||station?.stationId);
     const approach=num(options.approachEnergyKwhByStationId?.[id]??session.approachEnergyKwhByStationId?.[id]??station?.route?.approachEnergyKwh)??0;
-    const requested=num(session.energyKwh)??0;
+    const requested=session.energyKwh==null||session.energyKwh===''?null:num(session.energyKwh);
     const include=session.includeRouteEnergyInCharge!==false;
-    return{...session,requestedEnergyKwh:requested,approachEnergyKwh:approach,energyKwh:money(Math.max(0,requested+(include?approach:0)))};
+    return{...session,requestedEnergyKwh:requested,approachEnergyKwh:approach,
+      energyKwh:requested==null?null:money(Math.max(0,requested+(include?approach:0)))};
   }
 
   function validDateKey(value){
