@@ -668,6 +668,17 @@
             label:row.label+' (composante '+(index+1)+')'})));
         else add('componentGroup'+index,'Composante tarifaire '+(index+1),groupTotal);
       });
+    if(!hasRuleCharge()&&depth<3&&Array.isArray(components.segmentedPricing?.segments)){
+      const nested=components.segmentedPricing.segments.flatMap(segment=>
+        segment?.components?feeBreakdown(segment.components,omitCongestion,depth+1):[]);
+      const subtotal=nested.reduce((sum,row)=>sum+row.amount,0),expected=num(components.segmentedPricing.totalEur);
+      if(nested.length&&expected!=null&&Math.abs(subtotal-expected)<0.02){
+        const grouped=new Map();
+        for(const row of nested){const key=row.key+'|'+row.label,prior=grouped.get(key);
+          grouped.set(key,{...row,amount:(prior?.amount||0)+row.amount});}
+        rows.push(...grouped.values());
+      }
+    }
     if(!hasRuleCharge())add('segmentedPricing','Tarif horaire',components.segmentedPricing?.totalEur);
     return rows;
   }

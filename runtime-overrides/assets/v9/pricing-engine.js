@@ -417,10 +417,20 @@
     while(elapsed<duration-1e-9){
       const at=addMinutes(session.startAt,elapsed);if(!at)return{complete:false,reason:'invalid_segmentation_start_time'};
       const rule=matchingRule(pricing,at,timeZone,session);if(!rule)return{complete:false,reason:'no_matching_time_rule',segmentStartAt:at.toISOString()};
-      if(!segmentableRule(rule,duration))return{complete:false,reason:'tariff_window_crossing_unsupported_components',segmentStartAt:at.toISOString(),matchedRule:rule};
       let boundary=minutesUntilRuleBoundary(rule,at,timeZone);if(boundary==null)return{complete:false,reason:'unresolved_tariff_boundary'};
       if(!Number.isFinite(boundary))boundary=duration-elapsed;
       const slice=Math.min(duration-elapsed,Math.max(boundary,1e-6));
+      const blockMinutes=num(rule.connectedTimeBlockMinutes),blockAmount=num(rule.connectedTimeBlockEur);
+      const hasConnectedBlocks=blockMinutes>0&&blockAmount!=null;
+      const baseRule=hasConnectedBlocks?{...rule,connectedTimeBlockMinutes:null,connectedTimeBlockEur:null}:rule;
+      if(!segmentableRule(baseRule,duration))return{complete:false,reason:'tariff_window_crossing_unsupported_components',segmentStartAt:at.toISOString(),matchedRule:rule};
+      if(hasConnectedBlocks&&rule.connectedTimeBlockRounding!=='started_block')
+        return{complete:false,reason:'connected_block_rounding_unverified',segmentStartAt:at.toISOString()};
+      // A tariff change inside a started block has no proved allocation rule.
+      // Exact block-aligned slices can be evaluated without resetting a block.
+      if(hasConnectedBlocks&&
+          Math.abs(slice/blockMinutes-Math.round(slice/blockMinutes))>1e-9)
+        return{complete:false,reason:'connected_block_crosses_tariff_boundary_ambiguous',segmentStartAt:at.toISOString()};
       const chargeOverlap=Math.max(0,Math.min(charging,elapsed+slice)-elapsed),segmentEnergy=charging>0?energy*(chargeOverlap/charging):0;
       const postChargeOverlap=Math.max(0,Math.min(elapsed+slice,charging+postCharge)-Math.max(elapsed,charging));
       const evaluated=evaluateRule(rule,{...session,energyKwh:segmentEnergy,durationMinutes:slice,chargingMinutes:chargeOverlap,tariffDurationMinutes:duration,postChargeMinutes:postChargeOverlap,includeOneTimeFees:elapsed===0,elapsedMinutes:elapsed,congestionSegmentOffsetMinutes:elapsed,congestionSegmentDurationMinutes:slice});
