@@ -33,6 +33,17 @@ def bundle(root, marker):
 
 
 class ImportV9BundleTest(unittest.TestCase):
+    def test_import_is_independent_copy_of_immutable_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            original = bundle(root, "a")
+            archived = (original / "FR__ionity_direct.json").read_bytes()
+            imported = MODULE.import_source(original, "FR:ionity_direct", root / "stage")
+            self.assertEqual(imported.read_bytes(), archived)
+            imported.write_bytes(b"changed-local-copy")
+            self.assertEqual((original / "FR__ionity_direct.json").read_bytes(), archived)
+            MODULE.verify(original)
+
     def test_source_identifier_without_official_evse_is_preserved(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

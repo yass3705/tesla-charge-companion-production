@@ -6,6 +6,8 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -97,11 +99,18 @@ def import_source(bundle: Path, source: str, destination: Path) -> Path:
         raise ValueError("Requested source absent from prepared bundle")
     destination.mkdir(parents=True, exist_ok=True)
     target = destination / (source.replace(":", "__") + ".json")
-    raw = (bundle / target.name).read_bytes()
-    with tempfile.NamedTemporaryFile(dir=destination, prefix="v9-import-", suffix=".tmp", delete=False) as handle:
-        handle.write(raw)
-        temporary = Path(handle.name)
-    temporary.replace(target)
+    original = bundle / target.name
+    with tempfile.TemporaryDirectory(dir=destination, prefix="v9-import-") as staging:
+        temporary = Path(staging) / target.name
+        # APFS clonefile gives an independent copy-on-write inode. It keeps the
+        # immutable handoff contract while avoiding another gigabyte of bytes
+        # for local previews. Linux Actions retain the regular copy path.
+        cloned = sys.platform == "darwin" and subprocess.run(
+            ["/bin/cp", "-c", str(original), str(temporary)],
+            capture_output=True, check=False).returncode == 0
+        if not cloned:
+            temporary.write_bytes(original.read_bytes())
+        temporary.replace(target)
     return target
 
 
