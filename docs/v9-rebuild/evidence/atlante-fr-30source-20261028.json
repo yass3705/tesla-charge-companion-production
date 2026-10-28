@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-28",
+  "branch": "rebuild/v9-20261020",
+  "sourceArchive": "data/national/atlante_direct_stations_france_latest.json.gz",
+  "sourceArchiveSha256": "e2bc6dcd245ea776cb44adf8329cad1b88715a4f67caba3d7f7a3f20bb08cb1d",
+  "bundleId": "dfc5952b5d340131cb0b10c75c81147ca290a0befbf11a930d794ae78cb82d96",
+  "canonicalSourceSha256": "4c02e84c225d30aed09236acd797619ea52463f7cbc1df8cb1b321883478508a",
+  "unchangedPreviousSourceHashes": 29,
+  "sourceCount": 30,
+  "countries": ["BE", "CH", "DE", "ES", "FR", "GB", "IT", "MA", "NL"],
+  "shardCount": 2439,
+  "preparedRejectedSources": 0,
+  "exactFrenchNationalJoin": {
+    "reportSha256": "a51cf107bdb1abe8b3bc9e4cf630ff9a91fdd800daf2af5e7ffe586d7a014628",
+    "atlanteMatchedOffers": 0,
+    "atlanteUnmatchedOffers": 1434,
+    "reason": "no_exact_evse",
+    "decision": "Do not copy Atlante prices onto national EVSE or connectors. The original Atlante EVSE and connector identities remain intact and directly usable in their own stations. Counts are descriptive, not acceptance thresholds."
+  },
+  "technicalParity": {
+    "normalizerItalyCanonicalUnchangedSha256": "0539ccf58dd3956bd1fede89922bdf7ebd2025de812431f5ecce39b3356303d2",
+    "restoredTransformation": "AC_3_PHASE with TYPE2 connector recognized from the preserved source fields; unknown pair remains unpriced",
+    "franceSimpleEnergyOffersOnExactOwnConnector": 1434,
+    "italySimpleEnergyOffersOnExactOwnConnector": 1831,
+    "italyUnparsedOffers": 14,
+    "newPricesDiscovered": false
+  },
+  "tests": {
+    "canonicalAndSnapshotUnit": "PASS, eight tests",
+    "canonicalProvedPricing": "PASS, FR/IT exact connector, unknown component and tamper guards",
+    "archiveWholeSessionReplay": "PASS, 1434 FR and 1831 IT exact own-connector quotes with 20 kWh input",
+    "candidatePreparation": "PASS, 30 sources accepted and zero rejected",
+    "packageAndImportUnit": "PASS, eleven tests",
+    "targetedFirefoxNineSources": "PASS, including FR Atlante complete session quote and exact scope",
+    "nineCountryFirefoxMobile": "PASS, mobile 390 px without horizontal overflow",
+    "hostingIntegrity": "PASS, 3695 files and 287820132 bytes, local only"
+  },
+  "deployed": false,
+  "gateDecision": "G2-G8 remain FAIL; 120 GitHub handoffs and remote isolated preview unverified"
+}

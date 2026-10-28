@@ -136,6 +136,36 @@ assert.equal(simpleEnergyPrice(sourceConnector),0.79,'match historical exact Atl
 const atlanteFragment=toFragments(atlante)[0];
 assert.equal(atlanteFragment.offers.length,1);
 assert.equal(evaluateOffer(atlanteFragment.offers[0],{energyKwh:20,startAt:'2026-10-23T12:00:00Z'}).totalEur,15.8);
+const atlanteFrance=structuredClone(atlante);
+atlanteFrance.source.id='FR:atlante_direct';
+atlanteFrance.stations[0].country='FR';
+assert.equal(toFragments(atlanteFrance)[0].offers.length,1,
+  'the archived French connector contract uses the same exact Atlante rule');
+assert.equal(toFragments(atlanteFrance)[0].offers[0].countries[0],'FR');
+for(const archive of [atlante,atlanteFrance]){
+  const ac=structuredClone(archive);
+  ac.connectors[0].rawSourceFields.powerType='AC_3_PHASE';
+  ac.connectors[0].rawSourceFields.connectorType='TYPE2';
+  assert.equal(toFragments(ac)[0].offers.length,1,
+    'archived three-phase AC Type 2 connector keeps its exact simple energy offer');
+  ac.connectors[0].rawSourceFields.connectorType='UNKNOWN';
+  assert.equal(toFragments(ac)[0].offers.length,0,
+    'unverified connector type cannot inherit a price');
+}
+const frBytes=new TextEncoder().encode(JSON.stringify(atlanteFrance));
+const frIndex={...index,sources:[{source:'FR:atlante_direct',
+  path:'sources/FR__atlante_direct.json',sha256:createHash('sha256').update(frBytes).digest('hex')}]};
+const frFetch=async url=>({ok:true,arrayBuffer:async()=>
+  url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(frIndex)).buffer:frBytes.buffer});
+const frLoaded=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+  origin:'http://127.0.0.1/',fetchImpl:frFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
+assert.equal((await frLoaded.loaders['prepared:FR:atlante_direct']())[0].offers.length,1);
+const frTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+  origin:'http://127.0.0.1/',fetchImpl:frFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){
+    const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].pricePerKwh=0.01;
+    return fragments;
+  }}});
+await assert.rejects(frTampered.loaders['prepared:FR:atlante_direct'](),/candidate pricing isolation violated/);
 for(const mutation of [
   d=>{d.offers[0].rawOffer.priceComponents[0].stepSize=1000;},
   d=>{d.offers[0].rawOffer.priceComponents.push({...component,priceDimension:'TIME'});},
@@ -146,6 +176,9 @@ for(const mutation of [
 ]){
   const changed=structuredClone(atlante);mutation(changed);
   assert.equal(toFragments(changed)[0].offers.length,0,'complex or inconsistent tariff stays out of ranking');
+  const changedFrance=structuredClone(atlanteFrance);mutation(changedFrance);
+  assert.equal(toFragments(changedFrance)[0].offers.length,0,
+    'French Atlante complex or inconsistent tariff stays out of ranking');
 }
 const bePrice={rateId:'R1',ratePolicy:'adHoc',currency:'EUR',priceType:'pricePerKWh',
   value:0.35,taxIncluded:false,taxRate:21};

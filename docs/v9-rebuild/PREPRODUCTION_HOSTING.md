@@ -1,5 +1,11 @@
 # Hébergement isolé de TCC V9
 
+## Candidat local le plus récent — 28 octobre
+
+Le paquet autonome `.tcc-v9-cache/reproducible-30-atlante-fr-2026-10-28/site` contient 30 sources sur neuf pays, bundle immuable `dfc5952b5d340131cb0b10c75c81147ca290a0befbf11a930d794ae78cb82d96`. Vérification SHA/hébergement **PASS** : 3 695 fichiers, 287 820 132 octets, `deployed=false`. Les parcours Firefox de neuf familles tarifaires, neuf pays et mobile 390 px passent, dont la nouvelle source Atlante France sur ses identifiants EVSE/prise propres. Les candidats précédents restent disponibles pour retour arrière.
+
+Préflight distant restant : aucun exécutable Wrangler, identifiant de compte Cloudflare ni nom de variable de jeton Pages n'est présent localement au dernier contrôle en lecture seule. Aucun projet Pages distinct ni URL n'est créé. Le transfert exigera une autorisation explicite et des identifiants Pages Edit pour un projet isolé ; ne jamais utiliser le workflow du site public. La recette locale et les portes G2–G8 restent incomplètes malgré ce paquet fonctionnel.
+
 Statut : préparation technique seulement. Aucun projet Cloudflare Pages n'a été créé et aucune URL distante n'a été validée.
 
 Le site V9 est produit hors des dépôts par `scripts/build_v9_rebuild_preview.py`. Son index et chaque fragment sont vérifiés par SHA. `scripts/check_v9_preview_hosting.py --site <sortie>/site` contrôle la racine V9, la configuration épinglée, l'inventaire Tesla par SHA, l'absence des entrées de construction et des anciens catalogues d'offres runtime, ainsi que les limites de fichiers avant tout transfert. Dans cet aperçu, le sélecteur d'abonnements n'importe que les offres prouvées du candidat.

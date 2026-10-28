@@ -15,10 +15,22 @@ import json
 import math
 import re
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def copy_preview_file(source: str, target: str) -> str:
+    """Copy independently while reusing APFS blocks for local preview builds."""
+    if sys.platform == "darwin" and subprocess.run(
+            ["/bin/cp", "-c", source, target], capture_output=True,
+            check=False).returncode == 0:
+        shutil.copystat(source, target)
+        return target
+    return shutil.copy2(source, target)
 
 
 def digest(content: bytes) -> str:
@@ -232,7 +244,7 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="tcc-v9-isolated-", dir=destination.parent) as tmp:
         stage = Path(tmp) / "site"
-        shutil.copytree(site, stage)
+        shutil.copytree(site, stage, copy_function=copy_preview_file)
         # Build inputs are retained in the immutable source bundle, not served
         # to preview visitors. The runtime keeps its own required data files.
         if (stage / "snapshot-inputs").is_dir():
@@ -243,7 +255,7 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
         # scripts for the shell, but do not serve their older offer catalogs.
         for historical_offers in (stage / runtime / "data/v9").glob("*-offers.json"):
             historical_offers.unlink()
-        shutil.copytree(candidate, stage / "prepared-v9")
+        shutil.copytree(candidate, stage / "prepared-v9", copy_function=copy_preview_file)
         assets = stage / runtime / "assets/v9"
         for source, target in (
             ("runtime-owned/assets/v9/adapters/canonical-v9.js", "adapters/canonical-v9.js"),

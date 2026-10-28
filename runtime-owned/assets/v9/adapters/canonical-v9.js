@@ -20,7 +20,7 @@
   }
   // The archived FR IONITY connector rate matches the existing all-day kWh rule.
   function provedDirectOffer(data,offer){
-    if(!['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','IT:atlante_direct'].includes(data.source?.id))return null;
+    if(!['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','FR:atlante_direct','IT:atlante_direct'].includes(data.source?.id))return null;
     if(offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated')return null;
     const raw=offer.rawOffer;
     if(!raw||typeof raw!=='object'||Array.isArray(raw)||!offer.scope?.connectorId)return null;
@@ -38,12 +38,16 @@
            ?.sourceOperatorId!=='IONITY_CPO')return null;
       price=raw[field];provider='IONITY Direct';country=data.source.id.slice(0,2);operator='ionity';
       if(country==='GB')currency='GBP';
-    }else if(data.source?.id==='IT:atlante_direct'){
+    }else if(['FR:atlante_direct','IT:atlante_direct'].includes(data.source?.id)){
       const source=connector?.rawSourceFields,components=raw.priceComponents;
       const sameConnector=data.offers.filter(row=>row.scope?.connectorId===offer.scope.connectorId);
-      const type=String(source?.powerType||source?.connectorType||'').toUpperCase();
-      if(!source||!(['AC','DC'].includes(type)||type.includes('TYPE 2')||type.includes('TYPE2')||
-          type.includes('CCS')||type.includes('CHADEMO'))||
+      const powerType=String(source?.powerType||'').toUpperCase();
+      const connectorType=String(source?.connectorType||'').toUpperCase();
+      const knownType=['AC','DC'].includes(powerType)||
+        (powerType==='AC_3_PHASE'&&connectorType==='TYPE2')||
+        (!powerType&&(connectorType.includes('TYPE 2')||connectorType.includes('TYPE2')||
+          connectorType.includes('CCS')||connectorType.includes('CHADEMO')));
+      if(!source||!knownType||
          sameConnector.length!==1||!Array.isArray(components)||components.length!==1||
          Object.keys(raw).sort().join(',')!=='connectorId,identifiers,priceComponents'||
          raw.identifiers?.evseId!==source.evseId||raw.identifiers?.connectorId!==source.connectorId||
@@ -64,7 +68,7 @@
          Object.values(validity.relative||{}).some(value=>Array.isArray(value)?value.length:value!=null))return null;
       price=component.price?.incl_vat;
       if(typeof source.pricePerKwhEur!=='number'||price!==source.pricePerKwhEur)return null;
-      provider='Atlante direct';country='IT';operator='atlante';
+      provider='Atlante direct';country=data.source.id.slice(0,2);operator='atlante';
     }else return null;
     if(typeof price!=='number'||!Number.isFinite(price)||price<=0)return null;
     return{id:offer.id,provider,kind:'direct',currency,

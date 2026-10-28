@@ -76,6 +76,8 @@ class PreparedMapPackageTests(unittest.TestCase):
                              (candidate / "index.json").read_bytes())
             self.assertTrue((output / "prepared-v9/index.json").is_file())
             (output / "v9-production-runtime/data/tesla_stations.json").write_bytes(b"tampered")
+            self.assertEqual((site / "v9-production-runtime/data/tesla_stations.json").read_bytes(), tesla,
+                             "packaged site must never share a writable inode with its source")
             with self.assertRaisesRegex(ValueError, "Tesla inventory SHA mismatch"):
                 check_hosting(output)
             (site / "v9-production-runtime/data/tesla_stations.json").write_bytes(b"tampered")

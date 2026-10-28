@@ -302,7 +302,7 @@
                 (paidParking>0?rule.parkingTimeStepSeconds===byType.get('PARKING_TIME').stepSize:
                   rule.parkingTimeStepSeconds==null);
             }
-            if(!['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','IT:atlante_direct'].includes(id)||
+            if(!['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','FR:atlante_direct','IT:atlante_direct'].includes(id)||
                offer.metadata.identityMode!=='exact_canonical_connector'||
                offer.connectorIds.length!==1||raw.scope?.connectorId!==offer.connectorIds[0]||
                rule.pricePerKwh<=0)return false;

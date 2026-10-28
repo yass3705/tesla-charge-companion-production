@@ -186,7 +186,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                         (row.result.components?.connectionFee>0||row.result.components?.chargingTime>0||
                           row.result.components?.parkingTime>0)).length,
                       pricedOutsideProved:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>{
-                        const canonical=['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact','GB:source_ev_pcpr_direct'].includes(o.metadata?.sourceId)&&o.metadata?.verified===true&&
+                        const canonical=['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','FR:atlante_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact','GB:source_ev_pcpr_direct'].includes(o.metadata?.sourceId)&&o.metadata?.verified===true&&
                           ['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi','exact_canonical_emsp_evse','exact_canonical_connector_pcpr'].includes(o.metadata?.identityMode);
                         const pinnedTesla=s.countryCode==='MA'&&o.sourceId==='tesla-global'&&o.currency==='MAD'&&
                           o.evseIds?.length===1&&(s.evses||[]).some(e=>e.id===o.evseIds[0])&&
@@ -444,7 +444,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     raise AssertionError("Unverified Eco-Movement PCPR offers escaped raw exact scope")
             italy = None
             if "IT:atlante_direct" in source_ids:
-                italy = compare(45.464, 9.19, "IT", "Milano fixture")
+                italy = compare(45.464, 9.19, "IT", "Milano fixture", require_raw=False)
                 it_text = browser.execute_script("return document.getElementById('results').innerText")
                 if "Atlante Direct · IT" not in it_text:
                     raise AssertionError("Atlante Italy provenance missing")

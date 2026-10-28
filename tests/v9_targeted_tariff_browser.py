@@ -18,7 +18,7 @@ def run(site, bundle):
 const fs=require('fs'),path=require('path');
 globalThis.TCCV9Adapters={ukOpenFeeds:require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/uk-open-feeds.js'))};
 const adapter=require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/canonical-v9.js'));
-const sources=['FR:emsp_exact','IT:atlante_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
+const sources=['FR:emsp_exact','FR:atlante_direct','IT:atlante_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
 const targets=sources.map(source=>{
  const data=JSON.parse(fs.readFileSync(path.join(process.argv[2],source.replace(':','__')+'.json')));
  const rawOnly=['GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
