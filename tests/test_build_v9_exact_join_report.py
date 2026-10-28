@@ -17,14 +17,14 @@ def candidate(root):
     source_dir = root / "sources"
     source_dir.mkdir(parents=True)
     national = {"schemaVersion": 1, "source": {"id": "FR:irve_static", "artifactSha256": "a" * 64},
-                "countries": [{"code": "FR"}], "cpos": [{"id": "cpo"}],
+                "countries": [{"code": "FR"}], "cpos": [{"id": "cpo", "country": "FR"}],
                 "stations": [{"id": "station", "cpoId": "cpo", "country": "FR"}],
                 "evses": [{"id": "n1", "stationId": "station", "cpoId": "cpo", "country": "FR",
                            "sourceEvseId": "FR*ABC*E1", "officialEvseId": "FR*ABC*E1"}],
                 "connectors": [{"id": "plug", "evseId": "n1", "sourceConnectorId": "1", "officialConnectorId": "1"}],
                 "offers": []}
     tariff = {"schemaVersion": 1, "source": {"id": "FR:exact_tariff", "artifactSha256": "b" * 64},
-              "countries": [{"code": "FR"}], "cpos": [{"id": "cpo2"}],
+              "countries": [{"code": "FR"}], "cpos": [{"id": "cpo2", "country": "FR"}],
               "stations": [{"id": "s2", "cpoId": "cpo2", "country": "FR"}],
               "evses": [{"id": "t1", "stationId": "s2", "cpoId": "cpo2", "country": "FR",
                          "sourceEvseId": "FR*ABC*E1", "officialEvseId": "FR*ABC*E1"}],
