@@ -6,6 +6,48 @@
   'use strict';
   const num=v=>{if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const money=v=>Math.round((Number(v)+Number.EPSILON)*1000000)/1000000;
+  // Monetary rule fields must be interpreted or rejected. A newly archived
+  // surcharge cannot silently disappear while the rest of a rule is ranked.
+  const knownRuleFields=new Set([
+    'afterMinutesCap','afterMinutesCapEnd','afterMinutesCapMode','afterMinutesCapStart',
+    'afterMinutesComponent','afterMinutesRate','afterMinutesThreshold','billing',
+    'chargePerMinute','chargingTimePerMinuteEur','chargingTimeStepSeconds',
+    'congestionStartSoc','congestionThresholdSource','congestionTimePerMinute',
+    'congestionTimeStepSeconds','connectedTimeAfterFreeStepSeconds',
+    'connectedTimeAfterInitialPerMinuteEur','connectedTimeBlockEur',
+    'connectedTimeBlockMinutes','connectedTimeBlockRounding','connectedTimeComponentEur',
+    'connectedTimeFreeMinutes','connectedTimeInitialFlatEur','connectedTimeInitialMinutes',
+    'connectedTimePerMinuteAfterFreeEur','connectedTimePerMinuteEur',
+    'connectedTimeStepSeconds','connectionFee','currency','days','daysOfWeek','end',
+    'energyRounding','energyStepWh','excludeHolidays','holidayOnly','idlePerMinute',
+    'maxCongestionPct','maxDurationMinutes','maxEnergyKwh','maxPowerKw',
+    'maxVehicleSoc','minCongestionPct','minDurationMinutes','minEnergyKwh',
+    'minPowerKw','minVehicleSoc','minimumSessionEur','mustEndSameLocalDay',
+    'ocpiCongestionDurationBands','ocpiDurationBands','parkingTimeStepSeconds',
+    'powerBands','pricePerKwh','pricePerMinute','reservationState','scope',
+    'sessionFeeEur','start','validFromDate','validThroughDate'
+  ]);
+  const billableField=/price|fee|rate|charge|parking|cap|minimum|step|round|tax|vat|surcharge|discount|tier/i;
+  function unhandledBillableField(pricing){
+    if(pricing?.type==='connected_kerb_midhope_guest_verified'){
+      const specialKnown=new Set(['type','verifiedSourceVersion','includesVat',
+        'energyPerKwhGbp','parkingPerStarted30minGbp','idleSupplementPerMinuteGbp']);
+      return Object.keys(pricing).find(key=>!specialKnown.has(key))||null;
+    }
+    const topKnown=new Set(['type','currency','timeZone','rules','componentGroups',
+      'minimumTotalEur','conditionalSessionFees','postChargeFee','priceSelectionBasis',
+      'ocpiFirstMatch','holidayCalendar','incompletePricingReason','verifiedSourceVersion',
+      'taxIncluded']);
+    if(pricing?.type==='kwh'||pricing?.type==='simple')topKnown.add('pricePerKwh');
+    for(const key of Object.keys(pricing||{}))
+      if(billableField.test(key)&&!topKnown.has(key))return key;
+    const rules=[...(Array.isArray(pricing?.rules)?pricing.rules:[]),
+      ...(Array.isArray(pricing?.componentGroups)?pricing.componentGroups:[])
+        .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];
+    for(const rule of rules)for(const key of Object.keys(rule||{}))
+      if(billableField.test(key)&&!knownRuleFields.has(key))return key;
+    return null;
+  }
   // Intl formatters are immutable and expensive to construct. Tariff amounts
   // are never cached; the local clock reading below is keyed by exact instant
   // and time zone, so a changed session date or DST side cannot reuse it.
@@ -827,6 +869,9 @@
     if(pricingParts.some(part=>part?.minPrice!=null||part?.maxPrice!=null||
        part?.min_price!=null||part?.max_price!=null))
       return{complete:false,reason:'unverified_ocpi_price_bound',offerId:offer?.id||null,timeZone};
+    const unhandled=unhandledBillableField(pricing);
+    if(unhandled)return{complete:false,reason:'unsupported_pricing_component',
+      field:unhandled,offerId:offer?.id||null,timeZone};
     const rules=[...(Array.isArray(pricing.rules)?pricing.rules:[]),
       ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
         .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];

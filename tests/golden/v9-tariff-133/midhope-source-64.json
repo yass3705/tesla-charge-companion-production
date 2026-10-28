@@ -1,0 +1,167 @@
+{
+  "snapshotId": "2026-10-15-v9-tesla-mac-ingress-verified",
+  "sourcePath": "snapshot-inputs/UK/sources/uk_connected_kerb_midhope_verified_v9.json.gz",
+  "sourceSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796",
+  "branchExpected": {
+    "weekday-paid": {
+      "status": "priced",
+      "total": 9.74928,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 1.60008,
+        "idleSupplement": 0.15
+      }
+    },
+    "weekday-before-open": {
+      "status": "priced",
+      "total": 8.94924,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 0.80004,
+        "idleSupplement": 0.15
+      }
+    },
+    "weekday-after-close": {
+      "status": "priced",
+      "total": 8.1492,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 0,
+        "idleSupplement": 0.15
+      }
+    },
+    "weekday-close-boundary": {
+      "status": "priced",
+      "total": 4.89964,
+      "components": {
+        "energy": 3.9996,
+        "parkingTime": 0.80004,
+        "idleSupplement": 0.1
+      }
+    },
+    "started-block-31": {
+      "status": "priced",
+      "total": 5.70968,
+      "components": {
+        "energy": 3.9996,
+        "parkingTime": 1.60008,
+        "idleSupplement": 0.11
+      }
+    },
+    "sunday-free": {
+      "status": "priced",
+      "total": 8.1492,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 0,
+        "idleSupplement": 0.15
+      }
+    },
+    "dst-fall-sunday": {
+      "status": "priced",
+      "total": 8.2992,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 0,
+        "idleSupplement": 0.3
+      }
+    },
+    "dst-winter-monday": {
+      "status": "priced",
+      "total": 9.74928,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 1.60008,
+        "idleSupplement": 0.15
+      }
+    },
+    "before-validity": {
+      "status": "uncomputable",
+      "reason": "before_observed_tariff"
+    },
+    "summer-saturday": {
+      "status": "priced",
+      "total": 9.74928,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 1.60008,
+        "idleSupplement": 0.15
+      }
+    },
+    "winter-before-open-exact": {
+      "status": "priced",
+      "total": 0,
+      "components": {
+        "energy": 0,
+        "parkingTime": 0,
+        "idleSupplement": 0
+      }
+    },
+    "winter-open-exact": {
+      "status": "priced",
+      "total": 0.80004,
+      "components": {
+        "energy": 0,
+        "parkingTime": 0.80004,
+        "idleSupplement": 0
+      }
+    },
+    "winter-before-close-exact": {
+      "status": "priced",
+      "total": 0.80004,
+      "components": {
+        "energy": 0,
+        "parkingTime": 0.80004,
+        "idleSupplement": 0
+      }
+    },
+    "winter-close-exact": {
+      "status": "priced",
+      "total": 0,
+      "components": {
+        "energy": 0,
+        "parkingTime": 0,
+        "idleSupplement": 0
+      }
+    },
+    "dst-spring-sunday": {
+      "status": "priced",
+      "total": 8.2992,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 0,
+        "idleSupplement": 0.3
+      }
+    },
+    "dst-spring-summer-monday": {
+      "status": "priced",
+      "total": 9.74928,
+      "components": {
+        "energy": 7.9992,
+        "parkingTime": 1.60008,
+        "idleSupplement": 0.15
+      }
+    }
+  },
+  "expectedConnectors": 4,
+  "expectedOffers": 4,
+  "expectedExactTuples": 4,
+  "scenarios": 16,
+  "evaluations": 64,
+  "fxEvidence": {
+    "date": "2026-10-15",
+    "base": "EUR",
+    "rates": {
+      "GBP": 0.845514
+    }
+  },
+  "yearRoundLocalScheduleProven": true,
+  "historicalWinterAnnotation": "not_confirmed_not_activated",
+  "priceFreshness": {
+    "observedAt": "2026-10-10",
+    "snapshotAsOf": "2026-10-15",
+    "validFrom": "2026-10-10",
+    "validTo": null,
+    "scope": "immutable_pin_only"
+  }
+}

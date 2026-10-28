@@ -19,4 +19,13 @@ for(const rule of [
   assert.equal(result.complete,false,'unknown or extra billed component must stay out of ranking');
   assert.equal(result.reason,'unsupported_pricing_component');
 }
-console.log('V9 simple pricing rejects unhandled billed dimensions PASS');
+for(const extra of [{parkingSurchargeEur:2},{taxRatePct:20},{tierFeeEur:1}]){
+  const result=pricing.evaluateOffer(offer({type:'rules',rules:[{
+    scope:'allDay',pricePerKwh:0.4,...extra}]}),session);
+  assert.equal(result.complete,false,'unknown rule component must prevent a partial quote');
+  assert.equal(result.reason,'unsupported_pricing_component');
+}
+const topLevel=pricing.evaluateOffer(offer({type:'rules',rules:[{
+  scope:'allDay',pricePerKwh:0.4}],parkingFeeEur:2}),session);
+assert.equal(topLevel.reason,'unsupported_pricing_component');
+console.log('V9 simple and compound pricing reject unhandled billed dimensions PASS');
