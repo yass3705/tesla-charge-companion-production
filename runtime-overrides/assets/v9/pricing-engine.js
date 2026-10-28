@@ -41,6 +41,9 @@
     if(pricing?.type==='kwh'||pricing?.type==='simple')topKnown.add('pricePerKwh');
     for(const key of Object.keys(pricing||{}))
       if(billableField.test(key)&&!topKnown.has(key))return key;
+    for(const group of Array.isArray(pricing?.componentGroups)?pricing.componentGroups:[])
+      for(const key of Object.keys(group||{}))
+        if(billableField.test(key)&&key!=='kind'&&key!=='rules')return key;
     const rules=[...(Array.isArray(pricing?.rules)?pricing.rules:[]),
       ...(Array.isArray(pricing?.componentGroups)?pricing.componentGroups:[])
         .flatMap(group=>Array.isArray(group?.rules)?group.rules:[])];

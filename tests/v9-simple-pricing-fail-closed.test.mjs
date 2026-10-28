@@ -28,4 +28,7 @@ for(const extra of [{parkingSurchargeEur:2},{taxRatePct:20},{tierFeeEur:1}]){
 const topLevel=pricing.evaluateOffer(offer({type:'rules',rules:[{
   scope:'allDay',pricePerKwh:0.4}],parkingFeeEur:2}),session);
 assert.equal(topLevel.reason,'unsupported_pricing_component');
+const groupLevel=pricing.evaluateOffer(offer({type:'component_groups',componentGroups:[{
+  kind:'ENERGY',rules:[{scope:'allDay',pricePerKwh:0.4}],extraFeeEur:2}]}),session);
+assert.equal(groupLevel.reason,'unsupported_pricing_component');
 console.log('V9 simple and compound pricing reject unhandled billed dimensions PASS');
