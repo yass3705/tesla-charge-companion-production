@@ -858,6 +858,12 @@
       const finalized=applyMinimumTotal(pricing,base.totalEur,base.components);return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:offer?.id||null,currency:offer?.currency||'EUR',timeZone};
     }
     if(pricing.type!=='rules'){
+      const simpleFields=new Set(['type','currency','timeZone','pricePerKwh',
+        'conditionalSessionFees','postChargeFee','minimumTotalEur',
+        'incompletePricingReason']);
+      if(!['kwh','simple'].includes(pricing.type)||
+         Object.keys(pricing).some(key=>!simpleFields.has(key)))
+        return{complete:false,reason:'unsupported_pricing_component',offerId:offer?.id||null};
       const rate=num(pricing.pricePerKwh);if(rate==null)return{complete:false,reason:'unsupported_pricing',offerId:offer?.id||null};
       const energy=Math.max(0,num(session.energyKwh)??0),base=money(rate*energy),conditional=evaluateConditionalSessionFees(pricing.conditionalSessionFees,session);
       if(conditional.complete===false)return{complete:false,reason:conditional.reason,offerId:offer?.id||null,conditionKind:conditional.conditionKind||null};

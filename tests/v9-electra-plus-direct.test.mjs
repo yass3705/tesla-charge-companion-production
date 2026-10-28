@@ -32,7 +32,7 @@ if(process.argv[2]){
   const sessionEngine=require(path.resolve(process.argv[2],'runtime/assets/v9/session-engine.js'));
   const pricedBase={...base,pricing:{...base.pricing,componentGroups:[base.pricing.componentGroups[0]]}};
   const pricingStation={...station,offers:[pricedBase,...shell.electraPlusOffers({...station,offers:[pricedBase]},['electra-plus-essential'])],evses:[{id:'FRELCE1',connectors:[{id:'CCS-1',kind:'DC',powerKw:150}]}]};
-  const quote=sessionEngine.evaluateStation(pricingStation,{energyKwh:30,durationMinutes:45,startAt:'2026-10-13T12:00:00+02:00',targetCurrency:'EUR'},
+  const quote=sessionEngine.evaluateStation(pricingStation,{energyKwh:30,durationMinutes:45,chargingMinutes:45,postChargeMinutes:0,startAt:'2026-10-13T12:00:00+02:00',targetCurrency:'EUR'},
     {selectedSubscriptions:['electra-plus-essential'],targetCurrency:'EUR',fxRates:{EUR:1}});
   const prices=[quote.best,...quote.alternatives].filter(Boolean);
   assert.equal(prices.find(item=>item.subscriptionId==='electra-plus-essential')?.total,12.7,'30 kWh at 0.39 €/kWh plus the unchanged 1 € fee');
