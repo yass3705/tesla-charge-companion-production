@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-28",
+  "branch": "rebuild/v9-20261020",
+  "candidateBundleId": "1d22bb3d91455b6c1cd7484345325b0908f82c447c56f0a41f33cc970ff8d1c1",
+  "sourceCount": 28,
+  "countries": ["BE", "CH", "DE", "ES", "FR", "GB", "IT", "MA", "NL"],
+  "deployed": false,
+  "tests": {
+    "powerMinuteNode": "PASS, six archived Moroccan offers and exact curve/band boundaries",
+    "powerMinuteFirefox": "PASS, pinned Agadir Direct 76.629483 MAD across 240 charge-curve segments; no source errors",
+    "belibExactEvse": "PASS with archived Stable/Data Lab inputs",
+    "iziviaFastOracle": "PASS with archived 2026-10-15 frozen input",
+    "nlZeroPriceStepMidnight": "PASS",
+    "afterMinutesCap": "PASS",
+    "ocpiComponentCoverage": "PASS",
+    "offerExactScope": "PASS",
+    "tariffLanes": "PASS",
+    "previewPackageTest": "PASS",
+    "previewHostingIntegrity": "PASS, 3499 files, 286270316 bytes, local only",
+    "nineCountryFirefoxMobile": "PASS, nine countries and mobile 390 px without horizontal overflow",
+    "publicSafetyScan": "PASS on Production and Data Lab",
+    "diffCheck": "PASS"
+  },
+  "localEvidence": [
+    "/private/tmp/tcc-v9-parity-browser-20261028.json",
+    "/private/tmp/tcc-v9-parity-multicountry-20261028.json"
+  ],
+  "gateDecision": "G2-G8 remain FAIL; GitHub handoffs and remote isolated preview not verified"
+}
