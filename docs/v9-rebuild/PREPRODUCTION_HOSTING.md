@@ -1,6 +1,6 @@
 # Hébergement isolé de TCC V9 — décision au 28 octobre 2026
 
-**Cloudflare Pages est abandonné par décision utilisateur. Aucun autre hébergeur n'est choisi ni autorisé.** Les anciennes instructions Pages de ce dossier sont obsolètes ; ne pas les exécuter. Aucun projet distant, URL de préproduction ou déploiement public n'est revendiqué.
+**Cloudflare Pages est abandonné. Netlify est autorisé par l'utilisateur le 28 octobre pour un projet de préproduction indépendant, en transfert manuel uniquement.** Aucun projet distant, URL de préproduction ou déploiement public n'est encore revendiqué.
 
 ## Paquet de recette conservé
 
@@ -14,4 +14,10 @@ Avant tout choix d'hébergement, conserver ces exigences vérifiables : origine 
 
 `scripts/check_v9_remote_preview.py` effectue les contrôles HTTP/SHA/noindex sur une URL isolée, quel que soit l'hébergeur compatible. Les recettes Firefox ciblées, neuf pays/mobile et le parcours de signalement doivent ensuite être rejoués sur **l'URL réellement publiée**. La validation locale ne remplace ni cette vérification distante ni les 120 handoffs GitHub Actions encore non vérifiés.
 
-La prochaine décision externe est le choix et l'autorisation explicite d'un hébergement isolé, avec les accès limités nécessaires à ce seul espace. Aucun accès au site public n'est requis. Le pilote Actions Data Lab est une autorisation distincte, décrit dans le dossier Data Lab `docs/v9-rebuild/GITHUB_ACTIONS_PILOT_PLAN_20261026.md`. Ne pas activer Actions, modifier `main` ou publier le site public pour préparer l'URL.
+## Préflight Netlify, sans transfert
+
+Le paquet passe `check_v9_preview_hosting.py` : 3 777 fichiers, 289 119 496 octets, plus grand fichier `runtime/data/v9/france-crosswalk.json` à 11 669 931 octets. Scan public du dossier autonome : **PASS**. Son fichier `_headers` demande `X-Robots-Tag: noindex, nofollow`, que Netlify sait interpréter pour les fichiers statiques. Selon la [documentation Netlify sur les tarifs](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/), le forfait Free est à 0 $/mois avec 300 crédits et un plafond strict sans recharge automatique. La [documentation de déploiement manuel](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/) prévoit un brouillon à URL unique sans connexion Git et sans `--prod`. Netlify [signale toutefois](https://docs.netlify.com/build/configure-builds/troubleshooting-tips/) que les fichiers de plus de 10 Mo peuvent échouer à l'envoi : le fichier de 11,7 Mo du paquet rend la compatibilité **non vérifiée** tant qu'un transfert réel n'a pas réussi. Aucun montant payant ni réduction silencieuse du paquet n'est autorisé.
+
+Accès manquant : aucun outil ou compte Netlify authentifié n'est configuré sur ce Mac. La [connexion CLI officielle](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/) utilise un jeton personnel lié au compte ; la documentation examinée ne prouve pas une portée limitée à un seul projet. Pour respecter la condition d'accès limité, utiliser un **compte ou espace Netlify dédié qui ne contient que cette préproduction**, puis une authentification locale de courte durée ; ne jamais transmettre le jeton dans le chat ou un dépôt. Ne pas utiliser `--allow-anonymous` : le projet doit être revendiqué sous une heure et ne fournirait pas une URL de recette durable. Une fois l'accès dédié fourni, créer le projet sans connexion Git, transférer uniquement le paquet avec le CLI en mode brouillon, vérifier ses limites réelles, HTTPS/SHA/noindex/fragments et les parcours Firefox distants. Une défaillance de taille arrête le transfert sans modifier le paquet immuable ni le site public.
+
+Le pilote Actions Data Lab a été exécuté puis arrêté séparément. Son résultat ne vaut pas déploiement Netlify et les 119 autres handoffs restent non vérifiés.
