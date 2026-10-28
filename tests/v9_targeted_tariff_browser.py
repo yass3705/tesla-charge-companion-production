@@ -19,6 +19,7 @@ const fs=require('fs'),path=require('path');
 globalThis.TCCV9Adapters={ukOpenFeeds:require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/uk-open-feeds.js'))};
 const adapter=require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/canonical-v9.js'));
 const sources=['FR:emsp_exact','FR:atlante_direct','IT:atlante_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
+if(fs.existsSync(path.join(process.argv[2],'FR__bump_national_exact.json')))sources.unshift('FR:bump_national_exact');
 const targets=sources.map(source=>{
  const data=JSON.parse(fs.readFileSync(path.join(process.argv[2],source.replace(':','__')+'.json')));
  const rawOnly=['GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
@@ -54,7 +55,7 @@ const target=arguments[0],done=arguments[1];
  document.getElementById('simMaxDistance').value='2';
  document.getElementById('simOperatorFilter').dataset.v9Mode='all';
  let area=await window.compare();
- if(!area)throw Error('No search area');
+ if(!area)throw Error('No search area: '+(localStorage.getItem('tccV9ProductionShellDiagnosticsV1')||''));
  const map=area.mapStations.find(st=>st.id===target.id);
  if(!map)throw Error('Archived target missing from search: '+target.id);
  if(map.page)area=await area.navigateToPage(map.page);

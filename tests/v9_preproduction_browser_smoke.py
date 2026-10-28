@@ -188,10 +188,17 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       pricedOutsideProved:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>{
                         const canonical=['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','FR:atlante_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact','GB:source_ev_pcpr_direct'].includes(o.metadata?.sourceId)&&o.metadata?.verified===true&&
                           ['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi','exact_canonical_emsp_evse','exact_canonical_connector_pcpr'].includes(o.metadata?.identityMode);
+                        const bump=o.metadata?.sourceId==='FR:bump_national_exact'&&
+                          o.metadata?.verified===true&&o.metadata?.identityMode==='exact_national_irve_evse'&&
+                          o.kind==='direct'&&o.currency==='EUR'&&
+                          o.evseIds?.length===1&&(s.evses||[]).some(evse=>
+                            evse.id===o.evseIds[0]&&evse.officialEvseId===o.metadata.sourceEvseId&&
+                            o.connectorIds?.length>0&&o.connectorIds.every(id=>
+                              (evse.connectors||[]).some(connector=>connector.id===id)));
                         const pinnedTesla=s.countryCode==='MA'&&o.sourceId==='tesla-global'&&o.currency==='MAD'&&
                           o.evseIds?.length===1&&(s.evses||[]).some(e=>e.id===o.evseIds[0])&&
                           o.pricing?.rules?.length>0&&o.pricing.rules.every(r=>r.billing==='powerMinute'&&r.currency==='MAD'&&r.powerBands?.length>0);
-                        return !(canonical||pinnedTesla);
+                        return !(canonical||bump||pinnedTesla);
                       }).length,0),
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       emspRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>

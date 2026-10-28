@@ -100,12 +100,24 @@
           const rawEvses=new Map(data.evses.map(row=>[row.id,row]));
           const rawConnectors=new Map(data.connectors.map(row=>[row.id,row]));
           const rawCpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
+          const bumpIndex={cpos:rawCpos,evses:rawEvses,connectors:new Map()};
+          if(id==='FR:bump_national_exact')for(const row of data.connectors){
+            const list=bumpIndex.connectors.get(row.evseId)||[];
+            list.push(row);bumpIndex.connectors.set(row.evseId,list);
+          }
           const offerCounts=new Map(),connectorOfferCounts=new Map();
           if(id==='BE:nap_static')for(const row of data.offers)
             offerCounts.set(row.scope?.evseId,(offerCounts.get(row.scope?.evseId)||0)+1);
           if(id==='NL:dotnl_static')for(const row of data.offers)
             connectorOfferCounts.set(row.scope?.connectorId,(connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
           const provedOffer=(fragment,offer)=>{
+            if(id==='FR:bump_national_exact'){
+              const raw=rawOffers.get(offer?.id);
+              const expected=raw&&adapter.proveBumpOffer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='FR'&&
+                fragment.evses.some(evse=>evse.id===raw.scope?.evseId)&&
+                JSON.stringify(offer)===JSON.stringify(expected));
+            }
             if(id==='FR:emsp_exact'){
               const raw=rawOffers.get(offer?.id),evse=rawEvses.get(raw?.scope?.evseId),source=raw?.rawOffer;
               const local=fragment.evses.find(row=>row.id===evse?.id);

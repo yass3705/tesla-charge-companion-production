@@ -391,5 +391,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments};
+  return{toFragments,proveBumpOffer:provedBumpOffer};
 });
