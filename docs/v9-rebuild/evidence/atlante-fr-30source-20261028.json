@@ -9,6 +9,7 @@
   "sourceCount": 30,
   "countries": ["BE", "CH", "DE", "ES", "FR", "GB", "IT", "MA", "NL"],
   "shardCount": 2439,
+  "validatedPackagePath": ".tcc-v9-cache/reproducible-30-atlante-fr-2026-10-28/site-currency-guard-complete",
   "preparedRejectedSources": 0,
   "exactFrenchNationalJoin": {
     "reportSha256": "a51cf107bdb1abe8b3bc9e4cf630ff9a91fdd800daf2af5e7ffe586d7a014628",
@@ -33,7 +34,8 @@
     "packageAndImportUnit": "PASS, eleven tests",
     "targetedFirefoxNineSources": "PASS, including FR Atlante complete session quote and exact scope",
     "nineCountryFirefoxMobile": "PASS, mobile 390 px without horizontal overflow",
-    "hostingIntegrity": "PASS, 3695 files and 287820132 bytes, local only"
+    "currencyGuard": "PASS, missing or conflicting currency is incalculable; explicit CHF stays CHF in shared and locked-session paths; packaged engine replay PASS",
+    "hostingIntegrity": "PASS, 3695 files and 287821513 bytes, local only"
   },
   "deployed": false,
   "gateDecision": "G2-G8 remain FAIL; 120 GitHub handoffs and remote isolated preview unverified"

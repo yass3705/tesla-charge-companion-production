@@ -118,6 +118,8 @@
   function evaluateSessionStartLockedOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=PricingEngine.offerTimeZone(offer,session);
     if(pricing.type!=='rules'||pricing.priceSelectionBasis!=='session_start_local_time')return null;
+    const currencyStatus=PricingEngine.offerCurrencyStatus(offer);
+    if(!currencyStatus.complete)return{...currencyStatus,offerId:text(offer?.id||offer?.offerId),timeZone};
     if((pricing.rules||[]).some(rule=>rule.billing==='powerMinute'||(num(rule.afterMinutesRate)??0)>0))return PricingEngine.evaluateOffer(offer,session);
     if(!timeZone)return{complete:false,reason:'missing_tariff_time_zone',offerId:text(offer?.id||offer?.offerId)};
     if(!PricingEngine.localDateParts(session.startAt,timeZone))return{complete:false,reason:'invalid_tariff_time_zone',offerId:text(offer?.id||offer?.offerId),timeZone};
@@ -128,7 +130,7 @@
     const finalized=PricingEngine.applyMinimumTotal(pricing,base.totalEur,base.components);
     return{
       complete:true,totalEur:finalized.totalEur,components:finalized.components,
-      offerId:text(offer?.id||offer?.offerId),currency:offer?.currency||'EUR',matchedRule:rule,
+      offerId:text(offer?.id||offer?.offerId),currency:currencyStatus.currency,matchedRule:rule,
       segmented:false,timeZone,priceSelectionBasis:'session_start_local_time'
     };
   }
@@ -159,6 +161,8 @@
 
   function evaluateTimelineOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=PricingEngine.offerTimeZone(offer,session);
+    const currencyStatus=PricingEngine.offerCurrencyStatus(offer);
+    if(!currencyStatus.complete)return{...currencyStatus,offerId:text(offer?.id||offer?.offerId),timeZone};
     if(pricing.type!=='rules'||pricing.priceSelectionBasis==='session_start_local_time'||!Array.isArray(session.chargeTimeline)||!session.chargeTimeline.length||!session.startAt)return null;
     if((pricing.rules||[]).some(rule=>rule.billing==='powerMinute'))return PricingEngine.evaluateOffer(offer,session);
     const rule=PricingEngine.matchingRule(pricing,session.startAt,timeZone);if(!rule)return null;
@@ -172,7 +176,7 @@
     const total=timeBase.totalEur+energyBase.totalEur+conditional.totalEur+post.totalEur;
     const components={...timeBase.components,energyTimeline:{segments:energyBase.segments,costEur:energyBase.totalEur},...(conditional.component?{conditionalSessionFees:conditional.component}:{}),...(post.component?{postCharge:post.component}:{})};
     const finalized=PricingEngine.applyMinimumTotal(pricing,total,components);
-    return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:text(offer?.id||offer?.offerId),currency:offer?.currency||'EUR',matchedRule:rule,segmented:true,energyTimelineApplied:true,timeZone};
+    return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:text(offer?.id||offer?.offerId),currency:currencyStatus.currency,matchedRule:rule,segmented:true,energyTimelineApplied:true,timeZone};
   }
 
   function congestionRules(pricing={}){

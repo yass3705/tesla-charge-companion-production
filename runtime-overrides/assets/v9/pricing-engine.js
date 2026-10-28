@@ -781,8 +781,24 @@
     const finalized=applyMinimumTotal(pricing,combined,components);
     return{...base,totalEur:finalized.totalEur,components:finalized.components,currency:offer.currency};
   }
+  function offerCurrencyStatus(offer){
+    const pricing=offer?.pricing||{};
+    const currencyParts=[offer?.currency,pricing.currency,
+      ...(Array.isArray(pricing.rules)?pricing.rules:[]).map(rule=>rule?.currency),
+      ...(Array.isArray(pricing.componentGroups)?pricing.componentGroups:[])
+        .flatMap(group=>Array.isArray(group?.rules)?group.rules.map(rule=>rule?.currency):[])];
+    const currencies=[...new Set(currencyParts.filter(value=>value!=null&&String(value).trim())
+      .map(value=>String(value).trim().toUpperCase()))];
+    if(!currencies.length)return{complete:false,reason:'currency_missing'};
+    if(currencies.length!==1||!/^[A-Z]{3}$/.test(currencies[0]))
+      return{complete:false,reason:'currency_conflict_or_invalid'};
+    return{complete:true,currency:currencies[0]};
+  }
   function evaluateOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=offerTimeZone(offer,session);
+    const currencyStatus=offerCurrencyStatus(offer);
+    if(!currencyStatus.complete)return{...currencyStatus,offerId:offer?.id||null,timeZone};
+    offer={...offer,currency:currencyStatus.currency};
     const warning=offer?.metadata?.incompletePricingReason||pricing.incompletePricingReason;
     if(warning)return{complete:false,reason:'incomplete_pricing',detail:String(warning),
       offerId:offer?.id||null,timeZone};
@@ -887,5 +903,5 @@
     const finalized=applyMinimumTotal(pricing,total,components);
     return{complete:!longConnection,totalEur:finalized.totalEur,components:finalized.components,longConnection,offerId:offer?.id||null,currency:offer?.currency||'EUR',matchedRule:rule,segmented,timeZone};
   }
-  return{evaluateAfterMinutesCap,congestionBillableMinutes,congestionFee,evaluateOffer,offerTimeZone,evaluateRule,evaluateSegmentedRules,evaluateComponentGroups,segmentableRule,ruleThresholdStatus,ruleThresholdMatches,matchingRuleDetailed,evaluateConditionalSessionFees,evaluatePostChargeFee,postChargeBillableMinutes,exemptWindowContains,matchingRule,ruleContains,ruleDayMatches,localDateParts,isHoliday,italianHolidayKeys,minuteOfDay,minutesUntilRuleBoundary,applyMinimumTotal};
+  return{evaluateAfterMinutesCap,congestionBillableMinutes,congestionFee,evaluateOffer,offerCurrencyStatus,offerTimeZone,evaluateRule,evaluateSegmentedRules,evaluateComponentGroups,segmentableRule,ruleThresholdStatus,ruleThresholdMatches,matchingRuleDetailed,evaluateConditionalSessionFees,evaluatePostChargeFee,postChargeBillableMinutes,exemptWindowContains,matchingRule,ruleContains,ruleDayMatches,localDateParts,isHoliday,italianHolidayKeys,minuteOfDay,minutesUntilRuleBoundary,applyMinimumTotal};
 });

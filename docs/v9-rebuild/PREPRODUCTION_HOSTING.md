@@ -2,7 +2,7 @@
 
 ## Candidat local le plus récent — 28 octobre
 
-Le paquet autonome `.tcc-v9-cache/reproducible-30-atlante-fr-2026-10-28/site` contient 30 sources sur neuf pays, bundle immuable `dfc5952b5d340131cb0b10c75c81147ca290a0befbf11a930d794ae78cb82d96`. Vérification SHA/hébergement **PASS** : 3 695 fichiers, 287 820 132 octets, `deployed=false`. Les parcours Firefox de neuf familles tarifaires, neuf pays et mobile 390 px passent, dont la nouvelle source Atlante France sur ses identifiants EVSE/prise propres. Les candidats précédents restent disponibles pour retour arrière.
+Le paquet autonome `.tcc-v9-cache/reproducible-30-atlante-fr-2026-10-28/site-currency-guard-complete` contient 30 sources sur neuf pays, bundle immuable `dfc5952b5d340131cb0b10c75c81147ca290a0befbf11a930d794ae78cb82d96`. Vérification SHA/hébergement **PASS** : 3 695 fichiers, 287 821 513 octets, `deployed=false`. Les parcours Firefox de neuf familles tarifaires, neuf pays et mobile 390 px passent, dont la nouvelle source Atlante France sur ses identifiants EVSE/prise propres. Le garde commun de devise empêche qu'une offre sans devise reçoive un prix EUR fictif. Les candidats précédents restent disponibles pour retour arrière.
 
 Préflight distant restant : aucun exécutable Wrangler, identifiant de compte Cloudflare ni nom de variable de jeton Pages n'est présent localement au dernier contrôle en lecture seule. Aucun projet Pages distinct ni URL n'est créé. Le transfert exigera une autorisation explicite et des identifiants Pages Edit pour un projet isolé ; ne jamais utiliser le workflow du site public. La recette locale et les portes G2–G8 restent incomplètes malgré ce paquet fonctionnel.
 
