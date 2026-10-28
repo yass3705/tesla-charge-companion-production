@@ -118,7 +118,7 @@
   function evaluateSessionStartLockedOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=PricingEngine.offerTimeZone(offer,session);
     if(pricing.type!=='rules'||pricing.priceSelectionBasis!=='session_start_local_time')return null;
-    if((pricing.rules||[]).some(rule=>(num(rule.afterMinutesRate)??0)>0))return PricingEngine.evaluateOffer(offer,session);
+    if((pricing.rules||[]).some(rule=>rule.billing==='powerMinute'||(num(rule.afterMinutesRate)??0)>0))return PricingEngine.evaluateOffer(offer,session);
     if(!timeZone)return{complete:false,reason:'missing_tariff_time_zone',offerId:text(offer?.id||offer?.offerId)};
     if(!PricingEngine.localDateParts(session.startAt,timeZone))return{complete:false,reason:'invalid_tariff_time_zone',offerId:text(offer?.id||offer?.offerId),timeZone};
     const rule=PricingEngine.matchingRule(pricing,session.startAt,timeZone);
@@ -160,6 +160,7 @@
   function evaluateTimelineOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=PricingEngine.offerTimeZone(offer,session);
     if(pricing.type!=='rules'||pricing.priceSelectionBasis==='session_start_local_time'||!Array.isArray(session.chargeTimeline)||!session.chargeTimeline.length||!session.startAt)return null;
+    if((pricing.rules||[]).some(rule=>rule.billing==='powerMinute'))return PricingEngine.evaluateOffer(offer,session);
     const rule=PricingEngine.matchingRule(pricing,session.startAt,timeZone);if(!rule)return null;
     const duration=Math.max(0,num(session.durationMinutes)??0),boundary=PricingEngine.minutesUntilRuleBoundary(rule,session.startAt,timeZone);
     if(boundary==null||!Number.isFinite(boundary)||duration<=boundary+1e-9)return null;

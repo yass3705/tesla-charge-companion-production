@@ -1,0 +1,12 @@
+# Targeted V7/V8 tariff parity, 28 October 2026
+
+This is a technical replay of archived inputs. It does not validate current supplier prices.
+
+| Family | Decision | Evidence and scope |
+| --- | --- | --- |
+| Tesla Morocco power minute | Regression confirmed and corrected locally | Stable `tesla-json.js` mapped `powerBands` to a configuration rate but forced EUR; V9 kept MAD and the bands but removed the mapping and excluded every Tesla offer at the pinned loader. The SHA pinned Morocco rules now enter Direct only when the source configuration and EVSE key match. The common engine bills the modelled delivered power at band/time boundaries in MAD. Its curve is an estimate. `tests/v9-power-minute.test.mjs` and `tests/v9_power_minute_browser.py` replay Agadir. Tesla/Mac acquisition is untouched. |
+| Belib Flex | Parity conserved for the proved current scope | Archived Belib official profiles contain 15 minute connected blocks, with day and subscriber variants; parking is excluded. The exact EVSE scoping and billable connected blocks are checked by `tests/belib-exact-evse.test.mjs` with Stable and Data Lab roots. The V8 `belibConnectedTimePerMinute` hook is an older connected-time implementation; it is not grounds to assign a site-level price to another connector. |
+| IZIVIA FAST | Calculation oracle conserved; candidate scope insufficient | `tests/izivia-fast-direct-pricing.test.mjs` passes the frozen offer file under `built-site-2026-10-15/snapshot-inputs/FR/direct/`: start-locked windows, excess connected minutes and started-minute steps. The archived offer lists stations, connector kind and power, but no exact connector/EVSE scope for the new canonical candidate. Keep its raw offer unranked until existing exact proof is linked. |
+| Netherlands Motion, Power and Fastned Gold | Evidence insufficient for a new canonical join | Stable `netherlands_direct_tariffs_v1.json` has operator aliases, subscription amounts and plan IDs, but no EVSE/connector IDs. V8 name/operator/power assignment cannot be reused as exact V9 scope. Preserve raw offers and plan metadata without ranking an unproved connector. `tests/v9-nl-zero-price-step-midnight.test.mjs` guards the current common engine. |
+
+Previously validated G5 exact EVSE/deduplication and G6 `afterMinutes` logic are retained. No source volumes, supplier endpoints or prices were re-audited. G2–G8 remain FAIL until their full gates and remote handoffs are proved.

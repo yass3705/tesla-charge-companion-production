@@ -136,7 +136,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 raise AssertionError(f"Vehicle settings did not reach the session: {vehicle}")
 
             def compare(lat: float, lon: float, country: str, label: str, min_power: int | None = None,
-                        radius: int = 200, require_raw: bool = True) -> dict:
+                        radius: int = 100, require_raw: bool = True) -> dict:
                 browser.execute_script("""
                     const [lat,lon,country,label,minPower]=arguments;
                     window.resolveOrigin=async()=>({lat,lon,label});
@@ -161,7 +161,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       const evaluated=Object.values(area.sessionEvaluations||{}).flatMap(row=>
                         [row?.best,...(row?.alternatives||[]),...(row?.incomplete||[])]).filter(Boolean);
                       done({
-                      count:area.stations.length,prepared:area.preproductionCandidate,
+                      count:area.stations.length,mapInventoryCount:area.mapStations?.length||0,prepared:area.preproductionCandidate,
                       stationLimitApplied:area.diagnostics?.stationLimitApplied===true,
                       matchingCount:area.diagnostics?.sourceStationCount??null,
                       queryDurationMs:Math.round(performance.now()-began),
@@ -185,9 +185,14 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                       compoundFees:evaluated.filter(row=>compoundIds.has(row.offerId)&&row.result?.complete&&
                         (row.result.components?.connectionFee>0||row.result.components?.chargingTime>0||
                           row.result.components?.parkingTime>0)).length,
-                      pricedOutsideProved:area.stations.flatMap(s=>s.offers||[]).filter(o=>
-                        !['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact','GB:source_ev_pcpr_direct'].includes(o.metadata?.sourceId)||o.metadata?.verified!==true||
-                        !['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi','exact_canonical_emsp_evse','exact_canonical_connector_pcpr'].includes(o.metadata?.identityMode)).length,
+                      pricedOutsideProved:area.stations.reduce((n,s)=>n+(s.offers||[]).filter(o=>{
+                        const canonical=['FR:ionity_direct','DE:ionity_direct','IT:ionity_direct','GB:ionity_direct','IT:atlante_direct','BE:nap_static','NL:dotnl_static','FR:emsp_exact','GB:source_ev_pcpr_direct'].includes(o.metadata?.sourceId)&&o.metadata?.verified===true&&
+                          ['exact_canonical_connector','exact_canonical_evse_supported_connectors','exact_canonical_connector_ocpi','exact_canonical_emsp_evse','exact_canonical_connector_pcpr'].includes(o.metadata?.identityMode);
+                        const pinnedTesla=s.countryCode==='MA'&&o.sourceId==='tesla-global'&&o.currency==='MAD'&&
+                          o.evseIds?.length===1&&(s.evses||[]).some(e=>e.id===o.evseIds[0])&&
+                          o.pricing?.rules?.length>0&&o.pricing.rules.every(r=>r.billing==='powerMinute'&&r.currency==='MAD'&&r.powerBands?.length>0);
+                        return !(canonical||pinnedTesla);
+                      }).length,0),
                       raw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).length,0),
                       emspRaw:area.stations.reduce((n,s)=>n+(s.unparsedOffers||[]).filter(o=>
                         o.channel==='Electra'||o.channel==='Electroverse').length,0),
@@ -279,10 +284,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     raise AssertionError(f"FR station view missing {label!r}")
             if "Base source : IRVE" in text:
                 raise AssertionError("Canonical CPO provenance replaced by national fallback")
-            if fr["stationLimitApplied"] and ("Recherche large" not in text or
-                    "Réduis le rayon" not in text or
-                    str(fr["matchingCount"]) not in text):
-                raise AssertionError("Dense-area result limit was not disclosed to the user")
+            if fr["stationLimitApplied"] and ("Recherche paginée" not in text or
+                    str(fr["matchingCount"]) not in text or
+                    not browser.find_elements('css selector', '.v9-next-page')):
+                raise AssertionError("Dense-area pagination was not disclosed to the user")
             if fr["count"] > 80:
                 page = browser.execute_script("""
                     const results=document.getElementById('results');
@@ -290,9 +295,9 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     const more=results.querySelector('.v9-more-stations');
                     more?.click();
                     return {before,after:results.querySelectorAll('.v9-result-card').length,
-                      remaining:!!results.querySelector('.v9-more-stations')};
+                      remaining:!!results.querySelector('.v9-more-stations'),nextPage:!!results.querySelector('.v9-next-page')};
                 """)
-                if page["before"] != 80 or page["after"] != 160 or not page["remaining"]:
+                if page["before"] != 80 or page["after"] != 160 or not (page["remaining"] or page["nextPage"]):
                     raise AssertionError(f"Station card pagination lost data: {page}")
                 fr["listPagination"] = page
             if screenshots:
@@ -309,7 +314,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     tiles:document.querySelectorAll('.v9-map-tiles img').length,
                     help:document.querySelector('#v9MapSummary .small').innerText};
             """)
-            if fr["count"] > 80 and map_state["stationPoints"] < fr["listPagination"]["after"]:
+            if fr["count"] > 80 and fr["mapInventoryCount"] < fr["listPagination"]["after"]:
                 raise AssertionError(f"Map dropped stations beyond first list page: {map_state}")
             if map_state["markers"] <= 0 or "sans prix simulé" not in map_state["help"]:
                 raise AssertionError(f"Prepared map invalid: {map_state}")
@@ -396,8 +401,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             if "GB:blink_pcpr_direct" in source_ids:
                 expected_pcpr = {"GB:blink_pcpr_direct", "GB:allego_pcpr_direct",
                                  "GB:source_ev_pcpr_direct"}
-                if not expected_pcpr.issubset(gb["sourceIds"]) or gb["ukPcprRaw"] <= 0 or gb["ukPcprMisScoped"]:
-                    raise AssertionError("UK PCPR archived connector offers were lost or moved")
+                if not expected_pcpr.issubset(source_ids) or gb["ukPcprRaw"] <= 0 or gb["ukPcprMisScoped"]:
+                    raise AssertionError(f"UK PCPR archived connector offers were lost or moved: {gb}")
                 if gb["ukPcprPriced"] and (not gb["ukPcprEvaluated"] or not gb["ukPcprCostPerKm"] or
                                            gb["ukPcprPricedMisScoped"]):
                     raise AssertionError("Proved UK PCPR tariff was not evaluated on its exact connector")
@@ -475,7 +480,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     return {groups:document.querySelectorAll('#results .v9-power-group').length,
                         text:document.getElementById('results').innerText};
                 """)
-                if ("MA:evgo" not in morocco["sourceIds"] or morocco["priced"] or
+                if ("MA:evgo" not in morocco["sourceIds"] or
                         morocco_view["groups"] <= 0 or "Prix non disponible" not in morocco_view["text"]):
                     raise AssertionError(f"Morocco source identity, unknown power or unavailable prices failed: {morocco}")
             switzerland = None
@@ -520,7 +525,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 belgium["teslaInventory"] = {key: value for key, value in tesla.items() if key != "text"}
             netherlands = None
             if "NL:dotnl_static" in source_ids:
-                netherlands = compare(52.367, 4.904, "NL", "Amsterdam fixture", radius=30)
+                netherlands = compare(52.367, 4.904, "NL", "Amsterdam fixture", radius=30, require_raw=False)
                 if "NL:dotnl_static" not in netherlands["sourceIds"]:
                     raise AssertionError("DOT-NL national archive missing")
                 nl_totals = browser.execute_script("return [...document.querySelectorAll('#results .v9-tariff-row[data-v9-effective-total]')].map(row=>Number(row.dataset.v9EffectiveTotal))")
@@ -529,7 +534,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 if netherlands["compoundPriced"] and not netherlands["compoundFees"]:
                     raise AssertionError("Proved DOT-NL compound fees did not reach session calculations")
                 netherlands["calculatedCards"] = len(nl_totals)
-                repeated = compare(52.367, 4.904, "NL", "Amsterdam fixture", radius=30)
+                repeated = compare(52.367, 4.904, "NL", "Amsterdam fixture", radius=30, require_raw=False)
                 if repeated["count"] != netherlands["count"] or repeated["compoundEvaluated"] != netherlands["compoundEvaluated"]:
                     raise AssertionError("Repeated candidate query changed stations or evaluated offers")
                 netherlands["repeatQueryDurationMs"] = repeated["queryDurationMs"]

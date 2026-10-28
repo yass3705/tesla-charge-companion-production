@@ -198,7 +198,7 @@
   function pinnedTeslaInventory(w,base,source,expectedSha){
     if(!/^[a-f0-9]{64}$/.test(String(expectedSha||''))||source?.id!=='tesla-global'||
        source.adapter!=='tesla-json'||source.path!=='data/tesla_stations.json'||
-       !w.TCCV9Adapters?.teslaJson?.normalizePayload||!w.TCCV9PreparedCandidate?.sha256Hex)
+       !w.TCCV9Adapters?.teslaJson?.normalizePayload||!w.TCCV9Adapters?.teslaJson?.provedMoroccoPowerMinute||!w.TCCV9PreparedCandidate?.sha256Hex)
       throw new Error('pinned Tesla inventory unavailable');
     let promise=null;
     return async function(){
@@ -207,10 +207,16 @@
         const bytes=new Uint8Array(await response.arrayBuffer());
         if(await w.TCCV9PreparedCandidate.sha256Hex(bytes,w.crypto)!==expectedSha)
           throw new Error('Tesla inventory SHA mismatch');
-        const stations=w.TCCV9Adapters.teslaJson.normalizePayload(JSON.parse(new TextDecoder().decode(bytes)));
-        // The historic Tesla snapshot remains available as physical inventory.
-        // Its old tariff payload has no candidate oracle, so it cannot enter ranking.
-        return stations.map(station=>({...station,offers:[],status:{state:'unknown',
+        const payload=JSON.parse(new TextDecoder().decode(bytes));
+        const rawStations=Array.isArray(payload)?payload:payload?.stations||[];
+        const stations=w.TCCV9Adapters.teslaJson.normalizePayload(payload);
+        const rawById=new Map(rawStations.map(raw=>[String(raw.id),raw]));
+        if(rawById.size!==rawStations.length)throw new Error('Tesla inventory duplicate source IDs');
+        // Only the SHA-pinned Moroccan power-minute rules with exact configuration scope
+        // have a historical calculation oracle. Other Tesla offers remain excluded.
+        return stations.map(station=>({...station,
+          offers:w.TCCV9Adapters.teslaJson.provedMoroccoPowerMinute(rawById.get(station.sourceStationId),station),
+          status:{state:'unknown',
           updatedAt:station.status?.updatedAt||null,sourceId:'tesla-global'}}));
       }).catch(error=>{promise=null;throw error;});
       return promise;
@@ -301,7 +307,7 @@
         for(const band of rule.powerBands){
           const lower=num(band?.minKw),upper=num(band?.maxKw),rate=formatRate(band?.ratePerMinute,currency,'min');
           if(!rate)continue;
-          const range=lower==null?'':upper==null||upper>=1000?' (≥ '+lower+' kW)':' ('+lower+'–'+upper+' kW)';
+          const range=lower==null?'':upper==null||upper>=1000?' (≥ '+lower+' kW délivrés)':' ('+lower+'–'+upper+' kW délivrés)';
           const label=rate+range;if(!seen.has(label)){seen.add(label);labels.push(label);}
         }
         const fee=num(rule.connectionFee);
@@ -351,6 +357,7 @@
   }
   function appliedTariffRateLabels(item,offer){
     const result=item?.result||{},components=result.components||{};
+    if(components.powerMinute)return tariffRateLabels(offer);
     const charged=(value,key)=>{
       if(!value||typeof value!=='object')return false;
       if((num(value[key])??num(value[key]?.totalEur)??0)>0)return true;
@@ -638,7 +645,7 @@
     const cost=value=>typeof value==='object'&&value!==null?
       (value.costEur??value.costGbp??value.totalEur):value;
     for(const [key,label] of [
-      ['energy','Énergie'],['chargingTime','Temps de charge'],
+      ['energy','Énergie'],['powerMinute','Charge selon la puissance délivrée'],['chargingTime','Temps de charge'],
       ['connectionFee','Frais fixes'],['sessionFee','Frais de session'],
       ['connectedTimePerMinute','Temps connecté'],['connectedTimeBlocks','Temps connecté par bloc'],
       ['connectedTimeAfterFree','Temps connecté après franchise'],
@@ -711,6 +718,7 @@
       const history=detail?'<details class="v9-tariff-detail" style="grid-column:1/-1;font-size:12px"><summary>Détail du tarif · '+esc(category.label)+'</summary>'+
         (fullLabels.length?'<div>Grilles et conditions : '+esc(fullLabels.join(' · '))+'</div>':'')+
         feeRows+preauthorisationRow+
+        (billed.powerMinute?.estimatedFromChargeCurve?'<div>Estimation selon la courbe de charge du véhicule ; la puissance réellement délivrée peut varier.</div>':'')+
         (source?'<div>Source : '+esc(source)+'</div>':'')+(sourceDate?'<div>Date : '+esc(sourceDate)+'</div>':'')+
         '<div>Offre : '+esc(detail.id||item?.offerId||'')+'</div></details>':'';
       return'<div class="v9-tariff-row'+(best?' v9-best-tariff':'')+'" role="listitem" data-v9-lane-label="'+esc(category.label)+'" data-v9-tariff-state="'+esc(state.status)+'"'+totalAttr+congestionAttr+' style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 10px;padding:8px 10px;border:1px solid '+(best?'#fff':'#343a42')+';border-radius:8px;background:'+category.color+';color:#15171b;min-width:0;'+(best?'font-weight:800;box-shadow:0 0 0 2px #fff':'')+'">'+

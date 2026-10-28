@@ -239,6 +239,7 @@
       durationBands:bands.length, included:true,totalEur:money(cost)};
   }
   function evaluateRule(rule,session={}){
+    if(rule?.billing==='powerMinute')return{complete:false,reason:'power_minute_requires_full_profile'};
     // Legacy afterMinutesRate is not enough: the source must say whether it
     // applies to charging TIME or idle PARKING_TIME. Do not return an exact
     // amount while silently omitting the surcharge.
@@ -702,6 +703,74 @@
       nightMinutes:money(nightMinutes),nightWindowCount:nightTotals.size,
       uncappedCostEur:money(chargedMinutes*rate)};
   }
+  // Restored from the archived 2026-10-10 Tesla extension. Split at exact
+  // delivered-power and tariff boundaries, not at sampled minute midpoints.
+  function evaluatePowerMinute(offer,session,timeZone){
+    const pricing=offer.pricing,rules=pricing.rules;
+    const fail=reason=>({complete:false,reason,offerId:offer.id||null,timeZone});
+    if(rules.some(r=>r.billing!=='powerMinute'))return fail('mixed_power_minute_billing_modes');
+    const duration=num(session.chargingMinutes),start=new Date(session.startAt||'');
+    if(duration==null||duration<0||duration>10080||Number.isNaN(start.getTime())||!timeZone)
+      return fail('power_minute_requires_duration_start_timezone');
+    const source=session.powerSegments??session.chargeTimeline;
+    if(duration>0&&(!Array.isArray(source)||!source.length))return fail('delivered_power_curve_required');
+    const rows=(source||[]).map(row=>{
+      const a=num(row.startMin??row.offsetMinutes),d=num(row.durationMinutes);
+      return{start:a,end:num(row.endMin)??(a!=null&&d!=null?a+d:null),power:num(row.powerKw)};
+    }).sort((a,b)=>a.start-b.start);
+    // The archived charge model rounds every offset and duration to 1e-6 min.
+    // Reconcile only that serialization noise; material gaps still fail closed.
+    const curvePrecision=2e-6;
+    let cursor=0;
+    for(const row of rows){
+      if(row.start==null||row.end==null||row.power==null||row.power<0||row.end<=row.start||Math.abs(row.start-cursor)>curvePrecision)
+        return fail('delivered_power_curve_gap_or_overlap');
+      row.start=cursor;
+      cursor=row.end;
+    }
+    if(Math.abs(cursor-duration)>curvePrecision)return fail('delivered_power_curve_duration_mismatch');
+    for(const rule of rules){
+      if(!Array.isArray(rule.powerBands)||!rule.powerBands.length||rule.powerBands.some(b=>
+        num(b.minKw)==null||num(b.maxKw)==null||num(b.ratePerMinute)==null||b.minKw<0||b.maxKw<=b.minKw||b.ratePerMinute<0))
+        return fail('invalid_power_minute_bands');
+    }
+    const minimums=[...new Set(rules.map(r=>num(r.minimumSessionEur)))];
+    if(minimums.length>1)return fail('power_minute_varying_minimum_unverified');
+    const clean=rules.map(rule=>{
+      const r={...rule,billing:'kwh',minimumSessionEur:null};
+      for(const key of ['powerBands','pricePerMinute','chargePerMinute','chargingTimePerMinuteEur','connectedTimePerMinuteEur'])delete r[key];
+      return r;
+    });
+    const base=evaluateOffer({...offer,pricing:{...pricing,rules:clean,minimumTotalEur:null}},session);
+    if(!base.complete)return base;
+    let total=0;const segments=[];
+    for(const row of rows){
+      let offset=row.start;
+      while(offset<row.end-1e-9){
+        const at=new Date(start.getTime()+offset*60000);
+        const selected=pricing.priceSelectionBasis==='session_start_local_time'?start:at;
+        const match=matchingRuleDetailed(pricing,selected,timeZone,session);
+        if(match.unknown||!match.rule)return fail(match.reason||'power_minute_tariff_missing');
+        const rule=match.rule,maximum=Math.max(...rule.powerBands.map(b=>Number(b.maxKw)));
+        const bands=rule.powerBands.filter(b=>row.power>=b.minKw&&(row.power<b.maxKw||(row.power===maximum&&b.maxKw===maximum)));
+        if(bands.length!==1)return fail('delivered_power_outside_or_overlapping_bands');
+        const boundary=pricing.priceSelectionBasis==='session_start_local_time'?Infinity:minutesUntilRuleBoundary(rule,at,timeZone);
+        if(boundary==null||boundary<=0)return fail('power_minute_tariff_boundary_unresolved');
+        const slice=Math.min(row.end-offset,boundary),rate=Number(bands[0].ratePerMinute);
+        total+=slice*rate;
+        segments.push({offsetMinutes:offset,durationMinutes:slice,powerKw:row.power,ratePerMinute:rate,costNative:money(slice*rate)});
+        offset+=slice;if(segments.length>4096)return fail('power_minute_segmentation_guard');
+      }
+    }
+    const amount=money(total),components={...base.components,powerMinute:{costEur:amount,costNative:amount,
+      currency:offer.currency,chargingMinutes:duration,segments,estimatedFromChargeCurve:!session.powerSegments}};
+    let combined=money(base.totalEur+amount);
+    if(minimums[0]!=null&&combined<minimums[0]){
+      components.minimumSession={minimumEur:minimums[0],preMinimumTotalEur:combined,topUpEur:money(minimums[0]-combined)};combined=minimums[0];
+    }
+    const finalized=applyMinimumTotal(pricing,combined,components);
+    return{...base,totalEur:finalized.totalEur,components:finalized.components,currency:offer.currency};
+  }
   function evaluateOffer(offer,session={}){
     const pricing=offer?.pricing||{},timeZone=offerTimeZone(offer,session);
     const warning=offer?.metadata?.incompletePricingReason||pricing.incompletePricingReason;
@@ -750,6 +819,7 @@
       try{dateFormatter('en-GB',{timeZone});}
       catch(_){return{complete:false,reason:'invalid_tariff_time_zone',offerId:offer?.id||null,timeZone};}
     }
+    if(pricing.type==='rules'&&rules.some(r=>r.billing==='powerMinute'))return evaluatePowerMinute(offer,session,timeZone);
     if(pricing.type==='component_groups'){
       const base=evaluateComponentGroups(pricing,session,timeZone);if(base.complete===false)return{...base,offerId:offer?.id||null,timeZone};
       const finalized=applyMinimumTotal(pricing,base.totalEur,base.components);return{complete:true,totalEur:finalized.totalEur,components:finalized.components,offerId:offer?.id||null,currency:offer?.currency||'EUR',timeZone};

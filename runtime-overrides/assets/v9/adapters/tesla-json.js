@@ -7,6 +7,37 @@
   const text=v=>String(v==null?'':v).trim();
   const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
 
+  function normalizedPricing(pricing,powerKw){
+    const out=clone(pricing);if(!out||!Array.isArray(out.rules))return out;
+    out.rules=out.rules.map(rule=>{
+      const next={...rule};
+      if(next.pricePerMinute==null&&Array.isArray(next.powerBands)){
+        const bands=next.powerBands;
+        const ceiling=Math.max(...bands.map(b=>Number(b?.maxKw)));
+        const band=bands.find(b=>Number.isFinite(Number(b?.minKw))&&Number.isFinite(Number(b?.maxKw))&&
+          powerKw>=Number(b.minKw)&&(powerKw<Number(b.maxKw)||powerKw===ceiling&&Number(b.maxKw)===ceiling));
+        if(band&&Number.isFinite(Number(band.ratePerMinute)))next.pricePerMinute=Number(band.ratePerMinute);
+      }
+      return next;
+    });
+    return out;
+  }
+  function provedMoroccoPowerMinute(raw,station){
+    if(text(raw?.countryCode).toUpperCase()!=='MA'||station?.countryCode!=='MA')return[];
+    const configs=configRows(raw);
+    return (station.offers||[]).filter(offer=>{
+      const cfg=configs.find(row=>text(row?.id)===offer.evseIds?.[0]);
+      const pricing=cfg?.pricing||raw?.pricing;
+      if(!cfg||!pricing||pricing.type!=='rules'||!Array.isArray(pricing.rules)||!pricing.rules.length||
+         offer.evseIds?.length!==1||!station.evses?.some(evse=>evse.id===offer.evseIds[0])||
+         offer.currency!=='MAD')return false;
+      return pricing.rules.every(rule=>rule.billing==='powerMinute'&&rule.currency==='MAD'&&
+        Array.isArray(rule.powerBands)&&rule.powerBands.length>0&&
+        rule.powerBands.every(b=>Number.isFinite(Number(b.minKw))&&Number.isFinite(Number(b.maxKw))&&
+          Number(b.maxKw)>Number(b.minKw)&&Number.isFinite(Number(b.ratePerMinute))&&Number(b.ratePerMinute)>=0));
+    });
+  }
+
   function configRows(raw){
     if(Array.isArray(raw?.chargingConfigurations)&&raw.chargingConfigurations.length)return raw.chargingConfigurations;
     return [{id:`${raw?.id||'tesla'}:default`,label:'Tesla',kind:raw?.kind||'DC',powerKw:Number(raw?.powerKw||0),stalls:Number(raw?.stalls||0),pricing:raw?.pricing||null}];
@@ -41,8 +72,9 @@
         offers.push({
         id:`tesla-direct:${evseId}`,
         provider:'Tesla',kind:'direct',subscriptionId:null,countries:[text(raw?.countryCode).toUpperCase()||'*'],currency:currency||'EUR',
-        evseIds:[evseId],pricing:clone(pricing),priority:100,
+        evseIds:[evseId],pricing:normalizedPricing(pricing,Number(cfg?.powerKw||raw?.powerKw)),priority:100,
         metadata:{source:'Tesla canonical catalogue',sourceUpdatedAt:raw.lastUpdated||null,
+          ...(text(raw.countryCode).toUpperCase()==='MA'?{timeZone:'Africa/Casablanca'}:{}),
           ...(potentialFee?{potentialCongestionFee:potentialFee}:{}),
           ...(currency?{}:{incompletePricingReason:'tesla_source_currency_ambiguous'})}
       });
@@ -75,5 +107,5 @@
     };
   }
 
-  return{normalizeStation,normalizePayload,createLoader,pricingCurrency,potentialCongestionFee};
+  return{normalizeStation,normalizePayload,createLoader,pricingCurrency,potentialCongestionFee,normalizedPricing,provedMoroccoPowerMinute};
 });

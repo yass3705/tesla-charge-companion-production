@@ -255,6 +255,7 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
             ("runtime-overrides/assets/v9/session-engine.js", "session-engine.js"),
             ("runtime-overrides/assets/v9/map-price-engine.js", "map-price-engine.js"),
             ("runtime-overrides/assets/v9/adapters/uk-open-feeds.js", "adapters/uk-open-feeds.js"),
+            ("runtime-overrides/assets/v9/adapters/tesla-json.js", "adapters/tesla-json.js"),
         ):
             output = assets / target
             output.parent.mkdir(parents=True, exist_ok=True)
