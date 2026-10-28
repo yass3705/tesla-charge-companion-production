@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-28",
+  "branch": "rebuild/v9-20261020",
+  "candidateBundleId": "946a4229a97f82c82988e27aeb5f4b817cc43f1f3fb87b664c05e1141aa44c1b",
+  "sourceCount": 29,
+  "unchangedPreviousSourceHashes": 28,
+  "newSource": "FR:allego_direct",
+  "newSourceArtifactSha256": "7c860dbe4d6c428d307dc589d8c682660f213e9a3c5f5c4ad3aff739d0ad6386",
+  "preparation": "PASS, 29 accepted, zero rejected",
+  "sharding": "PASS, 2333 fragments with SHA and spatial bounds",
+  "exactFrenchJoin": {
+    "reportSha256": "4a2ecacfb75d561996e59be5431d185b6cc741719153502dd07f310eec4a7e54",
+    "allegoMatchedOffers": 1116,
+    "allegoUnmatchedOffers": 11,
+    "allegoStationsWithAtLeastOneExactEvse": 154,
+    "distinctNationalStationsForAllegoMatches": 179,
+    "allegoStationsWithMultipleNationalStationMatches": 25,
+    "stationMergeDecision": "No station-level merge: one Allego source station may refer to multiple national station IDs. Keep the exact EVSE relation in the report; do not spread its raw offer to other connectors or create a calculated price. Counts are diagnostics, never acceptance thresholds."
+  },
+  "tests": {
+    "importIndependentClone": "PASS, eight unit tests; imported copy mutation leaves immutable source unchanged",
+    "candidateMap": "PASS",
+    "shardedLoader": "PASS",
+    "shardAndPackageUnit": "PASS, three tests",
+    "hostingIntegrity": "PASS, 3589 files, 286996612 bytes, local only",
+    "firefoxNineCountryMobile": "PASS, candidate bundle loaded; nine countries, mobile 390 px without horizontal overflow; no raw offer promoted to pricing",
+    "firefoxAllegoGaillac": "PASS, archived station card visible with four exact source EVSE and four raw offers; zero connector invented, zero priced offer; Tarif incalculable or Prix non disponible visible"
+  },
+  "deployed": false,
+  "gateDecision": "G2-G8 remain FAIL; 120 GitHub handoffs unverified; no remote isolated preview URL"
+}
