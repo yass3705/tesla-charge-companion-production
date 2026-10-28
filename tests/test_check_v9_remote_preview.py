@@ -29,21 +29,21 @@ class RemotePreviewCheckTests(unittest.TestCase):
                 path.write_bytes(body)
 
             def read(url):
-                path = url.split("preview.pages.dev/", 1)[1]
+                path = url.split("preview.example.org/", 1)[1]
                 return files[path], {"x-robots-tag": "noindex"}
 
             with patch("check_v9_remote_preview.check", return_value={"bundleId": "pinned"}):
-                result = verify(site, "https://preview.pages.dev/", read)
+                result = verify(site, "https://preview.example.org/", read)
                 self.assertEqual(result["status"], "remote_static_verified")
                 self.assertFalse(result["browserVerified"])
                 with self.assertRaisesRegex(ValueError, "Public TCC origin"):
                     verify(site, "https://teslachargecompanion.com/", read)
                 with self.assertRaisesRegex(ValueError, "Preview must use HTTPS"):
-                    verify(site, "http://preview.pages.dev/", read)
+                    verify(site, "http://preview.example.org/", read)
                 with self.assertRaisesRegex(ValueError, "noindex"):
-                    verify(site, "https://preview.pages.dev/", lambda url: (read(url)[0], {}))
+                    verify(site, "https://preview.example.org/", lambda url: (read(url)[0], {}))
                 with self.assertRaisesRegex(ValueError, "SHA mismatch"):
-                    verify(site, "https://preview.pages.dev/", lambda url: (
+                    verify(site, "https://preview.example.org/", lambda url: (
                         b"corrupt" if url.endswith("bridge.js") else read(url)[0],
                         {"x-robots-tag": "noindex"}))
 
