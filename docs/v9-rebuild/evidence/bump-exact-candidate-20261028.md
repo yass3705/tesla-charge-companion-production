@@ -1,0 +1,9 @@
+# Bump Direct exact EVSE : adaptateur candidat
+
+L'adaptateur canonique V9 raccorde les règles Bump déjà compilées dans Data Lab uniquement lorsque l'EVSE officiel de l'offre, celui de la base nationale et celui de la ligne source sont identiques, avec opérateur national `BUMP` et identifiants des prises nationales conservés. Les 1 353 offres Direct de la jointure archivée sont calculables par le moteur actuel sur la session de référence ; elles restent sur leur EVSE exact. Une composante inconnue garde l'offre brute hors classement.
+
+L'oracle historique Bump de 0,555 € fixe et 0,01 €/minute pendant 50 minutes donne toujours **1,055 €** pour 60 minutes connectées dont 10 après charge. Un cas réel archivé de stationnement après la franchise donne **6,40 €** ; un frais conditionnel énergie/durée donne **5,50 €** dans le scénario testé. Les tests calculent leurs attentes depuis les composantes archivées et vérifient séparément leurs horloges et conditions. Le test compare la règle transmise au moteur à la règle compilée archivée, sans changer un prix.
+
+Tests : `v9-bump-archived-exact` sur le candidat Data Lab SHA `b5e66cac67cb25022c9e43291cbfdb6ba38db8ab8d5abac8363fdc05b1131286`, `canonical-v9-adapter`, `v9-data-engine-radius-identity`, `v9-ocpi-component-coverage`, oracle de session complète empaquetée sur `site-planner-missing-energy`, classement global cinq modes et `v9-after-minutes-cap` **PASS**. Le test de fusion présente une seule station pour les deux fragments de même identité nationale et conserve toutes ses offres exactes.
+
+Ce code reste sur la branche de reconstruction ; le paquet isolé à 30 sources n'a pas été modifié ni déployé. **G3/G5/G6/G8 FAIL** jusqu'au nouvel import/paquet multi-source, à sa recette navigateur et à la preuve d'hébergement distant. Le manque d'espace disque est une contrainte concrète pour empaqueter le candidat étendu sans supprimer un retour arrière validé.

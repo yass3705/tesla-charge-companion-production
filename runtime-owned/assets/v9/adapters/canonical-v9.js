@@ -80,6 +80,54 @@
       metadata:{verified:true,identityMode:'exact_canonical_connector',sourceId:data.source.id,
         artifactSha256:data.source.artifactSha256}};
   }
+  function provedBumpOffer(data,offer,index){
+    if(data.source?.id!=='FR:bump_national_exact'||offer.channel!=='Direct'||
+       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const evse=index.evses.get(offer.scope?.evseId),cpo=index.cpos.get(evse?.cpoId);
+    const raw=offer.rawOffer,source=raw?.compiledOffer,point=raw?.sourcePoint;
+    const connectors=index.connectors.get(evse?.id)||[];
+    if(!evse||cpo?.sourceOperatorId!=='BUMP'||
+       evse.officialEvseId!==offer.officialEvseId||offer.officialEvseId!==point?.idPdcItinerance||
+       point?.rankable!==true||!source||source.id!==offer.sourceOfferId||
+       source.verifiedScope!=='exact_evse'||source.currency!=='EUR'||
+       !Array.isArray(source.evseIds)||!source.evseIds.includes(evse.officialEvseId)||
+       !Array.isArray(source.metadata?.tariffIds)||
+       !source.metadata.tariffIds.includes(point.tariffId)||
+       !connectors.length||connectors.some(row=>row.evseId!==evse.id)||
+       source.pricing?.type!=='rules'||!Array.isArray(source.pricing.rules)||
+       source.pricing.rules.length!==1)return null;
+    const pricing=source.pricing,rule=pricing.rules[0];
+    const allowedPricing=new Set(['type','rules','minimumTotalEur','conditionalSessionFees','postChargeFee']);
+    const allowedRule=new Set(['scope','start','end','currency','pricePerKwh',
+      'chargingTimePerMinuteEur','sessionFeeEur','afterMinutesComponent',
+      'afterMinutesRate','afterMinutesThreshold']);
+    if(Object.keys(pricing).some(k=>!allowedPricing.has(k))||
+       Object.keys(rule).some(k=>!allowedRule.has(k))||
+       rule.scope!=='allDay'||rule.start!=='00:00'||rule.end!=='24:00'||
+       rule.currency!=='EUR'||
+       ['pricePerKwh','chargingTimePerMinuteEur','sessionFeeEur','afterMinutesRate','afterMinutesThreshold']
+         .some(k=>rule[k]!=null&&(!Number.isFinite(rule[k])||rule[k]<0))||
+       (rule.afterMinutesRate!=null&&rule.afterMinutesComponent!=='TIME')||
+       (pricing.minimumTotalEur!=null&&(!Number.isFinite(pricing.minimumTotalEur)||pricing.minimumTotalEur<0)))return null;
+    if(pricing.postChargeFee!=null&&
+       (Object.keys(pricing.postChargeFee).sort().join(',')!=='eurPerMinute,graceMinutes'||
+        !Number.isFinite(pricing.postChargeFee.eurPerMinute)||pricing.postChargeFee.eurPerMinute<0||
+        !Number.isFinite(pricing.postChargeFee.graceMinutes)||pricing.postChargeFee.graceMinutes<0))return null;
+    if(pricing.conditionalSessionFees!=null&&
+       (!Array.isArray(pricing.conditionalSessionFees)||pricing.conditionalSessionFees.some(fee=>
+         Object.keys(fee).sort().join(',')!=='amountEur,conditions'||
+         !Number.isFinite(fee.amountEur)||fee.amountEur<0||
+         !Array.isArray(fee.conditions)||!fee.conditions.length||fee.conditions.some(condition=>
+           Object.keys(condition).sort().join(',')!=='kind,value'||
+           !['energy_above_kwh','session_duration_after_minutes'].includes(condition.kind)||
+           !Number.isFinite(condition.value)||condition.value<0))))return null;
+    return{id:offer.id,provider:'Bump direct',kind:'direct',currency:'EUR',
+      countries:['FR'],operatorIds:['BUMP'],evseIds:[evse.id],
+      connectorIds:connectors.map(row=>row.id).sort(),subscriptionId:null,pricing,
+      metadata:{verified:true,identityMode:'exact_national_irve_evse',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,sourceOfferId:source.id,
+        sourceEvseId:evse.officialEvseId,timeZone:'Europe/Paris'}};
+  }
   function provedBelgiumOffer(data,offer,index){
     if(data.source?.id!=='BE:nap_static'||offer.channel!=='Direct'||
        offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
@@ -290,7 +338,7 @@
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
     }
-    if(data.source?.id==='FR:emsp_exact'){
+    if(['FR:emsp_exact','FR:bump_national_exact'].includes(data.source?.id)){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];
         list.push(row);proofIndex.connectors.set(row.evseId,list);}
     }
@@ -316,7 +364,7 @@
       if(!evse)throw new Error('canonical offer EVSE missing');
       const proved=provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
-        provedUkPcprOffer(data,offer,proofIndex);
+        provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
@@ -332,6 +380,7 @@
         [row.address?.street,row.address?.houseNumber,row.address?.city].filter(Boolean).join(' '):null;
       return{canonicalId:row.id,sourceStationId:row.sourceStationId,countryCode:row.country,
         ...(data.source?.id==='FR:emsp_exact'?{fieldPriority:{identity:0,connectors:0,rawOfferProvenance:110}}:{}),
+        ...(data.source?.id==='FR:bump_national_exact'?{fieldPriority:{identity:0,connectors:0,rawOfferProvenance:110}}:{}),
         ...(data.source?.id==='FR:izivia_fast_map'?{fieldPriority:{identity:0,connectors:0}}:{}),
         name:row.name||row.names?.[0]?.value||addressName||row.sourceStationId,
         address:address(row),latitude,longitude,
