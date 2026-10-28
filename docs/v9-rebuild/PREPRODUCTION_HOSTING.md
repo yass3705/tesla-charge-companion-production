@@ -2,6 +2,8 @@
 
 ## Candidat local le plus récent — 28 octobre
 
+Le candidat isolé actuel est `.tcc-v9-cache/reproducible-31-bump-2026-10-28/site`, sur le bundle immuable 31 sources `29e2a5e9331a9d2949e342d245128d45480647f4eed1fc37977f83bc67e059fb`. Les 30 SHA antérieurs sont conservés. SHA/hébergement local, dix parcours tarifaires ciblés et neuf pays/mobile passent ; 3 777 fichiers, 289 115 845 octets, `deployed=false`. La preuve exacte EVSE/prise de Bump est contrôlée par l'adaptateur et le chargeur. Voir [preuve Bump](evidence/bump-exact-candidate-20261028.md). Le projet Pages et l'URL distante restent à créer après autorisation ; la recette locale et la performance dense ne justifient pas encore G8 PASS.
+
 Le paquet de recette optimisé `site-timeline-skip` réutilise le même bundle immuable 30 sources. Vérification SHA/hébergement : **PASS**, 3 695 fichiers, `deployed=false`. Firefox neuf pays/mobile et neuf familles tarifaires : **PASS**. La recherche dense Amsterdam 100 km garde exactement les 62 770 rangs, offres, évaluations et repères du paquet de référence ; la paire froide mesurée passe de 70,2 s à 50,0 s. La performance dense reste insuffisante pour promouvoir G7/G8 ; voir [preuve détaillée](evidence/30source-dense-optimized-20261028.md). Le projet Cloudflare Pages isolé et l'URL distante restent à créer après autorisation.
 
 Le paquet local le plus récent `site-planner-missing-energy` conserve une énergie de recharge absente comme donnée manquante dans le moteur et le planificateur, sans créer un coût de 0 €. Tests ciblés, Firefox neuf pays/mobile et SHA/hébergement **PASS** ; les empreintes du classement dense restent identiques à la référence. Voir [preuve](evidence/30source-planner-missing-energy-20261028.md). Ce paquet n'est pas déployé.
