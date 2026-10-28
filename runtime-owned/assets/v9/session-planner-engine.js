@@ -48,7 +48,11 @@
       targetReached=false;
     }
     const actualEnergy=energyBetweenSoc(capacity,arrival,actualSoc)??requestedEnergy;
-    const actualModel=ChargeModelEngine.estimate(station,{...session,arrivalSoc:arrival,targetSoc:actualSoc,energyKwh:actualEnergy});
+    // With no deadline truncation both estimates have identical station,
+    // vehicle, SOC and energy inputs. Keep the original model object so its
+    // charge timeline and rounding remain byte-for-byte identical.
+    const actualModel=targetReached&&actualSoc===target&&actualEnergy===requestedEnergy?desired:
+      ChargeModelEngine.estimate(station,{...session,arrivalSoc:arrival,targetSoc:actualSoc,energyKwh:actualEnergy});
     if(actualModel.minutes!=null)chargingMinutes=actualModel.minutes;
     if(available!=null&&!targetReached)chargingMinutes=Math.min(available,chargingMinutes??available);
     const delivered=actualModel.energyKwh??actualEnergy;

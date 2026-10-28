@@ -1208,7 +1208,7 @@
     let cached=searchRankingCache.get(engine);
     if(!cached||cached.key!==key){
       const pending=(async()=>{
-        const summaries=[];let inventory=[],count=Infinity;
+        const summaries=[];let inventory=[],count=Infinity,lastYield=performance.now();
         for(let offset=0;offset<count;offset+=40){
           const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitMapInventory:offset>0});
           if(offset===0){count=Number(batch.diagnostics?.sourceStationCount) || batch.stations.length;inventory=batch.mapStations||[];}
@@ -1222,8 +1222,11 @@
               byId.set(row.station.id,rankingSummary({...row,evaluation:null,total:null,costPerKm:null}));
           }
           summaries.push(...baseRows.map(row=>byId.get(row.station.id)).filter(Boolean));
-          // Yield between bounded batches so input, paints and progress can run.
-          if(offset+40<count)await new Promise(resolve=>setTimeout(resolve,0));
+          // Keep input and paint responsive while avoiding a timer for every
+          // small batch. A slower device still yields after its first batch.
+          if(offset+40<count&&performance.now()-lastYield>=50){
+            await new Promise(resolve=>setTimeout(resolve,0));lastYield=performance.now();
+          }
         }
         const ranked=rankRows(summaries,input.rankingMode,summaries.length);
         const ranks=new Map(ranked.map((row,index)=>[row.station.id,index]));

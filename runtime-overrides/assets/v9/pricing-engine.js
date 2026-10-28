@@ -6,9 +6,11 @@
   'use strict';
   const num=v=>{if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const money=v=>Math.round((Number(v)+Number.EPSILON)*1000000)/1000000;
-  // Intl formatters are immutable and expensive to construct. Share only the
-  // formatter, never a price or a date result, across station evaluations.
+  // Intl formatters are immutable and expensive to construct. Tariff amounts
+  // are never cached; the local clock reading below is keyed by exact instant
+  // and time zone, so a changed session date or DST side cannot reuse it.
   const dateFormatters=new Map();
+  const localMinutes=new Map();
   function dateFormatter(locale,options){
     const key=JSON.stringify([locale,options]);
     if(dateFormatters.has(key))return dateFormatters.get(key);
@@ -23,10 +25,15 @@
     if(typeof value==='number'&&Number.isFinite(value))return ((Math.floor(value)%1440)+1440)%1440;
     const d=value instanceof Date?value:new Date(value);if(Number.isNaN(d.getTime()))return null;
     if(timeZone){
+      const key=String(d.getTime())+'|'+String(timeZone);
+      if(localMinutes.has(key))return localMinutes.get(key);
       try{
         const parts=dateFormatter('en-GB',{timeZone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(d);
         const get=t=>Number(parts.find(p=>p.type===t)?.value||0);
-        return get('hour')*60+get('minute')+get('second')/60;
+        const minute=get('hour')*60+get('minute')+get('second')/60;
+        if(localMinutes.size>=256)localMinutes.delete(localMinutes.keys().next().value);
+        localMinutes.set(key,minute);
+        return minute;
       }catch(_){return null;}
     }
     return d.getHours()*60+d.getMinutes()+d.getSeconds()/60;

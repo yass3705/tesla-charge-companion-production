@@ -216,7 +216,10 @@
       const snapshot=await areaCache.promise;
       const{items,ruleItems,diagnostics,resolved,inRadius,baseFiltered,availableOperators,subscriptionOfferPool}=snapshot;
       const stationLimit=Math.floor(number(query.stationLimit)||0),stationOffset=Math.max(0,Math.floor(number(query.stationOffset)||0)),requestedIds=Array.isArray(query.stationIds)?new Set(query.stationIds):null,selected=requestedIds?baseFiltered.filter(st=>requestedIds.has(st.id)):(stationLimit>0?baseFiltered.slice(stationOffset,stationOffset+stationLimit):baseFiltered);
-      const filtered=applyOfferRules(selected,ruleItems),operators=deriveOperators(filtered),routingCandidates=selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
+      // A prepared source with no separate offer rules already carries its
+      // canonical offers. Keep the resolved station objects read-only and
+      // reuse them across bounded ranking batches and page navigation.
+      const filtered=ruleItems.length?applyOfferRules(selected,ruleItems):selected,operators=deriveOperators(filtered),routingCandidates=selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
       let globalRoutingCandidates=null;
       if(query.globalRouting){
         const routeKey=JSON.stringify([query.routingBudget??80,query.perOperatorFloor??2]);

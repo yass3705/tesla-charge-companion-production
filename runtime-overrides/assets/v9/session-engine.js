@@ -165,6 +165,15 @@
     if(!currencyStatus.complete)return{...currencyStatus,offerId:text(offer?.id||offer?.offerId),timeZone};
     if(pricing.type!=='rules'||pricing.priceSelectionBasis==='session_start_local_time'||!Array.isArray(session.chargeTimeline)||!session.chargeTimeline.length||!session.startAt)return null;
     if((pricing.rules||[]).some(rule=>rule.billing==='powerMinute'))return PricingEngine.evaluateOffer(offer,session);
+    // A sole all-day rule without calendar restrictions cannot change during
+    // the charge. The ordinary evaluator still checks every component and
+    // threshold on the full session, including billing steps.
+    if(pricing.rules?.length===1){
+      const only=pricing.rules[0];
+      if(only?.scope==='allDay'&&only.daysOfWeek==null&&only.days==null&&
+         only.holidayOnly!==true&&only.excludeHolidays!==true&&
+         only.validFromDate==null&&only.validThroughDate==null)return null;
+    }
     const rule=PricingEngine.matchingRule(pricing,session.startAt,timeZone);if(!rule)return null;
     const duration=Math.max(0,num(session.durationMinutes)??0),boundary=PricingEngine.minutesUntilRuleBoundary(rule,session.startAt,timeZone);
     if(boundary==null||!Number.isFinite(boundary)||duration<=boundary+1e-9)return null;

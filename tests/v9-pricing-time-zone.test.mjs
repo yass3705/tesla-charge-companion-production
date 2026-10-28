@@ -50,4 +50,11 @@ const station={id:'zone-station',timeZone:'Europe/London',evses:[{id:'evse',conn
 assert.equal(sessions.evaluateStation(station,{...localSession,startAt:'2026-03-29T01:30:00Z',targetCurrency:'GBP'}).best?.result?.timeZone,'Europe/London','station zone wins over session when source has none');
 const allDay=pricing.evaluateOffer({currency:'EUR',pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:.3}]}},{energyKwh:10});
 assert.equal(allDay.complete,true,'an all-day price does not need a local time zone');
+const fullDayOffer={id:'full-day-timeline',currency:'EUR',pricing:{type:'rules',rules:[
+  {scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',pricePerKwh:.3,energyStepWh:1000}]}};
+assert.equal(sessions.evaluateTimelineOffer(fullDayOffer,timeline),null,
+  'one unrestricted all-day rule has no timeline boundary to segment');
+const fullDayStation={id:'full-day-station',evses:[{id:'evse',connectors:[{id:'plug',kind:'DC',powerKw:50}]}],offers:[fullDayOffer]};
+assert.equal(sessions.evaluateStation(fullDayStation,{...timeline,targetCurrency:'EUR'}).best?.total,3,
+  'the full-session evaluator retains the archived energy rounding');
 console.log('V9 pricing time zones, DST and midnight: pass');
