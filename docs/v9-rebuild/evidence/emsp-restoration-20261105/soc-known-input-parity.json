@@ -1,0 +1,1 @@
+{"status":"PASS","historicalRef":"e11f562f4eed29f4842132d3b66cc0a68ade6ba9","identicalKnownInputScenarios":108,"scope":"Full desired/actual models, charge timelines, energy and effective sessions, AC/DC, capacity, explicit zero SOC and deadline cases. Missing inputs intentionally tested separately as regression corrections."}

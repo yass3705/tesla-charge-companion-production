@@ -54,6 +54,10 @@ class PreparedMapPackageTests(unittest.TestCase):
             (candidate / "index.json").write_text(json.dumps(index))
             result = package(site, candidate, output)
             self.assertTrue(result["notPublished"])
+            for name in ["charge-model-engine.js", "session-planner-engine.js"]:
+                self.assertEqual((output / "v9-production-runtime/assets/v9" / name).read_bytes(),
+                                 (Path(__file__).resolve().parents[1] / "runtime-owned/assets/v9" / name).read_bytes(),
+                                 "repackaging must include current charge/planner fixes")
             self.assertEqual(result["countries"], ["FR"])
             cfg = json.loads((output / "v9-production-shell/shell-config.json").read_text())
             self.assertTrue(cfg["preproductionIsolated"])

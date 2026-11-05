@@ -4,7 +4,7 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(ChargeModelEngine){
   'use strict';
   if(!ChargeModelEngine)throw new Error('TCC V9 charge model engine is required');
-  const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
+  const num=v=>{if(v==null||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const round=v=>Math.round((Number(v)+Number.EPSILON)*1000000)/1000000;
   const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
   const addMinutes=(value,minutes)=>{if(!value||num(minutes)==null)return null;const d=new Date(value);if(Number.isNaN(d.getTime()))return null;return new Date(d.getTime()+Number(minutes)*60000).toISOString();};

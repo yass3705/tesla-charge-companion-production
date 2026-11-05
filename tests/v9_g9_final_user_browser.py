@@ -84,12 +84,21 @@ const done=arguments[0];
  const shell=TCCV9ProductionShell;
  const invalid=document.getElementById('v9BatteryCapacity'),previous=invalid.value;
  invalid.value='0';const blocked=await compare();if(blocked!==null)throw Error('Invalid battery accepted');invalid.value=previous;
+ for(const id of ['simNow','simTarget']){const field=document.getElementById(id),saved=field.value;field.value='';const denied=await compare();field.value=saved;if(denied!==null)throw Error('Empty SOC accepted: '+id);}
  const values={v9BatteryCapacity:90,v9Consumption:18,v9MaxAc:22,v9MaxDc:180};
  for(const [id,value] of Object.entries(values))document.getElementById(id).value=String(value);
  const session=shell.buildSession(shell.readInputs(window),'FR');
  if(session.batteryCapacityKwh!==90||session.consumptionKwhPer100Km!==18||session.vehicleMaxAcKw!==22||session.vehicleMaxDcKw!==180)throw Error('Vehicle inputs lost');
  const select=document.getElementById('simOperatorFilter');select.dataset.v9Mode='all';
  const all=await compare();
+ const pricedStation=all.stations.find(st=>st.offers?.length);
+ if(!pricedStation)throw Error('Missing real tariff station for planner check');
+ for(const field of ['startSoc','targetSoc']){
+   const plan=TCCV9SessionPlannerEngine.planStation(pricedStation,{...session,[field]:null,energyKwh:null});
+   const evaluation=TCCV9SessionEngine.evaluateStation(pricedStation,plan.effectiveSession,{targetCurrency:'EUR'});
+   if(plan.requestedEnergyKwh!==null||plan.chargingMinutes!==null||evaluation.best)throw Error('Missing SOC fabricated a session: '+field);
+ }
+
  const selected=[...new Set(all.stations.map(s=>TCCV9DataEngine.operatorId(s.physicalOperator)))].slice(0,2);
  if(selected.length!==2)throw Error('Fixture must exercise two networks');
  for(const option of select.options)option.selected=selected.includes(option.value);
@@ -108,7 +117,7 @@ const done=arguments[0];
  const guidance=document.getElementById('v9ValidationPanel'),feedback=document.getElementById('v9FeedbackText');
  if(!feedback?.labels?.length||!document.getElementById('v9FeedbackShare')||document.getElementById('v9FeedbackStatus')?.getAttribute('aria-live')!=='polite')throw Error('Feedback inaccessible');
  const radius=document.getElementById('simMaxDistance');if(Number(radius.max)!==100)throw Error('Radius silently reduced');
- return {invalidBatteryBlocked:true,vehicle:{capacity:session.batteryCapacityKwh,consumption:session.consumptionKwhPer100Km,ac:session.vehicleMaxAcKw,dc:session.vehicleMaxDcKw},networks:{selected,observed},powerFiltered:powered.mapStations.length,teslaFiltered:tesla.mapStations.length,unqualifiedSubscriptionsExcluded:true,feedbackAccessible:true,maxRadius:100};
+ return {invalidBatteryBlocked:true,emptySocBlocked:true,missingSocPlannerUnpriced:true,vehicle:{capacity:session.batteryCapacityKwh,consumption:session.consumptionKwhPer100Km,ac:session.vehicleMaxAcKw,dc:session.vehicleMaxDcKw},networks:{selected,observed},powerFiltered:powered.mapStations.length,teslaFiltered:tesla.mapStations.length,unqualifiedSubscriptionsExcluded:true,feedbackAccessible:true,maxRadius:100};
 })().then(done).catch(e=>done({error:String(e)}));
 """)
             assert 'error' not in controls,controls

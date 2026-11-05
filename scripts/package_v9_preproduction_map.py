@@ -317,6 +317,8 @@ def package(site: Path, candidate: Path, destination: Path, fx: Path | None = No
             ("runtime-owned/assets/v9/preproduction-candidate-loader.js", "preproduction-candidate-loader.js"),
             ("runtime-owned/assets/v9/data-engine.js", "data-engine.js"),
             ("runtime-owned/assets/v9/runtime-engine.js", "runtime-engine.js"),
+            ("runtime-owned/assets/v9/charge-model-engine.js", "charge-model-engine.js"),
+            ("runtime-owned/assets/v9/session-planner-engine.js", "session-planner-engine.js"),
             ("runtime-owned/assets/v9/offer-engine.js", "offer-engine.js"),
             ("runtime-overrides/assets/v9/pricing-engine.js", "pricing-engine.js"),
             ("runtime-overrides/assets/v9/session-engine.js", "session-engine.js"),

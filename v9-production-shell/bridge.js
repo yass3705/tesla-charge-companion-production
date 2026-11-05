@@ -1262,7 +1262,7 @@
     return{area,rows};
   }
   async function executeV9(w,engine,cfg,input){
-    if(!(input.targetSoc>input.startSoc))throw new Error('invalid SOC target');if(!input.originText)throw new Error('origin required');
+    if(!Number.isFinite(input.startSoc)||!Number.isFinite(input.targetSoc)||input.startSoc<0||input.targetSoc>100||!(input.targetSoc>input.startSoc))throw new Error('Renseignez les niveaux de batterie entre 0 et 100 %, avec une cible supérieure au départ.');if(!input.originText)throw new Error('origin required');
     if(cfg.mode==='candidate'&&!(input.radiusKm>0))throw new Error('unbounded radius not production-equivalent');
     if(typeof w.resolveOrigin!=='function')throw new Error('stable origin resolver unavailable');const origin=await w.resolveOrigin(input.originText),countryCode=await countryCodeForOrigin(w,origin),scope=cfg.engineScopeCountries||[];
     const queryMode=countryQueryMode(countryCode,scope,input.operatorIds||[]);

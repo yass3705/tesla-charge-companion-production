@@ -5,7 +5,7 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
 
-  const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
+  const num=v=>{if(v==null||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;};
   const round=v=>Math.round((Number(v)+Number.EPSILON)*1000000)/1000000;
   const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
   const text=v=>String(v==null?'':v).trim().toUpperCase();

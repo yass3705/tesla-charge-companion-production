@@ -1,0 +1,84 @@
+{
+  "classification": "diagnostic_only_not_a_gate",
+  "scope": "Same named search areas, but acquisition inputs and wall-clock session changed; not a same-input price oracle or completeness threshold. Exact local/remote parity has its own frozen-input proof.",
+  "rows": [
+    {
+      "search": "Fécamp Carrefour Allego",
+      "beforeMatching": 15,
+      "beforePriced": 0,
+      "afterMatching": 15,
+      "afterPriced": 7
+    },
+    {
+      "search": "Rouen",
+      "beforeMatching": 208,
+      "beforePriced": 0,
+      "afterMatching": 208,
+      "afterPriced": 57
+    },
+    {
+      "search": "Lyon",
+      "beforeMatching": 229,
+      "beforePriced": 4,
+      "afterMatching": 229,
+      "afterPriced": 145
+    },
+    {
+      "search": "Milan",
+      "beforeMatching": 11,
+      "beforePriced": 11,
+      "afterMatching": 11,
+      "afterPriced": 11
+    },
+    {
+      "search": "Berlin",
+      "beforeMatching": 813,
+      "beforePriced": 2,
+      "afterMatching": 813,
+      "afterPriced": 2
+    },
+    {
+      "search": "Amsterdam",
+      "beforeMatching": 1365,
+      "beforePriced": 305,
+      "afterMatching": 1369,
+      "afterPriced": 297
+    },
+    {
+      "search": "London",
+      "beforeMatching": 2406,
+      "beforePriced": 1,
+      "afterMatching": 2406,
+      "afterPriced": 636
+    },
+    {
+      "search": "Brussels",
+      "beforeMatching": 968,
+      "beforePriced": 118,
+      "afterMatching": 968,
+      "afterPriced": 118
+    },
+    {
+      "search": "Zurich",
+      "beforeMatching": 180,
+      "beforePriced": 0,
+      "afterMatching": 180,
+      "afterPriced": 28
+    },
+    {
+      "search": "Madrid",
+      "beforeMatching": 323,
+      "beforePriced": 2,
+      "afterMatching": 323,
+      "afterPriced": 2
+    },
+    {
+      "search": "Agadir",
+      "beforeMatching": 2,
+      "beforePriced": 1,
+      "afterMatching": 2,
+      "afterPriced": 1
+    }
+  ],
+  "fecampClarification": "The priced count is for the search area; the Carrefour Allego station itself remains without attributable offers on all three lanes."
+}
