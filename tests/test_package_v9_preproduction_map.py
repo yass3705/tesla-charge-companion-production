@@ -89,6 +89,24 @@ class PreparedMapPackageTests(unittest.TestCase):
             self.assertEqual((repackaged / "prepared-v9/index.json").read_bytes(),
                              (candidate / "index.json").read_bytes())
             self.assertTrue((output / "prepared-v9/index.json").is_file())
+            self.assertTrue(check_hosting(repackaged)["servedFileManifestVerified"])
+            self.assertEqual((output / "manifest.json").read_bytes(), (repackaged / "manifest.json").read_bytes(),
+                             "identical inputs reproduce the exact served-file manifest")
+            self.assertEqual((repackaged / "provenance/base-snapshot-manifest.json").read_bytes(),
+                             (site / "manifest.json").read_bytes(), "original provenance remains byte-for-byte available")
+            current = json.loads((output / "manifest.json").read_bytes())
+            self.assertEqual(current["kind"], "tcc-v9-isolated-preview")
+            self.assertEqual(current["fileCount"], len(current["files"]))
+            planner_path = repackaged / "v9-production-runtime/assets/v9/session-planner-engine.js"
+            saved = planner_path.read_bytes(); planner_path.write_bytes(b"corrupt runtime")
+            with self.assertRaisesRegex(ValueError, "served-file SHA"):
+                check_hosting(repackaged)
+            planner_path.write_bytes(saved)
+            extra = repackaged / "unexpected.txt"; extra.write_text("extra")
+            with self.assertRaisesRegex(ValueError, "file set"):
+                check_hosting(repackaged)
+            extra.unlink()
+
             (output / "v9-production-runtime/data/tesla_stations.json").write_bytes(b"tampered")
             self.assertEqual((site / "v9-production-runtime/data/tesla_stations.json").read_bytes(), tesla,
                              "packaged site must never share a writable inode with its source")

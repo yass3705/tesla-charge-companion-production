@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from package_v9_preproduction_map import check_candidate, digest
+from package_v9_preproduction_map import check_candidate, digest, verify_preview_manifest
 
 
 # Local resource budgets, not claims about the hosting provider's current limits.
@@ -47,6 +47,7 @@ def check(site: Path) -> dict:
     if ((site / "snapshot-inputs").exists() or
             list((site / runtime / "data/v9").glob("*-offers.json"))):
         raise ValueError("Historical build inputs or offers leaked into preview")
+    served_manifest_verified = verify_preview_manifest(site, index["bundleId"])
     files = [path for path in site.rglob("*") if path.is_file()]
     if any(path.is_symlink() for path in site.rglob("*")):
         raise ValueError("Preview symlink forbidden")
@@ -59,7 +60,7 @@ def check(site: Path) -> dict:
             "sourceCount": len(index["sources"]), "fileCount": len(files),
             "bytes": sum(path.stat().st_size for path in files),
             "largestAsset": largest.relative_to(site).as_posix(),
-            "largestBytes": largest.stat().st_size, "deployed": False}
+            "largestBytes": largest.stat().st_size, "deployed": False, "servedFileManifestVerified": served_manifest_verified}
 
 
 if __name__ == "__main__":

@@ -244,6 +244,67 @@ def check_candidate(candidate: Path) -> dict:
     return index
 
 
+
+PREVIEW_KIND = "tcc-v9-isolated-preview"
+BASE_MANIFEST = "provenance/base-snapshot-manifest.json"
+
+
+def manifest_bytes(value: dict) -> bytes:
+    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode()
+
+
+def write_preview_manifest(stage: Path, source_site: Path, bundle_id: str) -> None:
+    source_raw = (source_site / "manifest.json").read_bytes()
+    source = json.loads(source_raw)
+    if source.get("kind") == PREVIEW_KIND:
+        base = (source_site / BASE_MANIFEST).read_bytes()
+        if digest(base) != source.get("baseSnapshot", {}).get("manifestSha256"):
+            raise ValueError("Base snapshot provenance corrupted")
+    else:
+        base = source_raw
+    archived = stage / BASE_MANIFEST
+    archived.parent.mkdir(parents=True, exist_ok=True)
+    archived.write_bytes(base)
+    files = []
+    for path in sorted(stage.rglob("*")):
+        if path.is_file() and path != stage / "manifest.json":
+            raw = path.read_bytes()
+            files.append({"path": path.relative_to(stage).as_posix(), "bytes": len(raw), "sha256": digest(raw)})
+    manifest = {"schemaVersion": 1, "kind": PREVIEW_KIND, "preparedBundleId": bundle_id,
+                "baseSnapshot": {"manifestPath": BASE_MANIFEST, "manifestSha256": digest(base),
+                                 "snapshotId": json.loads(base).get("snapshotId")},
+                "fileCount": len(files), "bytes": sum(row["bytes"] for row in files), "files": files}
+    manifest["snapshotId"] = digest(manifest_bytes(manifest))
+    (stage / "manifest.json").write_bytes(manifest_bytes(manifest))
+
+
+def verify_preview_manifest(site: Path, bundle_id: str) -> bool:
+    manifest = json.loads((site / "manifest.json").read_bytes())
+    if manifest.get("kind") != PREVIEW_KIND:
+        return False  # Historical packages retain their old source-snapshot manifest.
+    body = dict(manifest)
+    snapshot_id = body.pop("snapshotId", None)
+    if (manifest.get("schemaVersion") != 1 or manifest.get("preparedBundleId") != bundle_id
+            or digest(manifest_bytes(body)) != snapshot_id):
+        raise ValueError("Preview served-file manifest identity invalid")
+    rows = manifest.get("files", [])
+    actual = {p.relative_to(site).as_posix() for p in site.rglob("*") if p.is_file() and p != site / "manifest.json"}
+    if (not isinstance(rows, list) or manifest.get("fileCount") != len(rows)
+            or len({r.get("path") for r in rows}) != len(rows) or {r.get("path") for r in rows} != actual):
+        raise ValueError("Preview served-file manifest file set invalid")
+    total = 0
+    for row in rows:
+        raw = (site / row["path"]).read_bytes()
+        if len(raw) != row.get("bytes") or digest(raw) != row.get("sha256"):
+            raise ValueError("Preview served-file SHA mismatch: " + row["path"])
+        total += len(raw)
+    base = manifest.get("baseSnapshot", {})
+    if (total != manifest.get("bytes") or base.get("manifestPath") != BASE_MANIFEST
+            or digest((site / BASE_MANIFEST).read_bytes()) != base.get("manifestSha256")):
+        raise ValueError("Preview served-file counters or base provenance invalid")
+    return True
+
+
 def package(site: Path, candidate: Path, destination: Path, fx: Path | None = None, fx_sha256: str | None = None) -> dict:
     fx_bytes = None
     if fx is not None or fx_sha256 is not None:
@@ -364,6 +425,8 @@ def package(site: Path, candidate: Path, destination: Path, fx: Path | None = No
         )
         (stage / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
         (stage / "_headers").write_text("/*\n  X-Robots-Tag: noindex, nofollow\n", encoding="utf-8")
+        write_preview_manifest(stage, site, index["bundleId"])
+        verify_preview_manifest(stage, index["bundleId"])
         stage.rename(destination)
     return {"status": "packaged_preview_only", "output": str(destination), 
             "countries": config["engineScopeCountries"],"sourceCount": len(index["sources"]),

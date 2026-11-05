@@ -66,7 +66,7 @@ def verify(site: Path, base_url: str, read, *, allow_local: bool = False,
     reused_fragments = 0
     checked = []
     config=json.loads((site / "v9-production-shell/shell-config.json").read_bytes())
-    additional=["runtime/assets/v9/data-engine.js", "runtime/assets/v9/preproduction-candidate-loader.js",
+    additional=["manifest.json", "provenance/base-snapshot-manifest.json", "runtime/assets/v9/data-engine.js", "runtime/assets/v9/preproduction-candidate-loader.js",
                 "runtime/assets/v9/adapters/canonical-v9.js", "runtime/assets/v9/adapters/tesla-json.js",
                 "runtime/assets/v9/pricing-engine.js", "runtime/assets/v9/session-engine.js",
                 "runtime/assets/v9/charge-model-engine.js", "runtime/assets/v9/session-planner-engine.js",
@@ -129,6 +129,7 @@ def verify(site: Path, base_url: str, read, *, allow_local: bool = False,
             "checkedAssets": checked + [path], "browserVerified": False,
             "githubHandoffVerified": False, "signedFragmentsVerified": fragment_count,
             "previouslyVerifiedFragmentsReused": reused_fragments,
+            "servedFileManifestVerified": package.get("servedFileManifestVerified", False),
             "fragmentReceiptSha256": hashlib.sha256(fragment_receipt.read_bytes()).hexdigest() if fragment_receipt else None}
 
 
