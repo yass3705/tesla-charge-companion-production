@@ -1,14 +1,18 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import {createRequire} from 'node:module';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 const require=createRequire(import.meta.url);
 const engine=require('../runtime-overrides/assets/v9/pricing-engine.js');
 const shell=require('../v9-production-shell/bridge.js');
 // A clean checkout has no generated dist. An explicit package argument still
 // exercises the packaged runtime; CI otherwise verifies the versioned engine.
-const stationEngine=require(process.argv[2]
-  ?path.resolve(process.argv[2],'runtime/assets/v9/session-engine.js')
-  :'../runtime-overrides/assets/v9/session-engine.js');
+const context={TCCV9OfferEngine:require('../runtime-owned/assets/v9/offer-engine.js'),TCCV9PricingEngine:engine};
+if(!process.argv[2])runInNewContext(readFileSync(new URL('../runtime-overrides/assets/v9/session-engine.js',import.meta.url),'utf8'),context);
+const stationEngine=process.argv[2]
+  ?require(path.resolve(process.argv[2],'runtime/assets/v9/session-engine.js'))
+  :context.TCCV9SessionEngine;
 const close=(a,b)=>assert.ok(Math.abs(a-b)<.00001,`expected ${a} to equal ${b}`);
 const rule={scope:'allDay',start:'00:00',end:'24:00',pricePerKwh:.4,congestionTimePerMinute:.2,congestionTimeStepSeconds:300,congestionStartSoc:80,congestionThresholdSource:'default_soc80'};
 const offer={id:'electra-direct:1',kind:'direct',provider:'Electra',currency:'EUR',pricing:{type:'component_groups',componentGroups:[{kind:'ENERGY+CONGESTION_TIME',rules:[rule]}]}};
