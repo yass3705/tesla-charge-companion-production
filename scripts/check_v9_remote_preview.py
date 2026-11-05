@@ -53,6 +53,14 @@ def verify(site: Path, base_url: str, read, *, allow_local: bool = False,
             raise ValueError("Remote preview noindex header missing")
         checked.append(path)
     index = json.loads((site / "prepared-v9/index.json").read_bytes())
+    # The complete join ledger remains downloadable and signed, including its
+    # uncompressed SHA checked locally by check(). Never omit it from receipt.
+    for join in index.get("joins", []):
+        join_path = "prepared-v9/" + join["path"]
+        body, _ = read(urljoin(base_url.rstrip("/") + "/", join_path))
+        if hashlib.sha256(body).hexdigest() != join["sha256"]:
+            raise ValueError("Remote exact join SHA mismatch")
+        checked.append(join_path)
     source = index["sources"][0]
     descriptor = source["shards"][0] if index["schemaVersion"] == 2 else source
     path = "prepared-v9/" + descriptor["path"]

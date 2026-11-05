@@ -201,7 +201,10 @@ def check_candidate(candidate: Path) -> dict:
         raise ValueError("Prepared join listing invalid")
     for entry in joins:
         national = entry.get("nationalSource")
-        relative = Path("joins") / (str(national).replace(":", "__") + ".json")
+        encoding = entry.get("encoding")
+        if encoding not in (None, "gzip"):
+            raise ValueError("Prepared exact join encoding invalid")
+        relative = Path("joins") / (str(national).replace(":", "__") + ".json" + (".bin" if encoding == "gzip" else ""))
         declared.add(relative.as_posix())
         if (national not in seen or entry.get("path") != relative.as_posix() or
                 entry.get("status") != "exact_identity_only" or
@@ -210,6 +213,19 @@ def check_candidate(candidate: Path) -> dict:
         raw = (candidate / relative).read_bytes()
         if digest(raw) != entry["sha256"]:
             raise ValueError("Prepared exact join SHA mismatch")
+        if encoding == "gzip":
+            size = entry.get("uncompressedBytes")
+            if (entry.get("bytes") != len(raw) or type(size) is not int or
+                    not 0 < size <= 256 * 1024 * 1024 or
+                    not re.fullmatch(r"[a-f0-9]{64}", str(entry.get("uncompressedSha256", "")))):
+                raise ValueError("Prepared exact join compression descriptor invalid")
+            try:
+                with gzip.GzipFile(fileobj=io.BytesIO(raw)) as stream:
+                    raw = stream.read(size + 1)
+            except (OSError, EOFError) as exc:
+                raise ValueError("Prepared exact join gzip invalid") from exc
+            if len(raw) != size or digest(raw) != entry["uncompressedSha256"]:
+                raise ValueError("Prepared exact join decoded integrity mismatch")
         report = json.loads(raw)
         if (report.get("schemaVersion") != 1 or report.get("candidateBundleId") != index["bundleId"] or
                 report.get("nationalSource") != national or

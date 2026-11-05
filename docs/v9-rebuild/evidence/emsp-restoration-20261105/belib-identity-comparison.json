@@ -1,0 +1,11 @@
+{
+  "bundle": "aa6c9ea41bb1340f3f313ba742d64e4406e6374edb6fa4b5aff557612fb72cc0",
+  "changedSources": [
+    "FR__belib_stations.json"
+  ],
+  "stableTechnicalKeys": true,
+  "unchangedStationsConnectorsOffers": true,
+  "oldExact": 0,
+  "newExact": 1754,
+  "unmatchedPreserved": 30
+}

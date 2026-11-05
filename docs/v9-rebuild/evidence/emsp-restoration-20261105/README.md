@@ -33,3 +33,11 @@ Tri : réutilisation des résumés uniquement à recherche/session identiques lo
 Royaume-Uni : Blink/Allego PCPR archivés n'ont aucune puissance explicite positive sur leurs connecteurs. Aucun calcul de puissance depuis tension/intensité ajouté, pas de tarif rendu classable. L'absence de date optionnelle a été examinée mais aucune correction de cette famille n'est conservée faute de capacité immédiatement exploitable.
 
 Les deux paquets locaux initiaux `site`/`site-guarded` défectueux, jamais déployés, ont été supprimés pour préserver le disque ; bundles immuables, `site-renewed`, autres candidats vérifiés et tous les rollbacks utilisateur conservés. G2–G8 restent FAIL globalement.
+
+## Correction de portée Belib vérifiée dans Firefox
+
+Le paquet `site-belib-identity`, bundle `aa6c9ea41bb1340f3f313ba742d64e4406e6374edb6fa4b5aff557612fb72cc0`, restaure l'identifiant officiel fourni dans `roamingEvseIds`. L'identifiant local et les clés techniques restent inchangés. Les stations, prises et offres sont strictement identiques au bundle précédent ; seule cette source change. 1 754 correspondances nationales exactes, 30 EVSE sans correspondance conservés : diagnostic, aucun seuil de validité. Les 16 parcours ciblés Firefox passent, dont Belib réellement calculé sur la fiche nationale (5 offres complètes, abonnements non sélectionnés non classés). L'ancien test Belib sur `site-restored` démontrait seulement une exclusion, pas un prix affiché.
+
+Le contrôle de transfert local a détecté un rapport de jointures de 49 Mo. Le transport gzip conserve tous les octets du JSON, son SHA d'origine et le SHA compressé ; contrôle distant du rapport ajouté. Les paquets antérieurs et le bundle immuable restent intacts. Tests corruption des deux SHA, longueurs et portée des fragments : PASS. Ce correctif de transport n'est pas un changement de données.
+
+Profil Firefox dense de référence : 62 770 stations ; 49,024 s, mêmes empreintes ordre/carte/prix que le candidat précédent. Profil détaillé : résolution d'identité 6,355 s, préparation des offres 5,600 s, variantes 19,211 s (dont moteur 8,498 s), fiches 2,284 s ; les durées imbriquées ne s'additionnent pas. Réutilisation des clés de tri d'identité en cours de mesure, aucune performance globale revendiquée.

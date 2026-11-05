@@ -40,8 +40,8 @@ Cette matrice relie les critères du CDC permanent à leur implémentation et à
 | G5 Buc IRVE/Powerdot | station `FRPD1PITMBUC`, six EVSE officiels conservés ; `DL002019` non autonome ; sept offres Powerdot restent archivées sans attribution | PASS local archive + navigateur |
 | G5 exact/absent/ambigu/multiple | tests `v9-national-catalogue-policy`, unicité mondiale avant découpage spatial, connecteur exact ou même identité canonique dérivée | PASS local, aucune jointure GPS/nom/puissance |
 | G5 canaux et déduplication | offres remappées sur cibles exactes, source/proof conservés ; aucun remplacement de puissance nationale | PASS local |
-| G5 Electroverse | 160 offres brutes `not_evaluated` deviennent calculables via garde prouvé `provedElectroverseOffer` | PASS historique + navigateur local ; l’audit du brut seul ne décrivait pas le calcul runtime |
-| G5 Electra eMSP | rétablit comparaison historique de format EVSE du collecteur Electra, uniquement cinq preuves capture + EVSE unique + source tarifaire inchangée | PASS local ; autres offres non prouvées non attribuées |
+| G5 Electroverse | Archive complète signée et normalisation historique exacte ; 31 270 offres attribuées, 31 155 acceptées par le moteur, autres conservées avec motif | PASS archives, oracles et navigateur ciblé ; 128 shards conservés, statuts nationaux incomplets donc renouvellement national non prouvé |
+| G5 Electra eMSP | Archive signée : 95 417 offres attribuées, 86 338 raccordées ; restrictions perdues et conflits conservés hors calcul | PASS local archive + navigateur ; collecte Electra42101119558 en cours, ne pas la présenter comme renouvelée |
 | G5 autres correspondances historiques | pas de migration automatique des rapprochements de proximité ; CPO sans contrat national reste archivé | Couverture globale FAIL ; limite visible, aucune fabrication |
 | G6 énergie, minute, frais session | oracles OCPI et session combinée empaquetée | PASS mécanismes |
 | G6 connexion / stationnement / après charge | gardes de durées distinctes, `v9-after-minutes-cap`, Bump, Belib Flex | PASS mécanismes, données manquantes incalculables |
@@ -63,7 +63,7 @@ Cette matrice relie les critères du CDC permanent à leur implémentation et à
 | G7 filtres multiples / véhicule / abonnements | preuves précédentes + recette pays et session sur code pertinent | PASS distante controls-remote.json ; catalogue abonnement non qualifié exclu, aucune promesse de couverture commerciale |
 | G7 trois canaux / coûts / durée / coût-km / frais / provenance | gardes par offre exacte, oracle session, parcours tarifaires et source/date visibles | PASS local sur mécanismes prouvés, prix absents explicités |
 | G7 mobile / accessibilité / aide / signalement | commandes natives, clavier, labels, iframe réel 390px, formulaire local | PASS distante controls-remote.json, 390 px sans débordement et signalement accessible |
-| G7/G8 performance Amsterdam 100km | nouvelle préparation immuable des offres ;49,102s local/52,336s distant, même classement exact | FAIL performance dense, limite conservée |
+| G7/G8 performance Amsterdam 100km | Profils CPU et réutilisation du classement entre cinq modes, pagination et invalidation session testées | Limite persistante ~49 s à froid ; mesure du correctif de tri en cours, aucun PASS performance |
 | G8 intégration locale / import / SHA | nouveau bundle, fragments conservés et nouvel Electra, tests des échecs et reprise | PASS locale et distante sur le candidat 32 ; integrity-remote.json |
 | G8 sécurité / site public intact | branches isolées, scan public, aucune fusion/activation Data Lab, Netlify sans prod | PASS scans publics et ressources publiques inchangées ; public-before.json / rollback-remote.json |
 | G8 HTTPS/noindex/SHA/navigateur distant/rollback | nouveau brouillon autorisé ; tests stricts du paquet exact sur URL | PASS distante : 6aecc65c572ac7778d850e91, 2 526 fragments, recettes Firefox ; rollback antérieur accessible |

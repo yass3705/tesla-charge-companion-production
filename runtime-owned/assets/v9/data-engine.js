@@ -111,7 +111,11 @@
   }
   function publicEntity(entity){const out={...entity};delete out._fieldRanks;delete out._offerRanks;delete out._rawOfferRanks;delete out._rawOfferIndexes;delete out._keys;out.aliases=uniq(out.aliases).sort();out.provenance=out.provenance.slice().sort((a,b)=>`${a.sourceId}|${a.sourceStationId}`.localeCompare(`${b.sourceId}|${b.sourceStationId}`));out.offers=out.offers.slice().sort((a,b)=>offerSemanticKey(a,out.countryCode).localeCompare(offerSemanticKey(b,out.countryCode)));out.unparsedOffers=out.unparsedOffers.slice().sort((a,b)=>`${a.sourceId}|${a.id||a.offerId||''}`.localeCompare(`${b.sourceId}|${b.id||b.offerId||''}`));return out;}
   function resolveEntities(items){
-    const ordered=items.slice().sort((a,b)=>deterministicFragmentKey(a).localeCompare(deterministicFragmentKey(b))),entities=[],keyIndex=new Map();
+    // These keys depend only on the input fragment and source. Compute once
+    // for this resolution, not at every comparison in a dense-area sort.
+    // Stable sorting still preserves input order when the exact keys tie.
+    const ordered=items.map(item=>({item,key:deterministicFragmentKey(item)}))
+      .sort((a,b)=>a.key.localeCompare(b.key)).map(row=>row.item),entities=[],keyIndex=new Map();
     for(const item of ordered){const keys=fragmentKeys(item.fragment,item.source);let entity=null;for(const key of keys){if(keyIndex.has(key)){entity=keyIndex.get(key);break;}}if(!entity){entity=newEntity(item.fragment,item.source);entities.push(entity);}mergeFragment(entity,item.fragment,item.source);for(const key of entity._keys)keyIndex.set(key,entity);}
     return entities.map(publicEntity).sort((a,b)=>a.id.localeCompare(b.id));
   }

@@ -108,6 +108,36 @@ class ShardV9PreproductionTest(unittest.TestCase):
                 MODULE.build(candidate, root / "sharded")
             self.assertFalse((root / "sharded").exists())
 
+    def test_complete_join_ledger_compression_and_both_integrity_layers(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); candidate = fixture(root)
+            index = json.loads((candidate / "index.json").read_bytes())
+            report = {"schemaVersion": 1, "candidateBundleId": index["bundleId"],
+                      "nationalSource": "NL:dotnl_static", "matches": [], "unmatched": [],
+                      "statistics": {"matchedOfferCount": 0, "unmatchedOfferCount": 0},
+                      "sourceInputs": [{"source": row["source"], "sha256": row["sha256"]}
+                                       for row in index["sources"]], "audit": "Évidence entière"}
+            raw = json.dumps(report, ensure_ascii=False).encode()
+            relative = "joins/NL__dotnl_static.json"
+            (candidate / "joins").mkdir(); (candidate / relative).write_bytes(raw)
+            index["joins"] = [{"nationalSource": "NL:dotnl_static", "path": relative,
+                              "sha256": hashlib.sha256(raw).hexdigest(), "status": "exact_identity_only"}]
+            (candidate / "index.json").write_text(json.dumps(index))
+            out = root / "sharded"; MODULE.build(candidate, out)
+            result = MODULE.check_candidate(out); entry = result["joins"][0]
+            compressed = (out / entry["path"]).read_bytes()
+            self.assertEqual(gzip.decompress(compressed), raw)
+            self.assertEqual(entry["uncompressedSha256"], index["joins"][0]["sha256"])
+            self.assertEqual((candidate / relative).read_bytes(), raw)
+            for key, value, message in [("sha256", "0" * 64, "join SHA"),
+                                        ("uncompressedSha256", "0" * 64, "decoded integrity"),
+                                        ("uncompressedBytes", len(raw) - 1, "decoded integrity"),
+                                        ("bytes", len(compressed) + 1, "compression descriptor")]:
+                original = entry[key]; entry[key] = value
+                (out / "index.json").write_text(json.dumps(result))
+                with self.assertRaisesRegex(ValueError, message): MODULE.check_candidate(out)
+                entry[key] = original
+
 
 if __name__ == "__main__":
     unittest.main()

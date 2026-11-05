@@ -7,7 +7,6 @@ import gzip
 import hashlib
 import json
 import math
-import shutil
 import tempfile
 from collections import defaultdict
 from pathlib import Path
@@ -114,12 +113,21 @@ def build(candidate: Path, destination: Path, *, max_bytes: int = MAX_BYTES) -> 
             entries.append({"source": source, "sourceSha256": entry["sha256"],
                             "sourceArtifactSha256": data["source"]["artifactSha256"],
                             "shards": descriptors})
-        joins = original.get("joins", [])
-        for entry in joins:
+        joins = []
+        for entry in original.get("joins", []):
             source = candidate / entry["path"]
-            target = stage / entry["path"]
+            raw = source.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != entry["sha256"]:
+                raise ValueError("Exact join source SHA mismatch")
+            compressed = gzip.compress(raw, mtime=0)
+            relative = entry["path"] + ".bin"
+            target = stage / relative
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, target)
+            target.write_bytes(compressed)
+            joins.append({**entry, "path": relative, "encoding": "gzip",
+                          "sha256": hashlib.sha256(compressed).hexdigest(),
+                          "bytes": len(compressed), "uncompressedBytes": len(raw),
+                          "uncompressedSha256": entry["sha256"]})
         index = {"schemaVersion": 2, "status": "prepared", "bundleId": original["bundleId"],
                  "sources": entries, "rejected": [], "joins": joins}
         (stage / "index.json").write_bytes(encoded(index))
