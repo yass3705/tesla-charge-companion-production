@@ -4,8 +4,11 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const engine=require('../runtime-overrides/assets/v9/pricing-engine.js');
 const shell=require('../v9-production-shell/bridge.js');
-const root=path.resolve(process.argv[2]||'dist/v9-global-preview');
-const stationEngine=require(path.join(root,'runtime/assets/v9/session-engine.js'));
+// A clean checkout has no generated dist. An explicit package argument still
+// exercises the packaged runtime; CI otherwise verifies the versioned engine.
+const stationEngine=require(process.argv[2]
+  ?path.resolve(process.argv[2],'runtime/assets/v9/session-engine.js')
+  :'../runtime-overrides/assets/v9/session-engine.js');
 const close=(a,b)=>assert.ok(Math.abs(a-b)<.00001,`expected ${a} to equal ${b}`);
 const rule={scope:'allDay',start:'00:00',end:'24:00',pricePerKwh:.4,congestionTimePerMinute:.2,congestionTimeStepSeconds:300,congestionStartSoc:80,congestionThresholdSource:'default_soc80'};
 const offer={id:'electra-direct:1',kind:'direct',provider:'Electra',currency:'EUR',pricing:{type:'component_groups',componentGroups:[{kind:'ENERGY+CONGESTION_TIME',rules:[rule]}]}};
