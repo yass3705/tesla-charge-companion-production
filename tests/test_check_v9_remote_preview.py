@@ -1,4 +1,5 @@
 import json
+import hashlib
 import sys
 import tempfile
 import unittest
@@ -20,8 +21,10 @@ class RemotePreviewCheckTests(unittest.TestCase):
                 "v9-production-shell/shell-config.json": b"{}",
                 "v9-production-shell/bridge.js": b"bridge",
                 "prepared-v9/index.json": json.dumps({"schemaVersion": 2, "sources": [
-                    {"shards": [{"path": "shards/FR__test__0000.json"}]}]}).encode(),
+                    {"shards": [{"path": "shards/FR__test__0000.json",
+                                 "sha256": hashlib.sha256(b"fragment").hexdigest()}]}]}).encode(),
                 "prepared-v9/shards/FR__test__0000.json": b"fragment",
+                "runtime/data/v9/france-crosswalk.json": b"crosswalk",
             }
             for name, body in files.items():
                 path = site / name
@@ -36,6 +39,13 @@ class RemotePreviewCheckTests(unittest.TestCase):
                 result = verify(site, "https://preview.example.org/", read)
                 self.assertEqual(result["status"], "remote_static_verified")
                 self.assertFalse(result["browserVerified"])
+                self.assertIn("runtime/data/v9/france-crosswalk.json", result["checkedAssets"])
+                self.assertEqual(verify(site, "https://preview.example.org/", read,
+                                        all_fragments=True)["signedFragmentsVerified"], 1)
+                with self.assertRaisesRegex(ValueError, "crosswalk SHA mismatch"):
+                    verify(site, "https://preview.example.org/", lambda url: (
+                        b"corrupt" if url.endswith("france-crosswalk.json") else read(url)[0],
+                        {"x-robots-tag": "noindex"}))
                 with self.assertRaisesRegex(ValueError, "Public TCC origin"):
                     verify(site, "https://teslachargecompanion.com/", read)
                 with self.assertRaisesRegex(ValueError, "Preview must use HTTPS"):

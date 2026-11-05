@@ -1,0 +1,14 @@
+# Préproduction Netlify V9 — état vérifié au 5 novembre 2026
+
+- Projet isolé `tcc-v9-preproduction-20261028`, ID `c4df2a8f-f57a-4d59-9e8f-df6da40f713f`, équipe `TCC` Free. `build_settings` vide ; aucune liaison GitHub. Aucun `--prod` ni déploiement publié sur l'URL principale.
+- Déploiement brouillon CLI `6ae257f7d0d52c2b2ba9636b`, créé le 28 octobre 2026 à 20:15:51 UTC, état API `ready` à 20:19:38 UTC, `context=deploy-preview`, `published_at=null`, `deploy_source=cli`, `required=[]`, sans erreur rapportée. URL immuable : `https://6ae257f7d0d52c2b2ba9636b--tcc-v9-preproduction-20261028.netlify.app`.
+- Paquet source conservé hors Git : `.tcc-v9-cache/reproducible-31-bump-2026-10-28/site-rule-key-guard`, bundle `29e2a5e9331a9d2949e342d245128d45480647f4eed1fc37977f83bc67e059fb`. Contrôle local du 5 novembre : **PASS**, 31 sources, 3 777 fichiers, 289 119 496 octets ; `runtime/data/v9/france-crosswalk.json` mesure 11 669 931 octets. `site-simple-guard` et `site` sont conservés pour retour arrière.
+- Requête HTTPS anonyme sur l'URL du brouillon : `HTTP/2 401`, `server: Netlify`, `X-Robots-Tag: noindex`. Le projet indique `sso_login=true`, `account_sso_login=true`, `sso_login_context=all`. `listSiteFiles` renvoie `[]` car aucun déploiement de production n'est publié ; cela ne vérifie pas les octets du brouillon.
+- `scripts/check_v9_remote_preview.py` a été réellement exécuté sur l'URL du brouillon et s'arrête sur `HTTP 401`. Aucun SHA distant, fichier de 11,7 Mo, fragment signé ou parcours navigateur distant n'est revendiqué comme validé. Les validations Firefox du paquet local restent historiques et distinctes.
+- Les deux harnais Firefox ont été adaptés pour accepter `--url` et garder leur comportement local sans ce paramètre. Leur compilation et `git diff --check` passent. Les parcours distants attendent l'accès HTTP public au brouillon.
+
+## Déblocage minimal et reprise exacte
+
+Dans le tableau de bord Netlify du **seul projet** `tcc-v9-preproduction-20261028`, ouvrir **Project configuration → General → Visitor access → Project visibility**, choisir **Customize** si proposé, puis rendre les **previews / Deploy Previews publics** et enregistrer. Garder la visibilité de production privée. Cette modification doit être faite dans l'interface Netlify ; la [documentation officielle](https://docs.netlify.com/manage/security/secure-access-to-sites/project-visibility/) ne donne pas de méthode CLI/API documentée pour ce réglage.
+
+Ensuite, vérifier d'abord que l'URL immuable répond `200`, puis exécuter `scripts/check_v9_remote_preview.py --all-fragments` (gros fichier et tous les fragments signés), et lancer `tests/v9_targeted_tariff_browser.py --url <URL>` et `tests/v9_preproduction_browser_smoke.py --url <URL>` avec Selenium/Firefox. Conserver G8 FAIL jusqu'aux résultats réels. Le site public TCC, `main`, Updater Test et GitHub Actions restent inchangés.

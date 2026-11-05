@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 from pathlib import Path
@@ -22,7 +23,8 @@ ASSETS = (
 )
 
 
-def verify(site: Path, base_url: str, read, *, allow_local: bool = False) -> dict:
+def verify(site: Path, base_url: str, read, *, allow_local: bool = False,
+           all_fragments: bool = False) -> dict:
     parsed = urlparse(base_url)
     if parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ("", "/"):
         raise ValueError("Preview URL must be a bare origin")
@@ -49,15 +51,34 @@ def verify(site: Path, base_url: str, read, *, allow_local: bool = False) -> dic
     body, _ = read(urljoin(base_url.rstrip("/") + "/", path))
     if hashlib.sha256(body).digest() != hashlib.sha256(expected).digest():
         raise ValueError("Remote candidate fragment SHA mismatch")
+    crosswalk = "runtime/data/v9/france-crosswalk.json"
+    if (site / crosswalk).is_file():
+        body, _ = read(urljoin(base_url.rstrip("/") + "/", crosswalk))
+        if hashlib.sha256(body).digest() != hashlib.sha256((site / crosswalk).read_bytes()).digest():
+            raise ValueError("Remote France crosswalk SHA mismatch")
+        checked.append(crosswalk)
+    fragment_count = 1
+    if all_fragments:
+        fragments = [("prepared-v9/" + shard["path"], shard["sha256"])
+                     for row in index["sources"] for shard in row["shards"]]
+        def check_fragment(entry):
+            fragment_path, sha = entry
+            body, _ = read(urljoin(base_url.rstrip("/") + "/", fragment_path))
+            if hashlib.sha256(body).hexdigest() != sha:
+                raise ValueError(f"Remote candidate fragment SHA mismatch: {fragment_path}")
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            list(pool.map(check_fragment, fragments))
+        fragment_count = len(fragments)
     return {"status": "remote_static_verified", "bundleId": package["bundleId"],
             "checkedAssets": checked + [path], "browserVerified": False,
-            "githubHandoffVerified": False}
+            "githubHandoffVerified": False, "signedFragmentsVerified": fragment_count}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--site", required=True, type=Path)
     parser.add_argument("--url", required=True)
+    parser.add_argument("--all-fragments", action="store_true")
     args = parser.parse_args()
 
     def read(url):
@@ -66,7 +87,8 @@ def main() -> None:
                 raise ValueError(f"Remote HTTP {response.status}")
             return response.read(), response.headers
 
-    print(json.dumps(verify(args.site, args.url, read), sort_keys=True))
+    print(json.dumps(verify(args.site, args.url, read,
+                            all_fragments=args.all_fragments), sort_keys=True))
 
 
 if __name__ == "__main__":

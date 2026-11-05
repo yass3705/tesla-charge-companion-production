@@ -13,7 +13,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def run(site, bundle):
+def run(site, bundle, url=None):
     script = r'''
 const fs=require('fs'),path=require('path');
 globalThis.TCCV9Adapters={ukOpenFeeds:require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/uk-open-feeds.js'))};
@@ -35,15 +35,17 @@ console.log(JSON.stringify(targets));
     class Quiet(SimpleHTTPRequestHandler):
         def log_message(self, *_args):
             pass
-    server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=str(site)))
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    server = None
+    if url is None:
+        server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=str(site)))
+        threading.Thread(target=server.serve_forever, daemon=True).start()
     options = Options(); options.add_argument('-headless')
     options.binary_location = '/Applications/Firefox.app/Contents/MacOS/firefox'
     results = []
     try:
         with webdriver.Firefox(options=options) as browser:
             browser.set_window_size(1280, 900); browser.set_script_timeout(120)
-            browser.get(f'http://127.0.0.1:{server.server_port}/')
+            browser.get(url or f'http://127.0.0.1:{server.server_port}/')
             WebDriverWait(browser, 30).until(lambda d: d.execute_script('return window.__TCC_V9_SHELL__?.ready'))
             for target in targets:
                 result = browser.execute_async_script(r'''
@@ -96,9 +98,10 @@ const target=arguments[0],done=arguments[1];
                     raise AssertionError(f'Compound fee missing: {result}')
                 results.append(result)
     finally:
-        server.shutdown(); server.server_close()
+        if server is not None:
+            server.shutdown(); server.server_close()
     return results
 
 if __name__ == '__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--site',type=Path,required=True);parser.add_argument('--bundle',type=Path,required=True)
-    args=parser.parse_args();print(json.dumps(run(args.site,args.bundle),ensure_ascii=False))
+    parser=argparse.ArgumentParser();parser.add_argument('--site',type=Path,required=True);parser.add_argument('--bundle',type=Path,required=True);parser.add_argument('--url')
+    args=parser.parse_args();print(json.dumps(run(args.site,args.bundle,args.url),ensure_ascii=False))

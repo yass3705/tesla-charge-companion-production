@@ -16,7 +16,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
+def run(site: Path, firefox: str, screenshots: Path | None = None, url: str | None = None) -> dict:
     if not (site / "prepared-v9/index.json").is_file() or not (site / "v9-production-shell/index.html").is_file():
         raise ValueError("Isolated packaged site required")
     candidate_index = json.loads((site / "prepared-v9/index.json").read_bytes())
@@ -43,10 +43,13 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
         def log_message(self, *_args):
             pass
 
-    handler = functools.partial(QuietHandler, directory=str(site))
-    server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
+    server = None
+    if url is None:
+        handler = functools.partial(QuietHandler, directory=str(site))
+        server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+    base_url = (url.rstrip("/") if url else f"http://127.0.0.1:{server.server_port}")
     options = Options()
     options.add_argument("-headless")
     options.binary_location = firefox
@@ -54,7 +57,7 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
         with webdriver.Firefox(options=options) as browser:
             browser.set_window_size(1280, 900)
             browser.set_script_timeout(45)
-            browser.get(f"http://127.0.0.1:{server.server_port}/")
+            browser.get(f"{base_url}/")
             WebDriverWait(browser, 10).until(lambda driver: driver.current_url.endswith('/v9-production-shell/'))
             WebDriverWait(browser, 30).until(lambda driver: driver.execute_script(
                 "return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error"))
@@ -599,12 +602,12 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                 powerdot[powerdot_country] = view
             # A same-origin iframe supplies a real 390 CSS-pixel viewport even
             # when headless Firefox enforces a 500-pixel minimum outer window.
-            browser.get(f"http://127.0.0.1:{server.server_port}/control/index.html")
+            browser.get(f"{base_url}/control/index.html")
             browser.execute_script("""
                 const frame=document.createElement('iframe');frame.id='v9-mobile-fixture';
                 frame.style.cssText='width:390px;height:844px;border:0';frame.src=arguments[0];
                 document.body.append(frame);
-            """, f"http://127.0.0.1:{server.server_port}/v9-production-shell/")
+            """, f"{base_url}/v9-production-shell/")
             browser.switch_to.frame("v9-mobile-fixture")
             WebDriverWait(browser, 30).until(lambda driver: driver.execute_script(
                 "return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error"))
@@ -629,12 +632,13 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
             browser.switch_to.default_content()
             if screenshots:
                 browser.find_element(By.ID, "v9-mobile-fixture").screenshot(str(screenshots / "prepared-fr-mobile-390.png"))
-            QuietHandler.fail_config = True
-            browser.get(f"http://127.0.0.1:{server.server_port}/v9-production-shell/")
-            WebDriverWait(browser, 10).until(lambda driver:
-                "Préproduction indisponible" in driver.find_element(By.TAG_NAME, "body").text)
-            if not browser.current_url.endswith('/v9-production-shell/'):
-                raise AssertionError("Broken preview redirected back to its root")
+            if server is not None:
+                QuietHandler.fail_config = True
+                browser.get(f"{base_url}/v9-production-shell/")
+                WebDriverWait(browser, 10).until(lambda driver:
+                    "Préproduction indisponible" in driver.find_element(By.TAG_NAME, "body").text)
+                if not browser.current_url.endswith('/v9-production-shell/'):
+                    raise AssertionError("Broken preview redirected back to its root")
             return {"fr": fr, "emsp": emsp, "gb": gb, "midhope": midhope, "eco": eco,
                     "it": italy, "de": germany,
                     "es": spain, "ma": morocco,
@@ -643,8 +647,9 @@ def run(site: Path, firefox: str, screenshots: Path | None = None) -> dict:
                     "minPower300": filtered["count"], "map": map_state,
                     "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
     finally:
-        server.shutdown()
-        server.server_close()
+        if server is not None:
+            server.shutdown()
+            server.server_close()
 
 
 if __name__ == "__main__":
@@ -652,5 +657,6 @@ if __name__ == "__main__":
     parser.add_argument("--site", required=True, type=Path)
     parser.add_argument("--firefox", default="/Applications/Firefox.app/Contents/MacOS/firefox")
     parser.add_argument("--screenshots", type=Path)
+    parser.add_argument("--url")
     args = parser.parse_args()
-    print(json.dumps(run(args.site, args.firefox, args.screenshots), ensure_ascii=False))
+    print(json.dumps(run(args.site, args.firefox, args.screenshots, args.url), ensure_ascii=False))
