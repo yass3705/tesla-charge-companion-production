@@ -1,3 +1,9 @@
+# Mise à jour : quatre correctifs testés sur le nouveau brouillon
+
+https://6aecc65c572ac7778d850e91--tcc-v9-preproduction-20261028.netlify.app
+
+Libellé EVSE, position du bouton d’adresse, Buc et Tesla/Mac autonome sont implémentés. Le Chesnay ne dépend plus de l’IRVE ; Milan et un Superchargeur par pays passent dans le navigateur distant. L’ancienne conclusion « Le Chesnay sans correspondance nationale » est invalidée par la règle Tesla prioritaire et ne constitue plus une exception. Preuves : `renewal-20261105/user-remote.json`, `tesla-remote.json`. Aucun collecteur Mac modifié, aucune attribution par proximité. Les paragraphes suivants sont l’historique daté de préparation.
+
 # Lot G9 — état après mandat de finalisation du 5 novembre
 
 Le mandat de finalisation autorise désormais l’implémentation. Les restrictions d’attente ci-dessous sont historiques et remplacées par ce mandat.

@@ -14,7 +14,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def measure(site: Path, firefox: str) -> dict:
+def measure(site: Path, firefox: str, url: str = None) -> dict:
     class Quiet(SimpleHTTPRequestHandler):
         def log_message(self, *_args):
             pass
@@ -27,7 +27,7 @@ def measure(site: Path, firefox: str) -> dict:
     try:
         with webdriver.Firefox(options=options) as browser:
             browser.set_script_timeout(180)
-            browser.get(f"http://127.0.0.1:{server.server_port}/")
+            browser.get(url or f"http://127.0.0.1:{server.server_port}/")
             WebDriverWait(browser, 40).until(lambda driver: driver.execute_script(
                 "return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error"))
             if not browser.execute_script("return window.__TCC_V9_SHELL__?.ready"):
@@ -86,19 +86,20 @@ def main() -> None:
     parser.add_argument("--baseline-json", type=Path,
                         help="Previously measured baseline result with identical fixed inputs")
     parser.add_argument("--candidate", type=Path, required=True)
+    parser.add_argument("--url", help="Actual isolated preview URL for candidate measurement")
     parser.add_argument("--firefox", default="/Applications/Firefox.app/Contents/MacOS/firefox")
     args = parser.parse_args()
     if not args.baseline and not args.baseline_json:
         parser.error("--baseline or --baseline-json is required")
     baseline = (json.loads(args.baseline_json.read_bytes())["baseline"] if args.baseline_json
                 else measure(args.baseline, args.firefox))
-    candidate = measure(args.candidate, args.firefox)
+    candidate = measure(args.candidate, args.firefox, args.url)
     keys = ("matching", "visible", "mapCount", "rankCount", "rankSha", "mapSha",
             "pageSha", "evaluationSha", "sourceErrors")
     differences = {key: [baseline.get(key), candidate.get(key)] for key in keys
                    if baseline.get(key) != candidate.get(key)}
     result = {"baseline": baseline, "candidate": candidate, "differences": differences,
-              "sameBusinessResult": not differences, "deployed": False}
+              "sameBusinessResult": not differences, "deployed": bool(args.url), "candidateUrl": args.url}
     print(json.dumps(result, sort_keys=True))
     if differences:
         raise SystemExit("Dense ranking business result differs")

@@ -1,3 +1,16 @@
+# Préproduction actuelle — Tesla autonome et renouvellement vérifié
+
+URL immuable : https://6aecc65c572ac7778d850e91--tcc-v9-preproduction-20261028.netlify.app
+
+Déploiement `6aecc65c572ac7778d850e91`, ready/deploy-preview, published_at=null, projet sans connexion Git. Paquet `.tcc-v9-cache/renewal-20261105/site`, bundle `a81e1defb94b88629e06bc09880bb1623aaeeea7de930987fa439cc5a3575a5c`, 32 sources / 3 783 fichiers. IONITY quatre pays et FX renouvelés le5novembre ; 28 autres sources canoniques et archive Tesla/Mac inchangées. Aucune collecte quotidienne générale revendiquée.
+
+**Recette distante exécutée :** HTTPS/200/noindex, SHA des ressources, FX et crosswalk11669931octets, 2526fragments signés, Tesla autonome dans neuf pays, Le Chesnay/Milan, treize parcours de portée/tarifs dont IONITY renouvelé, onze recherches/neuf pays, trois canaux, Buc/Fécamp, 20/40/60fiches, filtres, véhicule, pagination, carte et mobile390px. [Preuves](evidence/renewal-20261105/README.md).
+
+Amsterdam100km distant : 62 770 résultats identiques au scénario fixe, classement/carte/prix/pages à empreintes identiques ; **52,336s à froid**, limite d’expérience encore ouverte. G2–G8 non promues globalement :117handoffs et cadence quotidienne non démontrés, limites formelles des matrices conservées. Actions Data Lab de nouveau désactivé après les seuls essais bornés. Ancien brouillon `6aecb7777c40e2f98d53a4fb`, anciens bundles et site public inchangés, rollback vérifié.
+
+---
+## Historique des candidats (états datés, remplacés par le constat ci-dessus)
+
 # Hébergement actuel — candidat corrigé du 5 novembre 2026
 
 Nouveau brouillon isolé : **https://6aecb7777c40e2f98d53a4fb--tcc-v9-preproduction-20261028.netlify.app**. Déploiement `6aecb7777c40e2f98d53a4fb`, `ready`, `deploy-preview`, `published_at=null`, projet sans liaison Git. Paquet `.tcc-v9-cache/finalization-20261105/site`, 32 sources / 3 780 fichiers ; les 31 sources de référence sont inchangées, seul le dérivé Electra historiquement prouvé est ajouté.

@@ -1,0 +1,33 @@
+{
+  "DataLab": {
+    "branch": "rebuild/v9-20261020",
+    "head": "6900df609c0dd3baf131da56e574b74b03311740",
+    "originMain": "c7204b3ef35fd28fdc9bfbd7f8cc7f5a4a64494d",
+    "status": ""
+  },
+  "Production": {
+    "branch": "rebuild/v9-20261020",
+    "head": "cd0a5a4282f4299ea9b386e253fe3be92570ce7a",
+    "originMain": "5f036910a19e450780308f4aaf1cc9d1466ff6d4",
+    "status": "M docs/v9-rebuild/FINALIZATION_CONFORMANCE_20261105.md\n M docs/v9-rebuild/PREPRODUCTION_HOSTING.md\n M docs/v9-rebuild/evidence/g9-next-user-lot-20261105.md\n M docs/v9-rebuild/evidence/renewal-20261105/README.md\n M tests/v9_dense_ranking_compare.py\n?? docs/v9-rebuild/evidence/renewal-20261105/dense-equivalence-remote.json\n?? docs/v9-rebuild/evidence/renewal-20261105/deployment-state.json\n?? docs/v9-rebuild/evidence/renewal-20261105/deployment.json\n?? docs/v9-rebuild/evidence/renewal-20261105/github-verification.json\n?? docs/v9-rebuild/evidence/renewal-20261105/integrity-remote.json\n?? docs/v9-rebuild/evidence/renewal-20261105/ordinary-remote.json\n?? docs/v9-rebuild/evidence/renewal-20261105/public-safety.json\n?? docs/v9-rebuild/evidence/renewal-20261105/rollback-remote.json\n?? docs/v9-rebuild/evidence/renewal-20261105/targeted-remote.json\n?? docs/v9-rebuild/evidence/renewal-20261105/tesla-remote.json\n?? docs/v9-rebuild/evidence/renewal-20261105/user-remote.json"
+  },
+  "Stable": {
+    "branch": "main",
+    "head": "aad27bca174bbb62fc54affb93621071e2c0af43",
+    "originMain": "2b80e30f503d4d524ce7dfb9e6863d7dce3e3b22",
+    "status": ""
+  },
+  "Updater": {
+    "branch": "main",
+    "head": "1fdb3051f0f65e51ce1917c1a97e3f082ae695a3",
+    "originMain": "ea47391daa37cdbe97f434ffdc66585286a15a55",
+    "status": ""
+  },
+  "dataLabActionsEnabled": false,
+  "dataLabRunCounts": {
+    "queued": 0,
+    "in_progress": 0,
+    "waiting": 0,
+    "requested": 0
+  }
+}

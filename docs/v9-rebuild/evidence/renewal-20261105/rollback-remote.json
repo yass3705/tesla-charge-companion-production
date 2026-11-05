@@ -1,0 +1,32 @@
+[
+  {
+    "url": "https://yass3705.github.io/tesla-charge-companion-production/index.html",
+    "status": 200,
+    "sha256": "36ded0763fd1dac257b2e019180730e9ed0d3a6668705a5b14fdcee3a3c37aa1",
+    "unchanged": true
+  },
+  {
+    "url": "https://yass3705.github.io/tesla-charge-companion-production/manifest.json",
+    "status": 200,
+    "sha256": "965a4570ec9724cdcfeeace9f927107e3619b5c127622a2b5c43cde8259237e9",
+    "unchanged": true
+  },
+  {
+    "url": "https://6aecb7777c40e2f98d53a4fb--tcc-v9-preproduction-20261028.netlify.app/index.html",
+    "status": 200,
+    "sha256": "eb1cef1ef63f1081af9a134f87ea8e797732bdad4f0a7e7136fb4a1a75978a52",
+    "unchanged": true
+  },
+  {
+    "url": "https://6aecb7777c40e2f98d53a4fb--tcc-v9-preproduction-20261028.netlify.app/v9-production-shell/bridge.js",
+    "status": 200,
+    "sha256": "722e2156d6bed762e1a6ee37057ade4cbf178b43d538024130c8aebaf81ffdd3",
+    "unchanged": true
+  },
+  {
+    "url": "https://6aecb7777c40e2f98d53a4fb--tcc-v9-preproduction-20261028.netlify.app/prepared-v9/index.json",
+    "status": 200,
+    "sha256": "2d68b0721600cc9135dfed9ef9c1531ced2319690c1123f994e521d734b72394",
+    "unchanged": true
+  }
+]
