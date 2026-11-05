@@ -57,6 +57,10 @@ const [name,country,lat,lon,fecampId]=arguments[0],done=arguments[1];
  document.getElementById('simOrigin').value=name;
  document.getElementById('simMaxDistance').value='5';
  document.getElementById('simRanking').value='price';
+ // Freeze the same session for local/remote parity; wall-clock tariffs may change between runs.
+ document.getElementById('simDate').value='2026-11-05';
+ document.getElementById('simTime').value='12:00';
+ document.getElementById('simUnplugTime').value='';
  document.getElementById('simOperatorFilter').dataset.v9Mode='all';
  let area=await window.compare();
  if(!area)throw Error('Search failed: '+(localStorage.getItem('tccV9ProductionShellDiagnosticsV1')||''));
@@ -107,7 +111,9 @@ const [name,country,lat,lon,fecampId]=arguments[0],done=arguments[1];
    if(fecamp.offers||fecamp.unparsedOffers||!fecamp.allChannels||!fecamp.unavailable)
      throw Error('Fécamp offer status or channel rendering changed');
  }
- return{name,country,matching:ranked.length,priced,unpriced:ranked.length-priced,
+ const rankBytes=new TextEncoder().encode(JSON.stringify(ranked.map(row=>[row.station.id,row.total,row.costPerKm,row.distanceKm,row.score?.totalTimeMinutes])));
+ const rankingSha256=[...new Uint8Array(await crypto.subtle.digest('SHA-256',rankBytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
+ return{name,country,simulationStartAt:area.effectiveSession?.startAt,rankingSha256,matching:ranked.length,priced,unpriced:ranked.length-priced,
    rawStations,pageOffers,pageRawOffers,pageIncomplete,
    initialCards:initial,afterMore,firstCard,firstRanked:ranked[0]?.station?.id||null,
    markerLabels:markerLabels.slice(0,5),

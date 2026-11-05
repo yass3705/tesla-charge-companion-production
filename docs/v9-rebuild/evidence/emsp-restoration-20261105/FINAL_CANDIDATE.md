@@ -23,3 +23,13 @@ G2–G8 restent FAIL globalement :126handoffs non vérifiés après correction d
 ## Recette distante
 
 Transfert manuel sans --prod lancé après tous les contrôles locaux et scan public PASS. Processus15257 ; sorties `/private/tmp/tcc-emsp-netlify-deploy.{json,log}`. Ne pas relancer sans vérifier son état. Recette distante encore NON EXÉCUTÉE à cet instant ; aucune conformité distante déduite des contrôles locaux.
+
+Déploiement `6aecf99e6ec824559152b1aa` **ready**, contexte deploy-preview, published_at=null : https://6aecf99e6ec824559152b1aa--tcc-v9-preproduction-20261028.netlify.app . Transfert terminé, aucune duplication. Recettes distantes en cours : intégrité session59479 ;19parcours puis11recherches et G9mobile session49818. Le succès d'hébergement seul ne vaut pas PASS G8.
+
+### Recette distante partielle exécutée
+
+19parcours PASS (14calculables,2bruts correctement incalculables,3exclusions de portée justifiées),11recherches/neufpays PASS, contrôles utilisateur Buc/Milan/Chesnay/pagination/carte/mobile PASS. Rollback immuable précédent et SHA du sitepublic inchangés. Netlify repo=null/published_deploy=null. Preuves `targeted-remote.json`, `ordinary-remote.json`, `controls-remote.json`, `rollback-public-remote.json`, `netlify-isolation-after.json`.
+
+Le premier test de recherches ordinaires utilisait l'heure courante : Madrid changeait de meilleure offre entre local et distant, donc aucune égalité de montants ne pouvait être revendiquée avec ces entrées différentes. Test corrigé à date/heure explicites et empreinte du classement global ; recette de parité à mêmes entrées en cours, aucune modification de tarif.
+
+Contrôle exhaustif SHA interrompu par timeout de lecture, puis connexions TCP indisponibles sur les deux adresses DNS Netlify, nouveau et ancien brouillon, alors que GitHub/API Netlify répondaient. Aucun écart SHA constaté avant l'interruption, mais aucun PASS exhaustif. Accès rétabli ensuite HTTP200 ; relance à2lectures concurrentes avec reçu par fragment, lié exclusivement à URL immutable+bundle+SHAindex.3tests du vérificateur PASS : reprise conservant les réussites, refus de mauvaise origine/index/noindex/corruption, retries de transport bornés sans ignorer les erreurs d'intégrité. Ne pas attribuer sans preuve cette interruption à un dépassement de forfait : usages_exceeded=[] et aucune recharge automatique.
