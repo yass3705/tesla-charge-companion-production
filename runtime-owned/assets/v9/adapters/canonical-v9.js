@@ -248,6 +248,39 @@
         sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
         sourceTariffKey:offer.sourceTariffKey,timeZone:'Europe/Amsterdam'}};
   }
+  function provedElectraOffer(data,offer,index){
+    if(data.source?.id!=='FR:electra_emsp_exact'||offer.channel!=='Electra'||
+       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const evse=index.evses.get(offer.scope?.evseId),raw=offer.rawOffer,m=raw?.mapping,t=raw?.tariff,e=raw?.evidence;
+    const identity=v=>String(v||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(!evse?.officialEvseId||offer.officialEvseId!==evse.officialEvseId||
+       offer.proof!=='archived_screenshot_and_unique_historical_normalized_evse'||
+       m?.evseId!==offer.sourceEvseId||identity(m.evseId)!==identity(evse.officialEvseId)||
+       !/^[a-f0-9]{64}$/.test(e?.screenshotSha256||'')||!e.verifiedForPublishedSource||
+       e.requiresSourceTariffUnchanged!==true||!e.locationId||
+       m.chargeTariffId!==offer.sourceOfferId||t?.chargeTariffId!==offer.sourceOfferId||
+       JSON.stringify(m.components)!=='["ENERGY"]'||t.currency!=='EUR'||
+       Object.keys(t).sort().join(',')!=='chargeTariffId,currency,currentPricePerKwh,elements'||
+       !Number.isFinite(m.rateEurPerKwh)||m.rateEurPerKwh<0||t.currentPricePerKwh!==m.rateEurPerKwh||
+       t.elements?.length!==1)return null;
+    const element=t.elements[0],components=element.priceComponents;
+    const restrictions=new Set(['dayOfWeek','startTime','endTime','minDuration','maxDuration','startDate','endDate','minKwh','maxKwh','minPower','maxPower']);
+    if(Object.keys(element).sort().join(',')!=='priceComponents,restrictions'||
+       !element.restrictions||Object.entries(element.restrictions).some(([k,v])=>
+         !restrictions.has(k)||(Array.isArray(v)?v.length>0:v!=null))||
+       components?.length!==1||Object.keys(components[0]).sort().join(',')!=='price,type'||
+       components[0].type!=='ENERGY'||components[0].price!==m.rateEurPerKwh)return null;
+    const connectors=index.connectors.get(evse.id)||[];
+    if(!connectors.length||!Number.isFinite(m.powerKw)||m.powerKw<=0||
+       connectors.some(c=>c.powerKw!==m.powerKw))return null;
+    return {id:offer.id,provider:'Electra',kind:'roaming',currency:'EUR',countries:['FR'],
+      evseIds:[evse.id],connectorIds:connectors.map(c=>c.id),subscriptionId:null,
+      pricing:{type:'kwh',pricePerKwh:m.rateEurPerKwh},
+      metadata:{verified:true,identityMode:'archived_electra_screenshot_exact_evse',
+        sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
+        screenshotSha256:e.screenshotSha256,sourceOfferId:offer.sourceOfferId,
+        sourceEvseId:offer.sourceEvseId,nationalEvseId:evse.officialEvseId,timeZone:'Europe/Paris'}};
+  }
   function provedElectroverseOffer(data,offer,index){
     if(data.source?.id!=='FR:emsp_exact'||offer.channel!=='Electroverse'||
        offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
@@ -338,7 +371,7 @@
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
     }
-    if(['FR:emsp_exact','FR:bump_national_exact'].includes(data.source?.id)){
+    if(['FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact'].includes(data.source?.id)){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];
         list.push(row);proofIndex.connectors.set(row.evseId,list);}
     }
@@ -364,7 +397,7 @@
       if(!evse)throw new Error('canonical offer EVSE missing');
       const proved=provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
-        provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex);
+        provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
@@ -391,5 +424,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments,proveBumpOffer:provedBumpOffer};
+  return{toFragments,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer};
 });

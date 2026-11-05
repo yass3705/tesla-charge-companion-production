@@ -38,6 +38,23 @@
     });
   }
 
+  function provedConfigurationOffers(raw,station){
+    const zones={FR:'Europe/Paris',IT:'Europe/Rome',CH:'Europe/Zurich',DE:'Europe/Berlin',
+      ES:'Europe/Madrid',NL:'Europe/Amsterdam',GB:'Europe/London',BE:'Europe/Brussels',MA:'Africa/Casablanca'};
+    const zone=zones[station?.countryCode];
+    if(!zone||text(raw?.id)!==station?.sourceStationId)return[];
+    const configs=configRows(raw);
+    return (station.offers||[]).filter(offer=>{
+      const matched=configs.filter(cfg=>text(cfg?.id)===offer.evseIds?.[0]);
+      const cfg=matched[0],pricing=cfg?.pricing||raw?.pricing;
+      return matched.length===1&&offer.evseIds.length===1&&pricing?.type==='rules'&&
+        pricing.rules?.length>0&&pricingCurrency(pricing)===offer.currency&&
+        station.evses.filter(evse=>evse.id===offer.evseIds[0]).length===1&&
+        JSON.stringify(offer.pricing)===JSON.stringify(normalizedPricing(pricing,Number(cfg.powerKw||raw.powerKw)));
+    }).map(offer=>({...offer,metadata:{...offer.metadata,timeZone:zone,
+      identityMode:'exact_tesla_source_configuration',verified:true}}));
+  }
+
   function configRows(raw){
     if(Array.isArray(raw?.chargingConfigurations)&&raw.chargingConfigurations.length)return raw.chargingConfigurations;
     return [{id:`${raw?.id||'tesla'}:default`,label:'Tesla',kind:raw?.kind||'DC',powerKw:Number(raw?.powerKw||0),stalls:Number(raw?.stalls||0),pricing:raw?.pricing||null}];
@@ -107,5 +124,5 @@
     };
   }
 
-  return{normalizeStation,normalizePayload,createLoader,pricingCurrency,potentialCongestionFee,normalizedPricing,provedMoroccoPowerMinute};
+  return{normalizeStation,normalizePayload,createLoader,pricingCurrency,potentialCongestionFee,normalizedPricing,provedMoroccoPowerMinute,provedConfigurationOffers};
 });

@@ -198,7 +198,7 @@
   function pinnedTeslaInventory(w,base,source,expectedSha){
     if(!/^[a-f0-9]{64}$/.test(String(expectedSha||''))||source?.id!=='tesla-global'||
        source.adapter!=='tesla-json'||source.path!=='data/tesla_stations.json'||
-       !w.TCCV9Adapters?.teslaJson?.normalizePayload||!w.TCCV9Adapters?.teslaJson?.provedMoroccoPowerMinute||!w.TCCV9PreparedCandidate?.sha256Hex)
+       !w.TCCV9Adapters?.teslaJson?.normalizePayload||!w.TCCV9Adapters?.teslaJson?.provedConfigurationOffers||!w.TCCV9PreparedCandidate?.sha256Hex)
       throw new Error('pinned Tesla inventory unavailable');
     let promise=null;
     return async function(){
@@ -212,12 +212,17 @@
         const stations=w.TCCV9Adapters.teslaJson.normalizePayload(payload);
         const rawById=new Map(rawStations.map(raw=>[String(raw.id),raw]));
         if(rawById.size!==rawStations.length)throw new Error('Tesla inventory duplicate source IDs');
-        // Only the SHA-pinned Moroccan power-minute rules with exact configuration scope
-        // have a historical calculation oracle. Other Tesla offers remain excluded.
-        return stations.map(station=>({...station,
-          offers:w.TCCV9Adapters.teslaJson.provedMoroccoPowerMinute(rawById.get(station.sourceStationId),station),
-          status:{state:'unknown',
-          updatedAt:station.status?.updatedAt||null,sourceId:'tesla-global'}}));
+        // Preserve exact source configuration scope. The common engine still rejects
+        // incomplete or unsupported billed components; national projection is separate.
+        return stations.map(station=>{
+          const offers=w.TCCV9Adapters.teslaJson.provedConfigurationOffers(rawById.get(station.sourceStationId),station);
+          const provedIds=new Set(offers.map(offer=>offer.id));
+          return {...station,offers,
+            unparsedOffers:(station.offers||[]).filter(offer=>!provedIds.has(offer.id)).map(offer=>({
+              id:offer.id,channel:'Direct',scope:{evseId:offer.evseIds?.[0],connectorId:null},
+              rawOffer:offer,calculationStatus:'not_evaluated'})),
+            status:{state:'unknown',updatedAt:station.status?.updatedAt||null,sourceId:'tesla-global'}};
+        });
       }).catch(error=>{promise=null;throw error;});
       return promise;
     };
@@ -236,11 +241,11 @@
       preparedCandidate=null;
     if(cfg.preproductionCandidateBase){
       // NEVER blend unevaluated candidate tariffs into the historical priced catalog.
-      if(cfg.mode!=='candidate'||cfg.preproductionIsolated!==true||!w.TCCV9PreparedCandidate?.loadPrepared||!w.TCCV9CanonicalAdapter?.toFragments)
+      if(cfg.mode!=='candidate'||cfg.preproductionIsolated!==true||!/^[a-f0-9]{64}$/.test(String(cfg.nationalPolicySha256||''))||!w.TCCV9PreparedCandidate?.loadPrepared||!w.TCCV9CanonicalAdapter?.toFragments)
         throw new Error('isolated preproduction candidate not configured safely');
       const preview=await w.TCCV9PreparedCandidate.loadPrepared({
         baseUrl:cfg.preproductionCandidateBase,fetchImpl:w.fetch.bind(w),adapter:w.TCCV9CanonicalAdapter,
-        cryptoImpl:w.crypto,origin:w.location.href,expectedIndexSha256:cfg.preparedIndexSha256
+        cryptoImpl:w.crypto,origin:w.location.href,expectedIndexSha256:cfg.preparedIndexSha256,expectedNationalPolicySha256:cfg.nationalPolicySha256
       });
       if(preview.candidate.bundleId!==cfg.preparedBundleId)throw new Error('prepared bundle identity mismatch');
       registry=preview.registry;loaders=preview.loaders;preparedCandidate=preview.candidate;
@@ -986,7 +991,7 @@
     const entries=new Map();
     for(const [index,evse] of (row?.station?.evses||[]).entries()){
       const evseId=text(evse?.id||evse?.evseId)||'EVSE '+(index+1);
-      const exactIds=(evse?.pdcIds||[]).map(text).filter(Boolean);
+      const exactIds=(evse?.pdcIds?.length?evse.pdcIds:(evse?.officialEvseId?[evse.officialEvseId]:[])).map(text).filter(Boolean);
       const count=exactIds.length||Math.max(1,Math.floor(num(evse?.stalls)||1));
       const ids=exactIds.length?exactIds:Array.from({length:count},(_,slot)=>evseId+':slot:'+slot);
       for(const [slot,id] of ids.entries()){
@@ -1420,7 +1425,13 @@
     button.title='Utiliser la position GPS actuelle';
     button.style.cssText='width:auto;margin-top:6px;padding:8px 12px';
     const host=input.parentElement||input;
-    host.appendChild(button);
+    const actions=w.document.createElement('div');
+    actions.className='v9-origin-actions';actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center';
+    host.appendChild(actions);actions.appendChild(button);
+    const save=w.document.querySelector('button[onclick="saveDefaultOrigin()"]');
+    if(save){save.id='v9SaveDefaultOrigin';save.type='button';
+      save.style.cssText='width:auto;margin-top:6px;padding:8px 12px';actions.appendChild(save);}
+
     button.addEventListener('click',()=>{
       if(!w.navigator?.geolocation){button.textContent='GPS indisponible';return;}
       button.disabled=true;button.textContent='Localisation…';

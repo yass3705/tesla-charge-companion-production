@@ -1,0 +1,55 @@
+name: V9 reconstruction verification (no publication)
+on:
+  push:
+    branches: [rebuild/v9-20261020]
+  pull_request:
+    branches: [rebuild/v9-20261020]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v9-rebuild-verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Exact identities, national catalogue, ranking and tariff guards
+        run: >-
+          node --test
+          tests/v9-national-catalogue-policy.test.mjs
+          tests/v9-global-ranking-pages.test.mjs
+          tests/v9-station-card-lot1.test.mjs
+          tests/canonical-v9-proved-pricing.test.mjs
+          tests/preproduction-candidate-map.test.mjs
+          tests/preproduction-sharded-loader.test.mjs
+          tests/v9-ocpi-component-coverage.test.mjs
+          tests/v9-after-minutes-cap.test.mjs
+          tests/v9-congestion-soc80.test.mjs
+          tests/v9-simple-pricing-fail-closed.test.mjs
+          tests/v9-belib-flex-window-parity.test.mjs
+          tests/v9-currency-guard.test.mjs
+          tests/v9-missing-energy-session.test.mjs
+          tests/v9-offer-exact-scope.test.mjs
+      - name: Immutable import, packaging and remote-check contracts
+        run: |
+          python -m unittest discover -s tests -p 'test_import_v9_bundle.py'
+          python -m unittest discover -s tests -p 'test_package_v9_preproduction_map.py'
+          python -m unittest discover -s tests -p 'test_check_v9_remote_preview.py'
+          python -m unittest discover -s tests -p 'test_extend_v9_prepared_candidate.py'
+      - name: Verify recoverable workflow archive
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('archive/v9-production-workflows-20261105')
+          for row in json.loads((root/'manifest.json').read_text())['files']:
+              assert hashlib.sha256(pathlib.Path(row['archive']).read_bytes()).hexdigest()==row['sha256']
+          PY

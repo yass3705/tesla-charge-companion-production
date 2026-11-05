@@ -1,0 +1,57 @@
+[
+  {
+    "path": "v9-production-shell/bridge.js",
+    "bytes": 155641,
+    "sha256": "722e2156d6bed762e1a6ee37057ade4cbf178b43d538024130c8aebaf81ffdd3"
+  },
+  {
+    "path": "v9-production-shell/shell-config.json",
+    "bytes": 1096,
+    "sha256": "56369beba385b2b34b9eb44343abfcdf4e3a1e564e289accddf064d85c7820db"
+  },
+  {
+    "path": "v9-production-shell/national-catalogue-policy.json",
+    "bytes": 12755,
+    "sha256": "1e61ade0d4a29f9a7d79f5357acf130d3bbf54a1c5f6a688458f830a051db683"
+  },
+  {
+    "path": "prepared-v9/index.json",
+    "bytes": 643800,
+    "sha256": "2d68b0721600cc9135dfed9ef9c1531ced2319690c1123f994e521d734b72394"
+  },
+  {
+    "path": "runtime/data/v9/france-crosswalk.json",
+    "bytes": 11669931,
+    "sha256": "f050f8ea12d49591b24be2905aa2eaf7bb5bc5480473c59fffdebf72ef852c44"
+  },
+  {
+    "path": "runtime/data/tesla_stations.json",
+    "bytes": 4472574,
+    "sha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5"
+  },
+  {
+    "path": "runtime/assets/v9/data-engine.js",
+    "bytes": 27207,
+    "sha256": "c0438ef103cb667fe768499131c252e5d2f695b334759db91b99358240a2341f"
+  },
+  {
+    "path": "runtime/assets/v9/adapters/canonical-v9.js",
+    "bytes": 30370,
+    "sha256": "dffe11bf7208aa8caa7f4a7a0cc83b64c9fdbf75447563591228e779f2df7c3c"
+  },
+  {
+    "path": "runtime/assets/v9/adapters/tesla-json.js",
+    "bytes": 7204,
+    "sha256": "9d7e5992eeccb5bf0a0a8356f3513db9420ab7af82c7f0d3af994df1c289f408"
+  },
+  {
+    "path": "runtime/assets/v9/pricing-engine.js",
+    "bytes": 72525,
+    "sha256": "98e581821ff39e9e4fffb0e89271b66037edbb3dc0d88068f45480695ab6a0bd"
+  },
+  {
+    "path": "runtime/assets/v9/session-engine.js",
+    "bytes": 21922,
+    "sha256": "52789b0fc211b98a7393462eac844b629a0d25afaacb298434fc786dd465a2da"
+  }
+]

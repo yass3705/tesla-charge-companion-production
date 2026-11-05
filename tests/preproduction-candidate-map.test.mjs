@@ -21,8 +21,9 @@ const fetcher=async url=>{
   const body=files[new URL(url).pathname];
   return new Response(body||'not found',{status:body?200:404});
 };
-const config={baseUrl:'https://test.invalid/preview',origin:'https://test.invalid/v9-production-shell/index.html',
+const config={nationalCatalogues:{},baseUrl:'https://test.invalid/preview',origin:'https://test.invalid/v9-production-shell/index.html',
   fetchImpl:fetcher,adapter:{toFragments},cryptoImpl:webcrypto};
+await assert.rejects(loadPrepared({...config,nationalCatalogues:{FR:'FR:irve_static'}}),/national catalogue missing/);
 const prepared=await loadPrepared(config);
 const engine=createEngine({registry:prepared.registry,loaders:prepared.loaders});
 const result=await engine.queryArea({countryCode:'FR',origin:{lat:48,lon:2},radiusKm:5});
@@ -40,7 +41,7 @@ assert.equal(result.diagnostics.sources['prepared:FR:ionity_direct'].loaded,true
 files['/preview/sources/FR__ionity_direct.json']=raw.replace('IONITY archive','changed');
 const changed=await loadPrepared(config);
 await assert.rejects(changed.loaders['prepared:FR:ionity_direct']({}),/SHA mismatch/);
-await assert.rejects(loadPrepared({...config,baseUrl:'https://other.invalid/preview'}),/external preproduction origin blocked/);
+await assert.rejects(loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */...config,baseUrl:'https://other.invalid/preview'}),/external preproduction origin blocked/);
 const badIndex={...index,status:'partial_failure'};
 files['/preview/index.json']=JSON.stringify(badIndex);
 await assert.rejects(loadPrepared(config),/partial candidate missing failure report/);

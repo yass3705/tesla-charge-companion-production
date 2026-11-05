@@ -1,41 +1,13 @@
-# V9 production architecture
+# Architecture TCC V9 — reconstruction du 5 novembre 2026
 
-## Flow
+L’acquisition Tesla/Mac reste dans Updater Test. Data Lab exécute les méthodes conservées dans des répertoires isolés ; les checkpoints incomplets sont distincts des artefacts validés. Production importe des sources explicitement épinglées par manifeste et SHA, prépare un snapshot isolé, puis son moteur et son interface consomment ce snapshot.
 
-1. Collectors and investigations run outside production.
-2. A production snapshot pins exact source commits and immutable source artifacts.
-3. The build copies or compiles only validated artifacts.
-4. Validation checks schema, country coverage, duplicate identity and fail-closed behavior.
-5. The resulting immutable snapshot is published.
-6. Cloudflare mirrors the validated snapshot.
-7. Traffic switches only after parity checks.
+Dans FR/BE/CH/DE/ES/NL, le catalogue national qualifié est l’unique origine des stations et PDC. Les CPO/eMSP ne fournissent que des enrichissements de portée unique démontrée. IT/GB/MA utilisent les archives CPO qualifiées faute de base nationale exploitable qualifiée dans ce candidat. Ce choix décrit les archives disponibles, pas une affirmation d’absence de registre dans le pays. Les identifiants officiels restent inchangés.
 
-## Runtime scope
+Les branches de reconstruction possèdent deux workflows communs Data Lab et une vérification Production en lecture seule. Les anciens YAML Production sont restaurables depuis `archive/v9-production-workflows-20261105/manifest.json`. Cette consolidation ne modifie pas les workflows de main. Actions Data Lab reste désactivé ; un pilote historique a réellement réussi, les autres transferts n’ont pas de preuve distante.
 
-Tesla plus ES, NL, CH, MA, FR, IT, DE and UK.
+Netlify héberge uniquement des brouillons manuels du projet indépendant autorisé, sans connexion Git ni `--prod`. Chaque URL est immuable ; le candidat G9 précédent et son bundle restent disponibles pour retour arrière. Le site public demeure sur son snapshot antérieur et sa promotion exige un accord distinct.
 
-Countries may be `complete` or `partial`; unresolved tariff or identity data remains fail-closed and never blocks publication of otherwise validated stations.
+Stable est une référence historique/rollback uniquement. Cloudflare est abandonné. L’ancienne architecture est conservée dans [l’archive documentaire](v9-rebuild/archive/architecture-before-20261105.md), sans valeur de consigne active.
 
-## Cloudflare target
-
-Cloudflare's current recommendation for new applications is Workers Static Assets rather than Pages. TCC therefore targets:
-
-- **Workers Static Assets**: frontend/runtime shell.
-- **R2**: immutable snapshot payloads, country datasets and shards.
-- **Worker code**: current-snapshot pointer, manifest/data routing, cache policy and health endpoint.
-- **GitHub Actions**: collection/build orchestration remains outside Cloudflare initially.
-
-R2 snapshots use immutable keys:
-
-```
-snapshots/2026-09-30/manifest.json
-snapshots/2026-09-30/runtime/...
-snapshots/2026-09-30/snapshot-inputs/...
-current.json
-```
-
-`current.json` is the only mutable pointer. A deployment is promoted by changing that pointer after parity validation; rollback changes it back to the previous snapshot.
-
-## Migration rule
-
-Cloudflare is a mirror until parity passes. The legacy stable runtime remains the rollback baseline during migration. No collector credentials are committed; authentication material is supplied only through repository/environment secrets.
+Voir [la conformité et les limites](v9-rebuild/FINALIZATION_CONFORMANCE_20261105.md), le [contrat d’hébergement](v9-rebuild/PREPRODUCTION_HOSTING.md) et le journal Data Lab `memory/V9_REBUILD_PROGRESS.md`.

@@ -1,0 +1,76 @@
+# Conformité du candidat de finalisation — 5 novembre 2026
+
+Le mandat du 5 novembre autorise les quatre correctifs G9, les travaux réversibles de reconstruction et un nouveau brouillon Netlify. Il ne réactive pas Actions Data Lab et n’autorise ni fusion main ni publication publique. Le candidat G9 précédent `6aec9f2fb223d58706efe5b5` et le bundle `29e2a5e9331a9d2949e342d245128d45480647f4eed1fc37977f83bc67e059fb` restent immuables.
+
+Cette matrice relie les critères du CDC permanent à leur implémentation et à leurs preuves. **PASS local** ou **PASS historique** ne signifie jamais PASS distant ni promotion de porte. Les preuves distantes du nouveau candidat sont ajoutées après exécution. Les portes globales G2–G8 restent FAIL tant que les lignes bloquantes sont ouvertes ; G9 attend l’utilisateur.
+
+| Exigence CDC | Implémentation / preuve | Résultat applicable et limite |
+|---|---|---|
+| G0 branches, modifications préservées | HEAD départ Data Lab `0cb384e8d`, Production `3e68f6f`, fetch, arbres propres ; Stable et Updater consultés sans modification | PASS |
+| G0 sauvegarde et retour arrière workflows | Data Lab `check_v9_neutralized_main.py` : 1 207 blobs restaurables, main `c7204b3ef`, zéro YAML actif ; Production archive 64 blobs à SHA et manifeste sur branche seulement | PASS local, main Production inchangé |
+| G0 anciens déclencheurs Data Lab neutralisés | API `enabled=false`, main sans workflow ; pilote unique terminé | PASS, aucune réactivation |
+| G1 toutes méthodes/destinations, exceptions | registres `migration/v9`, validation G1 acquise ; G2 actuel : zéro méthode utile en attente | PASS historique, pas de réinventaire |
+| G1 Ubitricity NL | `legacy_method_unavailable`, acquisition désactivée, last-good conservé | N/A renouvellement, exception nominative |
+| G2 modules indépendants et workflows mutualisés | deux workflows Data Lab ; un workflow Production de vérification en lecture seule ; archives exactes des anciens YAML | PASS architecture branche, pas déployée sur main Production |
+| G2 orchestration, erreurs, reprise, concurrence | `test_v9_orchestrator.py` 14 tests ; `test_v9_artifact_selection.py` 13 tests | PASS local rejoué |
+| G2 pagination, secrets nommés, compatibilité méthodes | preuves fixtures par module dans registres et tests existants ; pagination/compteurs internes et SHA, aucun seuil historique accepté | PASS fixtures existantes, renouvellement réel global NOT TESTED |
+| G2 handoffs GitHub réels | pilote IONITY `40753241945`, ZIP local conservé, import quatre pays ; 119 autres handoffs non vérifiés ; artefact GitHub historique désormais 404 | FAIL global ; archive locale ne prouve pas disponibilité actuelle GitHub |
+| G2 absence de push main / secrets publication | workflows reconstruits contents:read, sans publication ni workflow_run ; API Data Lab désactivée | PASS local ; CI Production séparée à enregistrer |
+| G3 schémas / IDs stables / champs source | normaliseurs canoniques, `snapshot.prepare`, import strict, sources brutes préservées | PASS sur sources du candidat ; familles hors candidat pas réputées intégrées |
+| G3 collisions, relations, provenance | SHA de chaque source, connecteur→EVSE→station, test import 8 cas ; index national d’ambiguïté globale signé | PASS local ; aucune comparaison aux volumes historiques |
+| G3 valeurs absentes / nouveaux ou anciens sites | tests schémas, monnaie/énergie absentes, pas de filtre par variation de quantité | PASS local |
+| G3 neuf pays | FR/BE/CH/DE/ES/NL nationaux ; IT/GB/MA CPO qualifiés, aucune base nationale absente inventée | PASS navigation précédente ; nouveau candidat à contrôler distant |
+| G3 archives non qualifiées | PUN IT non reconstructible au pin ; Repower/Neogy candidats non qualifiés ; UK Eco-Movement ne devient pas base nationale par défaut | Exceptions conservées, aucune nouvelle enquête |
+| G4 manifestes / versions / SHA / immutabilité | `snapshot.prepare`, `import_v9_bundle.py`, extension vérifiée des fragments | PASS local ; les 31 SHA précédents sont inchangés |
+| G4 isolation source en échec / last-good / rollback | `test_import_v9_bundle.py`, `test_extend_v9_prepared_candidate.py`, candidats précédents conservés | PASS local, restauration logique vérifiée sans remplacer de déploiement sain |
+| G4 acquisition séparée de publication | aucun collecteur ne modifie Production ; paquets isolés, Netlify manuel sans Git | PASS architecture de reconstruction |
+| G4 Tesla Mac préservé | catalogue Tesla épinglé SHA `363af2e8…`, acquisition inchangée ; runner Mac hors ligne à l’audit | Import PASS historique ; acquisition nouvelle NOT TESTED |
+| G4 renouvellement par famille + import réel | pilote IONITY prouvé ; autres familles non renouvelées de bout en bout | FAIL global, Actions désactivé / dépendances externes |
+| G5 catalogue national exclusif | `consolidateNational`, politique par pays et index global SHA ; aucun CPO ne crée de station/PDC national | PASS fixtures et archives complètes du candidat 31 |
+| G5 Buc IRVE/Powerdot | station `FRPD1PITMBUC`, six EVSE officiels conservés ; `DL002019` non autonome ; sept offres Powerdot restent archivées sans attribution | PASS local archive + navigateur |
+| G5 exact/absent/ambigu/multiple | tests `v9-national-catalogue-policy`, unicité mondiale avant découpage spatial, connecteur exact ou même identité canonique dérivée | PASS local, aucune jointure GPS/nom/puissance |
+| G5 canaux et déduplication | offres remappées sur cibles exactes, source/proof conservés ; aucun remplacement de puissance nationale | PASS local |
+| G5 Electroverse | 160 offres brutes `not_evaluated` deviennent calculables via garde prouvé `provedElectroverseOffer` | PASS historique + navigateur local ; l’audit du brut seul ne décrivait pas le calcul runtime |
+| G5 Electra eMSP | rétablit comparaison historique de format EVSE du collecteur Electra, uniquement cinq preuves capture + EVSE unique + source tarifaire inchangée | PASS local ; autres offres non prouvées non attribuées |
+| G5 autres correspondances historiques | pas de migration automatique des rapprochements de proximité ; CPO sans contrat national reste archivé | Couverture globale FAIL ; limite visible, aucune fabrication |
+| G6 énergie, minute, frais session | oracles OCPI et session combinée empaquetée | PASS mécanismes |
+| G6 connexion / stationnement / après charge | gardes de durées distinctes, `v9-after-minutes-cap`, Bump, Belib Flex | PASS mécanismes, données manquantes incalculables |
+| G6 congestion / SOC / conditions | `v9-congestion-soc80`, conditions non démontrées non facturées ; métadonnées Tesla congestion conservées | PASS scénarios couverts, pas de disponibilité live inventée |
+| G6 seuils / paliers / plafonds / minima | oracles OCPI, après seuil, Midhope | PASS scénarios historiques et représentatifs |
+| G6 pas de facturation / arrondis | oracles NL, OCPI step_size, Midhope 64 | PASS mécanismes |
+| G6 heures / jours / DST / fuseaux | Belib Flex, timezone, Tesla MAD, Midhope | PASS mécanismes ; fuseaux Tesla par pays conservés |
+| G6 TVA / devises / FX | natif et conversion explicite, tests devise inconnue et oracle combiné GBP | PASS mécanismes ; conversion manquante non inventée |
+| G6 abonnements / éligibilité | offer-engine/session-engine, oracle Direct/Electra/Electroverse + sélection | PASS représentatif ; offre commerciale sans portée reste non classable |
+| G6 préautorisation | Midhope 25 GBP exclu des frais ; 64/64 entrées identiques rejouées | PASS historique empaqueté |
+| G6 composantes imbriquées / total partiel | gardes simple/rules/component_groups, mutation d’une composante ou restriction supplémentaire Electra → brut | PASS tests de refus |
+| G6 absence énergie/durée/devise | tests `v9-missing-energy-session`, `v9-currency-guard`, planificateur | PASS |
+| G6 Tesla Milan/Le Chesnay | exclusion Maroc-only du chargeur corrigée ; archives identiques : 10 kWh → 4,80 EUR Milan / 4,20 EUR Chesnay au scénario fixé | PASS moteur ; Milan affiché, Chesnay non attribuable à IRVE sans preuve EVSE/configuration |
+| G6 721 lignes / couverture exhaustive | sorties historiques sans toutes entrées, non reproductibles comme parité exacte ; matrice `g6-mechanism-coverage-20261028.md` conservée | Exception replay 721 ; qualification de toutes cohortes reste partielle, pas de PASS global |
+| G7 une fiche / puissances / PDC / prises | catalogue national + cartes regroupées ; ID officiel affiché au lieu du faux libellé manquant | PASS local, six PDC Buc et Fécamp conservés |
+| G7 adresse de départ | bouton de sauvegarde déplacé avec Position actuelle, même handler/localStorage | PASS navigateur local |
+| G7 20 initiales +20 / pagination / cinq classements | oracle complet cinq modes, test Paris 20/40/60, aller-retour dernière page | PASS local |
+| G7 carte densité/zoom / rayon100 | inventaire carte = classement, zoom/pagination, rayon inchangé | PASS fonctionnel ; performance dense ouverte |
+| G7 filtres multiples / véhicule / abonnements | preuves précédentes + recette pays et session sur code pertinent | PASS existant ; recette nouvelle à consigner |
+| G7 trois canaux / coûts / durée / coût-km / frais / provenance | gardes par offre exacte, oracle session, parcours tarifaires et source/date visibles | PASS local sur mécanismes prouvés, prix absents explicités |
+| G7 mobile / accessibilité / aide / signalement | commandes natives, clavier, labels, iframe réel 390px, formulaire local | Recette nouvelle NOT TESTED jusqu’au rapport |
+| G7/G8 performance Amsterdam 100km | mesure précédente 48,1s à froid, pas d’optimisation répétée sans régression | FAIL performance dense, limite conservée |
+| G8 intégration locale / import / SHA | nouveau bundle, fragments conservés et nouvel Electra, tests des échecs et reprise | PASS local en cours de finalisation |
+| G8 sécurité / site public intact | branches isolées, scan public, aucune fusion/activation Data Lab, Netlify sans prod | À compléter avec scans et HEAD finaux |
+| G8 HTTPS/noindex/SHA/navigateur distant/rollback | nouveau brouillon autorisé ; tests stricts du paquet exact sur URL | NOT TESTED avant déploiement et vérification |
+| G8 chaîne automatique complète | renouvellements/handoffs non exécutés, main Production conserve architecture historique | FAIL, aucune assimilation aux tests G9 |
+| G9 URL + parcours + anomalies | guide et formulaire intégrés ; brouillon immuable distinct attendu | NOT TESTED nouvelle URL |
+| G9 validation utilisateur / promotion publique | accord visuel après nouveau candidat ; promotion exige accord séparé | NOT TESTED ; aucune promotion publique autorisée |
+
+## Choix et diagnostics fermés
+
+La consolidation applique la règle nationale même lorsqu’elle retire une fiche CPO auparavant visible. Les données sources et offres non attribuables restent intégralement dans le bundle ; elles ne donnent pas un prix à une autre prise. À Milan, sans base nationale IT qualifiée dans le paquet, la configuration Tesla retrouve son tarif. Au Chesnay, l’archive Mac ne fournit pas d’identité EVSE nationale : le tarif source est calculable mais ne peut pas être affecté au catalogue IRVE sur la seule adresse/coordonnée. Ce manque de correspondance n’est pas corrigé par une supposition.
+
+Le canal Electra manquait pour une raison technique démontrée : le collecteur historique `electra_france_platform_snapshot.mjs` utilisait déjà `norm()` sur les EVSE tandis que le dérivé V9 comparait les chaînes littéralement. Le nouveau dérivé conserve l’identifiant fournisseur étoilé et l’identifiant national sans étoiles, exige unicité globale et présence dans la même localisation source. Le garde moteur exige le tarif ENERGY complet identique à la preuve capture ; toute composante, restriction, devise ou montant différent reste brut. Aucune collecte fournisseur ni recherche de prix effectuée.
+
+L’indice d’ambiguïté national est construit sur toutes les partitions avant sélection spatiale et épinglé par SHA dans le shell. Un EVSE répété ailleurs ne devient donc pas artificiellement unique dans une petite recherche.
+
+## Opérations distantes restant séparées
+
+Actions Data Lab reste désactivé. L’autorisation historique portait sur un seul pilote déjà achevé ; elle ne vaut pas activation permanente. Le nouveau mandat n’autorise pas explicitement cette activation administrative. Les 119 handoffs ne sont ni supprimés artificiellement ni déclarés testés. Production peut vérifier la branche en lecture seule avec son workflow commun ; ce run ne prouve pas une collecte Data Lab.
+
+Avant une reprise quotidienne : autoriser une fenêtre bornée Data Lab après préflight des SHA/déclencheurs, exercer les familles réellement renouvelables et leur last-good, puis importer un candidat explicitement épinglé. La bascule des workflows main et la publication du site public sont deux décisions distinctes. Aucun succès Netlify ne clôture ces points.

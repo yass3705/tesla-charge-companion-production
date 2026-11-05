@@ -16,7 +16,7 @@
     const hash=new Uint8Array(await impl.subtle.digest('SHA-256',bytes));
     return Array.from(hash,b=>b.toString(16).padStart(2,'0')).join('');
   }
-  async function loadPrepared({baseUrl,fetchImpl,adapter,cryptoImpl,origin,expectedIndexSha256}={}){
+  async function loadPrepared({baseUrl,fetchImpl,adapter,cryptoImpl,origin,expectedIndexSha256,expectedNationalPolicySha256,nationalCatalogues={FR:'FR:irve_static',BE:'BE:nap_static',CH:'CH:swiss_integration',DE:'DE:bnetza_afir_archive',ES:'ES:reve_static',NL:'NL:dotnl_static'}}={}){
     if(!adapter?.toFragments)throw new Error('canonical adapter missing');
     const base=new URL(String(baseUrl||''),origin||root?.location?.href||'http://localhost/');
     if(base.protocol!=='https:'&&base.hostname!=='localhost'&&base.hostname!=='127.0.0.1')
@@ -48,6 +48,17 @@
     if(![1,2].includes(index?.schemaVersion)||!['prepared','partial_failure'].includes(index.status)||
        !Array.isArray(index.sources)||!Array.isArray(index.rejected)||!index.sources.length)
       throw new Error('candidate index invalid');
+    let nationalAmbiguousEvseIds={};
+    if(expectedNationalPolicySha256!=null){
+      if(!shaPattern.test(expectedNationalPolicySha256))throw new Error('national policy SHA invalid');
+      const policy=await jsonAt(candidateUrl(base,'../v9-production-shell/national-catalogue-policy.json'),expectedNationalPolicySha256);
+      if(policy.schemaVersion!==1||policy.bundleId!==index.bundleId||policy.indexSha256!==expectedIndexSha256||
+         JSON.stringify(policy.catalogues)!==JSON.stringify(Object.fromEntries(Object.entries(nationalCatalogues).sort()))||
+         !policy.ambiguousEvseIds||Object.entries(policy.ambiguousEvseIds).some(([country,ids])=>
+           !nationalCatalogues[country]||!Array.isArray(ids)||ids.some(id=>typeof id!=='string'||!id)))
+        throw new Error('national policy identity invalid');
+      nationalAmbiguousEvseIds=policy.ambiguousEvseIds;
+    }
     const sources=[],loaders={},seen=new Set();
     // Share the decoding budget across sources, not just within one source.
     let activeLoads=0;const waitingLoads=[];
@@ -101,7 +112,7 @@
           const rawConnectors=new Map(data.connectors.map(row=>[row.id,row]));
           const rawCpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
           const bumpIndex={cpos:rawCpos,evses:rawEvses,connectors:new Map()};
-          if(id==='FR:bump_national_exact')for(const row of data.connectors){
+          if(['FR:bump_national_exact','FR:electra_emsp_exact'].includes(id))for(const row of data.connectors){
             const list=bumpIndex.connectors.get(row.evseId)||[];
             list.push(row);bumpIndex.connectors.set(row.evseId,list);
           }
@@ -111,6 +122,11 @@
           if(id==='NL:dotnl_static')for(const row of data.offers)
             connectorOfferCounts.set(row.scope?.connectorId,(connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
           const provedOffer=(fragment,offer)=>{
+            if(id==='FR:electra_emsp_exact'){
+              const raw=rawOffers.get(offer?.id);
+              const expected=raw&&adapter.proveElectraOffer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='FR'&&JSON.stringify(offer)===JSON.stringify(expected));
+            }
             if(id==='FR:bump_national_exact'){
               const raw=rawOffers.get(offer?.id);
               const expected=raw&&adapter.proveBumpOffer?.(data,raw,bumpIndex);
@@ -367,7 +383,12 @@
     }
     if(index.status==='partial_failure'&&!index.rejected.length)
       throw new Error('partial candidate missing failure report');
-    return{registry:{sources,subscriptionCoverage:[]},loaders,
+    // A missing declared national source must not silently turn CPOs into a catalogue.
+    for(const [country,source] of Object.entries(nationalCatalogues)){
+      if(index.sources.some(row=>row.source.startsWith(country+':'))&&!seen.has(source))
+        throw new Error('national catalogue missing: '+source);
+    }
+    return{registry:{sources,subscriptionCoverage:[],nationalCatalogues,nationalAmbiguousEvseIds},loaders,
       candidate:{status:index.status,bundleId:index.bundleId,rejected:index.rejected.map(x=>({source:x.source,reason:x.reason}))}};
   }
   return{loadPrepared,sha256Hex};

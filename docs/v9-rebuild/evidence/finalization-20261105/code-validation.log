@@ -1,0 +1,48 @@
+Packaged V9 full-session component, channel, subscription and FX oracle: pass
+Historical Midhope source oracle: 64 identical-input evaluations pass
+TAP version 13
+# Canonical V9: proved FR/DE/IT/GB IONITY and FR/IT/BE/NL rates, exact scope and historic oracles
+# Subtest: tests/canonical-v9-proved-pricing.test.mjs
+ok 1 - tests/canonical-v9-proved-pricing.test.mjs
+  ---
+  duration_ms: 736.611942
+  type: 'test'
+  ...
+# Prepared candidate map: isolated stations/EVSE, no priced offers, SHA/origin fail closed
+# Subtest: tests/preproduction-candidate-map.test.mjs
+ok 2 - tests/preproduction-candidate-map.test.mjs
+  ---
+  duration_ms: 413.657583
+  type: 'test'
+  ...
+# V9 sharded candidate: spatial fetch, complete fallback and SHA failure pass
+# Subtest: tests/preproduction-sharded-loader.test.mjs
+ok 3 - tests/preproduction-sharded-loader.test.mjs
+  ---
+  duration_ms: 576.31336
+  type: 'test'
+  ...
+# V9 global ranking: five modes match full oracle, bounded batches and cached pages PASS
+# V9 global routing cache PASS
+# Subtest: tests/v9-global-ranking-pages.test.mjs
+ok 4 - tests/v9-global-ranking-pages.test.mjs
+  ---
+  duration_ms: 3530.645379
+  type: 'test'
+  ...
+# National catalogue: exact/absent/ambiguous/multiple scopes, country fallback, physical topology and EVSE labels PASS
+# Subtest: tests/v9-national-catalogue-policy.test.mjs
+ok 5 - tests/v9-national-catalogue-policy.test.mjs
+  ---
+  duration_ms: 213.035916
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3971.807527

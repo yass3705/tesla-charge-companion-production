@@ -35,7 +35,15 @@ def verify(site: Path, base_url: str, read, *, allow_local: bool = False,
         raise ValueError("Public TCC origin cannot be used as preview")
     package = check(site)
     checked = []
-    for path in ASSETS:
+    config=json.loads((site / "v9-production-shell/shell-config.json").read_bytes())
+    additional=["runtime/assets/v9/data-engine.js", "runtime/assets/v9/preproduction-candidate-loader.js",
+                "runtime/assets/v9/adapters/canonical-v9.js", "runtime/assets/v9/adapters/tesla-json.js",
+                "runtime/assets/v9/pricing-engine.js", "runtime/assets/v9/session-engine.js",
+                "runtime/data/tesla_stations.json"]
+    assets=list(ASSETS)+[path for path in additional if (site/path).is_file()]
+    if config.get("nationalPolicySha256"):
+        assets.append("v9-production-shell/national-catalogue-policy.json")
+    for path in assets:
         expected = (site / path).read_bytes()
         body, headers = read(urljoin(base_url.rstrip("/") + "/", path))
         if hashlib.sha256(body).digest() != hashlib.sha256(expected).digest():

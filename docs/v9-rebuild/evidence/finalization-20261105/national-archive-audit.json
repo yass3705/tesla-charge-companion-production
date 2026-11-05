@@ -1,0 +1,267 @@
+{
+  "bundleId": "29e2a5e9331a9d2949e342d245128d45480647f4eed1fc37977f83bc67e059fb",
+  "countries": {
+    "FR": {
+      "reference": "FR:irve_static",
+      "sources": {
+        "FR:allego_direct": {
+          "stations": 154,
+          "pricedOffers": 0,
+          "rawOffers": 1127
+        },
+        "FR:atlante_direct": {
+          "stations": 164,
+          "pricedOffers": 1434,
+          "rawOffers": 1434
+        },
+        "FR:belib_stations": {
+          "stations": 381,
+          "pricedOffers": 0,
+          "rawOffers": 5571
+        },
+        "FR:bump_national_exact": {
+          "stations": 153,
+          "pricedOffers": 1353,
+          "rawOffers": 1353
+        },
+        "FR:driveco_evse_tariffs": {
+          "stations": 1223,
+          "pricedOffers": 0,
+          "rawOffers": 1601
+        },
+        "FR:emsp_exact": {
+          "stations": 71,
+          "pricedOffers": 160,
+          "rawOffers": 160
+        },
+        "FR:ionity_direct": {
+          "stations": 181,
+          "pricedOffers": 1857,
+          "rawOffers": 1857
+        },
+        "FR:irve_static": {
+          "stations": 52634,
+          "pricedOffers": 0,
+          "rawOffers": 0
+        },
+        "FR:izivia_fast_map": {
+          "stations": 616,
+          "pricedOffers": 0,
+          "rawOffers": 0
+        },
+        "FR:ozecar_monta": {
+          "stations": 269,
+          "pricedOffers": 0,
+          "rawOffers": 465
+        },
+        "FR:powerdot_direct": {
+          "stations": 1098,
+          "pricedOffers": 0,
+          "rawOffers": 7161
+        },
+        "FR:zephyre_epowerdirect_exact": {
+          "stations": 168,
+          "pricedOffers": 0,
+          "rawOffers": 168
+        }
+      },
+      "stations": 52634,
+      "pricedByChannel": {
+        "Direct": 1353,
+        "Electroverse": 160
+      },
+      "matchedOffers": 4693,
+      "unassigned": 16204
+    },
+    "BE": {
+      "reference": "BE:nap_static",
+      "sources": {
+        "BE:nap_static": {
+          "stations": 16993,
+          "pricedOffers": 41691,
+          "rawOffers": 101892
+        },
+        "BE:powerdot_direct": {
+          "stations": 1,
+          "pricedOffers": 0,
+          "rawOffers": 4
+        }
+      },
+      "stations": 16993,
+      "pricedByChannel": {
+        "Direct": 41691
+      },
+      "matchedOffers": 0,
+      "unassigned": 4
+    },
+    "CH": {
+      "reference": "CH:swiss_integration",
+      "sources": {
+        "CH:swiss_integration": {
+          "stations": 12000,
+          "pricedOffers": 0,
+          "rawOffers": 13826
+        }
+      },
+      "stations": 12000,
+      "pricedByChannel": {},
+      "matchedOffers": 0,
+      "unassigned": 0
+    },
+    "DE": {
+      "reference": "DE:bnetza_afir_archive",
+      "sources": {
+        "DE:bnetza_afir_archive": {
+          "stations": 63405,
+          "pricedOffers": 0,
+          "rawOffers": 0
+        },
+        "DE:ionity_direct": {
+          "stations": 200,
+          "pricedOffers": 1589,
+          "rawOffers": 1589
+        }
+      },
+      "stations": 63405,
+      "pricedByChannel": {},
+      "matchedOffers": 0,
+      "unassigned": 1589
+    },
+    "ES": {
+      "reference": "ES:reve_static",
+      "sources": {
+        "ES:reve_static": {
+          "stations": 13980,
+          "pricedOffers": 0,
+          "rawOffers": 0
+        }
+      },
+      "stations": 13980,
+      "pricedByChannel": {},
+      "matchedOffers": 0,
+      "unassigned": 0
+    },
+    "NL": {
+      "reference": "NL:dotnl_static",
+      "sources": {
+        "NL:dotnl_static": {
+          "stations": 79072,
+          "pricedOffers": 131022,
+          "rawOffers": 175506
+        },
+        "NL:electra_direct_exact": {
+          "stations": 18,
+          "pricedOffers": 0,
+          "rawOffers": 51
+        }
+      },
+      "stations": 79072,
+      "pricedByChannel": {
+        "Direct": 131022
+      },
+      "matchedOffers": 51,
+      "unassigned": 0
+    },
+    "GB": {
+      "reference": "qualified_CPO_archives",
+      "sources": {
+        "GB:allego_pcpr_direct": {
+          "stations": 77,
+          "pricedOffers": 0,
+          "rawOffers": 240
+        },
+        "GB:blink_pcpr_direct": {
+          "stations": 872,
+          "pricedOffers": 0,
+          "rawOffers": 3633
+        },
+        "GB:connected_kerb_midhope_verified": {
+          "stations": 1,
+          "pricedOffers": 0,
+          "rawOffers": 4
+        },
+        "GB:eco_movement_pcpr_raw": {
+          "stations": 328,
+          "pricedOffers": 0,
+          "rawOffers": 1045
+        },
+        "GB:gridserve_pcpr_direct": {
+          "stations": 205,
+          "pricedOffers": 0,
+          "rawOffers": 2834
+        },
+        "GB:ionity_direct": {
+          "stations": 84,
+          "pricedOffers": 878,
+          "rawOffers": 878
+        },
+        "GB:source_ev_pcpr_direct": {
+          "stations": 37,
+          "pricedOffers": 332,
+          "rawOffers": 332
+        },
+        "GB:ubitricity_pcpr_direct": {
+          "stations": 12474,
+          "pricedOffers": 0,
+          "rawOffers": 14132
+        }
+      },
+      "stations": 14078,
+      "pricedByChannel": {
+        "Direct": 1210
+      },
+      "matchedOffers": 0,
+      "unassigned": 0
+    },
+    "IT": {
+      "reference": "qualified_CPO_archives",
+      "sources": {
+        "IT:atlante_direct": {
+          "stations": 463,
+          "pricedOffers": 1831,
+          "rawOffers": 1845
+        },
+        "IT:ionity_direct": {
+          "stations": 43,
+          "pricedOffers": 331,
+          "rawOffers": 331
+        }
+      },
+      "stations": 506,
+      "pricedByChannel": {
+        "Direct": 2162
+      },
+      "matchedOffers": 0,
+      "unassigned": 0
+    },
+    "MA": {
+      "reference": "qualified_CPO_archives",
+      "sources": {
+        "MA:evgo": {
+          "stations": 17,
+          "pricedOffers": 0,
+          "rawOffers": 0
+        }
+      },
+      "stations": 17,
+      "pricedByChannel": {},
+      "matchedOffers": 0,
+      "unassigned": 0
+    }
+  },
+  "exceptions": [],
+  "buc": {
+    "id": "tcc:65a4419836d7213884ef581d66a51a526ccf8e82970bdd8bd017c8f3c8ac8ded",
+    "evseIds": [
+      "FRPD1EITMBUCBBC0014",
+      "FRPD1EITMBUCBBC0013",
+      "FRPD1EITMBUCBBC0011",
+      "FRPD1EITMBUCBBP0012",
+      "FRPD1EITMBUCBBP0011",
+      "FRPD1EITMBUCALF0011"
+    ],
+    "offers": 0,
+    "rawOffers": 0
+  },
+  "status": "pass"
+}

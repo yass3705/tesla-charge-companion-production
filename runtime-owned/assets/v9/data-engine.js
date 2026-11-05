@@ -185,6 +185,75 @@
     const sorted=(stations||[]).map(st=>({st,d:distanceKm(origin,st)})).sort((a,b)=>a.d-b.d||a.st.id.localeCompare(b.st.id)),byOperator=new Map();for(const row of sorted){const id=operatorId(row.st.physicalOperator);if(!byOperator.has(id))byOperator.set(id,[]);byOperator.get(id).push(row);}const chosen=new Map();for(const rows of byOperator.values())for(const row of rows.slice(0,Math.max(1,perOperatorFloor)))chosen.set(row.st.id,row.st);const target=Math.max(Number(budget)||0,chosen.size);for(const row of sorted){if(chosen.size>=target)break;chosen.set(row.st.id,row.st);}return[...chosen.values()].sort((a,b)=>distanceKm(origin,a)-distanceKm(origin,b)||a.id.localeCompare(b.id));
   }
 
+  // Only the declared national source can create stations or physical points.
+  // CPO fragments are projected through unique exact identities, never geometry.
+  function consolidateNational(items,catalogues={},ambiguousEvseIds={}){
+    const output=[],nationalByKey=new Map();
+    const ambiguous=Object.fromEntries(Object.entries(ambiguousEvseIds).map(([country,ids])=>[country,new Set(ids)]));
+    const diagnostics={policy:'national_catalogue_only',unassigned:[],matchedOffers:0};
+    const key=(country,id)=>country+'|'+id;
+    const add=(k,value)=>{const rows=nationalByKey.get(k)||[];rows.push(value);nationalByKey.set(k,rows);};
+    for(const item of items){
+      const f=item.fragment,reference=catalogues[f.countryCode];
+      if(!reference){output.push(item);continue;}
+      if(item.source.id!=='prepared:'+reference)continue;
+      output.push(item);
+      for(const evse of f.evses||[]){
+        const value={item,evse};add(key(f.countryCode,'internal:'+evse.id),value);
+        if(evse.officialEvseId)add(key(f.countryCode,'official:'+evse.officialEvseId),value);
+      }
+    }
+    for(const item of items){
+      const f=item.fragment,reference=catalogues[f.countryCode];
+      if(!reference||item.source.id==='prepared:'+reference)continue;
+      const mapped=new Map(),connectors=new Map();
+      for(const evse of f.evses||[]){
+        if(evse.officialEvseId&&ambiguous[f.countryCode]?.has(evse.officialEvseId))continue;
+        const matches=nationalByKey.get(key(f.countryCode,evse.officialEvseId?
+          'official:'+evse.officialEvseId:'internal:'+evse.id))||[];
+        if(matches.length!==1)continue;
+        const target=matches[0];mapped.set(evse.id,target);
+        for(const connector of evse.connectors||[]){
+          const exact=(target.evse.connectors||[]).filter(c=>c.id===connector.id||
+            connector.officialConnectorId&&c.officialConnectorId===connector.officialConnectorId);
+          if(exact.length===1)connectors.set(connector.id,{id:exact[0].id,evseId:target.evse.id});
+        }
+      }
+      const projections=new Map();
+      const project=(offer,raw)=>{
+        const ids=raw?[offer.scope?.evseId]:(offer.evseIds||[]);
+        const targets=ids.map(id=>mapped.get(id));
+        const connectorIds=raw?(offer.scope?.connectorId?[offer.scope.connectorId]:[]):(offer.connectorIds||[]);
+        const plugs=connectorIds.map(id=>connectors.get(id));
+        if(!ids.length||targets.some(t=>!t)||new Set(targets.map(t=>t.item.fragment.canonicalId)).size!==1||
+           plugs.some(p=>!p)||plugs.some(p=>!targets.some(t=>t.evse.id===p.evseId))){
+          diagnostics.unassigned.push({sourceId:item.source.id,offerId:offer.id,reason:'exact_national_scope_unproved'});return;
+        }
+        const target=targets[0].item.fragment;
+        let projection=projections.get(target.canonicalId);
+        if(!projection){projection={canonicalId:target.canonicalId,countryCode:target.countryCode,
+          fieldPriority:{identity:-1,connectors:-1,access:-1,status:-1},
+          sourceStationId:f.sourceStationId+'@national:'+target.canonicalId,provenance:f.provenance,offers:[],unparsedOffers:[]};
+          projections.set(target.canonicalId,projection);}
+        const proof={sourceId:item.source.id,sourceStationId:f.sourceStationId,
+          sourceEvseIds:ids,sourceConnectorIds:connectorIds,nationalSource:reference,
+          proof:'unique_exact_evse_and_connector_identity'};
+        if(raw)projection.unparsedOffers.push({...offer,scope:{...offer.scope,evseId:targets[0].evse.id,
+          connectorId:plugs[0]?.id||null},nationalJoin:proof});
+        else projection.offers.push({...offer,evseIds:targets.map(t=>t.evse.id),
+          ...(connectorIds.length?{connectorIds:plugs.map(p=>p.id)}:{}),
+          // Restrict any station-level eligibility to the proven target.
+          ...(offer.stationIds?.length?{stationIds:[target.canonicalId]}:{}),
+          metadata:{...offer.metadata,nationalJoin:proof}});
+        diagnostics.matchedOffers++;
+      };
+      for(const offer of f.offers||[])project(offer,false);
+      for(const offer of f.unparsedOffers||[])project(offer,true);
+      for(const fragment of projections.values())output.push({source:item.source,fragment});
+    }
+    return{items:output,diagnostics};
+  }
+
   function createEngine({registry={sources:[]},loaders={}}={}){
     const sources=(registry.sources||[]).map(clone),loaderMap=new Map(Object.entries(loaders||{}));let api,areaCache=null;
     function registerLoader(sourceId,loader){if(typeof loader!=='function')throw new Error('loader must be a function');loaderMap.set(sourceId,loader);areaCache=null;return api;}
@@ -207,7 +276,9 @@
         const error=new Error(`required data source failed: ${requiredFailures.map(f=>f.sourceId).join(', ')}`);
         error.code='TCC_V9_REQUIRED_SOURCE_FAILED';error.failures=requiredFailures;error.diagnostics=diagnostics;throw error;
       }
-      const resolved=resolveEntities(fragmentsForRadius(items,query.origin,query.radiusKm)),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
+      const consolidation=consolidateNational(items,registry.nationalCatalogues||{},registry.nationalAmbiguousEvseIds||{});
+      diagnostics.consolidation=consolidation.diagnostics;
+      const resolved=resolveEntities(fragmentsForRadius(consolidation.items,query.origin,query.radiusKm)),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
       return{items,ruleItems,diagnostics,resolved,inRadius,baseFiltered,availableOperators:deriveOperators(baseFiltered),subscriptionOfferPool:baseFiltered.flatMap(st=>(st.offers||[]).filter(offer=>text(offer?.subscriptionId)))};
     }
     async function queryArea(query={}){
@@ -233,5 +304,5 @@
     api={queryArea,registerLoader,deriveOperators,eligibleOffers,selectRoutingCandidates,sources:()=>clone(sources)};return api;
   }
 
-  return{createEngine,resolveEntities,applyOfferRules,deriveOperators,eligibleOffers,selectRoutingCandidates,materializeOffer,operatorId,distanceKm,sourceApplies,ruleMatchesStation,stationIdentityTokens,identityScopeMatches};
+  return{createEngine,consolidateNational,resolveEntities,applyOfferRules,deriveOperators,eligibleOffers,selectRoutingCandidates,materializeOffer,operatorId,distanceKm,sourceApplies,ruleMatchesStation,stationIdentityTokens,identityScopeMatches};
 });

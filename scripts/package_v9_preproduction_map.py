@@ -37,6 +37,27 @@ def digest(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
+def national_policy(candidate: Path, index: dict) -> dict:
+    """Global ambiguity guards must survive spatial shard selection."""
+    from collections import Counter
+    catalogues = {"FR": "FR:irve_static", "BE": "BE:nap_static", "CH": "CH:swiss_integration",
+                  "DE": "DE:bnetza_afir_archive", "ES": "ES:reve_static", "NL": "NL:dotnl_static"}
+    ambiguous = {}
+    for source in index["sources"]:
+        country = source["source"][:2]
+        if catalogues.get(country) != source["source"]:
+            continue
+        counts = Counter()
+        for descriptor in source.get("shards", [source]):
+            raw = (candidate / descriptor["path"]).read_bytes()
+            data = json.loads(gzip.decompress(raw) if descriptor.get("encoding") == "gzip" else raw)
+            counts.update(row["officialEvseId"] for row in data["evses"] if row.get("officialEvseId"))
+        ambiguous[country] = sorted(key for key, count in counts.items() if count > 1)
+    return {"schemaVersion": 1, "bundleId": index["bundleId"],
+            "indexSha256": digest((candidate / "index.json").read_bytes()),
+            "catalogues": catalogues, "ambiguousEvseIds": ambiguous}
+
+
 def check_candidate(candidate: Path) -> dict:
     index = json.loads((candidate / "index.json").read_bytes())
     if index.get("schemaVersion") not in {1, 2} or index.get("status") not in {"prepared", "partial_failure"}:
@@ -280,8 +301,11 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
             shell_html.replace(fallback, "const CONTROL_FALLBACK=null;"), encoding="utf-8"
         )
         shutil.copy2(ROOT / "v9-production-shell/bridge.js", stage / "v9-production-shell/bridge.js")
+        policy_raw = (json.dumps(national_policy(candidate, index), sort_keys=True, separators=(",", ":")) + "\n").encode()
+        (stage / "v9-production-shell/national-catalogue-policy.json").write_bytes(policy_raw)
         config.update({
             "preproductionCandidateBase": "../prepared-v9",
+            "nationalPolicySha256": digest(policy_raw),
             "preproductionIsolated": True,
             "preparedBundleId": index["bundleId"],
             "preparedIndexSha256": digest((candidate / "index.json").read_bytes()),

@@ -1,0 +1,30 @@
+[
+  {
+    "command": [
+      "node",
+      "tests/v9_packaged_full_session_oracle.test.mjs",
+      "/Users/yassine/Projects/TCC/.tcc-v9-cache/finalization-20261105/site"
+    ],
+    "exitCode": 0
+  },
+  {
+    "command": [
+      "node",
+      "tests/v9_midhope_historical_64.test.mjs",
+      "/Users/yassine/Projects/TCC/.tcc-v9-cache/finalization-20261105/site"
+    ],
+    "exitCode": 0
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "tests/v9-national-catalogue-policy.test.mjs",
+      "tests/preproduction-sharded-loader.test.mjs",
+      "tests/canonical-v9-proved-pricing.test.mjs",
+      "tests/preproduction-candidate-map.test.mjs",
+      "tests/v9-global-ranking-pages.test.mjs"
+    ],
+    "exitCode": 0
+  }
+]

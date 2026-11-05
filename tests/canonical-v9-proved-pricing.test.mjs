@@ -92,10 +92,10 @@ const index={schemaVersion:1,status:'prepared',bundleId:'test',rejected:[],
   sources:[{source:'FR:ionity_direct',path:'sources/FR__ionity_direct.json',sha256:sha}]};
 const fetchImpl=async url=>({ok:true,arrayBuffer:async()=>
   url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(index)).buffer:bytes.buffer});
-const prepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+const prepared=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',
   origin:'http://127.0.0.1/',fetchImpl,cryptoImpl:webcrypto,adapter:{toFragments}});
 assert.equal((await prepared.loaders['prepared:FR:ionity_direct']())[0].offers.length,1);
-const tampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+const tampered=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',
   origin:'http://127.0.0.1/',fetchImpl,cryptoImpl:webcrypto,adapter:{toFragments(data){
     const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].unknownFee=1;return fragments;
   }}});
@@ -112,10 +112,10 @@ for(const country of ['DE','IT','GB']){
     path:`sources/${country}__ionity_direct.json`,sha256:createHash('sha256').update(payload).digest('hex')}]};
   const fetchLocal=async url=>({ok:true,arrayBuffer:async()=>
     url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(localIndex)).buffer:payload.buffer});
-  const valid=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+  const valid=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',
     origin:'http://127.0.0.1/',fetchImpl:fetchLocal,cryptoImpl:webcrypto,adapter:{toFragments}});
   assert.equal((await valid.loaders[`prepared:${local.source.id}`]())[0].offers.length,1);
-  const mutated=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+  const mutated=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',
     origin:'http://127.0.0.1/',fetchImpl:fetchLocal,cryptoImpl:webcrypto,adapter:{toFragments(data){
       const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].pricePerKwh=0.71;
       return fragments;
@@ -157,10 +157,10 @@ const frIndex={...index,sources:[{source:'FR:atlante_direct',
   path:'sources/FR__atlante_direct.json',sha256:createHash('sha256').update(frBytes).digest('hex')}]};
 const frFetch=async url=>({ok:true,arrayBuffer:async()=>
   url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(frIndex)).buffer:frBytes.buffer});
-const frLoaded=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+const frLoaded=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',
   origin:'http://127.0.0.1/',fetchImpl:frFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
 assert.equal((await frLoaded.loaders['prepared:FR:atlante_direct']())[0].offers.length,1);
-const frTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',
+const frTampered=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',
   origin:'http://127.0.0.1/',fetchImpl:frFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){
     const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].pricePerKwh=0.01;
     return fragments;
@@ -210,10 +210,10 @@ const beIndex={schemaVersion:1,status:'prepared',bundleId:'be-test',rejected:[],
   sources:[{source:'BE:nap_static',path:'sources/BE__nap_static.json',sha256:beSha}]};
 const beFetch=async url=>({ok:true,arrayBuffer:async()=>
   url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(beIndex)).buffer:beBytes.buffer});
-const bePrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const bePrepared=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:beFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
 assert.equal((await bePrepared.loaders['prepared:BE:nap_static']())[0].offers.length,1);
-const beTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const beTampered=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:beFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){
     const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].unknownFee=1;return fragments;
   }}});
@@ -266,7 +266,7 @@ const scheduledIndex={schemaVersion:1,status:'prepared',bundleId:'nl-scheduled',
   sha256:createHash('sha256').update(scheduledBytes).digest('hex')}]};
 const scheduledFetch=async url=>({ok:true,arrayBuffer:async()=>url.endsWith('index.json')?
   new TextEncoder().encode(JSON.stringify(scheduledIndex)).buffer:scheduledBytes.buffer});
-const scheduledPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const scheduledPrepared=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:scheduledFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
 const scheduledStation=(await scheduledPrepared.loaders['prepared:NL:dotnl_static']())[0];
 assert.equal(scheduledStation.offers.length,1);
@@ -276,7 +276,7 @@ assert.equal(evaluateStation(scheduledStation,{energyKwh:1.2,durationMinutes:30,
 assert.equal(evaluateStation(scheduledStation,{energyKwh:1.2,durationMinutes:30,
   startAt:'2026-10-25T08:30:00Z'}).comparableOfferCount,0,
   'prepared offer outside its weekday stays outside ranking');
-const scheduledTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const scheduledTampered=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:scheduledFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
     fragments[0].offers[0].pricing.rules[0].end='12:00';return fragments;}}});
 await assert.rejects(scheduledTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
@@ -304,13 +304,13 @@ const boundedIndex={schemaVersion:1,status:'prepared',bundleId:'nl-bounded',reje
   sha256:createHash('sha256').update(boundedBytes).digest('hex')}]};
 const boundedFetch=async url=>({ok:true,arrayBuffer:async()=>url.endsWith('index.json')?
   new TextEncoder().encode(JSON.stringify(boundedIndex)).buffer:boundedBytes.buffer});
-const boundedPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const boundedPrepared=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:boundedFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
 const boundedStation=(await boundedPrepared.loaders['prepared:NL:dotnl_static']())[0];
 assert.equal(boundedStation.offers.length,1);
 assert.equal(evaluateStation(boundedStation,boundedSession).best.total,1.14);
 assert.equal(evaluateStation(boundedStation,{...boundedSession,powerKw:11}).comparableOfferCount,0);
-const boundedTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const boundedTampered=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:boundedFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
     fragments[0].offers[0].pricing.rules[0].minPowerKw=0;return fragments;}}});
 await assert.rejects(boundedTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
@@ -365,11 +365,11 @@ const compoundIndex={schemaVersion:1,status:'prepared',bundleId:'nl-compound-tes
     sha256:createHash('sha256').update(compoundBytes).digest('hex')}]};
 const compoundFetch=async url=>({ok:true,arrayBuffer:async()=>
   url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(compoundIndex)).buffer:compoundBytes.buffer});
-const compoundPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const compoundPrepared=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:compoundFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
 assert.equal((await compoundPrepared.loaders['prepared:NL:dotnl_static']())[0].offers.length,1,
   'compound OCPI recipe reaches the prepared candidate loader');
-const compoundTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const compoundTampered=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:compoundFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
     fragments[0].offers[0].pricing.rules[0].connectionFee=0;return fragments;}}});
 await assert.rejects(compoundTampered.loaders['prepared:NL:dotnl_static'](),/candidate pricing isolation violated/);
@@ -379,10 +379,10 @@ const nlIndex={schemaVersion:1,status:'prepared',bundleId:'nl-test',rejected:[],
   sources:[{source:'NL:dotnl_static',path:'sources/NL__dotnl_static.json',sha256:nlSha}]};
 const nlFetch=async url=>({ok:true,arrayBuffer:async()=>
   url.endsWith('index.json')?new TextEncoder().encode(JSON.stringify(nlIndex)).buffer:nlBytes.buffer});
-const nlPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const nlPrepared=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:nlFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
 assert.equal((await nlPrepared.loaders['prepared:NL:dotnl_static']())[0].offers.length,1);
-const nlTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const nlTampered=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:nlFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){
     const fragments=toFragments(data);fragments[0].offers[0].pricing.rules[0].connectionFee=1;return fragments;
   }}});
@@ -419,10 +419,10 @@ const emspIndex={schemaVersion:1,status:'prepared',bundleId:'emsp-test',rejected
   sha256:createHash('sha256').update(emspBytes).digest('hex')}]};
 const emspFetch=async url=>({ok:true,arrayBuffer:async()=>url.endsWith('index.json')?
   new TextEncoder().encode(JSON.stringify(emspIndex)).buffer:emspBytes.buffer});
-const emspPrepared=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const emspPrepared=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:emspFetch,cryptoImpl:webcrypto,adapter:{toFragments}});
 assert.equal((await emspPrepared.loaders['prepared:FR:emsp_exact']())[0].offers.length,1);
-const emspTampered=await loadPrepared({baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
+const emspTampered=await loadPrepared({nationalCatalogues:{}, /* isolated adapter fixture, no national catalogue */baseUrl:'http://127.0.0.1/prepared-v9/',origin:'http://127.0.0.1/',
   fetchImpl:emspFetch,cryptoImpl:webcrypto,adapter:{toFragments(data){const fragments=toFragments(data);
     fragments[0].offers[0].pricing.rules[0].idlePerMinute=0;return fragments;}}});
 await assert.rejects(emspTampered.loaders['prepared:FR:emsp_exact'](),/candidate pricing isolation violated/);

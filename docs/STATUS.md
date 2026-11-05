@@ -1,3 +1,11 @@
+# État de reconstruction — 5 novembre 2026
+
+Le mandat courant autorise les quatre corrections G9 et un nouveau brouillon Netlify isolé. La chaîne de renouvellement automatique n’est pas déclarée opérationnelle : Actions Data Lab reste désactivé et 119 transferts n’ont pas de preuve distante. Le snapshot public ne change pas. Tesla/Mac alimente le staging Production ; Stable ne fait pas partie de la chaîne normale. Les sections datées ci-dessous décrivent les états historiques et peuvent contenir des chemins ensuite remplacés.
+
+Voir [la matrice de conformité](v9-rebuild/FINALIZATION_CONFORMANCE_20261105.md) et le journal Data Lab. Une preuve locale, une exécution GitHub, un artefact, un import et une URL publiée sont consignés séparément.
+
+---
+
 # TCC V9 production status
 
 ## Current published GitHub Pages candidate — 15 October 2026

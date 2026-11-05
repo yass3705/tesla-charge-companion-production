@@ -1,0 +1,325 @@
+{
+  "scope": "reconstruction branch only; main unchanged",
+  "files": [
+    {
+      "path": ".github/workflows/audit-france-electra-national-identity.yml",
+      "archive": "archive/v9-production-workflows-20261105/audit-france-electra-national-identity.yml",
+      "sha256": "af4514eebd4528999ef6dcf1704e6b166c606b258553cac2922e50c274a7f0bb"
+    },
+    {
+      "path": ".github/workflows/audit-germany-station-coverage.yml",
+      "archive": "archive/v9-production-workflows-20261105/audit-germany-station-coverage.yml",
+      "sha256": "4362496756b57d2892a514cec86a0b051ee879bedfd363df0e7ca40a74e5dd4d"
+    },
+    {
+      "path": ".github/workflows/build-2026-09-30-r2.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-2026-09-30-r2.yml",
+      "sha256": "bd6813efdd7ab910e81be717fa516695e6889e8f8330ad9c41d93d059e207fa2"
+    },
+    {
+      "path": ".github/workflows/build-2026-09-30-r3.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-2026-09-30-r3.yml",
+      "sha256": "6fa559b6120276a8b815fc119ff8df8e76067e66cf189ce2fc8e52228842d6ee"
+    },
+    {
+      "path": ".github/workflows/build-2026-09-30-r4.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-2026-09-30-r4.yml",
+      "sha256": "e1d51b7fbf778ca3ee24c5c3ff1c875e7eb5b4c263847f22ebf3af05dbd29328"
+    },
+    {
+      "path": ".github/workflows/build-2026-09-30-r5.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-2026-09-30-r5.yml",
+      "sha256": "eae6f9ffee9786cc29e1a0ae2842f8d14a5a3a42035a7b50e409bfa71633dcbe"
+    },
+    {
+      "path": ".github/workflows/build-2026-09-30-r6.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-2026-09-30-r6.yml",
+      "sha256": "a077cb5019261b611d12318dc296cb2bbf25f7e2ffe30a6e803dd2877082dfe5"
+    },
+    {
+      "path": ".github/workflows/build-2026-09-30-r7.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-2026-09-30-r7.yml",
+      "sha256": "7b2974cb895d88f9ea741461e3f0346c3eeddafeae70f0cc57c40b07b12b3e91"
+    },
+    {
+      "path": ".github/workflows/build-2026-09-30-r8.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-2026-09-30-r8.yml",
+      "sha256": "65a2540a31390fb3c1341a717c5f93e3f7a26254e2cb335ef7114a3e55b8a397"
+    },
+    {
+      "path": ".github/workflows/build-izivia-fast-v9-candidate.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-izivia-fast-v9-candidate.yml",
+      "sha256": "ee5aa80642c79b3c7d33201b0ecaa16b97aa6119a0a945bbc342066eb8459e9d"
+    },
+    {
+      "path": ".github/workflows/build-snapshot.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-snapshot.yml",
+      "sha256": "81063f2670e72611c38046d597a37165b1b359110db21f71b7e3d1c5b9e3cdcd"
+    },
+    {
+      "path": ".github/workflows/build-spain-reve-datalab-candidate.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-spain-reve-datalab-candidate.yml",
+      "sha256": "7873ef3881444a5c88b165f1d21132e5febcac48811b0359ff763b71d9cabae5"
+    },
+    {
+      "path": ".github/workflows/build-v9-electra-france-candidate.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-v9-electra-france-candidate.yml",
+      "sha256": "fbf871111326765ab1128255ca756190c7ca869214fea1488ff8437178b98683"
+    },
+    {
+      "path": ".github/workflows/build-v9-explicit-snapshot-candidate.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-v9-explicit-snapshot-candidate.yml",
+      "sha256": "c94df34ad0c45ecce5189d0b29820b5440a3bffcd5cd085f5e56ae691b0b7c7a"
+    },
+    {
+      "path": ".github/workflows/build-v9-r9-electra-fr.yml",
+      "archive": "archive/v9-production-workflows-20261105/build-v9-r9-electra-fr.yml",
+      "sha256": "0000a1b6edeb447f7a6d93fde1ccf6153821ee14de15ee8ddb4f2aa98bdf572b"
+    },
+    {
+      "path": ".github/workflows/cloudflare-deploy.yml",
+      "archive": "archive/v9-production-workflows-20261105/cloudflare-deploy.yml",
+      "sha256": "0571e0bd234327c9ece9a235b02a8ac4e378656950e4cb21c2ce69f4449d0636"
+    },
+    {
+      "path": ".github/workflows/cloudflare-preflight.yml",
+      "archive": "archive/v9-production-workflows-20261105/cloudflare-preflight.yml",
+      "sha256": "28a33edb618ab362ae9712fc9e1cdffd5de021b7b2e343dccfcf62ccbf6d5c78"
+    },
+    {
+      "path": ".github/workflows/cloudflare-validate.yml",
+      "archive": "archive/v9-production-workflows-20261105/cloudflare-validate.yml",
+      "sha256": "21ef274390641b10f0ddd730f360e9455e47e833fe86bb37402300a8da3a3679"
+    },
+    {
+      "path": ".github/workflows/correct-r8-release-metadata.yml",
+      "archive": "archive/v9-production-workflows-20261105/correct-r8-release-metadata.yml",
+      "sha256": "34f4bc696c79e5dcb04b74bdbb0c46d1161303bd0b276336947c34b34dcfd557"
+    },
+    {
+      "path": ".github/workflows/deploy-v9-global-mac-preview.yml",
+      "archive": "archive/v9-production-workflows-20261105/deploy-v9-global-mac-preview.yml",
+      "sha256": "f9ed25c619b914fd6d3efe4015e40712743e6df3318c4058e9e19728d0e28fa8"
+    },
+    {
+      "path": ".github/workflows/deploy-v9-iphone-preview.yml",
+      "archive": "archive/v9-production-workflows-20261105/deploy-v9-iphone-preview.yml",
+      "sha256": "dd42570c0edfa5b86ebe02145739d6ea8b34b5052b207cc33418ad314d766f2e"
+    },
+    {
+      "path": ".github/workflows/inspect-atlante-italy-input.yml",
+      "archive": "archive/v9-production-workflows-20261105/inspect-atlante-italy-input.yml",
+      "sha256": "8ef8ed6e8247a67646ad8345ebe481cf3ca380f682d7a9cb89d19bf46eac1dee"
+    },
+    {
+      "path": ".github/workflows/inspect-atlante-italy-smoke-anchor.yml",
+      "archive": "archive/v9-production-workflows-20261105/inspect-atlante-italy-smoke-anchor.yml",
+      "sha256": "86e7c0ce316f0a4b7b4dd9d5d781a4fcbec9869b11047dc253384c110f7f15ec"
+    },
+    {
+      "path": ".github/workflows/inspect-electra-runtime-input.yml",
+      "archive": "archive/v9-production-workflows-20261105/inspect-electra-runtime-input.yml",
+      "sha256": "51af2af68b21b67d55602a965ad9f616747666644f0f0dca30aca18f871cc1fe"
+    },
+    {
+      "path": ".github/workflows/inspect-runtime-inputs.yml",
+      "archive": "archive/v9-production-workflows-20261105/inspect-runtime-inputs.yml",
+      "sha256": "12630f3317ba02cd254a84c6b7a4e708c8ca387f9f8b021e97d2a99d3e055842"
+    },
+    {
+      "path": ".github/workflows/probe-germany-artifact.yml",
+      "archive": "archive/v9-production-workflows-20261105/probe-germany-artifact.yml",
+      "sha256": "a2a5c0a216c8768f188862d5b719f8a4c0d3699b85aa9942cea4b9b26a02a271"
+    },
+    {
+      "path": ".github/workflows/publish-2026-09-30-r2.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-2026-09-30-r2.yml",
+      "sha256": "319a543303f5581272f8083cea649a946945a0f911fb7ddab883fce5f94e0886"
+    },
+    {
+      "path": ".github/workflows/publish-2026-09-30-r3.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-2026-09-30-r3.yml",
+      "sha256": "831176287b2359183dae49c43b7822584ee005d7430a16c64bb92c7b83bb30b6"
+    },
+    {
+      "path": ".github/workflows/publish-2026-09-30-r4.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-2026-09-30-r4.yml",
+      "sha256": "eb0939462cdc6a8abd9b397299c466ae4bb5aeebab9b2e3d5e5b41dbd0791bab"
+    },
+    {
+      "path": ".github/workflows/publish-2026-09-30-r5.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-2026-09-30-r5.yml",
+      "sha256": "6c91b29dcee3debee5dfffa6e5eccfea38d39e99bc1ea66008ec6f3157c6f448"
+    },
+    {
+      "path": ".github/workflows/publish-2026-09-30-r6.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-2026-09-30-r6.yml",
+      "sha256": "0ab919caefb0cf5c2a3e24f96d69187494369e2f3bdeb15a643eb1724fc9b4e2"
+    },
+    {
+      "path": ".github/workflows/publish-2026-09-30-r7.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-2026-09-30-r7.yml",
+      "sha256": "680fb0ff95caaf5424a7a626416dea192ea6c71d6f40b80a3eabdfd9d0dcad5c"
+    },
+    {
+      "path": ".github/workflows/publish-2026-09-30-r8.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-2026-09-30-r8.yml",
+      "sha256": "2a9c97f40dfb1139e36ce9a95a49917c012e37a02eab816de6b70636b81a00d9"
+    },
+    {
+      "path": ".github/workflows/publish-snapshot-release.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-snapshot-release.yml",
+      "sha256": "6b4c632c1650736b84238554eece7643bcbda9bcebded35b0ba293a4efefb32d"
+    },
+    {
+      "path": ".github/workflows/publish-v9-pinned-pages.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-v9-pinned-pages.yml",
+      "sha256": "debc5ca9a6a32f05ec6011b74920de979f042bbefbe27ce5604ff45b5dedf03d"
+    },
+    {
+      "path": ".github/workflows/publish-v9-runtime-r9-electra-fr.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-v9-runtime-r9-electra-fr.yml",
+      "sha256": "6a82872a35c44fc9c813d0a73799b590189b5c6501da753da9235c5ee31dde6f"
+    },
+    {
+      "path": ".github/workflows/publish-v9-runtime-rc1.yml",
+      "archive": "archive/v9-production-workflows-20261105/publish-v9-runtime-rc1.yml",
+      "sha256": "4ce17a5ababd9c73e67eaa743f6f577727c2d1db248c61ef7fa5dc35fb36c1fc"
+    },
+    {
+      "path": ".github/workflows/smoke-v9-rc1-browser.yml",
+      "archive": "archive/v9-production-workflows-20261105/smoke-v9-rc1-browser.yml",
+      "sha256": "e36dd9d3832f95d7f666fef14dfaa02ef2f971817e40f9e95b6d4177ea32ecda"
+    },
+    {
+      "path": ".github/workflows/smoke-v9-rc1-interactions.yml",
+      "archive": "archive/v9-production-workflows-20261105/smoke-v9-rc1-interactions.yml",
+      "sha256": "b762dd95bcea0b677641369dce40afa5350a5eadee708b98805ae7b4bf1fc802"
+    },
+    {
+      "path": ".github/workflows/smoke-v9-rc1-journey.yml",
+      "archive": "archive/v9-production-workflows-20261105/smoke-v9-rc1-journey.yml",
+      "sha256": "59eda714b9ada6e411174a7cb5de564e3c6b1664038a11ab137899b8d3c09e12"
+    },
+    {
+      "path": ".github/workflows/test-netherlands-dotnl-ocpi.yml",
+      "archive": "archive/v9-production-workflows-20261105/test-netherlands-dotnl-ocpi.yml",
+      "sha256": "6b830ac08fcee0a83034ccbe1d152bb27615df72249a4e6125951576a6cfa646"
+    },
+    {
+      "path": ".github/workflows/test-v9-compact-navigation-lot2.yml",
+      "archive": "archive/v9-production-workflows-20261105/test-v9-compact-navigation-lot2.yml",
+      "sha256": "ac57d831906bc78a087a65a5f6195ae04e4abc208c4085992e7c35a2d9475a6f"
+    },
+    {
+      "path": ".github/workflows/test-v9-lot3-tariff-browser.yml",
+      "archive": "archive/v9-production-workflows-20261105/test-v9-lot3-tariff-browser.yml",
+      "sha256": "5a332c2b0cb54ccd0198a6d6a13ec00f1500aa2c38f645c8cd77d06dff743a96"
+    },
+    {
+      "path": ".github/workflows/test-v9-station-card-lot1.yml",
+      "archive": "archive/v9-production-workflows-20261105/test-v9-station-card-lot1.yml",
+      "sha256": "b4a65ae6f89135650e65e89b385b6cce20534b2b6442ed3fbaf7c8ac6580c64f"
+    },
+    {
+      "path": ".github/workflows/test-v9-tariff-readability-lot3.yml",
+      "archive": "archive/v9-production-workflows-20261105/test-v9-tariff-readability-lot3.yml",
+      "sha256": "fda9cba14919368e2a9373ae2351435d288feb2854d4d5eac0a4ba710d2d9a3e"
+    },
+    {
+      "path": ".github/workflows/transfer-france-irve-datalab.yml",
+      "archive": "archive/v9-production-workflows-20261105/transfer-france-irve-datalab.yml",
+      "sha256": "352be172a5cfbf9b867de71ed4ffd53be742108106a12a036dbe5988725ac0a1"
+    },
+    {
+      "path": ".github/workflows/uk-midhope-production-qa.yml",
+      "archive": "archive/v9-production-workflows-20261105/uk-midhope-production-qa.yml",
+      "sha256": "cd572a2772342906c33862d36f3a68acd66a0be18fbe111c1c97fe77f35c565c"
+    },
+    {
+      "path": ".github/workflows/uk-midhope-snapshot-candidate.yml",
+      "archive": "archive/v9-production-workflows-20261105/uk-midhope-snapshot-candidate.yml",
+      "sha256": "223837ca33cb0f2a74810324f40bb455e99217c6d1eb6a64093ea0ebe002e10a"
+    },
+    {
+      "path": ".github/workflows/v9-cutover-shadow-audit.yml",
+      "archive": "archive/v9-production-workflows-20261105/v9-cutover-shadow-audit.yml",
+      "sha256": "f7434c1bab6f6db50995be59d23d6fe6838400a0707f2b4c873d1e8407f66a16"
+    },
+    {
+      "path": ".github/workflows/v9-e55c-candidate-validation.yml",
+      "archive": "archive/v9-production-workflows-20261105/v9-e55c-candidate-validation.yml",
+      "sha256": "b218588ee17c654cf941c8280a85b3c4d6c72ededa83f7bb9e6130c982b761a6"
+    },
+    {
+      "path": ".github/workflows/v9-pages-cutover-readonly-audit.yml",
+      "archive": "archive/v9-production-workflows-20261105/v9-pages-cutover-readonly-audit.yml",
+      "sha256": "8ec133ed13b73e20c0c9446f3b6378e6d73e1e34e82a9c6f819d4ac006d494ca"
+    },
+    {
+      "path": ".github/workflows/v9-published-pages-watchdog.yml",
+      "archive": "archive/v9-production-workflows-20261105/v9-published-pages-watchdog.yml",
+      "sha256": "4504398f52f00b9a0fa92e36b4188c40a67303bc103e6cea4d419c4697d8dbdd"
+    },
+    {
+      "path": ".github/workflows/v9-refresh-candidate-dry-run.yml",
+      "archive": "archive/v9-production-workflows-20261105/v9-refresh-candidate-dry-run.yml",
+      "sha256": "8dd3157c136e6c4054b124cf0c2cb4435518e94e3d623652247993fcfaf2aac4"
+    },
+    {
+      "path": ".github/workflows/v9-source-freshness-audit.yml",
+      "archive": "archive/v9-production-workflows-20261105/v9-source-freshness-audit.yml",
+      "sha256": "b3c13118ea8c243ee6abdc8741b51832153fd8ea23b109f5d70bc78903acb82f"
+    },
+    {
+      "path": ".github/workflows/v9-swiss-offline-compiler.yml",
+      "archive": "archive/v9-production-workflows-20261105/v9-swiss-offline-compiler.yml",
+      "sha256": "ae4c98b44977520e1ff03eaaf3807ac2ece39c7b0a7507c9282e7fd99cbb25d2"
+    },
+    {
+      "path": ".github/workflows/validate-browser-asset-graph.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-browser-asset-graph.yml",
+      "sha256": "fc6ceffd61ff744a66f0a7759c0a85103725ee4a3aed41b181534dbb8ac28ba0"
+    },
+    {
+      "path": ".github/workflows/validate-durable-germany.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-durable-germany.yml",
+      "sha256": "d4032b8985e063662593f4f23cc51da8965910f04fb9d79013afd11bb7587ecf"
+    },
+    {
+      "path": ".github/workflows/validate-izivia-fast-v9.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-izivia-fast-v9.yml",
+      "sha256": "9589b98fd70878f394b3e550dc3681276dfea4887931cf24e8ef9f0fc4cc08f6"
+    },
+    {
+      "path": ".github/workflows/validate-reve-datalab-source.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-reve-datalab-source.yml",
+      "sha256": "6834bb5b0605e95ac08b33e255a7d299155f7dbf522c686513cc36d361690527"
+    },
+    {
+      "path": ".github/workflows/validate-snapshot.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-snapshot.yml",
+      "sha256": "d903f69764c0d9310bc3a03ca76fd2211f72bbca08c9bab766bf45495b7e7202"
+    },
+    {
+      "path": ".github/workflows/validate-uk-ubitricity-v9.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-uk-ubitricity-v9.yml",
+      "sha256": "ba92a96d0ddecc6d7a368077cf1263dab97a79a7471ac151364eb0175ff4b3de"
+    },
+    {
+      "path": ".github/workflows/validate-v9-nl-invariant-rounding.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-v9-nl-invariant-rounding.yml",
+      "sha256": "a45ce1c9ca3d3db03d5d69b51cce60be9a0cdf8b296db63765f9b3aeeca2e432"
+    },
+    {
+      "path": ".github/workflows/validate-v9-nl-zero-price-step.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-v9-nl-zero-price-step.yml",
+      "sha256": "2c2ee407754705428060ca7a6b8be537af5ad07c6bdf55645e06c011c5a840a4"
+    },
+    {
+      "path": ".github/workflows/validate-zewatt-datalab-handoff.yml",
+      "archive": "archive/v9-production-workflows-20261105/validate-zewatt-datalab-handoff.yml",
+      "sha256": "e74c00358b5764de91e280c86ae85188b538a5167d437b92bc2a9341fcb9ce59"
+    }
+  ]
+}
