@@ -1,3 +1,11 @@
+# Actualisation du 5 novembre : Tesla autonome et renouvellement borné
+
+Le mandat actuel autorise les tests Actions contrôlés. Deux runs réels (push42076511189, manuel42076753318) ont renouvelé IONITY, FX et Kilowatt ; Actions est de nouveau désactivé. IONITY FR/DE/IT/GB et FX sont importés dans le nouveau candidat ; Kilowatt est validé au niveau transfert seulement. 117 autres handoffs restent non vérifiés ; aucun schedule quotidien ni déploiement public n’est activé.
+
+Tesla/Mac est autonome dans les neuf pays, sans jointure nationale. Les entrées nationales explicitement Tesla sont retirées du catalogue affiché, conservées dans les archives. La règle nationale exclusive demeure pour les autres réseaux. Tests neuf pays Tesla, catalogue national intégral, Buc, classements et moteur sont consignés dans `evidence/renewal-20261105/`.
+
+Amsterdam100 : 62 770 résultats, ordre/montants/canaux/page/carte identiques à l’oracle de référence ; 68 981 → 49 102 ms sur le même scénario. Réutilisation de la préparation immuable des offres ; aucun cache de total tarifaire. La mesure reste une limite de performance, pas un PASS G7. La recette distante du nouveau candidat n’est pas encore déclarée exécutée. G2–G8 restent FAIL au niveau global.
+
 # Conformité du candidat de finalisation — 5 novembre 2026
 
 Le mandat du 5 novembre autorise les quatre correctifs G9, les travaux réversibles de reconstruction et un nouveau brouillon Netlify. Il ne réactive pas Actions Data Lab et n’autorise ni fusion main ni publication publique. Le candidat G9 précédent `6aec9f2fb223d58706efe5b5` et le bundle `29e2a5e9331a9d2949e342d245128d45480647f4eed1fc37977f83bc67e059fb` restent immuables.
@@ -44,7 +52,7 @@ Cette matrice relie les critères du CDC permanent à leur implémentation et à
 | G6 préautorisation | Midhope 25 GBP exclu des frais ; 64/64 entrées identiques rejouées | PASS historique empaqueté |
 | G6 composantes imbriquées / total partiel | gardes simple/rules/component_groups, mutation d’une composante ou restriction supplémentaire Electra → brut | PASS tests de refus |
 | G6 absence énergie/durée/devise | tests `v9-missing-energy-session`, `v9-currency-guard`, planificateur | PASS |
-| G6 Tesla Milan/Le Chesnay | exclusion Maroc-only du chargeur corrigée ; archives identiques : 10 kWh → 4,80 EUR Milan / 4,20 EUR Chesnay au scénario fixé | PASS moteur ; Milan affiché, Chesnay non attribuable à IRVE sans preuve EVSE/configuration |
+| G6 Tesla Milan/Le Chesnay | exclusion Maroc-only du chargeur corrigée ; archives identiques : 10 kWh → 4,80 EUR Milan / 4,20 EUR Chesnay au scénario fixé | PASS moteur et navigateur local : Milan et Le Chesnay autonomes via Tesla/Mac, sans EVSE national requis |
 | G6 721 lignes / couverture exhaustive | sorties historiques sans toutes entrées, non reproductibles comme parité exacte ; matrice `g6-mechanism-coverage-20261028.md` conservée | Exception replay 721 ; qualification de toutes cohortes reste partielle, pas de PASS global |
 | G7 une fiche / puissances / PDC / prises | catalogue national + cartes regroupées ; ID officiel affiché au lieu du faux libellé manquant | PASS local, six PDC Buc et Fécamp conservés |
 | G7 adresse de départ | bouton de sauvegarde déplacé avec Position actuelle, même handler/localStorage | PASS navigateur local |
@@ -63,13 +71,13 @@ Cette matrice relie les critères du CDC permanent à leur implémentation et à
 
 ## Choix et diagnostics fermés
 
-La consolidation applique la règle nationale même lorsqu’elle retire une fiche CPO auparavant visible. Les données sources et offres non attribuables restent intégralement dans le bundle ; elles ne donnent pas un prix à une autre prise. À Milan, sans base nationale IT qualifiée dans le paquet, la configuration Tesla retrouve son tarif. Au Chesnay, l’archive Mac ne fournit pas d’identité EVSE nationale : le tarif source est calculable mais ne peut pas être affecté au catalogue IRVE sur la seule adresse/coordonnée. Ce manque de correspondance n’est pas corrigé par une supposition.
+La consolidation applique la règle nationale même lorsqu’elle retire une fiche CPO auparavant visible. Les données sources et offres non attribuables restent intégralement dans le bundle ; elles ne donnent pas un prix à une autre prise. À Milan, sans base nationale IT qualifiée dans le paquet, la configuration Tesla retrouve son tarif. Au Chesnay, l’exigence d’identité EVSE nationale était une régression de consolidation : elle est supprimée. La configuration source Tesla/Mac s’applique uniquement à son catalogue autonome. Le scénario historique fixé donne 4,20 EUR pour 10 kWh ; la recette navigateur à 45 kWh donne 18,90 EUR. Cela ne généralise pas le tarif à d’autres horaires/configurations.
 
 Le canal Electra manquait pour une raison technique démontrée : le collecteur historique `electra_france_platform_snapshot.mjs` utilisait déjà `norm()` sur les EVSE tandis que le dérivé V9 comparait les chaînes littéralement. Le nouveau dérivé conserve l’identifiant fournisseur étoilé et l’identifiant national sans étoiles, exige unicité globale et présence dans la même localisation source. Le garde moteur exige le tarif ENERGY complet identique à la preuve capture ; toute composante, restriction, devise ou montant différent reste brut. Aucune collecte fournisseur ni recherche de prix effectuée.
 
 L’indice d’ambiguïté national est construit sur toutes les partitions avant sélection spatiale et épinglé par SHA dans le shell. Un EVSE répété ailleurs ne devient donc pas artificiellement unique dans une petite recherche.
 
-## Opérations distantes restant séparées
+## État antérieur des opérations distantes (supplanté par la reprise autorisée ci-dessus)
 
 Actions Data Lab reste désactivé. L’autorisation historique portait sur un seul pilote déjà achevé ; elle ne vaut pas activation permanente. Le nouveau mandat n’autorise pas explicitement cette activation administrative. Les 119 handoffs ne sont ni supprimés artificiellement ni déclarés testés. Production peut vérifier la branche en lecture seule avec son workflow commun ; ce run ne prouve pas une collecte Data Lab.
 

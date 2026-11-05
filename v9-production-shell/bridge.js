@@ -213,7 +213,8 @@
         const rawById=new Map(rawStations.map(raw=>[String(raw.id),raw]));
         if(rawById.size!==rawStations.length)throw new Error('Tesla inventory duplicate source IDs');
         // Preserve exact source configuration scope. The common engine still rejects
-        // incomplete or unsupported billed components; national projection is separate.
+        // incomplete or unsupported billed components. Tesla is never projected
+        // onto a national catalogue: source configurations define its scope.
         return stations.map(station=>{
           const offers=w.TCCV9Adapters.teslaJson.provedConfigurationOffers(rawById.get(station.sourceStationId),station);
           const provedIds=new Set(offers.map(offer=>offer.id));
@@ -234,7 +235,12 @@
       w.fetch(`${base}/data/v9/vehicle-profiles.json`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`vehicle profiles ${r.status}`);return r.json();})
     ]);
     const exchangeUrl=new URL('../data/exchange_rates.json',w.location.href).toString();
-    const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null);
+    const exchange=await w.fetch(exchangeUrl,{cache:'no-cache'}).then(async r=>{
+      if(!r.ok){if(cfg.fxArtifactSha256)throw new Error('Pinned FX unavailable');return null;}
+      const bytes=new Uint8Array(await r.arrayBuffer());
+      if(cfg.fxArtifactSha256&&await w.TCCV9PreparedCandidate.sha256Hex(bytes,w.crypto)!==cfg.fxArtifactSha256)throw new Error('Pinned FX SHA mismatch');
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }).catch(error=>{if(cfg.fxArtifactSha256)throw error;return null;});
     let registry=historicalRegistry,
       loaders=cfg.preproductionCandidateBase?{}:
         w.TCCV9BrowserLoaders.createRegistryLoaders({registry,basePath:base,adapters:adapters(w)}),
@@ -252,7 +258,7 @@
       const tesla=historicalRegistry.sources?.find(source=>source.id==='tesla-global');
       const teslaLoader=pinnedTeslaInventory(w,base,tesla,cfg.teslaArtifactSha256);
       if(registry.sources.some(source=>source.id==='tesla-global'))throw new Error('Tesla source collision');
-      registry={...registry,sources:[...registry.sources,tesla]};
+      registry={...registry,autonomousTesla:true,sources:[...registry.sources,tesla]};
       loaders={...loaders,'tesla-global':teslaLoader};
     }
     const routeProvider=w.TCCV9BrowserRouting.osrmProvider();

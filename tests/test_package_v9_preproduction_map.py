@@ -10,6 +10,16 @@ from scripts.check_v9_preview_hosting import check as check_hosting
 
 
 class PreparedMapPackageTests(unittest.TestCase):
+    def test_renewed_fx_requires_integrity_and_finite_rates(self):
+        with tempfile.TemporaryDirectory() as t:
+            root=Path(t);fx=root/'fx.json';fx.write_text('{}')
+            with self.assertRaisesRegex(ValueError,'SHA mismatch'):
+                package(root/'unused',root/'unused',root/'out',fx,'0'*64)
+            fx.write_text(json.dumps({'base':'EUR','date':'2026-11-05','checkedAt':'2026-11-05T00:00:00Z','source':'fixture','rates':{'EUR':1,'MAD':float('nan')}}))
+            with self.assertRaisesRegex(ValueError,'contract invalid'):
+                package(root/'unused',root/'unused',root/'out',fx,hashlib.sha256(fx.read_bytes()).hexdigest())
+            self.assertFalse((root/'out').exists())
+
     def test_package_isolated_map_and_reject_corruption(self):
         with tempfile.TemporaryDirectory(prefix="tcc-v9-package-") as temp:
             root = Path(temp)

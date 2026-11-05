@@ -30,6 +30,8 @@ def check(site: Path) -> dict:
         if (digest(raw)!=config["nationalPolicySha256"] or policy.get("bundleId")!=index["bundleId"] or
                 policy.get("indexSha256")!=config["preparedIndexSha256"]):
             raise ValueError("National catalogue policy SHA or provenance mismatch")
+    if config.get("fxArtifactSha256") and digest((site / "data/exchange_rates.json").read_bytes()) != config["fxArtifactSha256"]:
+        raise ValueError("Renewed FX SHA mismatch")
     runtime = Path(config.get("runtimeBase") or "")
     tesla_path = site / runtime / "data/tesla_stations.json"
     if (not runtime.parts or runtime.is_absolute() or ".." in runtime.parts or

@@ -58,7 +58,13 @@ if(name==='Milan Arduino'){
  target={id,offers:s.offers.length,complete:e?.best?.result?.complete,total:e?.best?.total,currency:s.offers[0]?.currency};
  if(!target.offers||!target.complete||!(target.total>0)||target.currency!=='EUR')throw Error('Milan tariff not evaluated: '+JSON.stringify(target));
 }
-if(name==='Le Chesnay'&&ids.includes('tesla-le-chesnay-france'))throw Error('Tesla standalone station escaped national policy');
+if(name==='Le Chesnay'){
+ const match=area.mapStations.find(s=>s.id==='tesla-le-chesnay-france');if(!match)throw Error('Autonomous Tesla Chesnay missing');
+ if(match.page)area=await area.navigateToPage(match.page);
+ const evaluation=area.sessionEvaluations?.['tesla-le-chesnay-france'];
+ if(!evaluation?.best?.result?.complete||Math.abs(evaluation.best.total-18.9)>1e-8)throw Error('Tesla Chesnay configuration quote missing');
+ target={id:'tesla-le-chesnay-france',total:evaluation.best.total,currency:evaluation.best.targetCurrency,complete:true};
+}
 const bad=area.stations.flatMap(s=>s.offers||[]).filter(o=>o.metadata?.nationalJoin&&!(o.evseIds||[]).length);
 if(bad.length)throw Error('Unscoped national offer');
 const labels=[...document.querySelectorAll('.v9-result-card')].map(c=>c.textContent);

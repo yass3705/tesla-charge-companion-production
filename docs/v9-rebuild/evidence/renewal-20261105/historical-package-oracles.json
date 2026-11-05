@@ -1,0 +1,10 @@
+{
+  "status": "pass",
+  "package": "site",
+  "Midhope_identical_input_evaluations": 64,
+  "combined_session_oracle": "pass",
+  "command": [
+    "node tests/v9_midhope_historical_64.test.mjs <site>",
+    "node tests/v9_packaged_full_session_oracle.test.mjs <site>"
+  ]
+}

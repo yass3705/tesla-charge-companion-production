@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),e=require('../runtime-owned/assets/v9/offer-engine.js');
+const raw=[{id:'a',provider:'Source',kind:'direct',currency:'EUR',countries:['FR'],evseIds:['e1'],connectorIds:['c1'],pricing:{type:'kwh',pricePerKwh:.4}},{id:'b',provider:'Source',kind:'direct',currency:'EUR',countries:['FR'],evseIds:['e2'],connectorIds:['c2'],pricing:{type:'kwh',pricePerKwh:.4}},{id:'sub',provider:'Source',subscriptionId:'plan',countries:['FR'],currency:'EUR',pricing:{type:'kwh',pricePerKwh:.3}}];
+const prepared=e.prepareOffers(raw,{countryCode:'FR'}),expected=e.dedupeOffers(raw,{countryCode:'FR'});
+assert.deepEqual(prepared,expected);
+for(const subscriptions of [[],['plan']])assert.deepEqual(e.eligibleOffers({countryCode:'FR',offers:prepared},subscriptions),e.eligibleOffers({countryCode:'FR',offers:expected},subscriptions));
+assert.deepEqual(e.dedupeOffers(prepared,{countryCode:'DE'}),[]);
+assert.throws(()=>{prepared[0].pricing.pricePerKwh=999;},TypeError);
+raw[0].pricing.pricePerKwh=.5;
+assert.equal(prepared.find(o=>o.id==='a').pricing.pricePerKwh,.4);
+assert.equal(e.prepareOffers(raw,{countryCode:'FR'}).find(o=>o.id==='a').pricing.pricePerKwh,.5);
+const duplicate=[...prepared,structuredClone(prepared[0])];assert.deepEqual(e.dedupeOffers(duplicate,{countryCode:'FR'}),e.dedupeOffers([...expected,structuredClone(expected[0])],{countryCode:'FR'}));
+console.log('Immutable preparation preserves exact identities, subscriptions, countries and changes; no session-result caching PASS');

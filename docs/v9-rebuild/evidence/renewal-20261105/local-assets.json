@@ -1,0 +1,52 @@
+[
+  {
+    "path": "index.html",
+    "bytes": 264,
+    "sha256": "eb1cef1ef63f1081af9a134f87ea8e797732bdad4f0a7e7136fb4a1a75978a52"
+  },
+  {
+    "path": "v9-production-shell/bridge.js",
+    "bytes": 156140,
+    "sha256": "017c3a75c820fc9c2babd129a8f0d70f46fecbe79271e6983d3ef7d75a496c6b"
+  },
+  {
+    "path": "v9-production-shell/shell-config.json",
+    "bytes": 1186,
+    "sha256": "e1031fd8dfc4e9ee184bce2ef344b91594992271e20bc9af32135cfb1f43738d"
+  },
+  {
+    "path": "prepared-v9/index.json",
+    "bytes": 644544,
+    "sha256": "cf0cd47e3e20876709dd0302dbdc488f8d44e3db2d2c2e0053729ebf67e90669"
+  },
+  {
+    "path": "runtime/assets/v9/data-engine.js",
+    "bytes": 28366,
+    "sha256": "0ddd16ed77dcdbd5b50ea3da222955cbd2284a6843b018be5406898491323f66"
+  },
+  {
+    "path": "runtime/assets/v9/offer-engine.js",
+    "bytes": 11565,
+    "sha256": "969444d0abb1fcddbb7b180ebcf03fde3949559322f83dfaf7b7bac5605df318"
+  },
+  {
+    "path": "runtime/assets/v9/runtime-engine.js",
+    "bytes": 9948,
+    "sha256": "24462accead8c43a23050095c3963f0874541097519914722e502119822f458d"
+  },
+  {
+    "path": "runtime/data/tesla_stations.json",
+    "bytes": 4472574,
+    "sha256": "363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5"
+  },
+  {
+    "path": "data/exchange_rates.json",
+    "bytes": 530,
+    "sha256": "0ef38a144f7ad0a9ccf72f47fc9c6d3ef0ff884dafa9216d4039657075237e68"
+  },
+  {
+    "path": "runtime/data/v9/france-crosswalk.json",
+    "bytes": 11669931,
+    "sha256": "f050f8ea12d49591b24be2905aa2eaf7bb5bc5480473c59fffdebf72ef852c44"
+  }
+]

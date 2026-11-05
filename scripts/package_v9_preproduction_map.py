@@ -228,7 +228,17 @@ def check_candidate(candidate: Path) -> dict:
     return index
 
 
-def package(site: Path, candidate: Path, destination: Path) -> dict:
+def package(site: Path, candidate: Path, destination: Path, fx: Path | None = None, fx_sha256: str | None = None) -> dict:
+    fx_bytes = None
+    if fx is not None or fx_sha256 is not None:
+        if fx is None or not re.fullmatch(r"[a-f0-9]{64}", fx_sha256 or ""):
+            raise ValueError("Renewed FX requires its verified artifact SHA")
+        fx_bytes = fx.read_bytes()
+        if digest(fx_bytes) != fx_sha256:
+            raise ValueError("Renewed FX SHA mismatch")
+        rates = json.loads(fx_bytes)
+        if rates.get("base") != "EUR" or rates.get("rates", {}).get("EUR") != 1 or not rates.get("date") or not rates.get("checkedAt") or not rates.get("source") or any(isinstance(v, bool) or not isinstance(v, (float, int)) or not math.isfinite(v) or v <= 0 for v in rates["rates"].values()):
+            raise ValueError("Renewed FX contract invalid")
     site, candidate, destination = site.resolve(), candidate.resolve(), destination.resolve()
     if (destination.exists() or destination == ROOT or ROOT in destination.parents or
             destination == site or site in destination.parents or
@@ -266,6 +276,14 @@ def package(site: Path, candidate: Path, destination: Path) -> dict:
     with tempfile.TemporaryDirectory(prefix="tcc-v9-isolated-", dir=destination.parent) as tmp:
         stage = Path(tmp) / "site"
         shutil.copytree(site, stage, copy_function=copy_preview_file)
+        if fx_bytes is not None:
+            (stage / "data/exchange_rates.json").write_bytes(fx_bytes)
+            config["fxArtifactSha256"] = fx_sha256
+            # Keep the source snapshot manifest consistent for this replaced input.
+            for row in manifest.get("files", []):
+                if row.get("path") == "data/exchange_rates.json":
+                    row.update(bytes=len(fx_bytes), sha256=fx_sha256)
+            (stage / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n")
         # Build inputs are retained in the immutable source bundle, not served
         # to preview visitors. The runtime keeps its own required data files.
         if (stage / "snapshot-inputs").is_dir():
@@ -339,8 +357,10 @@ def main() -> None:
     parser.add_argument("--site", type=Path, required=True, help="Existing BUILT TCC shell directory")
     parser.add_argument("--prepared", type=Path, required=True, help="Isolated prepared data/index.json directory")
     parser.add_argument("--out", type=Path, required=True, help="NEW directory OUTSIDE Production checkout")
+    parser.add_argument("--fx", type=Path)
+    parser.add_argument("--fx-sha256")
     args = parser.parse_args()
-    print(json.dumps(package(args.site, args.prepared, args.out), ensure_ascii=False))
+    print(json.dumps(package(args.site, args.prepared, args.out, args.fx, args.fx_sha256), ensure_ascii=False))
 
 
 if __name__ == "__main__":

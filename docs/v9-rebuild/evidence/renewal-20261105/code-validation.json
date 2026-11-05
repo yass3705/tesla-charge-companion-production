@@ -1,0 +1,82 @@
+[
+  {
+    "command": [
+      "node",
+      "--test",
+      "tests/v9-national-catalogue-policy.test.mjs",
+      "tests/v9-tesla-autonomous-catalogue.test.mjs",
+      "tests/v9-prepared-offers.test.mjs",
+      "tests/v9-global-ranking-pages.test.mjs",
+      "tests/v9-station-card-lot1.test.mjs",
+      "tests/canonical-v9-proved-pricing.test.mjs",
+      "tests/preproduction-candidate-map.test.mjs",
+      "tests/preproduction-sharded-loader.test.mjs",
+      "tests/v9-ocpi-component-coverage.test.mjs",
+      "tests/v9-after-minutes-cap.test.mjs",
+      "tests/v9-congestion-soc80.test.mjs",
+      "tests/v9-simple-pricing-fail-closed.test.mjs",
+      "tests/v9-belib-flex-window-parity.test.mjs",
+      "tests/v9-currency-guard.test.mjs",
+      "tests/v9-missing-energy-session.test.mjs",
+      "tests/v9-offer-exact-scope.test.mjs"
+    ],
+    "exitCode": 0,
+    "output": "TAP version 13\n# Canonical V9: proved FR/DE/IT/GB IONITY and FR/IT/BE/NL rates, exact scope and historic oracles\n# Subtest: tests/canonical-v9-proved-pricing.test.mjs\nok 1 - tests/canonical-v9-proved-pricing.test.mjs\n  ---\n  duration_ms: 602.486282\n  type: 'test'\n  ...\n# Prepared candidate map: isolated stations/EVSE, no priced offers, SHA/origin fail closed\n# Subtest: tests/preproduction-candidate-map.test.mjs\nok 2 - tests/preproduction-candidate-map.test.mjs\n  ---\n  duration_ms: 329.005637\n  type: 'test'\n  ...\n# V9 sharded candidate: spatial fetch, complete fallback and SHA failure pass\n# Subtest: tests/preproduction-sharded-loader.test.mjs\nok 3 - tests/preproduction-sharded-loader.test.mjs\n  ---\n  duration_ms: 384.106877\n  type: 'test'\n  ...\n# After-minutes phases, thresholds, whole/night caps, DST, minimum and visible fees PASS\n# Per-night cap reset and no repeated grace at tariff boundaries PASS\n# Session-start path cannot bypass unverified fee guards PASS\n# Subtest: tests/v9-after-minutes-cap.test.mjs\nok 4 - tests/v9-after-minutes-cap.test.mjs\n  ---\n  duration_ms: 528.589302\n  type: 'test'\n  ...\n# Belib Flex exact connected block at time-window boundary PASS\n# Subtest: tests/v9-belib-flex-window-parity.test.mjs\nok 5 - tests/v9-belib-flex-window-parity.test.mjs\n  ---\n  duration_ms: 254.638969\n  type: 'test'\n  ...\n# V9 congestion SOC80/toggle/independent lanes: pass\n# Subtest: tests/v9-congestion-soc80.test.mjs\nok 6 - tests/v9-congestion-soc80.test.mjs\n  ---\n  duration_ms: 366.572877\n  type: 'test'\n  ...\n# V9 currency: missing or conflicting units fail closed; explicit CHF remains CHF\n# Subtest: tests/v9-currency-guard.test.mjs\nok 7 - tests/v9-currency-guard.test.mjs\n  ---\n  duration_ms: 177.394051\n  type: 'test'\n  ...\n# V9 global ranking: five modes match full oracle, bounded batches and cached pages PASS\n# V9 global routing cache PASS\n# Subtest: tests/v9-global-ranking-pages.test.mjs\nok 8 - tests/v9-global-ranking-pages.test.mjs\n  ---\n  duration_ms: 3483.045797\n  type: 'test'\n  ...\n# V9 missing energy stays incalculable; known energy remains priced PASS\n# Subtest: tests/v9-missing-energy-session.test.mjs\nok 9 - tests/v9-missing-energy-session.test.mjs\n  ---\n  duration_ms: 189.101327\n  type: 'test'\n  ...\n# National catalogue: exact/absent/ambiguous/multiple scopes, country fallback, physical topology and EVSE labels PASS\n# Subtest: tests/v9-national-catalogue-policy.test.mjs\nok 10 - tests/v9-national-catalogue-policy.test.mjs\n  ---\n  duration_ms: 210.058696\n  type: 'test'\n  ...\n# V9 OCPI pricing components and restrictions: pass\n# Subtest: tests/v9-ocpi-component-coverage.test.mjs\nok 11 - tests/v9-ocpi-component-coverage.test.mjs\n  ---\n  duration_ms: 263.134892\n  type: 'test'\n  ...\n# Exact offer scopes, currencies, subscriptions and unchanged per-EVSE prices PASS\n# Calculated and raw offers remain distinct on the same EVSE/channel PASS\n# EVSE-only eligibility and distinct validity windows PASS\n# Shell grouping respects exact EVSE offer identity PASS\n# Subtest: tests/v9-offer-exact-scope.test.mjs\nok 12 - tests/v9-offer-exact-scope.test.mjs\n  ---\n  duration_ms: 360.238918\n  type: 'test'\n  ...\n# Immutable preparation preserves exact identities, subscriptions, countries and changes; no session-result caching PASS\n# Subtest: tests/v9-prepared-offers.test.mjs\nok 13 - tests/v9-prepared-offers.test.mjs\n  ---\n  duration_ms: 165.891272\n  type: 'test'\n  ...\n# V9 simple and compound pricing reject unhandled billed dimensions PASS\n# Subtest: tests/v9-simple-pricing-fail-closed.test.mjs\nok 14 - tests/v9-simple-pricing-fail-closed.test.mjs\n  ---\n  duration_ms: 189.905816\n  type: 'test'\n  ...\n# V9 station cards Lot 1 OK\n# Subtest: tests/v9-station-card-lot1.test.mjs\nok 15 - tests/v9-station-card-lot1.test.mjs\n  ---\n  duration_ms: 287.970602\n  type: 'test'\n  ...\n# Tesla autonomous in all nine countries; no national identities or tariffs required or transferred PASS\n# Subtest: tests/v9-tesla-autonomous-catalogue.test.mjs\nok 16 - tests/v9-tesla-autonomous-catalogue.test.mjs\n  ---\n  duration_ms: 189.042562\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 4367.899867\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_import_v9_bundle.py"
+    ],
+    "exitCode": 0,
+    "output": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.123s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_package_v9_preproduction_map.py"
+    ],
+    "exitCode": 0,
+    "output": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.426s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_check_v9_remote_preview.py"
+    ],
+    "exitCode": 0,
+    "output": ".\n----------------------------------------------------------------------\nRan 1 test in 0.029s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_extend_v9_prepared_candidate.py"
+    ],
+    "exitCode": 0,
+    "output": ".\n----------------------------------------------------------------------\nRan 1 test in 0.046s\n\nOK\n"
+  }
+]

@@ -26,6 +26,8 @@ jobs:
         run: >-
           node --test
           tests/v9-national-catalogue-policy.test.mjs
+          tests/v9-tesla-autonomous-catalogue.test.mjs
+          tests/v9-prepared-offers.test.mjs
           tests/v9-global-ranking-pages.test.mjs
           tests/v9-station-card-lot1.test.mjs
           tests/canonical-v9-proved-pricing.test.mjs

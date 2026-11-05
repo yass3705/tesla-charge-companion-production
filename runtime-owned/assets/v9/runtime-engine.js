@@ -23,7 +23,7 @@
     function deriveSubscriptionOptions(stations,filters={}){return filterSubscriptions(applyCoverage(OfferEngine.deriveSubscriptionOptions(stations,{}),coverage),filters);}
     async function queryArea(query={}){
       const area=await base.queryArea(query),allStations=(area.stations||[]).map(st=>({
-        ...st,offers:OfferEngine.dedupeOffers(st.offers||[],{countryCode:st.countryCode||query.countryCode})
+        ...st,offers:OfferEngine.prepareOffers(st.offers||[],{countryCode:st.countryCode||query.countryCode})
       })),allById=new Map(allStations.map(st=>[st.id,st])),baseRoutingCandidates=(area.routingCandidates||[]).map(st=>allById.get(st.id)||st),stations=allStations,stationById=new Map(stations.map(st=>[st.id,st]));
       const routingCandidates=baseRoutingCandidates.map(st=>stationById.get(st.id)).filter(Boolean),subscriptions=deriveSubscriptionOptions(stations,query.subscriptionFilters||{});
       const resolvedVehicle=VehicleProfileEngine.resolve({catalog:vehicleCatalog,profileId:query.vehicleProfileId||query.session?.vehicleProfileId,profile:query.vehicleProfile,session:query.session||{}}),session=resolvedVehicle.session;

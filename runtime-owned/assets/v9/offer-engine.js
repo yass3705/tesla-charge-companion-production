@@ -11,6 +11,16 @@
   const uniq=values=>[...new Set((values||[]).filter(Boolean))];
   const number=v=>{const n=Number(v);return Number.isFinite(n)?n:null;};
   const country=v=>text(v).toUpperCase();
+  // Only explicitly prepared, deeply immutable offers may reuse canonical work.
+  // Session evaluation, eligibility, FX and tariff amounts are never cached here.
+  const preparedOffers=new WeakMap();
+  const canonicalKeys=new WeakMap();
+  function freezeDeep(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){for(const child of Object.values(value))freezeDeep(child);Object.freeze(value);}return value;}
+  function prepareOffers(offers,{countryCode}={}){
+    const rows=dedupeOffers(offers,{countryCode}),cc=country(countryCode);
+    for(const offer of rows){preparedOffers.set(offer,{countryCode:cc,key:canonicalKeys.get(offer)});freezeDeep(offer);}
+    return Object.freeze(rows);
+  }
 
   function stable(value){
     if(Array.isArray(value))return value.map(stable);
@@ -105,11 +115,12 @@
   function dedupeOffers(offers,{countryCode}={}){
     const groups=new Map();
     for(const raw of offers||[]){
-      const offer=materializeOffer(raw,countryCode);if(!offer)continue;
-      const key=semanticKey(offer,countryCode);
+      const prepared=preparedOffers.get(raw),reusable=prepared&&prepared.countryCode===country(countryCode);
+      const offer=reusable?raw:materializeOffer(raw,countryCode);if(!offer)continue;
+      const key=reusable?prepared.key:semanticKey(offer,countryCode);
       const current=groups.get(key);
-      if(!current){const first=offer;first.provenance=uniq([...(first.provenance||[]).map(p=>stableStringify(p)),stableStringify(provenanceEntry(first))]).map(s=>JSON.parse(s));first.aliases=uniq([...(first.aliases||[]),text(first.id||first.offerId)]).sort();groups.set(key,first);}
-      else groups.set(key,mergeEquivalentOffers(current,offer));
+      if(!current){const first=offer;if(!reusable){first.provenance=uniq([...(first.provenance||[]).map(p=>stableStringify(p)),stableStringify(provenanceEntry(first))]).map(s=>JSON.parse(s));first.aliases=uniq([...(first.aliases||[]),text(first.id||first.offerId)]).sort();}canonicalKeys.set(first,key);groups.set(key,first);}
+      else {const merged=mergeEquivalentOffers(current,offer);canonicalKeys.set(merged,key);groups.set(key,merged);}
     }
     // Group keys are immutable; reuse them instead of serializing each tariff at every sort comparison.
     return [...groups.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([,offer])=>offer);
@@ -173,5 +184,5 @@
     return applyFallbackPolicy(station?.offers||[],{countryCode:options.countryCode||station?.countryCode,selectedSubscriptions});
   }
 
-  return{dedupeOffers,mergeStationOffers,deriveSubscriptionOptions,eligibleOffers,applyFallbackPolicy,materializeOffer,semanticKey,normalizedCountries,providerId};
+  return{prepareOffers,dedupeOffers,mergeStationOffers,deriveSubscriptionOptions,eligibleOffers,applyFallbackPolicy,materializeOffer,semanticKey,normalizedCountries,providerId};
 });

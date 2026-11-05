@@ -42,6 +42,12 @@ def measure(site: Path, firefox: str) -> dict:
                 document.getElementById('simTime').value='12:00';
                 document.getElementById('simUnplugTime').value='';
                 performance.clearResourceTimings();
+                window.__v9Profile={};
+                for(const [name,key] of [['TCCV9SessionPlannerEngine','planStation'],['TCCV9SessionEngine','evaluateStation'],['TCCV9OfferEngine','dedupeOffers'],['TCCV9StationScoreEngine','scoreStation']]){
+                  const object=window[name],original=object[key],label=name+'.'+key;
+                  window.__v9Profile[label]={calls:0,cpuMs:0};
+                  object[key]=function(...args){const start=performance.now();try{return original.apply(this,args);}finally{const row=window.__v9Profile[label];row.calls++;row.cpuMs+=performance.now()-start;}};
+                }
             """)
             result = browser.execute_async_script("""
                 const done=arguments[0],start=performance.now();
@@ -64,7 +70,7 @@ def measure(site: Path, firefox: str) -> dict:
                     pageSha:await digest(pageRows),evaluationSha:await digest(evaluated),
                     elapsedMs:Math.round(performance.now()-start),
                     shardCount:shards.length,shardLastResponseMs:Math.round(Math.max(...shards.map(e=>e.responseEnd))-start),
-                    sourceErrors:area.diagnostics?.errors||[]});
+                    cpuProfile:window.__v9Profile,sourceErrors:area.diagnostics?.errors||[]});
                 }).catch(error=>done({error:String(error)}));
             """)
             if result.get("error"):

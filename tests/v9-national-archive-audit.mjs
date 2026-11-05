@@ -2,7 +2,7 @@ import fs from 'node:fs';import path from 'node:path';import assert from 'node:a
 const require=createRequire(import.meta.url),bundle=path.resolve(process.argv[2]);
 globalThis.TCCV9Adapters={ukOpenFeeds:require('../runtime-overrides/assets/v9/adapters/uk-open-feeds.js')};
 const adapter=require('../runtime-owned/assets/v9/adapters/canonical-v9.js');
-const {consolidateNational,resolveEntities}=require('../runtime-owned/assets/v9/data-engine.js');
+const {consolidateNational,resolveEntities,isTeslaNetwork}=require('../runtime-owned/assets/v9/data-engine.js');
 const catalogues={FR:'FR:irve_static',BE:'BE:nap_static',CH:'CH:swiss_integration',DE:'DE:bnetza_afir_archive',ES:'ES:reve_static',NL:'NL:dotnl_static'};
 const report={bundleId:path.basename(bundle),countries:{},exceptions:[]};
 for(const country of ['FR','BE','CH','DE','ES','NL','GB','IT','MA']){
@@ -15,7 +15,7 @@ for(const country of ['FR','BE','CH','DE','ES','NL','GB','IT','MA']){
  const projected=consolidateNational(items,catalogues),stations=resolveEntities(projected.items);
  const reference=catalogues[country];
  if(reference){
-  const expected=new Map(items.filter(i=>i.source.id==='prepared:'+reference).map(i=>[i.fragment.canonicalId,i.fragment]));
+  const expected=new Map(items.filter(i=>i.source.id==='prepared:'+reference&&!isTeslaNetwork(i.fragment)).map(i=>[i.fragment.canonicalId,i.fragment]));
   assert.deepEqual(stations.map(s=>s.id).sort(),[...expected.keys()].sort());
   for(const station of stations)assert.deepEqual(station.evses,expected.get(station.id).evses);
  }

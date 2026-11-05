@@ -185,16 +185,27 @@
     const sorted=(stations||[]).map(st=>({st,d:distanceKm(origin,st)})).sort((a,b)=>a.d-b.d||a.st.id.localeCompare(b.st.id)),byOperator=new Map();for(const row of sorted){const id=operatorId(row.st.physicalOperator);if(!byOperator.has(id))byOperator.set(id,[]);byOperator.get(id).push(row);}const chosen=new Map();for(const rows of byOperator.values())for(const row of rows.slice(0,Math.max(1,perOperatorFloor)))chosen.set(row.st.id,row.st);const target=Math.max(Number(budget)||0,chosen.size);for(const row of sorted){if(chosen.size>=target)break;chosen.set(row.st.id,row.st);}return[...chosen.values()].sort((a,b)=>distanceKm(origin,a)-distanceKm(origin,b)||a.id.localeCompare(b.id));
   }
 
-  // Only the declared national source can create stations or physical points.
+  // Tesla/Mac is an autonomous catalogue. Never project its configuration
+  // identities or tariffs onto national EVSEs, even when an identity coincides.
+  function isTeslaNetwork(fragment){
+    const names=[fragment?.physicalOperator?.id,fragment?.physicalOperator?.name,
+      typeof fragment?.networkBrand==='string'?fragment.networkBrand:fragment?.networkBrand?.name];
+    const known=new Set(['tesla','tesla france sarl','tesla inc','ch tes','tesla supercharger']);
+    return names.some(name=>known.has(text(name).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()));
+  }
+  // Only the declared national source can create non-Tesla physical points.
   // CPO fragments are projected through unique exact identities, never geometry.
   function consolidateNational(items,catalogues={},ambiguousEvseIds={}){
     const output=[],nationalByKey=new Map();
     const ambiguous=Object.fromEntries(Object.entries(ambiguousEvseIds).map(([country,ids])=>[country,new Set(ids)]));
-    const diagnostics={policy:'national_catalogue_only',unassigned:[],matchedOffers:0};
+    const diagnostics={policy:'national_non_tesla_and_autonomous_tesla_mac',unassigned:[],matchedOffers:0,excludedTeslaNational:[]};
+    const isMac=item=>item.source.id==='tesla-global'&&item.source.adapter==='tesla-json';
     const key=(country,id)=>country+'|'+id;
     const add=(k,value)=>{const rows=nationalByKey.get(k)||[];rows.push(value);nationalByKey.set(k,rows);};
     for(const item of items){
       const f=item.fragment,reference=catalogues[f.countryCode];
+      if(isMac(item)){output.push(item);continue;}
+      if(isTeslaNetwork(f)){diagnostics.excludedTeslaNational.push({sourceId:item.source.id,stationId:f.canonicalId||f.sourceStationId});continue;}
       if(!reference){output.push(item);continue;}
       if(item.source.id!=='prepared:'+reference)continue;
       output.push(item);
@@ -205,6 +216,7 @@
     }
     for(const item of items){
       const f=item.fragment,reference=catalogues[f.countryCode];
+      if(isMac(item)||isTeslaNetwork(f))continue;
       if(!reference||item.source.id==='prepared:'+reference)continue;
       const mapped=new Map(),connectors=new Map();
       for(const evse of f.evses||[]){
@@ -258,7 +270,8 @@
     const sources=(registry.sources||[]).map(clone),loaderMap=new Map(Object.entries(loaders||{}));let api,areaCache=null;
     function registerLoader(sourceId,loader){if(typeof loader!=='function')throw new Error('loader must be a function');loaderMap.set(sourceId,loader);areaCache=null;return api;}
     async function loadSpatialArea(query){
-      const applicable=sources.filter(s=>sourceApplies(s,query));
+      const onlyTesla=registry.autonomousTesla===true&&query.filters?.operatorIds?.length===1&&operatorId(query.filters.operatorIds[0])==='tesla';
+      const applicable=sources.filter(s=>sourceApplies(s,query)&&(!onlyTesla||s.id==='tesla-global'));
       const settled=await Promise.allSettled(applicable.map(async source=>{
         const loader=loaderMap.get(source.id);if(typeof loader!=='function')return{source,fragments:[],offerRules:[],skipped:'loader_missing'};
         const result=await loader(query,clone(source));if(Array.isArray(result))return{source,fragments:result,offerRules:[]};
@@ -304,5 +317,5 @@
     api={queryArea,registerLoader,deriveOperators,eligibleOffers,selectRoutingCandidates,sources:()=>clone(sources)};return api;
   }
 
-  return{createEngine,consolidateNational,resolveEntities,applyOfferRules,deriveOperators,eligibleOffers,selectRoutingCandidates,materializeOffer,operatorId,distanceKm,sourceApplies,ruleMatchesStation,stationIdentityTokens,identityScopeMatches};
+  return{createEngine,consolidateNational,isTeslaNetwork,resolveEntities,applyOfferRules,deriveOperators,eligibleOffers,selectRoutingCandidates,materializeOffer,operatorId,distanceKm,sourceApplies,ruleMatchesStation,stationIdentityTokens,identityScopeMatches};
 });
