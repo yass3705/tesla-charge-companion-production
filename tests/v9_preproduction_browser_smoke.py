@@ -287,6 +287,22 @@ def run(site: Path, firefox: str, screenshots: Path | None = None, url: str | No
                 "return document.getElementById('v9SubscriptionSelector')?.innerText||''")
             if "Aucun tarif d’abonnement vérifié" not in subscription_text:
                 raise AssertionError("Historical subscriptions leaked into the isolated candidate")
+            if fr["count"] > 20:
+                page = browser.execute_script("""
+                    const results=document.getElementById('results');
+                    const before=results.querySelectorAll('.v9-result-card').length;
+                    const more=results.querySelector('.v9-more-stations');
+                    more?.click();
+                    return {before,after:results.querySelectorAll('.v9-result-card').length,
+                      remaining:!!results.querySelector('.v9-more-stations'),nextPage:!!results.querySelector('.v9-next-page')};
+                """)
+                if page["before"] != 20 or page["after"] != 40 or not (page["remaining"] or page["nextPage"]):
+                    raise AssertionError(f"Station card pagination lost data: {page}")
+                fr["listPagination"] = page
+                browser.execute_script("""
+                    let more;
+                    while((more=document.querySelector('#results .v9-more-stations')))more.click();
+                """)
             text = browser.execute_script("return document.getElementById('results').innerText")
             fr_source_label = "Belib · FR" if "FR:belib_stations" in source_ids else "IONITY Direct · FR"
             for label in (fr_source_label, "Extraction :", "Tarif incalculable", "Prix non disponible", "Direct", "Electra", "Electroverse"):
@@ -298,18 +314,6 @@ def run(site: Path, firefox: str, screenshots: Path | None = None, url: str | No
                     str(fr["matchingCount"]) not in text or
                     not browser.find_elements('css selector', '.v9-next-page')):
                 raise AssertionError("Dense-area pagination was not disclosed to the user")
-            if fr["count"] > 80:
-                page = browser.execute_script("""
-                    const results=document.getElementById('results');
-                    const before=results.querySelectorAll('.v9-result-card').length;
-                    const more=results.querySelector('.v9-more-stations');
-                    more?.click();
-                    return {before,after:results.querySelectorAll('.v9-result-card').length,
-                      remaining:!!results.querySelector('.v9-more-stations'),nextPage:!!results.querySelector('.v9-next-page')};
-                """)
-                if page["before"] != 80 or page["after"] != 160 or not (page["remaining"] or page["nextPage"]):
-                    raise AssertionError(f"Station card pagination lost data: {page}")
-                fr["listPagination"] = page
             if screenshots:
                 screenshots.mkdir(parents=True, exist_ok=True)
                 browser.execute_script("document.getElementById('results').scrollIntoView()")
@@ -612,6 +616,10 @@ def run(site: Path, firefox: str, screenshots: Path | None = None, url: str | No
             WebDriverWait(browser, 30).until(lambda driver: driver.execute_script(
                 "return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error"))
             mobile = compare(48.856, 2.352, "FR", "Paris fixture")
+            mobile_cards = browser.execute_script(
+                "return document.querySelectorAll('#results .v9-result-card').length")
+            if mobile_cards != min(20, mobile["count"]):
+                raise AssertionError(f"Mobile initial station cards exceeded the 20-card limit: {mobile_cards}")
             viewport = browser.execute_script("return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth}")
             if viewport["width"] != 390 or viewport["scrollWidth"] > viewport["width"]:
                 raise AssertionError(f"Mobile station list overflows: {viewport}")
@@ -645,7 +653,8 @@ def run(site: Path, firefox: str, screenshots: Path | None = None, url: str | No
                     "ch": switzerland, "be": belgium, "nl": netherlands,
                     "zephyre": zephyre, "ozecar": ozecar, "powerdot": powerdot,
                     "minPower300": filtered["count"], "map": map_state,
-                    "mobile390": {"stations": mobile["count"], "viewport": viewport, "map": mobile_map}}
+                    "mobile390": {"stations": mobile["count"], "initialCards": mobile_cards,
+                                  "viewport": viewport, "map": mobile_map}}
     finally:
         if server is not None:
             server.shutdown()

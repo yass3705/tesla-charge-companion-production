@@ -2,6 +2,8 @@
 
 **Cloudflare Pages est abandonné. Netlify est autorisé par l'utilisateur le 28 octobre pour un projet de préproduction indépendant, en transfert manuel uniquement.** Le brouillon `6ae257f7d0d52c2b2ba9636b` est accessible et sa recette distante du 5 novembre passe sur l'URL immuable ; [preuves et limites formelles](evidence/netlify-draft-20261105.md). Il ne s'agit pas d'une publication du site public TCC.
 
+La première recette utilisateur G9 a produit un [candidat corrigé local](evidence/g9-first-user-recipe-20261105.md) à 20 fiches initiales, avec repères cartographiques explicites. Il conserve exactement le bundle 31 sources ; l'URL Netlify ci-dessus reste inchangée jusqu'à autorisation d'un nouveau brouillon.
+
 ## Paquet de recette conservé
 
 Le paquet autonome local est `.tcc-v9-cache/reproducible-31-bump-2026-10-28/site-rule-key-guard`, hors dépôt. Bundle immuable à 31 sources : `29e2a5e9331a9d2949e342d245128d45480647f4eed1fc37977f83bc67e059fb`. Les candidats `site-simple-guard` et `site` restent des retours arrière. Le contrôle local SHA/noindex, l'oracle Midhope 64/64, les oracles composés, dix parcours tarifaires Firefox et neuf pays/mobile sont consignés dans [la matrice G6](evidence/g6-mechanism-coverage-20261028.md). Le contrôle d'hébergement local porte sur 3 777 fichiers et 289 119 496 octets ; `deployed=false`.

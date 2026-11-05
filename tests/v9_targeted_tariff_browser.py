@@ -72,8 +72,10 @@ const target=arguments[0],done=arguments[1];
  const badScope=offers.some(o=>(o.evseIds||[]).some(id=>!evseIds.has(id))||(o.connectorIds||[]).some(id=>!connectorIds.has(id)||!st.evses.some(e=>(o.evseIds||[]).includes(e.id)&&e.connectors.some(c=>c.id===id))))||
    raw.some(o=>!evseIds.has(o.scope?.evseId)||o.scope?.connectorId!=null&&!st.evses.some(e=>e.id===o.scope.evseId&&e.connectors.some(c=>c.id===o.scope.connectorId)));
  const e=area.sessionEvaluations?.[st.id],evaluated=[e?.best,...(e?.alternatives||[]),...(e?.incomplete||[])].filter(o=>o&&ids.has(o.offerId));
- // A page has at most 160 station cards; expose its second DOM batch if needed.
- document.querySelector('.v9-more-stations')?.click();
+ // A page has at most 160 ranked stations; reveal only explicit 20-card batches.
+ while(![...document.querySelectorAll('.v9-result-card')].some(el=>el.dataset.v9StationId===target.id)){
+   const more=document.querySelector('.v9-more-stations');if(!more)break;more.click();
+ }
  const card=[...document.querySelectorAll('.v9-result-card')].find(el=>el.dataset.v9StationId===target.id);
  if(!card)throw Error('Target card not rendered');
  card.querySelectorAll('details').forEach(el=>el.open=true);
