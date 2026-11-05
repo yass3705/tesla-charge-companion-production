@@ -1,0 +1,31 @@
+TAP version 13
+# Canonical V9: proved FR/DE/IT/GB IONITY and FR/IT/BE/NL rates, exact scope and historic oracles
+# Subtest: tests/canonical-v9-proved-pricing.test.mjs
+ok 1 - tests/canonical-v9-proved-pricing.test.mjs
+  ---
+  duration_ms: 381.775653
+  type: 'test'
+  ...
+# Archived eMSP normalization, scope, combined fees, time windows and fail-closed components: PASS
+# Subtest: tests/v9-archived-emsp-restoration.test.mjs
+ok 2 - tests/v9-archived-emsp-restoration.test.mjs
+  ---
+  duration_ms: 318.167189
+  type: 'test'
+  ...
+# V9 OCPI pricing components and restrictions: pass
+# Subtest: tests/v9-ocpi-component-coverage.test.mjs
+ok 3 - tests/v9-ocpi-component-coverage.test.mjs
+  ---
+  duration_ms: 316.790243
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 405.991431

@@ -248,6 +248,35 @@
         sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
         sourceTariffKey:offer.sourceTariffKey,timeZone:'Europe/Amsterdam'}};
   }
+  function provedArchivedEmspOffer(data,offer,index){
+    const expected={'FR:emsp_exact':['Electroverse','exact_unique_national_irve_pdc'],
+      'FR:electra_emsp_exact':['Electra','exact_national_irve_evse']}[data.source?.id];
+    if(!expected||offer.proof!=='archived_unique_normalized_official_evse'||
+       data.source.identityContract!=='historical_normalized_official_evse_unique'||
+       !/^[a-f0-9]{64}$/.test(data.source.archiveManifestSha256||'')||
+       !/^[a-f0-9]{64}$/.test(data.source.nationalSha256||'')||offer.calculationHold||
+       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const raw=offer.rawOffer,evse=index.evses.get(offer.scope.evseId),metadata=raw?.metadata;
+    const identity=v=>String(v||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(!evse?.officialEvseId||offer.officialEvseId!==evse.officialEvseId||
+       offer.channel!==expected[0]||raw?.provider!==expected[0]||raw.id!==offer.sourceOfferId||
+       metadata?.verified!==true||metadata.identityMode!==expected[1]||
+       (expected[0]==='Electroverse'?raw.verifiedScope:metadata.verifiedScope)!=='exact_evse'||
+       raw.evseIds?.length!==1||raw.evseIds[0]!==offer.sourceEvseId||
+       !identity(offer.sourceEvseId)||identity(offer.sourceEvseId)!==identity(evse.officialEvseId)||
+       raw.currency!=='EUR'||raw.pricing?.type!=='rules'||!Array.isArray(raw.pricing.rules)||!raw.pricing.rules.length||
+       raw.pricing.rules.some(rule=>!rule||rule.currency!=='EUR'))return null;
+    const connectors=index.connectors.get(evse.id)||[];
+    if(!connectors.length)return null;
+    // Preserve every archived component. The session engine must reject any
+    // unsupported/missing component, never price a reduced subset of this offer.
+    return{id:offer.id,provider:expected[0],kind:'roaming',currency:raw.currency,
+      countries:['FR'],evseIds:[evse.id],connectorIds:connectors.map(c=>c.id),
+      pricing:JSON.parse(JSON.stringify(raw.pricing)),metadata:{verified:true,
+        identityMode:'archived_unique_normalized_official_evse',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,sourceOfferId:offer.sourceOfferId,
+        sourceEvseId:offer.sourceEvseId,nationalEvseId:evse.officialEvseId,timeZone:'Europe/Paris'}};
+  }
   function provedElectraOffer(data,offer,index){
     if(data.source?.id!=='FR:electra_emsp_exact'||offer.channel!=='Electra'||
        offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
@@ -395,7 +424,7 @@
     for(const offer of data.offers){
       const evse=evses.get(offer.scope?.evseId);
       if(!evse)throw new Error('canonical offer EVSE missing');
-      const proved=provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
+      const proved=provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
         provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
