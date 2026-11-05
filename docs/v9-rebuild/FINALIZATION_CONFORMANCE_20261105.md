@@ -1,3 +1,9 @@
+## État du lot tarifaire en cours, 5 novembre
+
+G2–G8 restent FAIL global. Ne pas confondre la recette Netlify antérieure avec le candidat restauré en préparation. Les pertes eMSP, Belib, Suisse, Allego, UK Ubitricity et profils exacts Ze-Watt/Zephyre sont corrigées/testées localement ; détails et oracles dans `evidence/emsp-restoration-20261105/`. Electra/Belib/Driveco et DOT-NL renouvelés par les méthodes existantes ; Suisse transport d'archives signées seulement. Actions DataLab désactivé après chaque fenêtre. Le décompte exhaustif G2 est126non vérifiés sur135instances : le117historique n'incluait pas15entrées sans champ de statut. Ce défaut de suivi a été corrigé, sans retirer aucune méthode utile.
+
+Nouveau brouillon pas encore déployé : les PASS distants ci-dessous restent attachés à leurs anciennes URL. Performance dense toujours ouverte. Les autres sources/canaux à preuve insuffisante restent hors calcul, aucune couverture globale inventée.
+
 > Complément du 5 novembre 20:00 UTC : les preuves locales eMSP/Belib/Suisse/Allego ont progressé depuis le candidat distant décrit ci-dessous. Voir `evidence/emsp-restoration-20261105/README.md`. Le pilote Electra42093326295 a échoué, Actions redésactivé, 115 handoffs restent ouverts. Aucune promotion globale G2–G8, ni nouveau déploiement à ce point.
 
 # Actualisation du 5 novembre : Tesla autonome et renouvellement borné

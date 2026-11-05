@@ -13,7 +13,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def run(site, bundle, url=None):
+def run(site, bundle, url=None, selected_sources=None):
     script = r'''
 const fs=require('fs'),path=require('path');
 globalThis.TCCV9Adapters={ukOpenFeeds:require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/uk-open-feeds.js'))};
@@ -52,7 +52,8 @@ function targetScope(fragment,reference,offer,raw){
  }
  return matches[0].stationId;
 }
-const targets=sources.flatMap(source=>source==='FR:archived_direct_exact'?[{source,family:'zewatt'},{source,family:'zephyre'}]:[{source}]).map(({source,family})=>{
+const selected=process.argv[3]?new Set(JSON.parse(process.argv[3])):null;
+const targets=sources.filter(source=>!selected||selected.has(source)).flatMap(source=>source==='FR:archived_direct_exact'?[{source,family:'zewatt'},{source,family:'zephyre'}]:[{source}]).map(({source,family})=>{
  const data=JSON.parse(fs.readFileSync(path.join(process.argv[2],source.replace(':','__')+'.json')));
  const rawOnly=['GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
  const fragments=adapter.toFragments(data).filter(st=>!family||st.offers.some(o=>o.metadata?.sourceOfferId?.startsWith(family+'-'))).filter(st=>st.latitude!=null&&st.longitude!=null&&(rawOnly?st.unparsedOffers.length:st.offers.length));
@@ -71,7 +72,7 @@ const targets=sources.flatMap(source=>source==='FR:archived_direct_exact'?[{sour
 });
 console.log(JSON.stringify(targets));
 '''
-    targets = json.loads(subprocess.check_output(['node', '-e', script, str(site), str(bundle)], text=True))
+    targets = json.loads(subprocess.check_output(['node', '-e', script, str(site), str(bundle), json.dumps(selected_sources) if selected_sources else ''], text=True))
     class Quiet(SimpleHTTPRequestHandler):
         def log_message(self, *_args):
             pass
@@ -158,5 +159,5 @@ const target=arguments[0],done=arguments[1];
     return results
 
 if __name__ == '__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--site',type=Path,required=True);parser.add_argument('--bundle',type=Path,required=True);parser.add_argument('--url')
-    args=parser.parse_args();print(json.dumps(run(args.site,args.bundle,args.url),ensure_ascii=False))
+    parser=argparse.ArgumentParser();parser.add_argument('--site',type=Path,required=True);parser.add_argument('--bundle',type=Path,required=True);parser.add_argument('--url');parser.add_argument('--source',action='append',dest='sources')
+    args=parser.parse_args();print(json.dumps(run(args.site,args.bundle,args.url,args.sources),ensure_ascii=False))

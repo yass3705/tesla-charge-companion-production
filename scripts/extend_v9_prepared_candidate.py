@@ -39,13 +39,25 @@ def extend(previous,bundle,destination):
         index={'schemaVersion':2,'status':'prepared','bundleId':bundle.name,'sources':entries,'rejected':[],'joins':[]}
         for prior in old.get('joins',[]):
             national=prior['nationalSource'];related=[s for s in sorted(new_sources) if s.startswith(national[:2]+':') and s!=national]
-            read=lambda s:json.loads((bundle/new_sources[s]['path']).read_bytes())
-            matched=match_offers(read(national),[read(s) for s in related])
-            report={'schemaVersion':1,'candidateBundleId':bundle.name,'nationalSource':national,
-                'sourceInputs':[{'source':s,'sha256':new_sources[s]['sha256']} for s in [national,*related]],
-                'policy':'exact_official_evse_and_exact_official_connector_when_scoped;no_site_or_geo_price_propagation',**matched}
-            name=prior['path'];(stage/name).parent.mkdir(parents=True,exist_ok=True);raw=encoded(report);(stage/name).write_bytes(raw)
-            index['joins'].append({**prior,'sha256':digest(raw)})
+            unchanged=set(s for s in old_sources if s.startswith(national[:2]+':'))==set([national,*related]) and all(
+                old_sources[s]['sourceSha256']==new_sources[s]['sha256'] for s in [national,*related])
+            if unchanged:
+                previous_raw=(previous/prior['path']).read_bytes()
+                report=json.loads(gzip.decompress(previous_raw) if prior.get('encoding')=='gzip' else previous_raw)
+                report['candidateBundleId']=bundle.name
+            else:
+                read=lambda s:json.loads((bundle/new_sources[s]['path']).read_bytes())
+                matched=match_offers(read(national),[read(s) for s in related])
+                report={'schemaVersion':1,'candidateBundleId':bundle.name,'nationalSource':national,
+                    'sourceInputs':[{'source':s,'sha256':new_sources[s]['sha256']} for s in [national,*related]],
+                    'policy':'exact_official_evse_and_exact_official_connector_when_scoped;no_site_or_geo_price_propagation',**matched}
+            name=prior['path'];(stage/name).parent.mkdir(parents=True,exist_ok=True);raw=encoded(report)
+            if prior.get('encoding')=='gzip':
+                transport=gzip.compress(raw,mtime=0);(stage/name).write_bytes(transport)
+                index['joins'].append({**prior,'sha256':digest(transport),'bytes':len(transport),
+                    'uncompressedSha256':digest(raw),'uncompressedBytes':len(raw)})
+            else:
+                (stage/name).write_bytes(raw);index['joins'].append({**prior,'sha256':digest(raw)})
         (stage/'index.json').write_bytes(encoded(index));check_candidate(stage);stage.rename(destination)
     return {'status':'prepared','bundleId':bundle.name,'sources':len(entries),'reusedSources':sum(1 for e in entries if e is old_sources.get(e['source']))}
 if __name__=='__main__':

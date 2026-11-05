@@ -26,3 +26,25 @@ class ExtendCandidateTest(unittest.TestCase):
             corrupt=next((shards/'shards').iterdir());corrupt.write_bytes(b'corrupted')
             with self.assertRaises(ValueError):extend(shards,bundle,root/'bad')
             self.assertFalse((root/'bad').exists())
+    def test_compressed_join_reused_only_for_identical_country_inputs(self):
+        import gzip
+        from unittest.mock import patch
+        from join_v9_exact import match_offers
+        from package_v9_preproduction_map import check_candidate
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);old=fixture(root);idx=json.loads((old/'index.json').read_bytes());row=idx['sources'][0]
+            data=json.loads((old/row['path']).read_bytes());report={'schemaVersion':1,'candidateBundleId':idx['bundleId'],'nationalSource':row['source'],'sourceInputs':[{'source':row['source'],'sha256':row['sha256']}],**match_offers(data,[])}
+            (old/'joins').mkdir();raw=json.dumps(report).encode();(old/'joins/NL__dotnl_static.json').write_bytes(raw)
+            idx['joins']=[{'nationalSource':row['source'],'path':'joins/NL__dotnl_static.json','sha256':hashlib.sha256(raw).hexdigest(),'status':'exact_identity_only'}];(old/'index.json').write_text(json.dumps(idx))
+            shards=root/'shards';build(old,shards,max_bytes=3000)
+            def bundle(payload):
+                body=json.dumps(payload).encode();entry={'source':row['source'],'path':'NL__dotnl_static.json','sha256':hashlib.sha256(body).hexdigest(),'sourceArtifactSha256':'a'*64,'canonicalSchemaVersion':1}
+                manifest=json.dumps({'schemaVersion':1,'state':'prepared','sources':[entry]}).encode();b=root/hashlib.sha256(manifest).hexdigest();b.mkdir();(b/'manifest.json').write_bytes(manifest);(b/entry['path']).write_bytes(body);return b
+            b=bundle(data)
+            with patch('extend_v9_prepared_candidate.match_offers',side_effect=AssertionError('unchanged inputs must reuse verified joins')):
+                extend(shards,b,root/'same')
+            same=check_candidate(root/'same');j=same['joins'][0];decoded=json.loads(gzip.decompress((root/'same'/j['path']).read_bytes()));self.assertEqual(j['encoding'],'gzip');self.assertEqual(decoded,{**report,'candidateBundleId':b.name})
+            data['stations'][0]['name']='changed source';b2=bundle(data)
+            with patch('extend_v9_prepared_candidate.match_offers',wraps=match_offers) as calls:
+                extend(root/'same',b2,root/'changed');self.assertEqual(calls.call_count,1)
+            self.assertEqual(check_candidate(root/'changed')['joins'][0]['encoding'],'gzip')
