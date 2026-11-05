@@ -1,0 +1,421 @@
+{
+  "connectors": [
+    {
+      "evseId": "tcc:b9cf7a838c2666dcbaae69395cc2612372de3939b838f202a75216f80121845d",
+      "id": "tcc:4882948003625c8eca6130f68435735ea226a02de98330ccaa4a6bc3d8af6b13",
+      "identityGranularity": "irve_compact_group",
+      "kind": "AC",
+      "officialConnectorId": null,
+      "plugType": "IRVE \u00b7 EF 22 kW",
+      "powerKw": 22.0,
+      "rawSourceFields": [
+        "irve-0-ac-22",
+        "IRVE \u00b7 EF 22 kW",
+        "AC",
+        22.0,
+        2,
+        []
+      ],
+      "sourceConnectorId": null
+    },
+    {
+      "evseId": "tcc:5ce43ddaae6eeb07c89de3ae9dc2ff6a449884e06ca813850c40be44eeab0222",
+      "id": "tcc:7295ce7bcaeb7fbd4309c34d86e8dea3f3e64a71126daafa5976f8a248c26df4",
+      "identityGranularity": "irve_compact_group",
+      "kind": "AC",
+      "officialConnectorId": null,
+      "plugType": "IRVE \u00b7 Type 2 22 kW",
+      "powerKw": 22.0,
+      "rawSourceFields": [
+        "irve-0-ac-22",
+        "IRVE \u00b7 Type 2 22 kW",
+        "AC",
+        22.0,
+        1,
+        []
+      ],
+      "sourceConnectorId": null
+    },
+    {
+      "evseId": "tcc:b9cf7a838c2666dcbaae69395cc2612372de3939b838f202a75216f80121845d",
+      "id": "tcc:bfb5ac6c50ae63a1718239d321a354a8366f7481901e712cdc46aac589034a05",
+      "identityGranularity": "irve_compact_group",
+      "kind": "AC",
+      "officialConnectorId": null,
+      "plugType": "IRVE \u00b7 Type 2 22 kW",
+      "powerKw": 22.0,
+      "rawSourceFields": [
+        "irve-1-ac-22",
+        "IRVE \u00b7 Type 2 22 kW",
+        "AC",
+        22.0,
+        2,
+        []
+      ],
+      "sourceConnectorId": null
+    }
+  ],
+  "countries": [
+    {
+      "code": "FR"
+    }
+  ],
+  "cpos": [
+    {
+      "country": "FR",
+      "id": "tcc:1f343280f0eeda443b6e55a12338882c8643161d245a3c3498721201c2bb105b",
+      "name": "ZE-WATT",
+      "sourceOperatorId": "ZE-WATT"
+    },
+    {
+      "country": "FR",
+      "id": "tcc:6cb6801545e221594ec9d576b32062bd6ec1fdc939356ec1f54e2117716a003a",
+      "name": "ZEPHYRE | FR*ZP1",
+      "sourceOperatorId": "ZEPHYRE | FR*ZP1"
+    }
+  ],
+  "evses": [
+    {
+      "country": "FR",
+      "cpoId": "tcc:1f343280f0eeda443b6e55a12338882c8643161d245a3c3498721201c2bb105b",
+      "id": "tcc:b9cf7a838c2666dcbaae69395cc2612372de3939b838f202a75216f80121845d",
+      "officialEvseId": "FRZWOEZW003051",
+      "sourceEvseId": "FRZWOEZW003051",
+      "stationId": "tcc:c40874f68ed58c564d677117020b3744866eaedebf7133e86bd796efe54ffd0b"
+    },
+    {
+      "country": "FR",
+      "cpoId": "tcc:6cb6801545e221594ec9d576b32062bd6ec1fdc939356ec1f54e2117716a003a",
+      "id": "tcc:5ce43ddaae6eeb07c89de3ae9dc2ff6a449884e06ca813850c40be44eeab0222",
+      "officialEvseId": "FRZP1E118049",
+      "sourceEvseId": "FRZP1E118049",
+      "stationId": "tcc:4719deac7f65d70847bc8a60c3cd8fdd9b1307dd1638029bef426638eb9c71f2"
+    }
+  ],
+  "offers": [
+    {
+      "calculationStatus": "not_evaluated",
+      "channel": "Direct",
+      "family": "zewatt",
+      "id": "tcc:ebe067bd8aa9a62533210f84ef30c2791d79f92d04bcd1bfbc25b685c6b1054d",
+      "officialEvseId": "FRZWOEZW003051",
+      "proof": "identical_archived_direct_compiler_exact_evse",
+      "rawOffer": {
+        "countries": [
+          "FR"
+        ],
+        "currency": "EUR",
+        "defaultSelected": false,
+        "directOperatorOnly": true,
+        "evseIds": [
+          "FRZWOEZW003051",
+          "FRZWOEZW003052"
+        ],
+        "id": "zewatt-direct-profile-01",
+        "metadata": {
+          "exactEvseCount": 2,
+          "exactStationCount": 1,
+          "fallback": "Electra then Electroverse for non-guest or unresolved stations",
+          "priceMinNotRanked": true,
+          "priceMinReason": "retained in raw snapshot only; not proven to be a tariff component",
+          "pricingContext": "anonymous_guest_card",
+          "stationSerials": [
+            "ZW00305"
+          ],
+          "structuredTtcProfile": {
+            "connectedTimeGraceMinutes": 0,
+            "connectedTimePerMinuteEurTtc": 0,
+            "perKwhEurTtc": 0.144,
+            "perMinuteEurTtc": 0,
+            "perSessionEurTtc": 0,
+            "postChargeGraceMinutes": 0,
+            "postChargePerMinuteEurTtc": 0
+          },
+          "visitorStripeRequired": true
+        },
+        "operatorAliases": [
+          "Ze-Watt",
+          "ZE-WATT",
+          "ZE WATT",
+          "FR*ZWO",
+          "FRZWO"
+        ],
+        "pricing": {
+          "rules": [
+            {
+              "billing": "kwh",
+              "currency": "EUR",
+              "end": "24:00",
+              "pricePerKwh": 0.144,
+              "scope": "allDay",
+              "start": "00:00"
+            }
+          ],
+          "type": "rules"
+        },
+        "priority": 132,
+        "provider": "Ze-Watt direct",
+        "selectionId": "zewatt-direct-profile-01",
+        "source": "my.ze-watt.com /api/stripe-payment/v1/charge-point/{serial}/company",
+        "verifiedScope": "exact_evse"
+      },
+      "scope": {
+        "connectorId": null,
+        "evseId": "tcc:b9cf7a838c2666dcbaae69395cc2612372de3939b838f202a75216f80121845d"
+      },
+      "sourceEvseId": "FRZWOEZW003051",
+      "sourceOfferId": "zewatt-direct-profile-01"
+    },
+    {
+      "calculationStatus": "not_evaluated",
+      "channel": "Direct",
+      "family": "zephyre",
+      "id": "tcc:961b5817184e5eafb82ff7403d134258fbc50e919a1c74f880a295b6e841b889",
+      "officialEvseId": "FRZP1E118049",
+      "proof": "identical_archived_direct_compiler_exact_evse",
+      "rawOffer": {
+        "countries": [
+          "FR"
+        ],
+        "currency": "EUR",
+        "defaultSelected": false,
+        "directOperatorOnly": true,
+        "evseIds": [
+          "FR*ZP1*E118049"
+        ],
+        "id": "zephyre-direct-profile-02",
+        "metadata": {
+          "currentType": "AC",
+          "exactEvseCount": 1,
+          "fallback": "Electra then Electroverse for unresolved/non-exposed EVSEs",
+          "internalNames": [
+            "LG-2175-9"
+          ],
+          "priceBasis": "ePowerDirect displayed direct price",
+          "pricingContext": "anonymous_direct_payment",
+          "rawPriceComponents": [
+            {
+              "freeParkingCostMinutes": 0,
+              "price": 0.23,
+              "priceUnit": "CHARGING_KWH",
+              "restrictionEndTime": null,
+              "restrictionStartTime": null,
+              "taxAmount": 20
+            }
+          ]
+        },
+        "operatorAliases": [
+          "Zephyre",
+          "Zephyre SAS",
+          "FR*ZP1",
+          "FRZP1"
+        ],
+        "pricing": {
+          "rules": [
+            {
+              "billing": "kwh",
+              "currency": "EUR",
+              "end": "24:00",
+              "pricePerKwh": 0.23,
+              "scope": "allDay",
+              "start": "00:00"
+            }
+          ],
+          "type": "rules"
+        },
+        "priority": 132,
+        "provider": "Zephyre direct",
+        "selectionId": "zephyre-direct-profile-02",
+        "source": "ePowerDirect /pay/api/stations/chargepoint/{internalName}",
+        "verifiedScope": "exact_evse"
+      },
+      "scope": {
+        "connectorId": null,
+        "evseId": "tcc:5ce43ddaae6eeb07c89de3ae9dc2ff6a449884e06ca813850c40be44eeab0222"
+      },
+      "sourceEvseId": "FR*ZP1*E118049",
+      "sourceOfferId": "zephyre-direct-profile-02"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "archives": {
+      "zephyre": {
+        "compiledSha256": "3ae92b15910761afcea9e57fb4504ebeaf4c82e6d0559486c1e7cb24ea2ebfba",
+        "compilerSha256": "fd34a071c044b95c68473ecf73759ca96de23e66e6c13d75720eb6d02c85631c",
+        "generatedAt": "2026-10-19T10:04:36.065Z",
+        "sourceSha256": "8778c5850f008819474441667f68a4588197cfc9f3bfd17d73ba8a0a4e1e0dc7"
+      },
+      "zewatt": {
+        "compiledSha256": "7a3a80f75623bba010327d193130f5ee8fe3089d14a835fabfbb183447a56efe",
+        "compilerSha256": "e1c0da73177db7935c65cd8ad81485ba3af50764aed7232a8058744ce32bd201",
+        "generatedAt": "2026-10-14T09:04:47.674Z",
+        "sourceSha256": "6a4d0549aee6b6e82dccf65bfee8fd2dd61f764ba3d3f91e736f705853ddc386"
+      }
+    },
+    "artifactSha256": "ceb19e45c55925d535a426e6099779bae81d3e147893297af95a528e3f71ace4",
+    "generatedAt": "2026-10-14T09:04:47.674Z",
+    "id": "FR:archived_direct_exact"
+  },
+  "stations": [
+    {
+      "address": "76 Rue du 3E Spahis Alg\u00e9riens, Le Bonhomme 68650 France",
+      "country": "FR",
+      "cpoId": "tcc:6cb6801545e221594ec9d576b32062bd6ec1fdc939356ec1f54e2117716a003a",
+      "id": "tcc:4719deac7f65d70847bc8a60c3cd8fdd9b1307dd1638029bef426638eb9c71f2",
+      "latitude": 48.17205,
+      "longitude": 7.11741,
+      "name": "Zephyre/LP009E73",
+      "networkBrand": "Zephyre",
+      "rawSourceFields": [
+        "FRZP1P6937134663936000199",
+        "Zephyre/LP009E73",
+        "76 Rue du 3E Spahis Alg\u00e9riens, Le Bonhomme 68650 France",
+        48.17205,
+        7.11741,
+        "ZEPHYRE | FR*ZP1",
+        1,
+        [
+          [
+            0,
+            "00:00",
+            "24:00"
+          ],
+          [
+            1,
+            "00:00",
+            "24:00"
+          ],
+          [
+            2,
+            "00:00",
+            "24:00"
+          ],
+          [
+            3,
+            "00:00",
+            "24:00"
+          ],
+          [
+            4,
+            "00:00",
+            "24:00"
+          ],
+          [
+            5,
+            "00:00",
+            "24:00"
+          ],
+          [
+            6,
+            "00:00",
+            "24:00"
+          ]
+        ],
+        [
+          [
+            "irve-0-ac-22",
+            "IRVE \u00b7 Type 2 22 kW",
+            "AC",
+            22.0,
+            1,
+            [],
+            [
+              "FRZP1E118049"
+            ]
+          ]
+        ],
+        "2024-12-20",
+        "Zephyre"
+      ],
+      "sourceStationId": "FRZP1P6937134663936000199",
+      "sourceUpdatedAt": "2024-12-20"
+    },
+    {
+      "address": "141, avenue Salvador-Allende\nCS 20000, 79031 Niort",
+      "country": "FR",
+      "cpoId": "tcc:1f343280f0eeda443b6e55a12338882c8643161d245a3c3498721201c2bb105b",
+      "id": "tcc:c40874f68ed58c564d677117020b3744866eaedebf7133e86bd796efe54ffd0b",
+      "latitude": 46.33361,
+      "longitude": -0.4862,
+      "name": "SMACL 2",
+      "networkBrand": "R\u00e9seau de recharge Ze-Watt",
+      "rawSourceFields": [
+        "FRZWOEZW00305",
+        "SMACL 2",
+        "141, avenue Salvador-Allende\nCS 20000, 79031 Niort",
+        46.33361,
+        -0.4862,
+        "ZE-WATT",
+        2,
+        [
+          [
+            0,
+            "00:00",
+            "24:00"
+          ],
+          [
+            1,
+            "00:00",
+            "24:00"
+          ],
+          [
+            2,
+            "00:00",
+            "24:00"
+          ],
+          [
+            3,
+            "00:00",
+            "24:00"
+          ],
+          [
+            4,
+            "00:00",
+            "24:00"
+          ],
+          [
+            5,
+            "00:00",
+            "24:00"
+          ],
+          [
+            6,
+            "00:00",
+            "24:00"
+          ]
+        ],
+        [
+          [
+            "irve-0-ac-22",
+            "IRVE \u00b7 EF 22 kW",
+            "AC",
+            22.0,
+            2,
+            [],
+            [
+              "FRZWOEZW003051",
+              "FRZWOEZW003052"
+            ]
+          ],
+          [
+            "irve-1-ac-22",
+            "IRVE \u00b7 Type 2 22 kW",
+            "AC",
+            22.0,
+            2,
+            [],
+            [
+              "FRZWOEZW003051",
+              "FRZWOEZW003052"
+            ]
+          ]
+        ],
+        "2026-10-19",
+        "R\u00e9seau de recharge Ze-Watt"
+      ],
+      "sourceStationId": "FRZWOEZW00305",
+      "sourceUpdatedAt": "2026-10-19"
+    }
+  ]
+}

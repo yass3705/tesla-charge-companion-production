@@ -428,6 +428,54 @@
       metadata:{verified:true,identityMode:'exact_canonical_emsp_evse',sourceId:data.source.id,
         artifactSha256:data.source.artifactSha256,sourceOfferId:raw.id,timeZone:'Europe/Paris'}};
   }
+  function provedArchivedDirectProfile(data,offer,index){
+    if(data.source?.id!=='FR:archived_direct_exact'||offer.channel!=='Direct'||offer.calculationHold||
+       offer.calculationStatus!=='not_evaluated'||offer.proof!=='identical_archived_direct_compiler_exact_evse')return null;
+    const raw=offer.rawOffer,e=index.evses.get(offer.scope?.evseId),proof=data.source.archives?.[offer.family];
+    const norm=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(!e?.officialEvseId||offer.officialEvseId!==e.officialEvseId||norm(offer.sourceEvseId)!==norm(e.officialEvseId)||
+       !proof||!['sourceSha256','compiledSha256','compilerSha256'].every(k=>/^[a-f0-9]{64}$/.test(proof[k]||''))||
+       raw?.currency!=='EUR'||raw.directOperatorOnly!==true||raw.verifiedScope!=='exact_evse'||
+       raw.id!==offer.sourceOfferId||JSON.stringify(raw.countries)!=='["FR"]'||
+       !raw.evseIds?.includes(offer.sourceEvseId)||raw.stationIds||
+       Object.keys(raw).some(k=>!['id','selectionId','provider','operatorAliases','countries','currency','priority','pricing','source','directOperatorOnly','verifiedScope','defaultSelected','evseIds','metadata'].includes(k)))return null;
+    const r={scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',currency:'EUR',pricePerKwh:0};
+    const expected={type:'rules',rules:[r]},m=raw.metadata||{},finite=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
+    let connectorKinds;
+    if(offer.family==='zewatt'){
+      const p=m.structuredTtcProfile;
+      if(raw.provider!=='Ze-Watt direct'||m.visitorStripeRequired!==true||m.pricingContext!=='anonymous_guest_card'||
+         !p||Object.keys(p).sort().join(',')!=='connectedTimeGraceMinutes,connectedTimePerMinuteEurTtc,perKwhEurTtc,perMinuteEurTtc,perSessionEurTtc,postChargeGraceMinutes,postChargePerMinuteEurTtc'||
+         !Object.values(p).every(finite))return null;
+      r.pricePerKwh=p.perKwhEurTtc;
+      if(p.perSessionEurTtc>0)r.sessionFeeEur=p.perSessionEurTtc;
+      if(p.perMinuteEurTtc>0)r.chargingTimePerMinuteEur=p.perMinuteEurTtc;
+      if(p.connectedTimePerMinuteEurTtc>0){r.connectedTimePerMinuteAfterFreeEur=p.connectedTimePerMinuteEurTtc;r.connectedTimeFreeMinutes=Math.round(p.connectedTimeGraceMinutes);}
+      if(p.postChargePerMinuteEurTtc>0)expected.postChargeFee={eurPerMinute:p.postChargePerMinuteEurTtc,graceMinutes:Math.round(p.postChargeGraceMinutes)};
+    }else if(offer.family==='zephyre'){
+      if(raw.provider!=='Zephyre direct'||m.pricingContext!=='anonymous_direct_payment'||!['AC','DC'].includes(m.currentType)||!m.rawPriceComponents?.length)return null;
+      connectorKinds=[m.currentType];const seen=new Set();
+      for(const c of m.rawPriceComponents){
+        if(Object.keys(c).sort().join(',')!=='freeParkingCostMinutes,price,priceUnit,restrictionEndTime,restrictionStartTime,taxAmount'||
+           !finite(c.price)||!finite(c.freeParkingCostMinutes)||c.restrictionStartTime||c.restrictionEndTime||seen.has(c.priceUnit))return null;
+        seen.add(c.priceUnit);
+        if(c.priceUnit==='CHARGING_KWH')r.pricePerKwh=c.price;
+        else if(c.priceUnit==='CHARGING_TIME'){if(c.price>0)r.chargingTimePerMinuteEur=c.price;}
+        else if(c.priceUnit==='CHARGING_SESSION'){if(c.price>0)r.sessionFeeEur=c.price;}
+        else if(c.priceUnit==='PARKING_TIME'){if(c.price>0)expected.postChargeFee={eurPerMinute:c.price,graceMinutes:c.freeParkingCostMinutes};}
+        else return null;
+      }
+    }else return null;
+    const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
+    if(JSON.stringify(stable(expected))!==JSON.stringify(stable(raw.pricing)))return null;
+    const connectors=index.connectors.get(e.id)||[];
+    if(!connectors.length||!connectors.some(c=>c.powerKw>0))return null;
+    return {id:offer.id,provider:raw.provider,kind:'direct',currency:'EUR',countries:['FR'],evseIds:[e.id],
+      connectorIds:connectors.map(c=>c.id),...(connectorKinds?{connectorKinds}:{}),subscriptionId:null,
+      pricing:JSON.parse(JSON.stringify(raw.pricing)),metadata:{...m,verified:true,identityMode:'exact_archived_direct_profile_evse',
+        sourceId:data.source.id,sourceOfferId:raw.id,artifactSha256:data.source.artifactSha256,
+        compiledSha256:proof.compiledSha256,generatedAt:proof.generatedAt,timeZone:'Europe/Paris'}};
+  }
   // Already compiled historical UK offers, bound to the exact archived connector.
   // The offline transformer reproduces the historical first-match/VAT compiler;
   // the signed input retains both original OCPI and compiled offer unchanged.
@@ -525,7 +573,7 @@
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
     }
-    if(['FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct'].includes(data.source?.id)){
+    if(['FR:archived_direct_exact','FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct'].includes(data.source?.id)){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];
         list.push(row);proofIndex.connectors.set(row.evseId,list);}
     }
@@ -549,7 +597,7 @@
     for(const offer of data.offers){
       const evse=evses.get(offer.scope?.evseId);
       if(!evse)throw new Error('canonical offer EVSE missing');
-      const proved=provedUbitricityOffer(data,offer,proofIndex)||provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
+      const proved=provedArchivedDirectProfile(data,offer,proofIndex)||provedUbitricityOffer(data,offer,proofIndex)||provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
         provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
@@ -578,5 +626,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer};
+  return{toFragments,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer};
 });

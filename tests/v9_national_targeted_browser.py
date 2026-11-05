@@ -22,6 +22,7 @@ const pricing=require(path.resolve(process.argv[1],'runtime/assets/v9/pricing-en
 const sources=['GB:ubitricity_pcpr_direct','FR:allego_direct','FR:belib_stations','CH:swiss_integration','FR:emsp_exact','FR:atlante_direct','IT:atlante_direct','IT:ionity_direct','GB:ionity_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
 if(fs.existsSync(path.join(process.argv[2],'FR__bump_national_exact.json')))sources.unshift('FR:bump_national_exact');
 if(fs.existsSync(path.join(process.argv[2],'FR__electra_emsp_exact.json')))sources.unshift('FR:electra_emsp_exact');
+if(fs.existsSync(path.join(process.argv[2],'FR__archived_direct_exact.json')))sources.unshift('FR:archived_direct_exact');
 const nationalIds={FR:'FR:irve_static',BE:'BE:nap_static',CH:'CH:swiss_integration',DE:'DE:bnetza_afir_archive',ES:'ES:reve_static',NL:'NL:dotnl_static'};
 const nationalCache=new Map();
 function national(source){
@@ -51,10 +52,10 @@ function targetScope(fragment,reference,offer,raw){
  }
  return matches[0].stationId;
 }
-const targets=sources.map(source=>{
+const targets=sources.flatMap(source=>source==='FR:archived_direct_exact'?[{source,family:'zewatt'},{source,family:'zephyre'}]:[{source}]).map(({source,family})=>{
  const data=JSON.parse(fs.readFileSync(path.join(process.argv[2],source.replace(':','__')+'.json')));
  const rawOnly=['GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
- const fragments=adapter.toFragments(data).filter(st=>st.latitude!=null&&st.longitude!=null&&(rawOnly?st.unparsedOffers.length:st.offers.length));
+ const fragments=adapter.toFragments(data).filter(st=>!family||st.offers.some(o=>o.metadata?.sourceOfferId?.startsWith(family+'-'))).filter(st=>st.latitude!=null&&st.longitude!=null&&(rawOnly?st.unparsedOffers.length:st.offers.length));
  if(!fragments.length)throw Error('No representative archived offer: '+source);
  // A parking rate is not a billed fee when the default session has no idle
  // period. Select an archived positive charging fee applicable to this session.
@@ -66,7 +67,7 @@ const targets=sources.map(source=>{
  const chosen=candidates.find(x=>x.targetIds.length&&x.targetIds.every(id=>id&&id===x.targetIds[0])&&compound(x.st))||
    candidates.find(x=>x.targetIds.length&&x.targetIds.every(id=>id&&id===x.targetIds[0]))||candidates[0];
  const st=chosen.st,excluded=chosen.targetIds.some(id=>!id)||!chosen.targetIds.length;
- return{source,excluded,exclusionReason:excluded?'exact_national_scope_unproved':null,id:excluded?st.canonicalId:chosen.targetIds[0],sourceStationId:st.canonicalId,lat:st.latitude,lon:st.longitude,country:st.countryCode,rawOnly,compound:compound(st),pricedIds:st.offers.map(o=>o.id),rawIds:st.unparsedOffers.map(o=>o.id)};
+ return{source,family,excluded,exclusionReason:excluded?'exact_national_scope_unproved':null,id:excluded?st.canonicalId:chosen.targetIds[0],sourceStationId:st.canonicalId,lat:st.latitude,lon:st.longitude,country:st.countryCode,rawOnly,compound:compound(st),pricedIds:st.offers.map(o=>o.id),rawIds:st.unparsedOffers.map(o=>o.id)};
 });
 console.log(JSON.stringify(targets));
 '''

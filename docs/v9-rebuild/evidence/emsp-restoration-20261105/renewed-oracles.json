@@ -1,0 +1,38 @@
+{
+  "status": "pass",
+  "session": {
+    "energyKwh": 10,
+    "durationMinutes": 40,
+    "chargingMinutes": 30,
+    "postChargeMinutes": 10,
+    "startAt": "2026-10-15T12:00:00Z",
+    "powerKw": 22,
+    "startSocPercent": 20,
+    "targetSocPercent": 80
+  },
+  "sources": {
+    "FR:emsp_exact": {
+      "canonicalOffers": 31270,
+      "engineOffers": 31155,
+      "rawOffers": 0,
+      "complete": 31155,
+      "independentArithmetic": 23646,
+      "previousCompletePreserved": 31155,
+      "changedHistoricalInputs": 0,
+      "incompleteReasons": {}
+    },
+    "FR:electra_emsp_exact": {
+      "canonicalOffers": 96191,
+      "engineOffers": 86328,
+      "rawOffers": 9601,
+      "complete": 64374,
+      "independentArithmetic": 50676,
+      "previousCompletePreserved": 51280,
+      "changedHistoricalInputs": 13366,
+      "incompleteReasons": {
+        "after_minutes_component_unverified": 21944,
+        "congestion_soc_unavailable": 10
+      }
+    }
+  }
+}
