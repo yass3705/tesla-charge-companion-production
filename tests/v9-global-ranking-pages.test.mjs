@@ -19,7 +19,9 @@ assert.equal(cards.length,321);assert.ok(cards.some(c=>c.total>0),'fixture reall
 let calls=0;const query=engine.queryArea;engine.queryArea=async q=>{calls++;assert.ok(q.stationLimit<=160,'production path never evaluates an unlimited batch');return query(q);};
 for(const mode of ['price','distance','balanced','totalTime','costPerKm']){
  const expected=rankRows(cards,mode,321).map(c=>c.station.id),pages=[];
+ const beforeMode=calls;
  const first=await executeV9(w,engine,cfg,{...input,rankingMode:mode});pages.push(first);
+ if(mode!=='price')assert.equal(calls-beforeMode,1,'sorting alone never recalculates all search stations');
  const before=calls;
  for(const stationOffset of [160,320])pages.push(await executeV9(w,engine,cfg,{...input,rankingMode:mode,stationOffset}));
  assert.equal(calls-before,2,'page navigation reuses the full ranking');
@@ -29,6 +31,10 @@ for(const mode of ['price','distance','balanced','totalTime','costPerKm']){
  assert.equal(first.area.mapRankingRows.filter(r=>r.total!=null).length,320,'unpriced remains unpriced');
  for(const p of pages)assert.equal(p.area.mapStations.length,321);
  if(mode==='price')assert.equal(first.rows[0].station.id,'FR:fixture:0320');
+}
+for(const change of [{targetSoc:90},{startAt:'2026-10-26T13:00:00Z'},{vehicleMaxDcKw:100},{vehicleMaxAcKw:7},{consumptionKwhPer100Km:18}]){
+ const before=calls;await executeV9(w,engine,cfg,{...input,...change,rankingMode:'price'});
+ assert.ok(calls-before>1,'changed session/vehicle must invalidate the complete ranking cache');
 }
 assert.equal(loads,1,'oracle and all ranked pages reuse the same source load');
 console.log('V9 global ranking: five modes match full oracle, bounded batches and cached pages PASS');

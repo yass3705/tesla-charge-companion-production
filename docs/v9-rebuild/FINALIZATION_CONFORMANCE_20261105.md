@@ -1,3 +1,5 @@
+> Complément du 5 novembre 20:00 UTC : les preuves locales eMSP/Belib/Suisse/Allego ont progressé depuis le candidat distant décrit ci-dessous. Voir `evidence/emsp-restoration-20261105/README.md`. Le pilote Electra42093326295 a échoué, Actions redésactivé, 115 handoffs restent ouverts. Aucune promotion globale G2–G8, ni nouveau déploiement à ce point.
+
 # Actualisation du 5 novembre : Tesla autonome et renouvellement borné
 
 Le mandat actuel autorise les tests Actions contrôlés. Deux runs réels (push42076511189, manuel42076753318) ont renouvelé IONITY, FX et Kilowatt ; Actions est de nouveau désactivé. IONITY FR/DE/IT/GB et FX sont importés dans le nouveau candidat ; Kilowatt est validé au niveau transfert seulement. 117 autres handoffs restent non vérifiés ; aucun schedule quotidien ni déploiement public n’est activé.

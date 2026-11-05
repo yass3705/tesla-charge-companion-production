@@ -1,7 +1,10 @@
+import {createHash,webcrypto} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
-const {toFragments}=require('../runtime-owned/assets/v9/adapters/canonical-v9.js');
+const adapter=require('../runtime-owned/assets/v9/adapters/canonical-v9.js');
+const {toFragments}=adapter;
+const {loadPrepared}=require('../runtime-owned/assets/v9/preproduction-candidate-loader.js');
 const {evaluateOffer}=require('../runtime-overrides/assets/v9/pricing-engine.js');
 function fixture(channel='Electroverse'){
  const mode=channel==='Electra'?'exact_national_irve_evse':'exact_unique_national_irve_pdc';
@@ -26,3 +29,29 @@ for(const channel of ['Electra','Electroverse']){
  assert.equal(evaluateOffer(o,{...session,postChargeMinutes:null}).complete,false,'missing post-charge duration fails closed');
 }
 console.log('Archived eMSP normalization, scope, combined fees, time windows and fail-closed components: PASS');
+
+// Exercise the signed candidate loader as well as the adapter. Its independent
+// isolation guard must accept the complete proved rule and reject alterations.
+for(const channel of ['Electra','Electroverse']){
+ const d=fixture(channel),raw=JSON.stringify(d),sha=v=>createHash('sha256').update(v).digest('hex');
+ const index={schemaVersion:1,bundleId:'fixture',status:'prepared',sources:[{source:d.source.id,path:'sources/'+d.source.id.replace(':','__')+'.json',sha256:sha(raw)}],rejected:[]};
+ const config={nationalCatalogues:{},baseUrl:'https://fixture.invalid/data',origin:'https://fixture.invalid',cryptoImpl:webcrypto,adapter,
+   fetchImpl:async url=>new Response(new URL(url).pathname.endsWith('index.json')?JSON.stringify(index):raw)};
+ const loaded=await loadPrepared(config),rows=await loaded.loaders['prepared:'+d.source.id]({});
+ assert.equal(rows[0].offers.length,1);assert.equal(evaluateOffer(rows[0].offers[0],session).totalEur,9);
+ const forged={...adapter,toFragments:data=>toFragments(data).map(f=>({...f,offers:f.offers.map(o=>({...o,pricing:{type:'rules',rules:[{scope:'allDay',pricePerKwh:0}]}}))}))};
+ const bad=await loadPrepared({...config,adapter:forged});
+ await assert.rejects(bad.loaders['prepared:'+d.source.id]({}),/pricing isolation/);
+}
+console.log('Signed candidate loader: both archived eMSP channels accepted, altered pricing rejected PASS');
+
+const parent=fixture();parent.offers[0].proof='archived_exact_parent_connector_variant';parent.offers[0].scope.connectorId='p';
+parent.connectors[0].plugType='IRVE · Type 2 22 kW';parent.connectors.push({id:'dc',evseId:'e',powerKw:150,plugType:'IRVE · CCS 150 kW'});
+const parentRaw=parent.offers[0].rawOffer;parentRaw.verifiedScope='exact_evse_connector_power';
+Object.assign(parentRaw.metadata,{identityMode:'exact_unique_national_irve_pdc_parent_connector_suffix',offerGranularity:'connector_power',powerKw:22,
+ standards:['IEC_62196_T2'],physicalReferences:['FR*ABC*E1*1'],tariffHashes:['d'.repeat(64)],connectorPks:[42],connectorCount:1});
+assert.deepEqual(toFragments(parent)[0].offers[0].connectorIds,['p'],'AC tariff never propagates to another power at the same EVSE');
+for(const mutate of [d=>d.offers[0].scope.connectorId='dc',d=>d.offers[0].rawOffer.metadata.physicalReferences=['FR*OTHER*E1*1'],d=>d.offers[0].rawOffer.metadata.standards=['UNKNOWN']]){
+ const bad=structuredClone(parent);mutate(bad);assert.equal(toFragments(bad)[0].offers.length,0);
+}
+console.log('Archived parent connector variants: exact identity/power/standard retained, wrong port rejected PASS');

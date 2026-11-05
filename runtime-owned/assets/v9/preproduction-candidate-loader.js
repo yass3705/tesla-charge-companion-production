@@ -112,7 +112,7 @@
           const rawConnectors=new Map(data.connectors.map(row=>[row.id,row]));
           const rawCpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
           const bumpIndex={cpos:rawCpos,evses:rawEvses,connectors:new Map()};
-          if(['FR:bump_national_exact','FR:electra_emsp_exact'].includes(id))for(const row of data.connectors){
+          if(['FR:bump_national_exact','FR:electra_emsp_exact','FR:emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct'].includes(id))for(const row of data.connectors){
             const list=bumpIndex.connectors.get(row.evseId)||[];
             list.push(row);bumpIndex.connectors.set(row.evseId,list);
           }
@@ -122,6 +122,27 @@
           if(id==='NL:dotnl_static')for(const row of data.offers)
             connectorOfferCounts.set(row.scope?.connectorId,(connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
           const provedOffer=(fragment,offer)=>{
+            if(id==='FR:allego_direct'){
+              const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveAllegoOffer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='FR'&&fragment.evses.some(e=>e.id===raw.scope?.evseId)&&JSON.stringify(offer)===JSON.stringify(expected));
+            }
+            if(id==='FR:belib_stations'){
+              const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveBelibOffer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='FR'&&fragment.evses.some(e=>e.id===raw.scope?.evseId)&&JSON.stringify(offer)===JSON.stringify(expected));
+            }
+            if(id==='CH:swiss_integration'){
+              const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveSwissOffer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='CH'&&
+                fragment.evses.some(evse=>evse.id===raw.scope?.evseId)&&JSON.stringify(offer)===JSON.stringify(expected));
+            }
+            if(['FR:electra_emsp_exact','FR:emsp_exact'].includes(id)&&
+               ['archived_unique_normalized_official_evse','archived_exact_parent_connector_variant'].includes(rawOffers.get(offer?.id)?.proof)){
+              const raw=rawOffers.get(offer.id);
+              const expected=adapter.proveArchivedEmspOffer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='FR'&&
+                fragment.evses.some(evse=>evse.id===raw.scope?.evseId)&&
+                JSON.stringify(offer)===JSON.stringify(expected));
+            }
             if(id==='FR:electra_emsp_exact'){
               const raw=rawOffers.get(offer?.id);
               const expected=raw&&adapter.proveElectraOffer?.(data,raw,bumpIndex);

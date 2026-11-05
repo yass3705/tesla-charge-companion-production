@@ -248,25 +248,112 @@
         sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
         sourceTariffKey:offer.sourceTariffKey,timeZone:'Europe/Amsterdam'}};
   }
+  function provedAllegoOffer(data,offer,index){
+    if(data.source?.id!=='FR:allego_direct'||offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const e=index.evses.get(offer.scope?.evseId),r=offer.rawOffer,fee=r?.feePolicy;
+    if(!e?.officialEvseId||r?.sourceEvseId!==e.officialEvseId||r.rankableDirectInArchive!==true||
+       Object.keys(r).sort().join(',')!=='conditionalOffers,directEurPerKwh,feePolicy,rankableDirectInArchive,sourceEvseId'||
+       !Array.isArray(r.conditionalOffers)||r.conditionalOffers.length||
+       !Number.isFinite(r.directEurPerKwh)||r.directEurPerKwh<0||
+       !fee||Object.keys(fee).sort().join(',')!=='notBeforeSessionMinute,onlyAfterChargingStops,ratePerMinuteEur,source,type'||
+       fee.type!=='idle_after_charging'||fee.onlyAfterChargingStops!==true||fee.notBeforeSessionMinute!==45||
+       fee.source!=='https://www.allego.eu/fr/overstay-fee/'||!Number.isFinite(fee.ratePerMinuteEur)||fee.ratePerMinuteEur<0)return null;
+    const evidence=e.rawSourceFields;
+    if(evidence?.evseId!==e.officialEvseId||evidence.kind!=='DC'||!Number.isFinite(evidence.powerKw)||evidence.powerKw<=22.5||
+       evidence.isOwnNetwork!==true||evidence.rankableDirect!==true||evidence.feeModelExact!==true||evidence.blockingReason!=null||
+       evidence.directEurPerKwh!==r.directEurPerKwh||JSON.stringify(evidence.feePolicy)!==JSON.stringify(fee))return null;
+    return{id:offer.id,provider:'Allego Direct',kind:'direct',currency:'EUR',countries:['FR'],evseIds:[e.id],connectorKinds:['DC'],
+      pricing:{type:'rules',rules:[{scope:'allDay',currency:'EUR',pricePerKwh:r.directEurPerKwh,
+        afterMinutesComponent:'PARKING_TIME',afterMinutesThreshold:fee.notBeforeSessionMinute,afterMinutesRate:fee.ratePerMinuteEur}]},
+      metadata:{verified:true,identityMode:'archived_allego_exact_evse_idle_policy',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,sourceEvseId:e.officialEvseId,timeZone:'Europe/Paris'}};
+  }
+  // Frozen parity pairs from the archived official Belib profiles and historical
+  // france-belib-offers.json. Compare ALL input fields: the minute-normalised
+  // profiles alone cannot recover started 15-minute blocks or future fees.
+  const BELIB_PROFILES={"belib-nonresident-boost":{"raw":{"annualFeeEur":7.0,"channel":"Belib direct","customerPlan":"nonresident","customerPlanLabelFr":"Abonne non-resident","parkingFeesIncluded":false,"profileId":"belib-nonresident-boost","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.133333333,"connectedTimeEurPerMinute":0.0,"currency":"EUR","end":"24:00","energyEurPerKwh":0.0,"idleTimeEurPerMinute":0.133333333,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"allDay","start":"00:00"}],"serviceClass":"boost","subscriptionId":"belib-nonresident","taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"allDay","start":"00:00","end":"24:00","currency":"EUR","connectedTimeBlockMinutes":15,"connectedTimeBlockEur":2.0,"connectedTimeBlockRounding":"started_block"}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}},"belib-nonresident-boostPlus":{"raw":{"annualFeeEur":7.0,"channel":"Belib direct","customerPlan":"nonresident","customerPlanLabelFr":"Abonne non-resident","parkingFeesIncluded":false,"profileId":"belib-nonresident-boostPlus","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.38,"connectedTimeEurPerMinute":0.0,"currency":"EUR","end":"24:00","energyEurPerKwh":0.0,"idleTimeEurPerMinute":0.38,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"allDay","start":"00:00"}],"serviceClass":"boostPlus","subscriptionId":"belib-nonresident","taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"allDay","start":"00:00","end":"24:00","currency":"EUR","connectedTimePerMinuteEur":0.38}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}},"belib-nonresident-flex":{"raw":{"annualFeeEur":7.0,"channel":"Belib direct","customerPlan":"nonresident","customerPlanLabelFr":"Abonne non-resident","parkingFeesIncluded":false,"profileId":"belib-nonresident-flex","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.0,"connectedTimeEurPerMinute":0.024666667,"currency":"EUR","end":"24:00","energyEurPerKwh":0.33,"idleTimeEurPerMinute":0.0,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"allDay","start":"00:00"}],"serviceClass":"flex","subscriptionId":"belib-nonresident","taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"allDay","start":"00:00","end":"24:00","currency":"EUR","pricePerKwh":0.33,"connectedTimeBlockMinutes":15,"connectedTimeBlockEur":0.37,"connectedTimeBlockRounding":"started_block"}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}},"belib-resident-boost":{"raw":{"annualFeeEur":7.0,"channel":"Belib direct","customerPlan":"resident","customerPlanLabelFr":"Abonne resident Paris","parkingFeesIncluded":false,"profileId":"belib-resident-boost","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.133333333,"connectedTimeEurPerMinute":0.0,"currency":"EUR","end":"24:00","energyEurPerKwh":0.0,"idleTimeEurPerMinute":0.133333333,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"allDay","start":"00:00"}],"serviceClass":"boost","subscriptionId":"belib-resident","taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"timeWindow","start":"08:00","end":"20:00","currency":"EUR","connectedTimeBlockMinutes":15,"connectedTimeBlockEur":2.0,"connectedTimeBlockRounding":"started_block"},{"scope":"timeWindow","start":"20:00","end":"23:00","currency":"EUR","connectedTimeBlockMinutes":15,"connectedTimeBlockEur":2.0,"connectedTimeBlockRounding":"started_block"},{"scope":"timeWindow","start":"23:00","end":"08:00","currency":"EUR","connectedTimeBlockMinutes":15,"connectedTimeBlockEur":2.0,"connectedTimeBlockRounding":"started_block"}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}},"belib-resident-boostPlus":{"raw":{"annualFeeEur":7.0,"channel":"Belib direct","customerPlan":"resident","customerPlanLabelFr":"Abonne resident Paris","parkingFeesIncluded":false,"profileId":"belib-resident-boostPlus","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.38,"connectedTimeEurPerMinute":0.0,"currency":"EUR","end":"24:00","energyEurPerKwh":0.0,"idleTimeEurPerMinute":0.38,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"allDay","start":"00:00"}],"serviceClass":"boostPlus","subscriptionId":"belib-resident","taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"timeWindow","start":"08:00","end":"20:00","currency":"EUR","connectedTimePerMinuteEur":0.38},{"scope":"timeWindow","start":"20:00","end":"23:00","currency":"EUR","connectedTimePerMinuteEur":0.38},{"scope":"timeWindow","start":"23:00","end":"08:00","currency":"EUR","connectedTimePerMinuteEur":0.38}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}},"belib-resident-flex":{"raw":{"annualFeeEur":7.0,"channel":"Belib direct","customerPlan":"resident","customerPlanLabelFr":"Abonne resident Paris","parkingFeesIncluded":false,"profileId":"belib-resident-flex","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.0,"connectedTimeEurPerMinute":0.024666667,"currency":"EUR","end":"20:00","energyEurPerKwh":0.33,"idleTimeEurPerMinute":0.0,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"timeWindow","start":"08:00"},{"chargeTimeEurPerMinute":0.0,"connectedTimeEurPerMinute":0.0,"currency":"EUR","end":"23:00","energyEurPerKwh":0.33,"idleTimeEurPerMinute":0.0,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"timeWindow","start":"20:00"},{"chargeTimeEurPerMinute":0.0,"connectedTimeEurPerMinute":0.0,"currency":"EUR","end":"08:00","energyEurPerKwh":0.25,"idleTimeEurPerMinute":0.0,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"timeWindow","start":"23:00"}],"serviceClass":"flex","subscriptionId":"belib-resident","taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"timeWindow","start":"08:00","end":"20:00","currency":"EUR","pricePerKwh":0.33,"connectedTimeBlockMinutes":15,"connectedTimeBlockEur":0.37,"connectedTimeBlockRounding":"started_block"},{"scope":"timeWindow","start":"20:00","end":"23:00","currency":"EUR","pricePerKwh":0.33,"connectedTimeComponentEur":0.0},{"scope":"timeWindow","start":"23:00","end":"08:00","currency":"EUR","pricePerKwh":0.25,"connectedTimeComponentEur":0.0}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}},"belib-visitor-boost":{"raw":{"annualFeeEur":0.0,"channel":"Belib direct","customerPlan":"visitor","customerPlanLabelFr":"Visiteur","parkingFeesIncluded":false,"profileId":"belib-visitor-boost","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.153333333,"connectedTimeEurPerMinute":0.0,"currency":"EUR","end":"24:00","energyEurPerKwh":0.0,"idleTimeEurPerMinute":0.153333333,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"allDay","start":"00:00"}],"serviceClass":"boost","subscriptionId":null,"taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"allDay","start":"00:00","end":"24:00","currency":"EUR","connectedTimeBlockMinutes":15,"connectedTimeBlockEur":2.3,"connectedTimeBlockRounding":"started_block"}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}},"belib-visitor-boostPlus":{"raw":{"annualFeeEur":0.0,"channel":"Belib direct","customerPlan":"visitor","customerPlanLabelFr":"Visiteur","parkingFeesIncluded":false,"profileId":"belib-visitor-boostPlus","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.42,"connectedTimeEurPerMinute":0.0,"currency":"EUR","end":"24:00","energyEurPerKwh":0.0,"idleTimeEurPerMinute":0.42,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"allDay","start":"00:00"}],"serviceClass":"boostPlus","subscriptionId":null,"taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"allDay","start":"00:00","end":"24:00","currency":"EUR","connectedTimePerMinuteEur":0.42}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}},"belib-visitor-flex":{"raw":{"annualFeeEur":0.0,"channel":"Belib direct","customerPlan":"visitor","customerPlanLabelFr":"Visiteur","parkingFeesIncluded":false,"profileId":"belib-visitor-flex","reservationFeesIncluded":false,"rules":[{"chargeTimeEurPerMinute":0.0,"connectedTimeEurPerMinute":0.038,"currency":"EUR","end":"24:00","energyEurPerKwh":0.33,"idleTimeEurPerMinute":0.0,"longConnectionEurPerMinute":0.166666667,"longConnectionThresholdMinutes":840,"scope":"allDay","start":"00:00"}],"serviceClass":"flex","subscriptionId":null,"taxIncluded":true},"pricing":{"type":"rules","rules":[{"scope":"allDay","start":"00:00","end":"24:00","currency":"EUR","pricePerKwh":0.33,"connectedTimeBlockMinutes":15,"connectedTimeBlockEur":0.57,"connectedTimeBlockRounding":"started_block"}],"longConnectionFee":{"thresholdMinutes":840,"eurPerHourAfterThreshold":10.0,"basis":"connection_time"}}}};
+  function provedBelibOffer(data,offer,index){
+    if(data.source?.id!=='FR:belib_stations'||offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated')return null;
+    const raw=offer.rawOffer,reference=BELIB_PROFILES[offer.sourceProfileId];
+    const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
+    if(!reference||JSON.stringify(stable(raw))!==JSON.stringify(stable(reference.raw)))return null;
+    const e=index.evses.get(offer.scope?.evseId),c=(index.connectors.get(e?.id)||[]).find(c=>c.id===offer.scope?.connectorId);
+    if(!e?.officialEvseId||!c||c.rawSourceFields?.serviceClass!==raw.serviceClass||!['AC','DC'].includes(c.rawSourceFields?.kind))return null;
+    // Historical scope_belib_offers: exact official EVSE and the configuration's
+    // current kind; never station/name/location or invented connector identity.
+    return{id:offer.id,provider:'Belib direct',kind:'direct',currency:'EUR',countries:['FR'],
+      evseIds:[e.id],connectorKinds:[c.rawSourceFields.kind],subscriptionId:raw.subscriptionId,
+      pricing:JSON.parse(JSON.stringify(reference.pricing)),metadata:{verified:true,
+        identityMode:'archived_belib_exact_evse_service_class',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,sourceProfileId:offer.sourceProfileId,
+        historicalPricingSha256:'92d4904ecd8b9517dd4c2e388dfea422accb4c4000992cce4291af4703cf1a7e',timeZone:'Europe/Paris'}};
+  }
+  // Historical build_switzerland_v9.simple_evse_offer, retaining native CHF.
+  // Only complete exact-ID forms are admitted; coordinate-only overlays and
+  // monetary fields omitted by the old compiler remain outside calculation.
+  function provedSwissOffer(data,offer,index){
+    if(data.source?.id!=='CH:swiss_integration'||offer.channel!=='Direct'||
+       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const e=index.evses.get(offer.scope?.evseId),raw=offer.rawOffer;
+    if(!e?.officialEvseId||offer.sourceEvseId!==e.officialEvseId||raw?.evseId!==e.officialEvseId)return null;
+    const finite=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
+    const exactKeys=(v,keys)=>v&&Object.keys(v).sort().join(',')===keys.slice().sort().join(',');
+    let rate,power,provider;
+    if(offer.sourceFile==='data/switzerland/migrol-official-direct-tariffs.json'){
+      if(!exactKeys(raw,['chargingStationId','currency','evseId','maxPowerKw','pricePerKwh','pricePerMinute','source','startFee'])||
+         raw.currency!=='CHF'||raw.source!=='Migrol official M-Charge national public tariff schedule'||
+         !e.officialEvseId.startsWith('CH*MIG*E*')||raw.startFee!==0||raw.pricePerMinute!==0)return null;
+      rate=raw.pricePerKwh;power=raw.maxPowerKw;provider='Migrol Direct';
+    }else if(offer.sourceFile==='data/switzerland/ecarup-owner-direct-tariffs.json'){
+      const ec=raw.ecarup,price=ec?.price;
+      if(!exactKeys(raw,['classification','ecarup','evseId','nationalRecord'])||
+         raw.classification!=='priced_public_direct'||ec?.accessType!==0||
+         Object.keys(ec).some(k=>!['accessType','address','connectorId','connectorName','hubjectId','latitude','longitude','maxPowerW','operatorName','price','state','stationId','stationName'].includes(k))||
+         ec.hubjectId!==e.officialEvseId||raw.nationalRecord?.EvseID!==e.officialEvseId||
+         !exactKeys(price,['Currency','EnergyPrice','ParkingPrice','PenaltyGracePeriodMinutes','PenaltyMaxFee','PenaltyPricePerMinute','SpecialUserEnergyPrice','SpecialUserParkingPrice'])||
+         String(price.Currency).toUpperCase()!=='CHF'||price.ParkingPrice!==0||
+         ['PenaltyGracePeriodMinutes','PenaltyMaxFee','PenaltyPricePerMinute','SpecialUserEnergyPrice','SpecialUserParkingPrice'].some(k=>price[k]!=null&&price[k]!==0))return null;
+      rate=price.EnergyPrice;power=ec.maxPowerW/1000;provider='eCarUp Direct';
+    }else return null;
+    const connectors=index.connectors.get(e.id)||[];
+    if(!finite(rate)||!finite(power)||power<=0||!connectors.length||connectors.some(c=>c.powerKw!==power))return null;
+    return{id:offer.id,provider,kind:'direct',currency:'CHF',countries:['CH'],evseIds:[e.id],connectorIds:connectors.map(c=>c.id),
+      pricing:{type:'rules',rules:[{scope:'allDay',start:'00:00',end:'24:00',currency:'CHF',billing:'kwh',pricePerKwh:rate}]},
+      metadata:{verified:true,identityMode:'archived_exact_swiss_evse_complete_energy',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,sourceFile:offer.sourceFile,sourceEvseId:offer.sourceEvseId,timeZone:'Europe/Zurich'}};
+  }
   function provedArchivedEmspOffer(data,offer,index){
     const expected={'FR:emsp_exact':['Electroverse','exact_unique_national_irve_pdc'],
       'FR:electra_emsp_exact':['Electra','exact_national_irve_evse']}[data.source?.id];
-    if(!expected||offer.proof!=='archived_unique_normalized_official_evse'||
+    const parent=offer.proof==='archived_exact_parent_connector_variant';
+    if(!expected||!['archived_unique_normalized_official_evse','archived_exact_parent_connector_variant'].includes(offer.proof)||
        data.source.identityContract!=='historical_normalized_official_evse_unique'||
        !/^[a-f0-9]{64}$/.test(data.source.archiveManifestSha256||'')||
        !/^[a-f0-9]{64}$/.test(data.source.nationalSha256||'')||offer.calculationHold||
-       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+       offer.calculationStatus!=='not_evaluated'||(!parent&&offer.scope?.connectorId!=null))return null;
     const raw=offer.rawOffer,evse=index.evses.get(offer.scope.evseId),metadata=raw?.metadata;
     const identity=v=>String(v||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
     if(!evse?.officialEvseId||offer.officialEvseId!==evse.officialEvseId||
        offer.channel!==expected[0]||raw?.provider!==expected[0]||raw.id!==offer.sourceOfferId||
-       metadata?.verified!==true||metadata.identityMode!==expected[1]||
-       (expected[0]==='Electroverse'?raw.verifiedScope:metadata.verifiedScope)!=='exact_evse'||
+       metadata?.verified!==true||metadata.identityMode!==(parent?'exact_unique_national_irve_pdc_parent_connector_suffix':expected[1])||
+       (expected[0]==='Electroverse'?raw.verifiedScope:metadata.verifiedScope)!==(parent?'exact_evse_connector_power':'exact_evse')||
        raw.evseIds?.length!==1||raw.evseIds[0]!==offer.sourceEvseId||
        !identity(offer.sourceEvseId)||identity(offer.sourceEvseId)!==identity(evse.officialEvseId)||
        raw.currency!=='EUR'||raw.pricing?.type!=='rules'||!Array.isArray(raw.pricing.rules)||!raw.pricing.rules.length||
        raw.pricing.rules.some(rule=>!rule||rule.currency!=='EUR'))return null;
-    const connectors=index.connectors.get(evse.id)||[];
+    let connectors=index.connectors.get(evse.id)||[];
+    if(parent){
+      const kinds={IEC_62196_T2:'Type 2',IEC_62196_T2_COMBO:'CCS',DOMESTIC_F:'EF'},m=metadata;
+      const prefix=identity(evse.officialEvseId),refs=m.physicalReferences;
+      if(expected[0]!=='Electroverse'||m.offerGranularity!=='connector_power'||
+         !Array.isArray(refs)||!refs.length||refs.some(r=>!identity(r).startsWith(prefix)||!/^\d{1,2}$/.test(identity(r).slice(prefix.length)))||
+         !Number.isFinite(m.powerKw)||m.powerKw<=0||!Array.isArray(m.standards)||!m.standards.length||m.standards.some(v=>!kinds[v])||
+         !Array.isArray(m.tariffHashes)||!m.tariffHashes.length||m.tariffHashes.some(v=>!/^[a-f0-9]{64}$/.test(v))||
+         !Array.isArray(m.connectorPks)||!m.connectorPks.length||m.connectorCount!==m.connectorPks.length)return null;
+      const kind=c=>/^IRVE\s*·\s*(Type 2|CCS|EF)(?:\s|$)/.exec(c.plugType||'')?.[1];
+      connectors=connectors.filter(c=>c.id===offer.scope.connectorId&&c.powerKw===m.powerKw&&m.standards.some(v=>kinds[v]===kind(c)));
+      if(connectors.length!==1)return null;
+    }
     if(!connectors.length)return null;
     // Preserve every archived component. The session engine must reject any
     // unsupported/missing component, never price a reduced subset of this offer.
@@ -400,7 +487,7 @@
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
     }
-    if(['FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact'].includes(data.source?.id)){
+    if(['FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct'].includes(data.source?.id)){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];
         list.push(row);proofIndex.connectors.set(row.evseId,list);}
     }
@@ -417,14 +504,14 @@
       if(!evse)throw new Error('canonical connector EVSE missing');
       evse.output.connectors.push({id:row.id,sourceConnectorId:row.sourceConnectorId||null,
         officialConnectorId:row.officialConnectorId||null,kind:row.kind||row.rawSourceFields?.kind||
-          (String(row.rawSourceFields?.power_type||'').startsWith('DC')?'DC':
-            String(row.rawSourceFields?.power_type||'').startsWith('AC')?'AC':null),
+          (String(row.rawSourceFields?.power_type||row.rawFacility?.powertype||'').startsWith('DC')?'DC':
+            String(row.rawSourceFields?.power_type||row.rawFacility?.powertype||'').startsWith('AC')?'AC':null),
         plugType:row.plugType||null,powerKw:row.powerKw??null});
     }
     for(const offer of data.offers){
       const evse=evses.get(offer.scope?.evseId);
       if(!evse)throw new Error('canonical offer EVSE missing');
-      const proved=provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
+      const proved=provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
         provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
@@ -453,5 +540,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer};
+  return{toFragments,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer};
 });

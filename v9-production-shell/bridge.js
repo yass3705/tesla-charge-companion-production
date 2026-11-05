@@ -1213,7 +1213,7 @@
       summaryOnly:true};
   }
   async function rankedPage(w,engine,query,input,origin,selected){
-    const key=JSON.stringify({...query,stationOffset:0,rankingMode:input.rankingMode});
+    const key=JSON.stringify({...query,stationOffset:0});
     const cardsFor=area=>stationCards(variantsByPower(w,rowsFromArea(area,origin),area.effectiveSession||query.session,selected)
       .filter(row=>variantMatchesFilters(row,input)),selected);
     let cached=searchRankingCache.get(engine);
@@ -1239,14 +1239,21 @@
             await new Promise(resolve=>setTimeout(resolve,0));lastYield=performance.now();
           }
         }
-        const ranked=rankRows(summaries,input.rankingMode,summaries.length);
-        const ranks=new Map(ranked.map((row,index)=>[row.station.id,index]));
-        return{ranked,inventory:inventory.filter(st=>ranks.has(st.id)).map(st=>({...st,page:Math.floor(ranks.get(st.id)/160)})),count};
+        return{summaries,inventory,count,order:null};
       })();
       cached={key,pending};searchRankingCache.set(engine,cached);
       pending.catch(()=>{if(searchRankingCache.get(engine)===cached)searchRankingCache.delete(engine);});
     }
-    const snapshot=await cached.pending,selectedRows=snapshot.ranked.slice(query.stationOffset,query.stationOffset+160);
+    const calculated=await cached.pending;
+    // Sorting does not change vehicle, EVSE, tariff or session inputs. Retain
+    // those exact search results and rebuild only order + map page numbers.
+    if(calculated.order?.mode!==input.rankingMode){
+      const ranked=rankRows(calculated.summaries,input.rankingMode,calculated.summaries.length);
+      const ranks=new Map(ranked.map((row,index)=>[row.station.id,index]));
+      calculated.order={mode:input.rankingMode,ranked,count:calculated.count,
+        inventory:calculated.inventory.filter(st=>ranks.has(st.id)).map(st=>({...st,page:Math.floor(ranks.get(st.id)/160)}))};
+    }
+    const snapshot=calculated.order,selectedRows=snapshot.ranked.slice(query.stationOffset,query.stationOffset+160);
     const area=await engine.queryArea({...query,stationIds:selectedRows.map(row=>row.station.id),omitMapInventory:true});
     const byId=new Map(cardsFor(area).map(row=>[row.station.id,row]));
     const rows=selectedRows.map(row=>byId.get(row.station.id)).filter(Boolean);

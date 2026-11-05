@@ -31,6 +31,9 @@ jobs:
           tests/v9-global-ranking-pages.test.mjs
           tests/v9-station-card-lot1.test.mjs
           tests/v9-archived-emsp-restoration.test.mjs
+          tests/v9-swiss-archived-pricing.test.mjs
+          tests/v9-belib-archived-restoration.test.mjs
+          tests/v9-allego-archived-idle.test.mjs
           tests/canonical-v9-proved-pricing.test.mjs
           tests/preproduction-candidate-map.test.mjs
           tests/preproduction-sharded-loader.test.mjs

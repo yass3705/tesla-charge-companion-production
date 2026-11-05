@@ -1,0 +1,498 @@
+{
+  "source": "Stable/v9-production-runtime/data/v9/france-belib-offers.json",
+  "sha256": "92d4904ecd8b9517dd4c2e388dfea422accb4c4000992cce4291af4703cf1a7e",
+  "profiles": {
+    "belib-nonresident-boost": {
+      "raw": {
+        "annualFeeEur": 7.0,
+        "channel": "Belib direct",
+        "customerPlan": "nonresident",
+        "customerPlanLabelFr": "Abonne non-resident",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-nonresident-boost",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.133333333,
+            "connectedTimeEurPerMinute": 0.0,
+            "currency": "EUR",
+            "end": "24:00",
+            "energyEurPerKwh": 0.0,
+            "idleTimeEurPerMinute": 0.133333333,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "allDay",
+            "start": "00:00"
+          }
+        ],
+        "serviceClass": "boost",
+        "subscriptionId": "belib-nonresident",
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "currency": "EUR",
+            "connectedTimeBlockMinutes": 15,
+            "connectedTimeBlockEur": 2.0,
+            "connectedTimeBlockRounding": "started_block"
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    },
+    "belib-nonresident-boostPlus": {
+      "raw": {
+        "annualFeeEur": 7.0,
+        "channel": "Belib direct",
+        "customerPlan": "nonresident",
+        "customerPlanLabelFr": "Abonne non-resident",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-nonresident-boostPlus",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.38,
+            "connectedTimeEurPerMinute": 0.0,
+            "currency": "EUR",
+            "end": "24:00",
+            "energyEurPerKwh": 0.0,
+            "idleTimeEurPerMinute": 0.38,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "allDay",
+            "start": "00:00"
+          }
+        ],
+        "serviceClass": "boostPlus",
+        "subscriptionId": "belib-nonresident",
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "currency": "EUR",
+            "connectedTimePerMinuteEur": 0.38
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    },
+    "belib-nonresident-flex": {
+      "raw": {
+        "annualFeeEur": 7.0,
+        "channel": "Belib direct",
+        "customerPlan": "nonresident",
+        "customerPlanLabelFr": "Abonne non-resident",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-nonresident-flex",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.0,
+            "connectedTimeEurPerMinute": 0.024666667,
+            "currency": "EUR",
+            "end": "24:00",
+            "energyEurPerKwh": 0.33,
+            "idleTimeEurPerMinute": 0.0,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "allDay",
+            "start": "00:00"
+          }
+        ],
+        "serviceClass": "flex",
+        "subscriptionId": "belib-nonresident",
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "currency": "EUR",
+            "pricePerKwh": 0.33,
+            "connectedTimeBlockMinutes": 15,
+            "connectedTimeBlockEur": 0.37,
+            "connectedTimeBlockRounding": "started_block"
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    },
+    "belib-resident-boost": {
+      "raw": {
+        "annualFeeEur": 7.0,
+        "channel": "Belib direct",
+        "customerPlan": "resident",
+        "customerPlanLabelFr": "Abonne resident Paris",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-resident-boost",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.133333333,
+            "connectedTimeEurPerMinute": 0.0,
+            "currency": "EUR",
+            "end": "24:00",
+            "energyEurPerKwh": 0.0,
+            "idleTimeEurPerMinute": 0.133333333,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "allDay",
+            "start": "00:00"
+          }
+        ],
+        "serviceClass": "boost",
+        "subscriptionId": "belib-resident",
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "timeWindow",
+            "start": "08:00",
+            "end": "20:00",
+            "currency": "EUR",
+            "connectedTimeBlockMinutes": 15,
+            "connectedTimeBlockEur": 2.0,
+            "connectedTimeBlockRounding": "started_block"
+          },
+          {
+            "scope": "timeWindow",
+            "start": "20:00",
+            "end": "23:00",
+            "currency": "EUR",
+            "connectedTimeBlockMinutes": 15,
+            "connectedTimeBlockEur": 2.0,
+            "connectedTimeBlockRounding": "started_block"
+          },
+          {
+            "scope": "timeWindow",
+            "start": "23:00",
+            "end": "08:00",
+            "currency": "EUR",
+            "connectedTimeBlockMinutes": 15,
+            "connectedTimeBlockEur": 2.0,
+            "connectedTimeBlockRounding": "started_block"
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    },
+    "belib-resident-boostPlus": {
+      "raw": {
+        "annualFeeEur": 7.0,
+        "channel": "Belib direct",
+        "customerPlan": "resident",
+        "customerPlanLabelFr": "Abonne resident Paris",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-resident-boostPlus",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.38,
+            "connectedTimeEurPerMinute": 0.0,
+            "currency": "EUR",
+            "end": "24:00",
+            "energyEurPerKwh": 0.0,
+            "idleTimeEurPerMinute": 0.38,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "allDay",
+            "start": "00:00"
+          }
+        ],
+        "serviceClass": "boostPlus",
+        "subscriptionId": "belib-resident",
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "timeWindow",
+            "start": "08:00",
+            "end": "20:00",
+            "currency": "EUR",
+            "connectedTimePerMinuteEur": 0.38
+          },
+          {
+            "scope": "timeWindow",
+            "start": "20:00",
+            "end": "23:00",
+            "currency": "EUR",
+            "connectedTimePerMinuteEur": 0.38
+          },
+          {
+            "scope": "timeWindow",
+            "start": "23:00",
+            "end": "08:00",
+            "currency": "EUR",
+            "connectedTimePerMinuteEur": 0.38
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    },
+    "belib-resident-flex": {
+      "raw": {
+        "annualFeeEur": 7.0,
+        "channel": "Belib direct",
+        "customerPlan": "resident",
+        "customerPlanLabelFr": "Abonne resident Paris",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-resident-flex",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.0,
+            "connectedTimeEurPerMinute": 0.024666667,
+            "currency": "EUR",
+            "end": "20:00",
+            "energyEurPerKwh": 0.33,
+            "idleTimeEurPerMinute": 0.0,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "timeWindow",
+            "start": "08:00"
+          },
+          {
+            "chargeTimeEurPerMinute": 0.0,
+            "connectedTimeEurPerMinute": 0.0,
+            "currency": "EUR",
+            "end": "23:00",
+            "energyEurPerKwh": 0.33,
+            "idleTimeEurPerMinute": 0.0,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "timeWindow",
+            "start": "20:00"
+          },
+          {
+            "chargeTimeEurPerMinute": 0.0,
+            "connectedTimeEurPerMinute": 0.0,
+            "currency": "EUR",
+            "end": "08:00",
+            "energyEurPerKwh": 0.25,
+            "idleTimeEurPerMinute": 0.0,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "timeWindow",
+            "start": "23:00"
+          }
+        ],
+        "serviceClass": "flex",
+        "subscriptionId": "belib-resident",
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "timeWindow",
+            "start": "08:00",
+            "end": "20:00",
+            "currency": "EUR",
+            "pricePerKwh": 0.33,
+            "connectedTimeBlockMinutes": 15,
+            "connectedTimeBlockEur": 0.37,
+            "connectedTimeBlockRounding": "started_block"
+          },
+          {
+            "scope": "timeWindow",
+            "start": "20:00",
+            "end": "23:00",
+            "currency": "EUR",
+            "pricePerKwh": 0.33,
+            "connectedTimeComponentEur": 0.0
+          },
+          {
+            "scope": "timeWindow",
+            "start": "23:00",
+            "end": "08:00",
+            "currency": "EUR",
+            "pricePerKwh": 0.25,
+            "connectedTimeComponentEur": 0.0
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    },
+    "belib-visitor-boost": {
+      "raw": {
+        "annualFeeEur": 0.0,
+        "channel": "Belib direct",
+        "customerPlan": "visitor",
+        "customerPlanLabelFr": "Visiteur",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-visitor-boost",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.153333333,
+            "connectedTimeEurPerMinute": 0.0,
+            "currency": "EUR",
+            "end": "24:00",
+            "energyEurPerKwh": 0.0,
+            "idleTimeEurPerMinute": 0.153333333,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "allDay",
+            "start": "00:00"
+          }
+        ],
+        "serviceClass": "boost",
+        "subscriptionId": null,
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "currency": "EUR",
+            "connectedTimeBlockMinutes": 15,
+            "connectedTimeBlockEur": 2.3,
+            "connectedTimeBlockRounding": "started_block"
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    },
+    "belib-visitor-boostPlus": {
+      "raw": {
+        "annualFeeEur": 0.0,
+        "channel": "Belib direct",
+        "customerPlan": "visitor",
+        "customerPlanLabelFr": "Visiteur",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-visitor-boostPlus",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.42,
+            "connectedTimeEurPerMinute": 0.0,
+            "currency": "EUR",
+            "end": "24:00",
+            "energyEurPerKwh": 0.0,
+            "idleTimeEurPerMinute": 0.42,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "allDay",
+            "start": "00:00"
+          }
+        ],
+        "serviceClass": "boostPlus",
+        "subscriptionId": null,
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "currency": "EUR",
+            "connectedTimePerMinuteEur": 0.42
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    },
+    "belib-visitor-flex": {
+      "raw": {
+        "annualFeeEur": 0.0,
+        "channel": "Belib direct",
+        "customerPlan": "visitor",
+        "customerPlanLabelFr": "Visiteur",
+        "parkingFeesIncluded": false,
+        "profileId": "belib-visitor-flex",
+        "reservationFeesIncluded": false,
+        "rules": [
+          {
+            "chargeTimeEurPerMinute": 0.0,
+            "connectedTimeEurPerMinute": 0.038,
+            "currency": "EUR",
+            "end": "24:00",
+            "energyEurPerKwh": 0.33,
+            "idleTimeEurPerMinute": 0.0,
+            "longConnectionEurPerMinute": 0.166666667,
+            "longConnectionThresholdMinutes": 840,
+            "scope": "allDay",
+            "start": "00:00"
+          }
+        ],
+        "serviceClass": "flex",
+        "subscriptionId": null,
+        "taxIncluded": true
+      },
+      "pricing": {
+        "type": "rules",
+        "rules": [
+          {
+            "scope": "allDay",
+            "start": "00:00",
+            "end": "24:00",
+            "currency": "EUR",
+            "pricePerKwh": 0.33,
+            "connectedTimeBlockMinutes": 15,
+            "connectedTimeBlockEur": 0.57,
+            "connectedTimeBlockRounding": "started_block"
+          }
+        ],
+        "longConnectionFee": {
+          "thresholdMinutes": 840,
+          "eurPerHourAfterThreshold": 10.0,
+          "basis": "connection_time"
+        }
+      }
+    }
+  }
+}

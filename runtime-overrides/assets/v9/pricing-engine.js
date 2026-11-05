@@ -37,7 +37,7 @@
     const topKnown=new Set(['type','currency','timeZone','rules','componentGroups',
       'minimumTotalEur','conditionalSessionFees','postChargeFee','priceSelectionBasis',
       'ocpiFirstMatch','holidayCalendar','incompletePricingReason','verifiedSourceVersion',
-      'taxIncluded']);
+      'taxIncluded','longConnectionFee']);
     if(pricing?.type==='kwh'||pricing?.type==='simple')topKnown.add('pricePerKwh');
     for(const key of Object.keys(pricing||{}))
       if(billableField.test(key)&&!topKnown.has(key))return key;
@@ -872,6 +872,21 @@
     if(pricingParts.some(part=>part?.minPrice!=null||part?.maxPrice!=null||
        part?.min_price!=null||part?.max_price!=null))
       return{complete:false,reason:'unverified_ocpi_price_bound',offerId:offer?.id||null,timeZone};
+    // This historical rule already exists below, but the monetary-field guard
+    // had made even sessions below its threshold incalculable. Admit only its
+    // complete known shape; above-threshold hourly rounding remains unproved.
+    if(pricing.longConnectionFee!=null){
+      const fee=pricing.longConnectionFee;
+      if(pricing.type!=='rules'||pricing.componentGroups!=null||offer.currency!=='EUR'||
+         !fee||typeof fee!=='object'||Array.isArray(fee)||
+         Object.keys(fee).some(k=>!['thresholdMinutes','eurPerHourAfterThreshold','basis'].includes(k))||
+         !Number.isFinite(fee.thresholdMinutes)||fee.thresholdMinutes<0||
+         !Number.isFinite(fee.eurPerHourAfterThreshold)||fee.eurPerHourAfterThreshold<0||
+         (fee.basis!=null&&fee.basis!=='connection_time'))
+        return{complete:false,reason:'unsupported_long_connection_fee',offerId:offer?.id||null,timeZone};
+      if(num(session.durationMinutes)==null)
+        return{complete:false,reason:'duration_required',offerId:offer?.id||null,timeZone};
+    }
     const unhandled=unhandledBillableField(pricing);
     if(unhandled)return{complete:false,reason:'unsupported_pricing_component',
       field:unhandled,offerId:offer?.id||null,timeZone};

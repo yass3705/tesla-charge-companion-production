@@ -18,7 +18,8 @@ def run(site, bundle, url=None):
 const fs=require('fs'),path=require('path');
 globalThis.TCCV9Adapters={ukOpenFeeds:require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/uk-open-feeds.js'))};
 const adapter=require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/canonical-v9.js'));
-const sources=['FR:emsp_exact','FR:atlante_direct','IT:atlante_direct','IT:ionity_direct','GB:ionity_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
+const pricing=require(path.resolve(process.argv[1],'runtime/assets/v9/pricing-engine.js'));
+const sources=['FR:allego_direct','FR:belib_stations','CH:swiss_integration','FR:emsp_exact','FR:atlante_direct','IT:atlante_direct','IT:ionity_direct','GB:ionity_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
 if(fs.existsSync(path.join(process.argv[2],'FR__bump_national_exact.json')))sources.unshift('FR:bump_national_exact');
 if(fs.existsSync(path.join(process.argv[2],'FR__electra_emsp_exact.json')))sources.unshift('FR:electra_emsp_exact');
 const nationalIds={FR:'FR:irve_static',BE:'BE:nap_static',CH:'CH:swiss_integration',DE:'DE:bnetza_afir_archive',ES:'ES:reve_static',NL:'NL:dotnl_static'};
@@ -55,9 +56,13 @@ const targets=sources.map(source=>{
  const rawOnly=['GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
  const fragments=adapter.toFragments(data).filter(st=>st.latitude!=null&&st.longitude!=null&&(rawOnly?st.unparsedOffers.length:st.offers.length));
  if(!fragments.length)throw Error('No representative archived offer: '+source);
- const compound=st=>st.offers.some(o=>o.pricing?.rules?.some(r=>r.chargePerMinute>0||r.idlePerMinute>0));
+ // A parking rate is not a billed fee when the default session has no idle
+ // period. Select an archived positive charging fee applicable to this session.
+ const probe=o=>pricing.evaluateOffer(o,{energyKwh:45,durationMinutes:60,chargingMinutes:60,postChargeMinutes:0,powerKw:22,startAt:'2026-10-15T12:00:00Z'});
+ const compound=st=>st.offers.some(o=>{const q=probe(o);return q.complete&&q.components?.chargingTime>0&&o.pricing?.rules?.every(r=>r.chargePerMinute>0);});
+ const calculable=st=>rawOnly||st.offers.some(o=>probe(o).complete);
  const reference=national(source);
- const candidates=fragments.map(st=>({st,targetIds:[...st.offers.map(o=>targetScope(st,reference,o,false)),...st.unparsedOffers.map(o=>targetScope(st,reference,o,true))]}));
+ const candidates=fragments.filter(calculable).map(st=>({st,targetIds:[...st.offers.map(o=>targetScope(st,reference,o,false)),...st.unparsedOffers.map(o=>targetScope(st,reference,o,true))]}));
  const chosen=candidates.find(x=>x.targetIds.length&&x.targetIds.every(id=>id&&id===x.targetIds[0])&&compound(x.st))||
    candidates.find(x=>x.targetIds.length&&x.targetIds.every(id=>id&&id===x.targetIds[0]))||candidates[0];
  const st=chosen.st,excluded=chosen.targetIds.some(id=>!id)||!chosen.targetIds.length;
@@ -89,6 +94,9 @@ const target=arguments[0],done=arguments[1];
  sessionStorage.setItem(`tcc-v9-country:${target.lat.toFixed(3)},${target.lon.toFixed(3)}`,target.country);
  document.getElementById('simOrigin').value=target.source;
  document.getElementById('simMaxDistance').value='2';
+ document.getElementById('simDate').value='2026-10-15';
+ document.getElementById('simTime').value='14:00';
+ document.getElementById('simUnplugTime').value='';
  document.getElementById('simOperatorFilter').dataset.v9Mode='all';
  let area=await window.compare();
  if(!area)throw Error('No search area: '+(localStorage.getItem('tccV9ProductionShellDiagnosticsV1')||''));
