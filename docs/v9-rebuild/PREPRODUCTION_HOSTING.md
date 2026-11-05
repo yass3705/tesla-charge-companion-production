@@ -14,7 +14,9 @@ Le site se construit hors dépôts avec `scripts/build_v9_rebuild_preview.py`. L
 
 Avant tout choix d'hébergement, conserver ces exigences vérifiables : origine HTTPS séparée du site public, transfert du **seul paquet autonome** sans source privée ni artefact de construction, absence de déclencheur de déploiement public, en-tête `X-Robots-Tag: noindex`, inventaire et SHA distants identiques au paquet, fragments signés, accès mobile/ordinateur et retour au paquet précédent. L'hébergeur retenu devra servir au moins 3 777 fichiers et environ 290 Mo sans altérer les octets ; ces chiffres sont des contraintes de transport, jamais des seuils de stations ou d'EVSE.
 
-`scripts/check_v9_remote_preview.py` effectue les contrôles HTTP/SHA/noindex sur une URL isolée, quel que soit l'hébergeur compatible. Les recettes Firefox ciblées, neuf pays/mobile et le parcours de signalement doivent ensuite être rejoués sur **l'URL réellement publiée**. La validation locale ne remplace ni cette vérification distante ni les 120 handoffs GitHub Actions encore non vérifiés.
+`scripts/check_v9_remote_preview.py` effectue les contrôles HTTP/SHA/noindex sur une URL isolée, quel que soit l'hébergeur compatible. Les recettes Firefox ciblées, neuf pays/mobile et le parcours de signalement doivent ensuite être rejoués sur **l'URL réellement publiée**. La validation locale ne remplace ni cette vérification distante ni les 119 handoffs GitHub Actions encore non vérifiés.
+
+Le second brouillon isolé de la recette G9 du 5 novembre, ses SHA et ses parcours navigateur distants sont documentés dans [g9-netlify-second-draft-20261105.md](evidence/g9-netlify-second-draft-20261105.md). L'ancien brouillon et le site public restent inchangés.
 
 ## Préflight Netlify, sans transfert
 
