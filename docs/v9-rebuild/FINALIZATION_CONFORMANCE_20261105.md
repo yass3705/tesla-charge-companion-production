@@ -15,11 +15,11 @@ Cette matrice relie les critères du CDC permanent à leur implémentation et à
 | G2 orchestration, erreurs, reprise, concurrence | `test_v9_orchestrator.py` 14 tests ; `test_v9_artifact_selection.py` 13 tests | PASS local rejoué |
 | G2 pagination, secrets nommés, compatibilité méthodes | preuves fixtures par module dans registres et tests existants ; pagination/compteurs internes et SHA, aucun seuil historique accepté | PASS fixtures existantes, renouvellement réel global NOT TESTED |
 | G2 handoffs GitHub réels | pilote IONITY `40753241945`, ZIP local conservé, import quatre pays ; 119 autres handoffs non vérifiés ; artefact GitHub historique désormais 404 | FAIL global ; archive locale ne prouve pas disponibilité actuelle GitHub |
-| G2 absence de push main / secrets publication | workflows reconstruits contents:read, sans publication ni workflow_run ; API Data Lab désactivée | PASS local ; CI Production séparée à enregistrer |
+| G2 absence de push main / secrets publication | workflows reconstruits contents:read, sans publication ni workflow_run ; API Data Lab désactivée | PASS local ; CI Production read-only 42071503610 PASS, sans acquisition Data Lab |
 | G3 schémas / IDs stables / champs source | normaliseurs canoniques, `snapshot.prepare`, import strict, sources brutes préservées | PASS sur sources du candidat ; familles hors candidat pas réputées intégrées |
 | G3 collisions, relations, provenance | SHA de chaque source, connecteur→EVSE→station, test import 8 cas ; index national d’ambiguïté globale signé | PASS local ; aucune comparaison aux volumes historiques |
 | G3 valeurs absentes / nouveaux ou anciens sites | tests schémas, monnaie/énergie absentes, pas de filtre par variation de quantité | PASS local |
-| G3 neuf pays | FR/BE/CH/DE/ES/NL nationaux ; IT/GB/MA CPO qualifiés, aucune base nationale absente inventée | PASS navigation précédente ; nouveau candidat à contrôler distant |
+| G3 neuf pays | FR/BE/CH/DE/ES/NL nationaux ; IT/GB/MA CPO qualifiés, aucune base nationale absente inventée | PASS navigation distante des neuf pays, rapport ordinary-remote.json |
 | G3 archives non qualifiées | PUN IT non reconstructible au pin ; Repower/Neogy candidats non qualifiés ; UK Eco-Movement ne devient pas base nationale par défaut | Exceptions conservées, aucune nouvelle enquête |
 | G4 manifestes / versions / SHA / immutabilité | `snapshot.prepare`, `import_v9_bundle.py`, extension vérifiée des fragments | PASS local ; les 31 SHA précédents sont inchangés |
 | G4 isolation source en échec / last-good / rollback | `test_import_v9_bundle.py`, `test_extend_v9_prepared_candidate.py`, candidats précédents conservés | PASS local, restauration logique vérifiée sans remplacer de déploiement sain |
@@ -50,15 +50,15 @@ Cette matrice relie les critères du CDC permanent à leur implémentation et à
 | G7 adresse de départ | bouton de sauvegarde déplacé avec Position actuelle, même handler/localStorage | PASS navigateur local |
 | G7 20 initiales +20 / pagination / cinq classements | oracle complet cinq modes, test Paris 20/40/60, aller-retour dernière page | PASS local |
 | G7 carte densité/zoom / rayon100 | inventaire carte = classement, zoom/pagination, rayon inchangé | PASS fonctionnel ; performance dense ouverte |
-| G7 filtres multiples / véhicule / abonnements | preuves précédentes + recette pays et session sur code pertinent | PASS existant ; recette nouvelle à consigner |
+| G7 filtres multiples / véhicule / abonnements | preuves précédentes + recette pays et session sur code pertinent | PASS distante controls-remote.json ; catalogue abonnement non qualifié exclu, aucune promesse de couverture commerciale |
 | G7 trois canaux / coûts / durée / coût-km / frais / provenance | gardes par offre exacte, oracle session, parcours tarifaires et source/date visibles | PASS local sur mécanismes prouvés, prix absents explicités |
-| G7 mobile / accessibilité / aide / signalement | commandes natives, clavier, labels, iframe réel 390px, formulaire local | Recette nouvelle NOT TESTED jusqu’au rapport |
+| G7 mobile / accessibilité / aide / signalement | commandes natives, clavier, labels, iframe réel 390px, formulaire local | PASS distante controls-remote.json, 390 px sans débordement et signalement accessible |
 | G7/G8 performance Amsterdam 100km | mesure précédente 48,1s à froid, pas d’optimisation répétée sans régression | FAIL performance dense, limite conservée |
-| G8 intégration locale / import / SHA | nouveau bundle, fragments conservés et nouvel Electra, tests des échecs et reprise | PASS local en cours de finalisation |
-| G8 sécurité / site public intact | branches isolées, scan public, aucune fusion/activation Data Lab, Netlify sans prod | À compléter avec scans et HEAD finaux |
-| G8 HTTPS/noindex/SHA/navigateur distant/rollback | nouveau brouillon autorisé ; tests stricts du paquet exact sur URL | NOT TESTED avant déploiement et vérification |
+| G8 intégration locale / import / SHA | nouveau bundle, fragments conservés et nouvel Electra, tests des échecs et reprise | PASS locale et distante sur le candidat 32 ; integrity-remote.json |
+| G8 sécurité / site public intact | branches isolées, scan public, aucune fusion/activation Data Lab, Netlify sans prod | PASS scans publics et ressources publiques inchangées ; public-before.json / rollback-remote.json |
+| G8 HTTPS/noindex/SHA/navigateur distant/rollback | nouveau brouillon autorisé ; tests stricts du paquet exact sur URL | PASS distante : 6aecb7777c40e2f98d53a4fb, 2 523 fragments, recettes Firefox ; rollback antérieur accessible |
 | G8 chaîne automatique complète | renouvellements/handoffs non exécutés, main Production conserve architecture historique | FAIL, aucune assimilation aux tests G9 |
-| G9 URL + parcours + anomalies | guide et formulaire intégrés ; brouillon immuable distinct attendu | NOT TESTED nouvelle URL |
+| G9 URL + parcours + anomalies | guide et formulaire intégrés ; brouillon immuable distinct attendu | PASS URL et guide accessibles ; validation utilisateur reste NOT TESTED |
 | G9 validation utilisateur / promotion publique | accord visuel après nouveau candidat ; promotion exige accord séparé | NOT TESTED ; aucune promotion publique autorisée |
 
 ## Choix et diagnostics fermés
@@ -74,3 +74,5 @@ L’indice d’ambiguïté national est construit sur toutes les partitions avan
 Actions Data Lab reste désactivé. L’autorisation historique portait sur un seul pilote déjà achevé ; elle ne vaut pas activation permanente. Le nouveau mandat n’autorise pas explicitement cette activation administrative. Les 119 handoffs ne sont ni supprimés artificiellement ni déclarés testés. Production peut vérifier la branche en lecture seule avec son workflow commun ; ce run ne prouve pas une collecte Data Lab.
 
 Avant une reprise quotidienne : autoriser une fenêtre bornée Data Lab après préflight des SHA/déclencheurs, exercer les familles réellement renouvelables et leur last-good, puis importer un candidat explicitement épinglé. La bascule des workflows main et la publication du site public sont deux décisions distinctes. Aucun succès Netlify ne clôture ces points.
+
+Preuves finales de ce lot : [recette distante](evidence/g9-finalization-preview-20261105.md). Les onze parcours ciblés ne signifient pas onze tarifs calculables : trois anciennes fiches CPO autonomes sont volontairement exclues faute de portée nationale démontrée ; deux cohortes restent brutes. Les offres exactes restantes sont évaluées, dont Electra et Electroverse.

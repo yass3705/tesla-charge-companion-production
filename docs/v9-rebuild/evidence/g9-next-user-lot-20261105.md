@@ -1,4 +1,18 @@
-# Prochain lot de recette G9 — préparé, non implémenté
+# Lot G9 — état après mandat de finalisation du 5 novembre
+
+Le mandat de finalisation autorise désormais l’implémentation. Les restrictions d’attente ci-dessous sont historiques et remplacées par ce mandat.
+
+- **Libellé EVSE : corrigé et vérifié sur URL distante.** L’EVSE_ID officiel est affiché, le connecteur reste une identité distincte.
+- **Tesla Milan : régression corrigée.** La garde du chargeur était limitée au Maroc. Configuration, devise EUR et plages source restaurées ; session navigateur vérifiée à 21,60 EUR pour ses entrées fixes.
+- **Tesla Le Chesnay : transformation restaurée, attribution nationale non démontrée.** Le même oracle source donne 4,20 EUR pour 10 kWh au scénario archivé. L’absence d’identifiant EVSE national dans l’archive Mac interdit l’affectation à IRVE. Aucune fiche Tesla autonome ni prix transféré par adresse/GPS. Cette limite reste ouverte.
+- **Adresse par défaut : corrigée.** Bouton placé près de Position actuelle, stockage conservé ; tests ordinateur et 390 px distants.
+- **Buc / consolidation : corrigé transversalement.** FR/BE/CH/DE/ES/NL nationaux exclusivement ; CPO en enrichissement exact seulement. Buc conserve ses six EVSE IRVE et aucune station autonome DL002019. Les sept offres source restent archivées sans attribution fictive.
+
+[Recette et limites du nouveau candidat](g9-finalization-preview-20261105.md). L’ancien brouillon reste inchangé.
+
+---
+
+# Préparation historique du lot G9
 
 Ce lot commence uniquement après validation utilisateur du nouveau brouillon G9. Le candidat 31 sources, l'ancien brouillon et le site public restent inchangés pendant cette préparation.
 

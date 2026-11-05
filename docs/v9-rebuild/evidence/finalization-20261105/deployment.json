@@ -1,0 +1,22 @@
+{
+  "site_id": "c4df2a8f-f57a-4d59-9e8f-df6da40f713f",
+  "site_name": "tcc-v9-preproduction-20261028",
+  "deploy_id": "6aecb7777c40e2f98d53a4fb",
+  "deploy_url": "https://6aecb7777c40e2f98d53a4fb--tcc-v9-preproduction-20261028.netlify.app",
+  "state": "ready",
+  "context": "deploy-preview",
+  "published_at": null,
+  "productionCommit": "2c3bbe238876349dcd196894a728f9387ca43905",
+  "dataLabCommit": "72b8b2256",
+  "bundleId": "3f5a9b347aaf824c3433728b8e54dae3051e07bd918efbc597c801150bbf2bb9",
+  "sources": 32,
+  "files": 3780,
+  "publicScan": "PASS",
+  "actionsDataLabEnabled": false,
+  "browserReports": [
+    "targeted-remote.json",
+    "ordinary-remote.json",
+    "controls-remote.json"
+  ],
+  "remoteIntegrityReport": "integrity-remote.json"
+}

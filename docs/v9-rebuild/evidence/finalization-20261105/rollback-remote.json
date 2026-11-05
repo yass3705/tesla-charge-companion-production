@@ -1,0 +1,19 @@
+{
+  "publicUnchanged": [
+    {
+      "url": "https://yass3705.github.io/tesla-charge-companion-production/index.html",
+      "status": 200,
+      "sha256": "36ded0763fd1dac257b2e019180730e9ed0d3a6668705a5b14fdcee3a3c37aa1",
+      "bytes": 462
+    },
+    {
+      "url": "https://yass3705.github.io/tesla-charge-companion-production/manifest.json",
+      "status": 200,
+      "sha256": "965a4570ec9724cdcfeeace9f927107e3619b5c127622a2b5c43cde8259237e9",
+      "bytes": 458134
+    }
+  ],
+  "previousPreview": "https://6aec9f2fb223d58706efe5b5--tcc-v9-preproduction-20261028.netlify.app",
+  "previousBridgeSha256": "f457590ffafd715b237995922955a40c95a5742b57553e38f2e734a65840b325",
+  "rollback": "Previous immutable deployment remains accessible; previous local package retained; no redeploy performed"
+}

@@ -72,6 +72,41 @@ return {name,country,matching:ids.length,initial,counts,pageRoundtrip,target,mar
                 assert not result.get('error'),result
                 assert not result['sourceErrors'],result
                 output['queries'].append(result)
+            controls=browser.execute_async_script(r"""
+const done=arguments[0];
+(async()=>{
+ const shell=TCCV9ProductionShell;
+ const invalid=document.getElementById('v9BatteryCapacity'),previous=invalid.value;
+ invalid.value='0';const blocked=await compare();if(blocked!==null)throw Error('Invalid battery accepted');invalid.value=previous;
+ const values={v9BatteryCapacity:90,v9Consumption:18,v9MaxAc:22,v9MaxDc:180};
+ for(const [id,value] of Object.entries(values))document.getElementById(id).value=String(value);
+ const session=shell.buildSession(shell.readInputs(window),'FR');
+ if(session.batteryCapacityKwh!==90||session.consumptionKwhPer100Km!==18||session.vehicleMaxAcKw!==22||session.vehicleMaxDcKw!==180)throw Error('Vehicle inputs lost');
+ const select=document.getElementById('simOperatorFilter');select.dataset.v9Mode='all';
+ const all=await compare();
+ const selected=[...new Set(all.stations.map(s=>TCCV9DataEngine.operatorId(s.physicalOperator)))].slice(0,2);
+ if(selected.length!==2)throw Error('Fixture must exercise two networks');
+ for(const option of select.options)option.selected=selected.includes(option.value);
+ select.dataset.v9Mode='selected';const filtered=await compare();
+ const observed=[...new Set(filtered.stations.map(s=>TCCV9DataEngine.operatorId(s.physicalOperator)))];
+ if(!filtered.stations.length||observed.some(id=>!selected.includes(id)))throw Error('Network multiselect failed');
+ document.getElementById('v9AllNetworks').click();document.getElementById('simMinPowerKw').value='50';
+ const powered=await compare();
+ if(!powered||powered.mapStations.length>all.mapStations.length)throw Error('Power filter expanded results');
+ document.getElementById('simMinPowerKw').value='';
+ document.getElementById('v9TeslaOnly').click();const tesla=await compare();
+ if(tesla.stations.some(s=>!/tesla/i.test(TCCV9DataEngine.operatorId(s.physicalOperator))))throw Error('Tesla filter leaked another network');
+ document.getElementById('v9AllNetworks').click();
+ const catalogue=await shell.loadSubscriptionCatalogue(window,window.__TCC_V9_SHELL_CONFIG__);
+ if(catalogue.length)throw Error('Unqualified historical subscription catalogue leaked');
+ const guidance=document.getElementById('v9ValidationPanel'),feedback=document.getElementById('v9FeedbackText');
+ if(!feedback?.labels?.length||!document.getElementById('v9FeedbackShare')||document.getElementById('v9FeedbackStatus')?.getAttribute('aria-live')!=='polite')throw Error('Feedback inaccessible');
+ const radius=document.getElementById('simMaxDistance');if(Number(radius.max)!==100)throw Error('Radius silently reduced');
+ return {invalidBatteryBlocked:true,vehicle:{capacity:session.batteryCapacityKwh,consumption:session.consumptionKwhPer100Km,ac:session.vehicleMaxAcKw,dc:session.vehicleMaxDcKw},networks:{selected,observed},powerFiltered:powered.mapStations.length,teslaFiltered:tesla.mapStations.length,unqualifiedSubscriptionsExcluded:true,feedbackAccessible:true,maxRadius:100};
+})().then(done).catch(e=>done({error:String(e)}));
+""")
+            assert 'error' not in controls,controls
+            output['controls']=controls
             browser.get(url.rstrip('/')+'/control/index.html')
             browser.execute_script("const f=document.createElement('iframe');f.id='mobile';f.style.cssText='width:390px;height:844px;border:0';f.src=arguments[0];document.body.append(f);",url.rstrip('/')+'/v9-production-shell/')
             browser.switch_to.frame('mobile')

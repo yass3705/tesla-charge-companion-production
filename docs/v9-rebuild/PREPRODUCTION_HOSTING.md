@@ -1,3 +1,13 @@
+# Hébergement actuel — candidat corrigé du 5 novembre 2026
+
+Nouveau brouillon isolé : **https://6aecb7777c40e2f98d53a4fb--tcc-v9-preproduction-20261028.netlify.app**. Déploiement `6aecb7777c40e2f98d53a4fb`, `ready`, `deploy-preview`, `published_at=null`, projet sans liaison Git. Paquet `.tcc-v9-cache/finalization-20261105/site`, 32 sources / 3 780 fichiers ; les 31 sources de référence sont inchangées, seul le dérivé Electra historiquement prouvé est ajouté.
+
+Contrôles distants exécutés : HTTPS/noindex, SHA des ressources critiques et des 2 523 fragments, fichier de 11 669 931 octets, onze parcours de portée/tarifs, onze recherches sur neuf pays, Buc/Milan/Chesnay, 20/40/60 cartes, pagination, filtres, véhicule et mobile 390 px. [Preuves et limites](evidence/g9-finalization-preview-20261105.md). Le contrôle statique conserve `browserVerified=false` car les recettes navigateur sont des preuves séparées, exécutées ensuite ; aucun succès de handoff n’en est déduit.
+
+Retour arrière : le brouillon `6aec9f2fb223d58706efe5b5` et son paquet `site-g9-first-recette` sont conservés et revérifiés, sans remplacement. Main et site public inchangés. **Candidat de test partiel : G2–G8 non promues**, 119 handoffs et renouvellements par famille non vérifiés, couverture nationale tarifaire limitée, performance dense ouverte. Aucune acquisition Mac modifiée ni activation Data Lab.
+
+## Historique des préparations et autorisations
+
 # Hébergement isolé de TCC V9 — décision au 28 octobre 2026
 
 **Cloudflare Pages est abandonné. Netlify est autorisé par l'utilisateur le 28 octobre pour un projet de préproduction indépendant, en transfert manuel uniquement.** Le brouillon `6ae257f7d0d52c2b2ba9636b` est accessible et sa recette distante du 5 novembre passe sur l'URL immuable ; [preuves et limites formelles](evidence/netlify-draft-20261105.md). Il ne s'agit pas d'une publication du site public TCC.
