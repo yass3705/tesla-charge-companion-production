@@ -41,3 +41,11 @@ Le paquet `site-belib-identity`, bundle `aa6c9ea41bb1340f3f313ba742d64e4406e6374
 Le contrôle de transfert local a détecté un rapport de jointures de 49 Mo. Le transport gzip conserve tous les octets du JSON, son SHA d'origine et le SHA compressé ; contrôle distant du rapport ajouté. Les paquets antérieurs et le bundle immuable restent intacts. Tests corruption des deux SHA, longueurs et portée des fragments : PASS. Ce correctif de transport n'est pas un changement de données.
 
 Profil Firefox dense de référence : 62 770 stations ; 49,024 s, mêmes empreintes ordre/carte/prix que le candidat précédent. Profil détaillé : résolution d'identité 6,355 s, préparation des offres 5,600 s, variantes 19,211 s (dont moteur 8,498 s), fiches 2,284 s ; les durées imbriquées ne s'additionnent pas. Réutilisation des clés de tri d'identité en cours de mesure, aucune performance globale revendiquée.
+
+## Renouvellement et restauration UK, 5 novembre
+
+Electra renouvelé et transport suisse vérifiés dans Data Lab au run42101119558 ; Actions fermé.112handoffs restent ouverts. Suisse : reconstruction des mêmes entrées signées, pas collecte fraîche. La preuve distingue date de construction et date de source.
+
+Ubitricity UK :9431offres compilées du20octobre avaient été conservées uniquement comme OCPI brut. Le transformateur hors ligne reproduit exactement le compilateur historique (premier élément applicable, TVA20% et arrondi prouvé, frontières :59, frais après charge7–22kW et exemption nocturne), lie location/EVSE/prise/tarif exacts, refuse composants inconnus. Aucun appel PAYG. 28293évaluations de parité aux mêmes entrées, plus oracle arithmétique indépendant de cinq fenêtres et frais, tests de mutation/chargeur signé PASS.4701offres sans compilation restent brutes. Le cas Ubitricity NL demeure indisponible, sans enquête.
+
+La compression sans perte des rapports de jointure conserve SHA transport et contenu brut. Recette locale de transport, recherche ordinaire et mobile PASS sur `site-transfer-compressed`. Ces résultats ne constituent aucune validation distante du nouveau candidat. Le bundle combiné `1ad7f8dfac730d2095fedf8c2c98d6bc5ecc8a2f2c18a07b8f9c4ee29e7a8572` est en cours de préparation ; aucun ancien paquet ni URL remplacé.

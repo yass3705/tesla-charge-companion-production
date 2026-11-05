@@ -111,7 +111,8 @@
           const rawEvses=new Map(data.evses.map(row=>[row.id,row]));
           const rawConnectors=new Map(data.connectors.map(row=>[row.id,row]));
           const rawCpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
-          const bumpIndex={cpos:rawCpos,evses:rawEvses,connectors:new Map()};
+          const bumpIndex={cpos:rawCpos,evses:rawEvses,connectors:new Map(),connectorsById:rawConnectors,stations:new Map(data.stations.map(s=>[s.id,s])),connectorOfferCounts:new Map()};
+          if(id==='GB:ubitricity_pcpr_direct')for(const o of data.offers)bumpIndex.connectorOfferCounts.set(o.scope?.connectorId,(bumpIndex.connectorOfferCounts.get(o.scope?.connectorId)||0)+1);
           if(['FR:bump_national_exact','FR:electra_emsp_exact','FR:emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct'].includes(id))for(const row of data.connectors){
             const list=bumpIndex.connectors.get(row.evseId)||[];
             list.push(row);bumpIndex.connectors.set(row.evseId,list);
@@ -122,6 +123,10 @@
           if(id==='NL:dotnl_static')for(const row of data.offers)
             connectorOfferCounts.set(row.scope?.connectorId,(connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
           const provedOffer=(fragment,offer)=>{
+            if(id==='GB:ubitricity_pcpr_direct'){
+              const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveUbitricityOffer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='GB'&&fragment.evses.some(e=>e.id===raw.scope?.evseId&&e.connectors.some(c=>c.id===raw.scope?.connectorId))&&JSON.stringify(offer)===JSON.stringify(expected));
+            }
             if(id==='FR:allego_direct'){
               const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveAllegoOffer?.(data,raw,bumpIndex);
               return Boolean(expected&&fragment.countryCode==='FR'&&fragment.evses.some(e=>e.id===raw.scope?.evseId)&&JSON.stringify(offer)===JSON.stringify(expected));

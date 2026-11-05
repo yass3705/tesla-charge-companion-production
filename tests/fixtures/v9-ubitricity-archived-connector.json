@@ -1,0 +1,492 @@
+{
+  "connectors": [
+    {
+      "evseId": "tcc:17466808715f1852b9cf7fe7649bb3d1fca2a1df680fde601215584263aca075",
+      "id": "tcc:149f40ca3ecd7c843149a879ea4fc3b56b234b09d8c8674650e85b4f30a11e02",
+      "officialConnectorId": null,
+      "plugType": "IEC_62196_T2",
+      "powerKw": 7.0,
+      "rawSourceFields": {
+        "format": "SOCKET",
+        "id": "9608",
+        "last_updated": "2026-10-18T12:29:34Z",
+        "max_amperage": 30,
+        "max_electric_power": 7000,
+        "max_voltage": 230,
+        "power_type": "AC_1_PHASE",
+        "standard": "IEC_62196_T2",
+        "tariff_ids": [
+          "f9c8695b565b8164e2a02029c4cc73f7"
+        ]
+      },
+      "sourceConnectorId": "9608",
+      "unresolvedTariffRefs": []
+    }
+  ],
+  "countries": [
+    {
+      "code": "GB"
+    }
+  ],
+  "cpos": [
+    {
+      "country": "GB",
+      "id": "tcc:cf195c6805cdcdfd806e0f09b08c7a748fea818716ffee750fb5b1564d0a5118",
+      "name": "UBI",
+      "sourceOperatorId": "UBI"
+    }
+  ],
+  "evses": [
+    {
+      "country": "GB",
+      "cpoId": "tcc:cf195c6805cdcdfd806e0f09b08c7a748fea818716ffee750fb5b1564d0a5118",
+      "id": "tcc:17466808715f1852b9cf7fe7649bb3d1fca2a1df680fde601215584263aca075",
+      "officialEvseId": "GB*UBI*E10048322",
+      "rawSourceFields": {
+        "capabilities": [
+          "REMOTE_START_STOP_CAPABLE",
+          "TOKEN_GROUP_CAPABLE"
+        ],
+        "connectors": [
+          {
+            "format": "SOCKET",
+            "id": "9608",
+            "last_updated": "2026-10-18T12:29:34Z",
+            "max_amperage": 30,
+            "max_electric_power": 7000,
+            "max_voltage": 230,
+            "power_type": "AC_1_PHASE",
+            "standard": "IEC_62196_T2",
+            "tariff_ids": [
+              "f9c8695b565b8164e2a02029c4cc73f7"
+            ]
+          }
+        ],
+        "directions": null,
+        "evse_id": "GB*UBI*E10048322",
+        "floor_level": null,
+        "last_updated": "2026-10-19T15:00:15Z",
+        "parking_restrictions": null,
+        "physical_reference": "scit0100000008",
+        "status": "UNKNOWN",
+        "uid": "9608"
+      },
+      "sourceEvseId": "GB*UBI*E10048322",
+      "sourceUid": "9608",
+      "stationId": "tcc:8da018e24bf8b285ef6ebdb17a9d6e5f63526c3aa769b77e645c554aa38f13ae"
+    }
+  ],
+  "offers": [
+    {
+      "archivedCompiledOffer": {
+        "countries": [
+          "GB"
+        ],
+        "currency": "GBP",
+        "evseIds": [
+          "GB*UBI*E10048322"
+        ],
+        "id": "ubitricity-pcpr:9396:GB*UBI*E10048322:9608:f9c8695b565b8164e2a02029c4cc73f7",
+        "kind": "direct",
+        "metadata": {
+          "collectedAt": "2026-10-20T07:55:07.794179+00:00",
+          "connectorId": "9608",
+          "idleFeeSource": "https://ubitricity.com/en/driver/pricing/",
+          "paygVerification": false,
+          "pricingSource": "PCPR OCPI first-match",
+          "scope": "cpo_direct_pcpr_verified",
+          "tariffId": "f9c8695b565b8164e2a02029c4cc73f7",
+          "vatIncluded": true
+        },
+        "pricing": {
+          "postChargeFee": {
+            "eurPerMinute": 0.05,
+            "exemptLocalWindows": [
+              {
+                "end": "08:00",
+                "start": "20:00"
+              }
+            ],
+            "graceMinutes": 60
+          },
+          "rules": [
+            {
+              "billing": "kwh",
+              "chargePerMinute": 0,
+              "connectionFee": 0,
+              "currency": "GBP",
+              "days": null,
+              "end": "07:00",
+              "idlePerMinute": 0,
+              "ocpiDurationBands": [],
+              "pricePerKwh": 0.45,
+              "scope": "timeWindow",
+              "start": "00:00"
+            },
+            {
+              "billing": "kwh",
+              "chargePerMinute": 0,
+              "connectionFee": 0,
+              "currency": "GBP",
+              "days": null,
+              "end": "16:00",
+              "idlePerMinute": 0,
+              "ocpiDurationBands": [],
+              "pricePerKwh": 0.56,
+              "scope": "timeWindow",
+              "start": "07:00"
+            },
+            {
+              "billing": "kwh",
+              "chargePerMinute": 0,
+              "connectionFee": 0,
+              "currency": "GBP",
+              "days": null,
+              "end": "20:00",
+              "idlePerMinute": 0,
+              "ocpiDurationBands": [],
+              "pricePerKwh": 0.67,
+              "scope": "timeWindow",
+              "start": "16:00"
+            },
+            {
+              "billing": "kwh",
+              "chargePerMinute": 0,
+              "connectionFee": 0,
+              "currency": "GBP",
+              "days": null,
+              "end": "24:00",
+              "idlePerMinute": 0,
+              "ocpiDurationBands": [],
+              "pricePerKwh": 0.56,
+              "scope": "timeWindow",
+              "start": "20:00"
+            }
+          ],
+          "timeZone": "Europe/London",
+          "type": "rules"
+        },
+        "provider": "Ubitricity",
+        "stationIds": [
+          "9396"
+        ],
+        "subscriptionId": null
+      },
+      "calculationStatus": "not_evaluated",
+      "channel": "Direct",
+      "id": "tcc:0da3c67bd906426c506049017a54cf6fa078fa116f60bcbad1977a4b1e6e9541",
+      "proof": "identical_archived_ocpi_and_compiled_uk_connector",
+      "rawOffer": {
+        "country_code": "GB",
+        "currency": "GBP",
+        "elements": [
+          {
+            "price_components": [
+              {
+                "price": 0.5583,
+                "step_size": 1,
+                "type": "ENERGY",
+                "vat": 20
+              }
+            ],
+            "restrictions": {
+              "day_of_week": [
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY"
+              ],
+              "end_time": "19:59",
+              "min_duration": 0,
+              "start_time": "16:00"
+            }
+          },
+          {
+            "price_components": [
+              {
+                "price": 0.4667,
+                "step_size": 1,
+                "type": "ENERGY",
+                "vat": 20
+              }
+            ],
+            "restrictions": {
+              "day_of_week": [
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY"
+              ],
+              "end_time": "23:59",
+              "min_duration": 0,
+              "start_time": "07:00"
+            }
+          },
+          {
+            "price_components": [
+              {
+                "price": 0.375,
+                "step_size": 1,
+                "type": "ENERGY",
+                "vat": 20
+              }
+            ],
+            "restrictions": {
+              "day_of_week": [
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY",
+                "SATURDAY",
+                "SUNDAY"
+              ],
+              "end_time": "06:59",
+              "min_duration": 0,
+              "start_time": "00:00"
+            }
+          },
+          {
+            "price_components": [
+              {
+                "price": 0.4667,
+                "step_size": 1,
+                "type": "ENERGY",
+                "vat": 20
+              }
+            ],
+            "restrictions": {
+              "day_of_week": [
+                "MONDAY"
+              ],
+              "end_time": "15:59",
+              "min_duration": 0,
+              "start_time": "07:00"
+            }
+          }
+        ],
+        "id": "f9c8695b565b8164e2a02029c4cc73f7",
+        "last_updated": "2026-10-16T09:41:02Z",
+        "party_id": "UBI",
+        "tariff_alt_text": null,
+        "tariff_alt_url": null
+      },
+      "scope": {
+        "connectorId": "tcc:149f40ca3ecd7c843149a879ea4fc3b56b234b09d8c8674650e85b4f30a11e02",
+        "evseId": "tcc:17466808715f1852b9cf7fe7649bb3d1fca2a1df680fde601215584263aca075"
+      },
+      "sourceTariffKey": "f9c8695b565b8164e2a02029c4cc73f7"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "artifactSha256": "af827cb470ec8c62520568c5c2f92cf323c6a98b3cbbb0432ea94e66c429b516",
+    "compiledArtifactSha256": "215833feb4536ae9dd7a28fac89b1f6a7799fa196d27b6d776f1c2bc75c79a87",
+    "compilerSha256": "ff090413e93bb0ed88eb1e2ac61eef9c2e0a93ef98e5380dd04c08fc6c5c5df3",
+    "generatedAt": "2026-10-20T07:55:07.794179+00:00",
+    "id": "GB:ubitricity_pcpr_direct",
+    "rawArtifactSha256": "a359463102ac2f175a687c4353f6014e63f6cb835e0d30ed2241219455d6b52f",
+    "rawMetadata": {
+      "archiveSource": "operator_supplied_Eco_Movement_PCPR",
+      "partyId": "UBI",
+      "tariffArtifactSha256": "a359463102ac2f175a687c4353f6014e63f6cb835e0d30ed2241219455d6b52f"
+    }
+  },
+  "stations": [
+    {
+      "address": "39 Gloucester Road",
+      "city": "London",
+      "country": "GB",
+      "cpoId": "tcc:cf195c6805cdcdfd806e0f09b08c7a748fea818716ffee750fb5b1564d0a5118",
+      "id": "tcc:8da018e24bf8b285ef6ebdb17a9d6e5f63526c3aa769b77e645c554aa38f13ae",
+      "latitude": 51.4826228,
+      "longitude": -0.2845619,
+      "name": "ubitricity Distributed Energy Systems UK Ltd. 39 Gloucester Road",
+      "postalCode": "TW9 3BS",
+      "rawSourceFields": {
+        "address": "39 Gloucester Road",
+        "charging_when_closed": true,
+        "city": "London",
+        "coordinates": {
+          "latitude": "51.48262280",
+          "longitude": "-0.28456190"
+        },
+        "country": "GBR",
+        "country_code": "GB",
+        "directions": [
+          {
+            "language": "en",
+            "text": ""
+          }
+        ],
+        "energy_mix": {
+          "is_green_energy": true
+        },
+        "evses": [
+          {
+            "capabilities": [
+              "REMOTE_START_STOP_CAPABLE",
+              "TOKEN_GROUP_CAPABLE"
+            ],
+            "connectors": [
+              {
+                "format": "SOCKET",
+                "id": "9608",
+                "last_updated": "2026-10-18T12:29:34Z",
+                "max_amperage": 30,
+                "max_electric_power": 7000,
+                "max_voltage": 230,
+                "power_type": "AC_1_PHASE",
+                "standard": "IEC_62196_T2",
+                "tariff_ids": [
+                  "f9c8695b565b8164e2a02029c4cc73f7"
+                ]
+              }
+            ],
+            "directions": null,
+            "evse_id": "GB*UBI*E10048322",
+            "floor_level": null,
+            "last_updated": "2026-10-19T15:00:15Z",
+            "parking_restrictions": null,
+            "physical_reference": "scit0100000008",
+            "status": "UNKNOWN",
+            "uid": "9608"
+          }
+        ],
+        "id": "9396",
+        "last_updated": "2026-10-19T15:00:15Z",
+        "name": "ubitricity Distributed Energy Systems UK Ltd. 39 Gloucester Road",
+        "opening_times": {
+          "twentyfourseven": true
+        },
+        "operator": {
+          "name": "Ubitricity",
+          "website": "https://info.ubitricity.com/"
+        },
+        "owner": {
+          "name": "Ubitricity",
+          "website": "https://info.ubitricity.com/"
+        },
+        "party_id": "UBI",
+        "postal_code": "TW9 3BS",
+        "publish": true,
+        "state": null,
+        "suboperator": {
+          "name": "Ubitricity",
+          "website": "https://info.ubitricity.com/"
+        },
+        "time_zone": "Europe/London"
+      },
+      "sourceStationId": "9396"
+    }
+  ],
+  "tariffCatalog": {
+    "f9c8695b565b8164e2a02029c4cc73f7": {
+      "country_code": "GB",
+      "currency": "GBP",
+      "elements": [
+        {
+          "price_components": [
+            {
+              "price": 0.5583,
+              "step_size": 1,
+              "type": "ENERGY",
+              "vat": 20
+            }
+          ],
+          "restrictions": {
+            "day_of_week": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ],
+            "end_time": "19:59",
+            "min_duration": 0,
+            "start_time": "16:00"
+          }
+        },
+        {
+          "price_components": [
+            {
+              "price": 0.4667,
+              "step_size": 1,
+              "type": "ENERGY",
+              "vat": 20
+            }
+          ],
+          "restrictions": {
+            "day_of_week": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ],
+            "end_time": "23:59",
+            "min_duration": 0,
+            "start_time": "07:00"
+          }
+        },
+        {
+          "price_components": [
+            {
+              "price": 0.375,
+              "step_size": 1,
+              "type": "ENERGY",
+              "vat": 20
+            }
+          ],
+          "restrictions": {
+            "day_of_week": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ],
+            "end_time": "06:59",
+            "min_duration": 0,
+            "start_time": "00:00"
+          }
+        },
+        {
+          "price_components": [
+            {
+              "price": 0.4667,
+              "step_size": 1,
+              "type": "ENERGY",
+              "vat": 20
+            }
+          ],
+          "restrictions": {
+            "day_of_week": [
+              "MONDAY"
+            ],
+            "end_time": "15:59",
+            "min_duration": 0,
+            "start_time": "07:00"
+          }
+        }
+      ],
+      "id": "f9c8695b565b8164e2a02029c4cc73f7",
+      "last_updated": "2026-10-16T09:41:02Z",
+      "party_id": "UBI",
+      "tariff_alt_text": null,
+      "tariff_alt_url": null
+    }
+  }
+}

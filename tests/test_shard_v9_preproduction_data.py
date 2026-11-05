@@ -123,6 +123,15 @@ class ShardV9PreproductionTest(unittest.TestCase):
             index["joins"] = [{"nationalSource": "NL:dotnl_static", "path": relative,
                               "sha256": hashlib.sha256(raw).hexdigest(), "status": "exact_identity_only"}]
             (candidate / "index.json").write_text(json.dumps(index))
+            from compress_v9_prepared_joins import build as compress_existing
+            transport = root / "transport"
+            compress_existing(candidate, transport)
+            copied = MODULE.check_candidate(transport)
+            self.assertEqual(copied["sources"], index["sources"])
+            self.assertEqual(gzip.decompress((transport / copied["joins"][0]["path"]).read_bytes()), raw)
+            self.assertEqual((candidate / relative).read_bytes(), raw)
+            compress_existing(transport, root / "again")
+            self.assertEqual((root / "again/index.json").read_bytes(), (transport / "index.json").read_bytes())
             out = root / "sharded"; MODULE.build(candidate, out)
             result = MODULE.check_candidate(out); entry = result["joins"][0]
             compressed = (out / entry["path"]).read_bytes()

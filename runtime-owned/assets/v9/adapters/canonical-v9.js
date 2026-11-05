@@ -428,6 +428,44 @@
       metadata:{verified:true,identityMode:'exact_canonical_emsp_evse',sourceId:data.source.id,
         artifactSha256:data.source.artifactSha256,sourceOfferId:raw.id,timeZone:'Europe/Paris'}};
   }
+  // Already compiled historical UK offers, bound to the exact archived connector.
+  // The offline transformer reproduces the historical first-match/VAT compiler;
+  // the signed input retains both original OCPI and compiled offer unchanged.
+  function provedUbitricityOffer(data,offer,index){
+    if(data.source?.id!=='GB:ubitricity_pcpr_direct'||offer.channel!=='Direct'||
+       offer.calculationStatus!=='not_evaluated'||offer.calculationHold||
+       offer.proof!=='identical_archived_ocpi_and_compiled_uk_connector'||
+       !['rawArtifactSha256','compiledArtifactSha256','compilerSha256'].every(k=>/^[a-f0-9]{64}$/.test(data.source[k]||'')))return null;
+    const e=index.evses.get(offer.scope?.evseId),c=index.connectorsById.get(offer.scope?.connectorId),
+      st=index.stations.get(e?.stationId),raw=offer.archivedCompiledOffer,m=raw?.metadata,p=raw?.pricing;
+    if(!e?.officialEvseId||!c||c.evseId!==e.id||!st||st.country!=='GB'||
+       !(c.powerKw>0)||index.connectorOfferCounts.get(c.id)!==1||
+       Object.keys(raw||{}).sort().join(',')!=='countries,currency,evseIds,id,kind,metadata,pricing,provider,stationIds,subscriptionId'||
+       Object.keys(m||{}).sort().join(',')!=='collectedAt,connectorId,idleFeeSource,paygVerification,pricingSource,scope,tariffId,vatIncluded'||
+       raw?.provider!=='Ubitricity'||raw.kind!=='direct'||raw.currency!=='GBP'||raw.subscriptionId!==null||
+       JSON.stringify(raw.countries)!=='["GB"]'||JSON.stringify(raw.stationIds)!==JSON.stringify([st.sourceStationId])||
+       JSON.stringify(raw.evseIds)!==JSON.stringify([e.officialEvseId])||
+       m?.connectorId!==c.sourceConnectorId||m.tariffId!==offer.sourceTariffKey||
+       m.collectedAt!==data.source.generatedAt||m.vatIncluded!==true||
+       m.scope!=='cpo_direct_pcpr_verified'||m.pricingSource!=='PCPR OCPI first-match'||
+       JSON.stringify(c.rawSourceFields?.tariff_ids)!==JSON.stringify([m.tariffId])||
+       offer.rawOffer?.id!==m.tariffId||offer.rawOffer.currency!=='GBP'||
+       p?.type!=='rules'||p.timeZone!=='Europe/London'||!Array.isArray(p.rules)||!p.rules.length||
+       Object.keys(p).some(k=>!['type','timeZone','rules','postChargeFee'].includes(k)))return null;
+    const keys='billing,chargePerMinute,connectionFee,currency,days,end,idlePerMinute,ocpiDurationBands,pricePerKwh,scope,start';
+    if(p.rules.some(r=>Object.keys(r).sort().join(',')!==keys||r.currency!=='GBP'||r.billing!=='kwh'||
+      !Number.isFinite(r.pricePerKwh)||r.pricePerKwh<0||r.chargePerMinute!==0||r.connectionFee!==0||
+      r.idlePerMinute!==0||JSON.stringify(r.ocpiDurationBands)!=='[]'))return null;
+    const idle=c.powerKw>=7&&c.powerKw<=22;
+    if(idle?(m.idleFeeSource!=='https://ubitricity.com/en/driver/pricing/'||
+      Object.keys(p.postChargeFee||{}).sort().join(',')!=='eurPerMinute,exemptLocalWindows,graceMinutes'||p.postChargeFee.eurPerMinute!==0.05||p.postChargeFee.graceMinutes!==60||p.postChargeFee.exemptLocalWindows?.length!==1||Object.keys(p.postChargeFee.exemptLocalWindows[0]).sort().join(',')!=='end,start'||p.postChargeFee.exemptLocalWindows[0].start!=='20:00'||p.postChargeFee.exemptLocalWindows[0].end!=='08:00'):
+      (p.postChargeFee!=null||m.idleFeeSource!=null))return null;
+    return {id:offer.id,provider:'Ubitricity',kind:'direct',currency:'GBP',countries:['GB'],
+      evseIds:[e.id],connectorIds:[c.id],subscriptionId:null,pricing:JSON.parse(JSON.stringify(p)),
+      metadata:{...m,verified:true,identityMode:'exact_archived_uk_compiled_connector',
+        sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
+        compiledArtifactSha256:data.source.compiledArtifactSha256,timeZone:'Europe/London'}};
+  }
   function provedUkPcprOffer(data,offer,index){
     if(!['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(data.source?.id)||
        offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated'||
@@ -475,14 +513,14 @@
   function toFragments(data){
     if(data?.schemaVersion!==1||!Array.isArray(data?.stations)||!Array.isArray(data?.evses)||!Array.isArray(data?.connectors)||!Array.isArray(data?.offers))throw new Error('canonical schema invalid');
     const cpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
-    const proofIndex={cpos,evses:new Map(data.evses.map(row=>[row.id,row])),
+    const proofIndex={cpos,stations:new Map(data.stations.map(row=>[row.id,row])),evses:new Map(data.evses.map(row=>[row.id,row])),
       connectors:new Map(),offerCounts:new Map(),connectorsById:new Map(),connectorOfferCounts:new Map()};
     if(data.source?.id==='BE:nap_static'){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];list.push(row);proofIndex.connectors.set(row.evseId,list);}
       for(const row of data.offers)proofIndex.offerCounts.set(row.scope?.evseId,(proofIndex.offerCounts.get(row.scope?.evseId)||0)+1);
     }
     if(data.source?.id==='NL:dotnl_static'||
-       ['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(data.source?.id)){
+       ['GB:ubitricity_pcpr_direct','GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(data.source?.id)){
       for(const row of data.connectors)proofIndex.connectorsById.set(row.id,row);
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
@@ -511,7 +549,7 @@
     for(const offer of data.offers){
       const evse=evses.get(offer.scope?.evseId);
       if(!evse)throw new Error('canonical offer EVSE missing');
-      const proved=provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
+      const proved=provedUbitricityOffer(data,offer,proofIndex)||provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
         provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
@@ -540,5 +578,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer};
+  return{toFragments,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer};
 });

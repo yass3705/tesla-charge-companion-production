@@ -56,6 +56,20 @@ class RemotePreviewCheckTests(unittest.TestCase):
                     verify(site, "https://preview.example.org/", lambda url: (
                         b"corrupt" if url.endswith("bridge.js") else read(url)[0],
                         {"x-robots-tag": "noindex"}))
+                import gzip
+                ledger = gzip.compress(b'{"complete":"join evidence"}', mtime=0)
+                files["prepared-v9/joins/FR__test.json.bin"] = ledger
+                index = json.loads(files["prepared-v9/index.json"])
+                index["joins"] = [{"path": "joins/FR__test.json.bin",
+                                   "sha256": hashlib.sha256(ledger).hexdigest()}]
+                files["prepared-v9/index.json"] = json.dumps(index).encode()
+                (site / "prepared-v9/index.json").write_bytes(files["prepared-v9/index.json"])
+                result = verify(site, "https://preview.example.org/", read)
+                self.assertIn("prepared-v9/joins/FR__test.json.bin", result["checkedAssets"])
+                with self.assertRaisesRegex(ValueError, "join SHA mismatch"):
+                    verify(site, "https://preview.example.org/", lambda url: (
+                        b"truncated" if url.endswith(".json.bin") else read(url)[0],
+                        {"x-robots-tag": "noindex"}))
 
 
 if __name__ == "__main__":

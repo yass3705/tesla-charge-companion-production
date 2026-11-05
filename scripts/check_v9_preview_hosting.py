@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check an isolated V9 package against static Pages asset limits; never deploy."""
+"""Check isolation, integrity and conservative preview transport budgets; never deploy."""
 from __future__ import annotations
 
 import argparse
@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from package_v9_preproduction_map import check_candidate, digest
 
 
+# Local resource budgets, not claims about the hosting provider's current limits.
 MAX_FILES = 20_000
 MAX_ASSET_BYTES = 25 * 1024 * 1024
 
