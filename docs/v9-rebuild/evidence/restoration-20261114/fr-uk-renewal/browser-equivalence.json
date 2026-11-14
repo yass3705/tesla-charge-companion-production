@@ -1,0 +1,17 @@
+{
+  "targeted": {
+    "localPass": true,
+    "remotePass": true,
+    "exactSameResult": true
+  },
+  "ordinary": {
+    "localPass": true,
+    "remotePass": true,
+    "exactSameResult": true
+  },
+  "controls": {
+    "localPass": true,
+    "remotePass": true,
+    "exactSameResult": false
+  }
+}

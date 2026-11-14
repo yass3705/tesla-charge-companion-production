@@ -1,3 +1,11 @@
+## État vérifié — 14 novembre 2026, renouvellement FR/UK
+
+Brouillon isolé https://6af855c43ab7f937570c2a74--tcc-v9-preproduction-20261028.netlify.app ; bundle33 b87a89b7. Contrôle distant exhaustif3241fragments/SHA/manifeste/ressources critiques, HTTPS/noindex PASS ;23parcours tarifaires et11recherches ordinaires/neufpays concordent exactement entre local et distant. Contrôles G9 ordinateur/mobile, pagination20/+20, filtres, carte, Tesla autonome et Buc PASS. Les valeurs transitoires des rapports de contrôles ne sont pas revendiquées identiques.928offres FR renouvelées vérifiées par oracle indépendant, GRIDSERVE TVA20 couvert par oracle distinct. Autres données historiques explicitement conservées.
+
+Preuves [FR/UK](evidence/restoration-20261114/fr-uk-renewal/README.md). Rollback6af8470a intact et ressources critiques revérifiées ; site public identique avant/après, aucun déploiement publié ni liaison Git Netlify. **G2–G8 restent FAIL globalement** : renouvellements/handoffs restants, cadence non activée, exceptions fournisseur et latence dense. Les pilotes OZECAR/IZIVIA/SourceEV suivants restent séparés de ce paquet.
+
+---
+
 ## Préproduction vérifiée — renouvellement du 14 novembre 2026
 
 URL : **https://6af8470ab1f6ac03083a27f4--tcc-v9-preproduction-20261028.netlify.app**. Déploiement6af8470ab1f6ac03083a27f4 ready/deploy-preview, published_at=null, sans connexionGit. Bundle33 `29ab85449b08a68376e1b6b726476614a771aa96b12452f4d2e4014451d3e7f1`, paquet `site-national-direct-20261114` horscheckout. Seuls FR:irve_static,BE:nap_static etFR:allego_direct changent depuis le précédent brouillon ;30sources sont identiques. Acquisitions réelles du14novembre, aucune fraîcheur générale des autres archives prétendue.
