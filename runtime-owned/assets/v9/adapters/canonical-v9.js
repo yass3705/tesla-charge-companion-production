@@ -514,6 +514,51 @@
         sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
         compiledArtifactSha256:data.source.compiledArtifactSha256,timeZone:'Europe/London'}};
   }
+  function provedRawUkOcpiOffer(data,offer,index){
+    if(data.source?.id!=='GB:gridserve_pcpr_direct'||offer.channel!=='Direct'||
+       offer.calculationStatus!=='not_evaluated'||offer.calculationHold||
+       data.source.rawMetadata?.scopeValidation?.scope!=='historical_public_exact_connector'||
+       data.source.rawMetadata?.scopeValidation?.method!=='uk_gridserve_v9_prepare.build'||
+       !/^[a-f0-9]{64}$/.test(data.source.rawMetadata?.tariffArtifactSha256||'')||
+       !offer.scope?.connectorId||index.connectorOfferCounts.get(offer.scope.connectorId)!==1)return null;
+    const c=index.connectorsById.get(offer.scope.connectorId),e=index.evses.get(offer.scope.evseId),
+      st=index.stations.get(e?.stationId),raw=offer.rawOffer,key=offer.sourceTariffKey;
+    if(!c||c.evseId!==e?.id||!(c.powerKw>0)||st?.rawSourceFields?.publish!==true||
+       st.rawSourceFields?.party_id!=='GRD'||index.cpos.get(e.cpoId)?.sourceOperatorId!=='GRD'||
+       !['AC','DC'].some(kind=>String(c.rawSourceFields?.power_type||'').startsWith(kind))||
+       JSON.stringify(c.rawSourceFields?.tariff_ids)!==JSON.stringify([key])||
+       JSON.stringify(c.rawSourceFields?.sourceTariffIds)!==JSON.stringify([key])||
+       c.unresolvedTariffRefs?.length||!raw||raw.id!==key||raw.country_code!=='GB'||
+       raw.party_id!=='GRD'||raw.currency!=='GBP'||
+       JSON.stringify(raw)!==JSON.stringify(data.tariffCatalog?.[key])||
+       ![null,undefined,'REGULAR','AD_HOC_PAYMENT'].includes(raw.type)||
+       Object.keys(raw).some(k=>!['country_code','party_id','id','currency','type','tariff_alt_text',
+         'tariff_alt_url','min_price','max_price','elements','start_date_time','end_date_time',
+         'energy_mix','last_updated'].includes(k))||
+       ['min_price','max_price','start_date_time','end_date_time'].some(k=>raw[k]!=null)||
+       !Array.isArray(raw.elements)||raw.elements.length!==1)return null;
+    const el=raw.elements[0],restriction=el?.restrictions??{};
+    if(!el||Object.keys(el).some(k=>!['restrictions','price_components'].includes(k))||
+       typeof restriction!=='object'||Array.isArray(restriction)||Object.keys(restriction).length||
+       !Array.isArray(el.price_components)||el.price_components.length!==1)return null;
+    const pc=el.price_components[0];
+    if(!pc||Object.keys(pc).sort().join(',')!=='price,step_size,type,vat'||pc.type!=='ENERGY'||
+       typeof pc.price!=='number'||!Number.isFinite(pc.price)||pc.price<0||pc.vat!==20||
+       !Number.isInteger(pc.step_size)||pc.step_size<1)return null;
+    // Explicit OCPI net price and VAT; identical gross conversion to the
+    // preserved UK PCPR contract. No inferred tax or supplier-price assertion.
+    const gross=Math.round(pc.price*(1+pc.vat/100)*1e6)/1e6;
+    const normalized={...raw,tccPriceBasis:'GBP_including_public_UK_VAT',
+      elements:[{price_components:[{...pc,price:gross,vat:null}]}]};
+    const pricing=root?.TCCV9Adapters?.ukOpenFeeds?.pcprDirectPricing?.(normalized);
+    if(!pricing)return null;
+    return{id:offer.id,provider:'GRIDSERVE',kind:'direct',currency:'GBP',countries:['GB'],
+      operatorIds:['GRD'],evseIds:[e.id],connectorIds:[c.id],subscriptionId:null,pricing,
+      metadata:{verified:true,identityMode:'exact_canonical_connector_ocpi_explicit_vat',
+        sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
+        tariffArtifactSha256:data.source.rawMetadata.tariffArtifactSha256,
+        sourceTariffKey:key,timeZone:'Europe/London',sourcePriceExVat:pc.price,vatRate:pc.vat}};
+  }
   function provedUkPcprOffer(data,offer,index){
     if(!['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(data.source?.id)||
        offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated'||offer.calculationHold||
@@ -531,7 +576,7 @@
        raw.currency!=='GBP'||raw.tccPriceBasis!=='GBP_including_public_UK_VAT'||
        raw.tccSourcePriceBasis!=='OCPI_2.2.1_excluding_VAT'||
        !Array.isArray(raw.elements)||raw.elements.length!==1)return null;
-    const element=raw.elements[0],restriction=element?.restrictions||{};
+    const element=raw.elements[0],restriction=element?.restrictions??{};
     // An unrestricted OCPI element is already supported by the preserved
     // converter. A start date is optional, but every supplied restriction must
     // still belong to this proven subset; no condition is silently ignored.
@@ -573,7 +618,7 @@
       for(const row of data.offers)proofIndex.offerCounts.set(row.scope?.evseId,(proofIndex.offerCounts.get(row.scope?.evseId)||0)+1);
     }
     if(data.source?.id==='NL:dotnl_static'||
-       ['GB:ubitricity_pcpr_direct','GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(data.source?.id)){
+       ['GB:ubitricity_pcpr_direct','GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct','GB:gridserve_pcpr_direct'].includes(data.source?.id)){
       for(const row of data.connectors)proofIndex.connectorsById.set(row.id,row);
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
@@ -604,7 +649,7 @@
       if(!evse)throw new Error('canonical offer EVSE missing');
       const proved=provedArchivedDirectProfile(data,offer,proofIndex)||provedUbitricityOffer(data,offer,proofIndex)||provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
-        provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex);
+        provedRawUkOcpiOffer(data,offer,proofIndex)||provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
@@ -631,5 +676,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer};
+  return{toFragments,proveRawUkOcpiOffer:provedRawUkOcpiOffer,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer};
 });

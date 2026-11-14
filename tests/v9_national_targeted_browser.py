@@ -19,7 +19,7 @@ const fs=require('fs'),path=require('path');
 globalThis.TCCV9Adapters={ukOpenFeeds:require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/uk-open-feeds.js'))};
 const adapter=require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/canonical-v9.js'));
 const pricing=require(path.resolve(process.argv[1],'runtime/assets/v9/pricing-engine.js'));
-const sources=['GB:ubitricity_pcpr_direct','FR:allego_direct','FR:belib_stations','CH:swiss_integration','FR:emsp_exact','FR:atlante_direct','IT:atlante_direct','IT:ionity_direct','GB:ionity_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
+const sources=['GB:gridserve_pcpr_direct','GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:ubitricity_pcpr_direct','FR:allego_direct','FR:belib_stations','CH:swiss_integration','FR:emsp_exact','FR:atlante_direct','IT:atlante_direct','IT:ionity_direct','GB:ionity_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
 if(fs.existsSync(path.join(process.argv[2],'BE__nap_static.json')))sources.unshift('BE:nap_static');
 if(fs.existsSync(path.join(process.argv[2],'FR__bump_national_exact.json')))sources.unshift('FR:bump_national_exact');
 if(fs.existsSync(path.join(process.argv[2],'FR__electra_emsp_exact.json')))sources.unshift('FR:electra_emsp_exact');
@@ -56,7 +56,7 @@ function targetScope(fragment,reference,offer,raw){
 const selected=process.argv[3]?new Set(JSON.parse(process.argv[3])):null;
 const targets=sources.filter(source=>!selected||selected.has(source)).flatMap(source=>source==='FR:archived_direct_exact'?[{source,family:'zewatt'},{source,family:'zephyre'}]:[{source}]).map(({source,family})=>{
  const data=JSON.parse(fs.readFileSync(path.join(process.argv[2],source.replace(':','__')+'.json')));
- const rawOnly=['GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
+ const rawOnly=['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
  const fragments=adapter.toFragments(data).filter(st=>!family||st.offers.some(o=>o.metadata?.sourceOfferId?.startsWith(family+'-'))).filter(st=>st.latitude!=null&&st.longitude!=null&&(rawOnly?st.unparsedOffers.length:st.offers.length));
  if(!fragments.length)throw Error('No representative archived offer: '+source);
  // A parking rate is not a billed fee when the default session has no idle

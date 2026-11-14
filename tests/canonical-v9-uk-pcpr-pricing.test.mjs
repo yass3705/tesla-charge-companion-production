@@ -128,13 +128,15 @@ for(const restrictions of [null,{},undefined]){
   undated.offers[0].rawOffer.elements[0].restrictions=restrictions;
   const f=canonical.toFragments(undated)[0];
   assert.equal(f.offers.length,1);
+  const loaded=await loadPrepared(config(undated));
+  assert.equal((await loaded.loaders['prepared:GB:source_ev_pcpr_direct']({}))[0].offers.length,1);
   const q=pricing.evaluateOffer(f.offers[0],fullSession);
   const legacy=pricing.evaluateOffer({...f.offers[0],pricing:uk.pcprDirectPricing(undated.offers[0].rawOffer)},fullSession);
   assert.deepEqual(q,legacy);
   assert.equal(q.complete,true);
   assert.ok(Math.abs(q.totalEur-Math.ceil(fullSession.energyKwh)*0.89004)<1e-6);
 }
-for(const restrictions of [[],{unknown_condition:true},'unexpected']){
+for(const restrictions of [[],{unknown_condition:true},'unexpected',0,false]){
   const broken=structuredClone(data);broken.offers[0].rawOffer.elements[0].restrictions=restrictions;
   assert.equal(canonical.toFragments(broken)[0].offers.length,0);
 }

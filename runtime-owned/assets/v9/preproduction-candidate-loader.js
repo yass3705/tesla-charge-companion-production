@@ -112,7 +112,7 @@
           const rawConnectors=new Map(data.connectors.map(row=>[row.id,row]));
           const rawCpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
           const bumpIndex={cpos:rawCpos,evses:rawEvses,connectors:new Map(),connectorsById:rawConnectors,stations:new Map(data.stations.map(s=>[s.id,s])),connectorOfferCounts:new Map()};
-          if(id==='GB:ubitricity_pcpr_direct')for(const o of data.offers)bumpIndex.connectorOfferCounts.set(o.scope?.connectorId,(bumpIndex.connectorOfferCounts.get(o.scope?.connectorId)||0)+1);
+          if(['GB:ubitricity_pcpr_direct','GB:gridserve_pcpr_direct'].includes(id))for(const o of data.offers)bumpIndex.connectorOfferCounts.set(o.scope?.connectorId,(bumpIndex.connectorOfferCounts.get(o.scope?.connectorId)||0)+1);
           if(['FR:archived_direct_exact','FR:bump_national_exact','FR:electra_emsp_exact','FR:emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct'].includes(id))for(const row of data.connectors){
             const list=bumpIndex.connectors.get(row.evseId)||[];
             list.push(row);bumpIndex.connectors.set(row.evseId,list);
@@ -126,6 +126,12 @@
             if(id==='FR:archived_direct_exact'){
               const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveArchivedDirectProfile?.(data,raw,bumpIndex);
               return Boolean(expected&&fragment.countryCode==='FR'&&fragment.evses.some(e=>e.id===raw.scope?.evseId)&&JSON.stringify(offer)===JSON.stringify(expected));
+            }
+            if(id==='GB:gridserve_pcpr_direct'){
+              const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveRawUkOcpiOffer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='GB'&&
+                fragment.evses.some(e=>e.id===raw.scope?.evseId&&e.connectors.some(c=>c.id===raw.scope?.connectorId))&&
+                JSON.stringify(offer)===JSON.stringify(expected));
             }
             if(id==='GB:ubitricity_pcpr_direct'){
               const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveUbitricityOffer?.(data,raw,bumpIndex);
@@ -201,14 +207,14 @@
               const connector=rawConnectors.get(raw?.scope?.connectorId),tariff=raw?.rawOffer;
               const local=fragment.evses.find(row=>row.id===evse?.id);
               const recipe=root?.TCCV9Adapters?.ukOpenFeeds?.pcprDirectPricing?.(tariff);
-              const restriction=tariff?.elements?.[0]?.restrictions||{};
+              const restriction=tariff?.elements?.[0]?.restrictions??{};
               const components=tariff?.elements?.[0]?.price_components;
               const componentKinds=(components||[]).map(row=>row.type);
               return fragment.countryCode==='GB'&&offer?.kind==='direct'&&offer.currency==='GBP'&&
                 offer.metadata?.verified===true&&offer.metadata.identityMode==='exact_canonical_connector_pcpr'&&
                 offer.metadata.sourceId===id&&offer.metadata.artifactSha256===data.source.artifactSha256&&
                 offer.metadata.sourceTariffKey===raw?.sourceTariffKey&&offer.metadata.timeZone==='Europe/London'&&
-                raw?.channel==='Direct'&&raw.calculationStatus==='not_evaluated'&&
+                raw?.channel==='Direct'&&raw.calculationStatus==='not_evaluated'&&!raw.calculationHold&&
                 raw.scope?.evseId===evse?.id&&raw.scope?.connectorId===connector?.id&&
                 connector?.evseId===evse?.id&&connector.powerKw>0&&
                 local?.connectors.some(row=>row.id===connector.id&&row.powerKw===connector.powerKw)&&
@@ -221,10 +227,11 @@
                 JSON.stringify(tariff)===JSON.stringify(data.tariffCatalog?.[raw.sourceTariffKey])&&
                 tariff.currency==='GBP'&&tariff.tccPriceBasis==='GBP_including_public_UK_VAT'&&
                 tariff.tccSourcePriceBasis==='OCPI_2.2.1_excluding_VAT'&&
-                tariff.elements?.length===1&&Object.keys(restriction).join(',')==='start_date'&&
-                typeof restriction.start_date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(restriction.start_date)&&
-                !Number.isNaN(Date.parse(restriction.start_date+'T00:00:00Z'))&&
-                new Date(restriction.start_date+'T00:00:00Z').toISOString().slice(0,10)===restriction.start_date&&
+                tariff.elements?.length===1&&typeof restriction==='object'&&!Array.isArray(restriction)&&
+                (!Object.keys(restriction).length||(Object.keys(restriction).join(',')==='start_date'&&
+                 typeof restriction.start_date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(restriction.start_date)&&
+                 !Number.isNaN(Date.parse(restriction.start_date+'T00:00:00Z'))&&
+                 new Date(restriction.start_date+'T00:00:00Z').toISOString().slice(0,10)===restriction.start_date))&&
                 Array.isArray(components)&&components.length>0&&
                 componentKinds.includes('ENERGY')&&new Set(componentKinds).size===componentKinds.length&&
                 components.every(row=>['ENERGY','TIME','FLAT','PARKING_TIME'].includes(row.type)&&
