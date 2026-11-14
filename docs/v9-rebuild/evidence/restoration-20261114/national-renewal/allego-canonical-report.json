@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "canonicalSha256": "8e9be93b13db60489c344a3d43e1644b6513526073fc7f6c525a38afe64a4fb0",
+  "sourceArtifactSha256": "049b8b72d9c7be15defba2c4b0a97c1f13514482cf22db6e8bc228bd696a8ab2",
+  "sourceRun": 43589225728,
+  "countsDiagnosticOnly": true,
+  "previous": {
+    "stations": 154,
+    "evses": 1127,
+    "offers": 1127
+  },
+  "current": {
+    "stations": 154,
+    "evses": 1127,
+    "offers": 1127
+  },
+  "identitiesIdentical": {
+    "stations": true,
+    "evses": true,
+    "offers": true
+  }
+}

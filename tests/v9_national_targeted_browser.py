@@ -20,6 +20,7 @@ globalThis.TCCV9Adapters={ukOpenFeeds:require(path.resolve(process.argv[1],'runt
 const adapter=require(path.resolve(process.argv[1],'runtime/assets/v9/adapters/canonical-v9.js'));
 const pricing=require(path.resolve(process.argv[1],'runtime/assets/v9/pricing-engine.js'));
 const sources=['GB:ubitricity_pcpr_direct','FR:allego_direct','FR:belib_stations','CH:swiss_integration','FR:emsp_exact','FR:atlante_direct','IT:atlante_direct','IT:ionity_direct','GB:ionity_direct','DE:ionity_direct','GB:source_ev_pcpr_direct','NL:dotnl_static','NL:electra_direct_exact','GB:eco_movement_pcpr_raw','FR:powerdot_direct'];
+if(fs.existsSync(path.join(process.argv[2],'BE__nap_static.json')))sources.unshift('BE:nap_static');
 if(fs.existsSync(path.join(process.argv[2],'FR__bump_national_exact.json')))sources.unshift('FR:bump_national_exact');
 if(fs.existsSync(path.join(process.argv[2],'FR__electra_emsp_exact.json')))sources.unshift('FR:electra_emsp_exact');
 if(fs.existsSync(path.join(process.argv[2],'FR__archived_direct_exact.json')))sources.unshift('FR:archived_direct_exact');

@@ -1,0 +1,105 @@
+{
+  "status": "PASS",
+  "scope": "Belgium renewal affects only Belgium; exact fixed-session outputs elsewhere",
+  "rows": [
+    {
+      "name": "F\u00e9camp Carrefour Allego",
+      "identical": true,
+      "country": "FR",
+      "matchingBefore": 17,
+      "matchingAfter": 17,
+      "pricedBefore": 6,
+      "pricedAfter": 6
+    },
+    {
+      "name": "Rouen",
+      "identical": true,
+      "country": "FR",
+      "matchingBefore": 210,
+      "matchingAfter": 210,
+      "pricedBefore": 51,
+      "pricedAfter": 51
+    },
+    {
+      "name": "Lyon",
+      "identical": true,
+      "country": "FR",
+      "matchingBefore": 232,
+      "matchingAfter": 232,
+      "pricedBefore": 143,
+      "pricedAfter": 143
+    },
+    {
+      "name": "Milan",
+      "identical": true,
+      "country": "IT",
+      "matchingBefore": 11,
+      "matchingAfter": 11,
+      "pricedBefore": 11,
+      "pricedAfter": 11
+    },
+    {
+      "name": "Berlin",
+      "identical": true,
+      "country": "DE",
+      "matchingBefore": 813,
+      "matchingAfter": 813,
+      "pricedBefore": 2,
+      "pricedAfter": 2
+    },
+    {
+      "name": "Amsterdam",
+      "identical": true,
+      "country": "NL",
+      "matchingBefore": 1369,
+      "matchingAfter": 1369,
+      "pricedBefore": 297,
+      "pricedAfter": 297
+    },
+    {
+      "name": "London",
+      "identical": true,
+      "country": "GB",
+      "matchingBefore": 2406,
+      "matchingAfter": 2406,
+      "pricedBefore": 636,
+      "pricedAfter": 636
+    },
+    {
+      "name": "Brussels",
+      "identical": false,
+      "country": "BE",
+      "matchingBefore": 968,
+      "matchingAfter": 955,
+      "pricedBefore": 118,
+      "pricedAfter": 119
+    },
+    {
+      "name": "Zurich",
+      "identical": true,
+      "country": "CH",
+      "matchingBefore": 180,
+      "matchingAfter": 180,
+      "pricedBefore": 28,
+      "pricedAfter": 28
+    },
+    {
+      "name": "Madrid",
+      "identical": true,
+      "country": "ES",
+      "matchingBefore": 323,
+      "matchingAfter": 323,
+      "pricedBefore": 2,
+      "pricedAfter": 2
+    },
+    {
+      "name": "Agadir",
+      "identical": true,
+      "country": "MA",
+      "matchingBefore": 2,
+      "matchingAfter": 2,
+      "pricedBefore": 1,
+      "pricedAfter": 1
+    }
+  ]
+}

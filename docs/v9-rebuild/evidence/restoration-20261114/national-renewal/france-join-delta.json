@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "scope": "Exact join ledger before/after national renewal; counts diagnostic only",
+  "allLostMatchesRetainedWithReason": true,
+  "previous": {
+    "matchedOfferCount": 132671,
+    "nationalEvseCount": 171042,
+    "unmatchedOfferCount": 16737
+  },
+  "current": {
+    "matchedOfferCount": 132387,
+    "nationalEvseCount": 173719,
+    "unmatchedOfferCount": 17021
+  },
+  "lostReasons": {
+    "no_exact_evse": 284
+  },
+  "lostBySource": {
+    "FR:electra_emsp_exact": 199,
+    "FR:emsp_exact": 85
+  },
+  "addedBySource": {},
+  "unchangedTariffInputs": true
+}

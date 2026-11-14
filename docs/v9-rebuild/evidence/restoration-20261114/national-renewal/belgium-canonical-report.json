@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "source": "BE:nap_static",
+  "archiveSha256": "410bdb7646a626faa7fa8ce3a6abc98a1121b71f862bee4edd6cc237511bfb99",
+  "sourceManifestSha256": "4278dd2dbd61b448fa8a03205061c46fbd21f51901e16dede28949f71629939b",
+  "canonicalSha256": "d85930dcf89ee139136a3bda67bb4a9f5fbfda461e6ac21f06fdff12578ca16f",
+  "sourceRun": 43587934900,
+  "collectorAsOfIsHistoricalNotAcquisitionDate": true,
+  "providerTimestampsPreserved": true
+}

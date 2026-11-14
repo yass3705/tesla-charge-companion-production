@@ -1,0 +1,106 @@
+{
+  "status": "PASS",
+  "unchangedCountriesExact": true,
+  "volumeFiguresDiagnosticOnly": true,
+  "searches": [
+    {
+      "name": "F\u00e9camp Carrefour Allego",
+      "country": "FR",
+      "beforeMatching": 15,
+      "afterMatching": 17,
+      "beforePriced": 7,
+      "afterPriced": 6,
+      "rankingIdentical": false
+    },
+    {
+      "name": "Rouen",
+      "country": "FR",
+      "beforeMatching": 208,
+      "afterMatching": 210,
+      "beforePriced": 57,
+      "afterPriced": 51,
+      "rankingIdentical": false
+    },
+    {
+      "name": "Lyon",
+      "country": "FR",
+      "beforeMatching": 229,
+      "afterMatching": 232,
+      "beforePriced": 145,
+      "afterPriced": 143,
+      "rankingIdentical": false
+    },
+    {
+      "name": "Milan",
+      "country": "IT",
+      "beforeMatching": 11,
+      "afterMatching": 11,
+      "beforePriced": 11,
+      "afterPriced": 11,
+      "rankingIdentical": true
+    },
+    {
+      "name": "Berlin",
+      "country": "DE",
+      "beforeMatching": 813,
+      "afterMatching": 813,
+      "beforePriced": 2,
+      "afterPriced": 2,
+      "rankingIdentical": true
+    },
+    {
+      "name": "Amsterdam",
+      "country": "NL",
+      "beforeMatching": 1369,
+      "afterMatching": 1369,
+      "beforePriced": 297,
+      "afterPriced": 297,
+      "rankingIdentical": true
+    },
+    {
+      "name": "London",
+      "country": "GB",
+      "beforeMatching": 2406,
+      "afterMatching": 2406,
+      "beforePriced": 636,
+      "afterPriced": 636,
+      "rankingIdentical": true
+    },
+    {
+      "name": "Brussels",
+      "country": "BE",
+      "beforeMatching": 968,
+      "afterMatching": 968,
+      "beforePriced": 118,
+      "afterPriced": 118,
+      "rankingIdentical": true
+    },
+    {
+      "name": "Zurich",
+      "country": "CH",
+      "beforeMatching": 180,
+      "afterMatching": 180,
+      "beforePriced": 28,
+      "afterPriced": 28,
+      "rankingIdentical": true
+    },
+    {
+      "name": "Madrid",
+      "country": "ES",
+      "beforeMatching": 323,
+      "afterMatching": 323,
+      "beforePriced": 2,
+      "afterPriced": 2,
+      "rankingIdentical": true
+    },
+    {
+      "name": "Agadir",
+      "country": "MA",
+      "beforeMatching": 2,
+      "afterMatching": 2,
+      "beforePriced": 1,
+      "afterPriced": 1,
+      "rankingIdentical": true
+    }
+  ]
+}

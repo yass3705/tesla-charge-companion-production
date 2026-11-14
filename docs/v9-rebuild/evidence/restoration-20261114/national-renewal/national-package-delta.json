@@ -1,0 +1,248 @@
+{
+  "status": "PASS",
+  "previousSite": "site-national-france-20261114",
+  "candidateSite": "site-national-fr-be-20261114",
+  "unchangedFiles": 4444,
+  "changedFiles": [
+    {
+      "path": "manifest.json",
+      "sha256": "a1c3d061ebab6da683aa685e8b49e1d3ae6e9b8f5dc14d485eeacfe35bfe2108"
+    },
+    {
+      "path": "prepared-v9/index.json",
+      "sha256": "38d3ee5d6cb59c3a4c97733320b6bf26a1e01b9f5515309da5728faff335064d"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0014.json.bin",
+      "sha256": "2b4a05b976a68651b9a989952f782d0adce98b21960ad8f0ba2d6275e08f0294"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0015.json.bin",
+      "sha256": "1dd5e9164cd396e24e5d5294c0817f19b9b77634ced2842e776ad9cbf94ad202"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0020.json.bin",
+      "sha256": "53f318504a2b26853eb000b7320e67850f33e0e88c3b6b8f01fd49fc18635c06"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0021.json.bin",
+      "sha256": "2d03ae5d2aa03a6b063105990349ae507e7832b393b2a70954142b5c044ca1c2"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0003.json.bin",
+      "sha256": "b5c66152fd6068887a789d5e0a269c83e68a4a9a969e28799fcaed54f318f40f"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0002.json.bin",
+      "sha256": "cac088f812e9d46b4b51b399d4c0c1f135a5da2ddbdfe4b8bea96687c67d6351"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0037.json.bin",
+      "sha256": "ce83d2764fa1866bf8780a1254b695f537f46219d9dbfc06e79b6cfd058717cf"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0036.json.bin",
+      "sha256": "0c8a314ec419b72fa711845f7588bf34834ba71f0e0131ba644f356a6ecbe1c7"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0040.json.bin",
+      "sha256": "222704fff04f00192a8f53c513dea867133a0722e2ff03fea1070509f94ec7c9"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0041.json.bin",
+      "sha256": "d971fff2fdd6bdba10c072a3331478cd6b5e9811a120ee9fcdae798a3a1fdf53"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0009.json.bin",
+      "sha256": "96d8a8653dd2457453c5674ba73165ec6cf09e9219bbf3b9a716d38a8d7d9486"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0008.json.bin",
+      "sha256": "9a088bee72042e7dc90d412f936830a3d16f2b201b024a8a33743bbc4752f71a"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0004.json.bin",
+      "sha256": "3ac98a45f444d1024e9ba2a63f90769b503707ce942f2021065958e668850d1b"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0005.json.bin",
+      "sha256": "a57e3ec04399b86f7f9cad4d826477ce0101eace7f265e3e0d0e2e1618f33346"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0030.json.bin",
+      "sha256": "a6ca0a34855559fe5314af6d02d3d71717fdd237cb3fe99f2b993904e5508c34"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0031.json.bin",
+      "sha256": "66b0551f0ecb7b3165c236bf72481c1f71d8eda70dae9d4bfa839922cc3ccdf2"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0047.json.bin",
+      "sha256": "5bd4167d7b981fa2282d7ebc6ce048f950d786c452daabd62102b1f6991c9f17"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0046.json.bin",
+      "sha256": "31916e98784d29cbd3e43566a20c71973dc30ec9f2ac4bfe99a2f74546af3731"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0013.json.bin",
+      "sha256": "63f3fab04fdaa5a44fa64c88647195f03b7a1d016e6b4cc0a93ea0a8babf000c"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0012.json.bin",
+      "sha256": "22ff3702254ed39d64ce41bef0b65a4f8c2cb049023e0b7ad5cd77ecfd71a70b"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0027.json.bin",
+      "sha256": "47162e2ae5faba662072cbd11eb182fc5eb046388e7f6518e4b58c94d994cde3"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0026.json.bin",
+      "sha256": "3e8a63785fdefb6d42973651f1c2efb26ea32510bfd1389833fc5d365213c814"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0019.json.bin",
+      "sha256": "7196df8a26b47c8f82a869cc5136f725b6d937ea8f5f45f7fba854f7f16a4b89"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0018.json.bin",
+      "sha256": "1b009b1bffbe74e138d8ff9bac5db3e9cd7b3c4ba25cd099c73cbc306e0ebc89"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0050.json.bin",
+      "sha256": "7ec9d3238f720e2a577dde46ab9b510049f527c287d16f8fe313b3755cecd04f"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0051.json.bin",
+      "sha256": "fc28111df285920650e51be5cf78510921f7549950635f071c3113047770cba1"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0034.json.bin",
+      "sha256": "c8777f4bcff1352735bdb417c06c4b56201773cf79049bf213584922e56877ab"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0035.json.bin",
+      "sha256": "807721d2884d4417c135abfa3972cd4715e4b3a0a5ff99c762d7e4467df546d9"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0043.json.bin",
+      "sha256": "da3f8cd5f9edb2a41858cf99ae5b891b7b0ff5cb8d4a606d381c84681e295ef9"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0042.json.bin",
+      "sha256": "da9e55cdbdb972ba395d05e174d4c7b3708edfe6c71d0d668e4d9f5d3c8c546e"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0000.json.bin",
+      "sha256": "cbc1203c81a8c42b2dd9762bfe4984974184a25bd0049bcf1ae54e266f3a843c"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0001.json.bin",
+      "sha256": "e9c14a53f7294ad9c4005a4b0c1f6f8db89681cfabeb71ba0ff1e85b35dbe30e"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0049.json.bin",
+      "sha256": "29f6d783e4ec8c275bc3cc3d55c3227bce72e26c5e5f76fae5a8ad8366b7e2fe"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0048.json.bin",
+      "sha256": "2eae7f8981d26204a8de442b13a601f015d72b8c8ade0bb725a64ea018762fe5"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0023.json.bin",
+      "sha256": "f09c96b7160d338e1e01cdb653312e478d17501c1356f85213730858e9d4c165"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0022.json.bin",
+      "sha256": "f13747778d6512ea1d22947ce33feeb837583718b6774cea4f539a836748fa78"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0029.json.bin",
+      "sha256": "9fda3120c61ccb976695394622154ba94634747dc4e99228dd4a462d8a4e3ee3"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0028.json.bin",
+      "sha256": "ef4a0bf787c09422b447f233c4596a92cd4e55e7615cb9f2002a354564a21d45"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0017.json.bin",
+      "sha256": "b067025cfd97cc800923e71fa4622471aacd488566e60bf4197e9140e1efc98e"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0016.json.bin",
+      "sha256": "6e8c516e9e1db32a9e07bf1961100a54ba8727e37d1eafa6f0fedf8a6b046c21"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0024.json.bin",
+      "sha256": "3e39cf68a79985b1a072b064cbc5649326244be25bec015f00583f0fc441930c"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0025.json.bin",
+      "sha256": "8f980fe94c3994ddb12f5341ad1dd47d195e1b97a6a2f3810242f003d3e21cc7"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0053.json.bin",
+      "sha256": "678b7d61866c6ad246e0fa1655940d98b8fd10ee5a5302615e9d1d7018251c6c"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0052.json.bin",
+      "sha256": "992e63630d85145e14d3cbfaeec49cb3d3e28db641dc46d962e11cf32f400140"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0010.json.bin",
+      "sha256": "996e734a7435e5b0aebe2f185fef9210fce47cca0dfc9ae1f9b9a4e69d71fcc5"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0011.json.bin",
+      "sha256": "ad9dda17d1028246df85aceca3980c87366a2e1b5f75993822ec940dcf7786e7"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0033.json.bin",
+      "sha256": "8bfae035e900197486f6483ede2ce102a1c5f370748fc66b043b558a0ccfacb7"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0032.json.bin",
+      "sha256": "e2f4d40eb6e03df85735882e0dd8f1360880193f3744ba852e135f9c92c7193c"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0044.json.bin",
+      "sha256": "57bcc50c23eaf3b67233ea2de0b90fc44cd7c8f28eaa0286e323fc4d5dded7e5"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0045.json.bin",
+      "sha256": "aa07d54dc3816247c43edb409c633d0a69c5f36c8eea1d036f3b67721c733bfd"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0039.json.bin",
+      "sha256": "bb942dcd50d803306e32cb81a44e0874cad2b975585bd75106ae8cbfe0bb144d"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0038.json.bin",
+      "sha256": "b3db2c030b68259869c1d3fd286483060796bccbacf7315f8c09637c37a27587"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0007.json.bin",
+      "sha256": "c6df9203e3d46544d04925230883faa953a27b49ad0aa3c964066cba67f73b6d"
+    },
+    {
+      "path": "prepared-v9/shards/BE__nap_static__0006.json.bin",
+      "sha256": "8eaa6dd561bb293131649388e21642f983797b21091a7d4171066f6ce0711040"
+    },
+    {
+      "path": "prepared-v9/joins/FR__irve_static.json.bin",
+      "sha256": "1e35e2700ffcb2e370b2290cc62096f97574008e0a99a1422a6355336f9083ed"
+    },
+    {
+      "path": "v9-production-shell/shell-config.json",
+      "sha256": "78e2c701f5cd635c35abcbb0bafcb7d860449e92ba25de5783a8ab2100624a31"
+    },
+    {
+      "path": "v9-production-shell/national-catalogue-policy.json",
+      "sha256": "8c8037c04aa26b808e95b0dca9157cf5f75ce811be5895bb1ae49cf6a256a261"
+    }
+  ],
+  "removedFiles": [],
+  "publicScanFindings": [],
+  "runtimeCodeUnchanged": true,
+  "catalogueRulesUnchanged": true
+}
