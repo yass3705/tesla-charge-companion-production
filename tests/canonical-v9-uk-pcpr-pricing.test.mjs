@@ -107,3 +107,34 @@ assert.equal(canonical.toFragments(noPower)[0].unparsedOffers.length,1);
 const unknown=structuredClone(data);unknown.offers[0].rawOffer.elements[0].price_components.push({type:'CUSTOM',price:1});
 assert.equal(canonical.toFragments(unknown)[0].offers.length,0);
 console.log('Canonical UK PCPR exact connector pricing and mutation guard OK');
+
+// A Source EV offer outside the archived PAYG proof survives as raw only.
+const held=structuredClone(data);
+held.offers[0].calculationHold='historical_payg_evidence_mismatch';
+const heldFragment=canonical.toFragments(held)[0];
+assert.equal(heldFragment.offers.length,0);
+assert.equal(heldFragment.unparsedOffers.length,1);
+assert.equal(heldFragment.unparsedOffers[0].rawOffer.id,'GB*SGB_02');
+assert.equal(evaluateStation(heldFragment,fullSession,{targetCurrency:'GBP'}).comparableOfferCount,0);
+const missing=structuredClone(held);
+missing.connectors[0].rawSourceFields.tariff_ids=[];
+missing.tariffCatalog={};
+assert.equal(canonical.toFragments(missing)[0].unparsedOffers.length,1);
+
+// Undated, unrestricted prices were lost at the V9 proof gate although the
+// preserved converter and engine support the identical whole-session charge.
+for(const restrictions of [null,{},undefined]){
+  const undated=structuredClone(data);
+  undated.offers[0].rawOffer.elements[0].restrictions=restrictions;
+  const f=canonical.toFragments(undated)[0];
+  assert.equal(f.offers.length,1);
+  const q=pricing.evaluateOffer(f.offers[0],fullSession);
+  const legacy=pricing.evaluateOffer({...f.offers[0],pricing:uk.pcprDirectPricing(undated.offers[0].rawOffer)},fullSession);
+  assert.deepEqual(q,legacy);
+  assert.equal(q.complete,true);
+  assert.ok(Math.abs(q.totalEur-Math.ceil(fullSession.energyKwh)*0.89004)<1e-6);
+}
+for(const restrictions of [[],{unknown_condition:true},'unexpected']){
+  const broken=structuredClone(data);broken.offers[0].rawOffer.elements[0].restrictions=restrictions;
+  assert.equal(canonical.toFragments(broken)[0].offers.length,0);
+}

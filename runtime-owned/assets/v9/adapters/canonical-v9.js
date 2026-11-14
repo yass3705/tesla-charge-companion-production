@@ -516,7 +516,7 @@
   }
   function provedUkPcprOffer(data,offer,index){
     if(!['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:source_ev_pcpr_direct'].includes(data.source?.id)||
-       offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated'||
+       offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated'||offer.calculationHold||
        !offer.scope?.connectorId||index.connectorOfferCounts.get(offer.scope.connectorId)!==1)return null;
     const converter=root?.TCCV9Adapters?.ukOpenFeeds?.pcprDirectPricing;
     if(typeof converter!=='function')return null;
@@ -532,10 +532,15 @@
        raw.tccSourcePriceBasis!=='OCPI_2.2.1_excluding_VAT'||
        !Array.isArray(raw.elements)||raw.elements.length!==1)return null;
     const element=raw.elements[0],restriction=element?.restrictions||{};
-    if(Object.keys(restriction).join(',')!=='start_date'||typeof restriction.start_date!=='string'||
-       !/^\d{4}-\d{2}-\d{2}$/.test(restriction.start_date)||
-       Number.isNaN(Date.parse(restriction.start_date+'T00:00:00Z'))||
-       new Date(restriction.start_date+'T00:00:00Z').toISOString().slice(0,10)!==restriction.start_date||
+    // An unrestricted OCPI element is already supported by the preserved
+    // converter. A start date is optional, but every supplied restriction must
+    // still belong to this proven subset; no condition is silently ignored.
+    if(typeof restriction!=='object'||Array.isArray(restriction)||
+       (Object.keys(restriction).length &&
+        (Object.keys(restriction).join(',')!=='start_date'||typeof restriction.start_date!=='string'||
+         !/^\d{4}-\d{2}-\d{2}$/.test(restriction.start_date)||
+         Number.isNaN(Date.parse(restriction.start_date+'T00:00:00Z'))||
+         new Date(restriction.start_date+'T00:00:00Z').toISOString().slice(0,10)!==restriction.start_date))||
        !Array.isArray(element.price_components)||!element.price_components.length)return null;
     const kinds=new Set();let paidEnergy=false;
     for(const component of element.price_components){
