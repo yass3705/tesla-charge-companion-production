@@ -1,3 +1,9 @@
+## État courant — 14 novembre 2026 (remplace les constats datés ci-dessous)
+
+Nouveau brouillon isolé https://6af8365acf7552d1d9e1768a--tcc-v9-preproduction-20261028.netlify.app .19parcours tarifaires,11recherches/neufpays et contrôlesG9/mobile exécutés à distance PASS ; contrôleSHA exhaustif3247fragments/ressources critiques PASS, classementdense exact64019résultats ;latence66.7s encorelimitante. Bundle33 `0bce189c…`,31sources inchangées, Atlante FR/IT acquis le5novembre. Preuves : `docs/v9-rebuild/evidence/restoration-20261114/README.md`. Anciennes URL inchangées ; aucune promotion globale G2–G8,122handoffs ouverts après troisreplaysréels d’archives,13prouvés. Les sections suivantes sont historiques et ne décrivent pas une collecte fraîche du14novembre.
+
+---
+
 ## État du lot tarifaire en cours, 5 novembre
 
 G2–G8 restent FAIL global. Ne pas confondre la recette Netlify antérieure avec le candidat restauré en préparation. Les pertes eMSP, Belib, Suisse, Allego, UK Ubitricity et profils exacts Ze-Watt/Zephyre sont corrigées/testées localement ; détails et oracles dans `evidence/emsp-restoration-20261105/`. Electra/Belib/Driveco et DOT-NL renouvelés par les méthodes existantes ; Suisse transport d'archives signées seulement. Actions DataLab désactivé après chaque fenêtre. Le décompte exhaustif G2 est126non vérifiés sur135instances : le117historique n'incluait pas15entrées sans champ de statut. Ce défaut de suivi a été corrigé, sans retirer aucune méthode utile.

@@ -1,0 +1,1 @@
+{"status": "PASS", "previousBundle": "8ad8e0811e8ae0ecdb879affc1a38e0fa299f1b4d93c33c2ae920fa745941fc2", "bundle": "0bce189c967136aa3c0a46ad298e6b1be4304c80c8eb8c6ff4abb2d5e080ceb6", "unchangedSourceCount": 31, "changedSources": ["FR:atlante_direct", "IT:atlante_direct"], "sourceRemoval": false}

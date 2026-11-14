@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "targetedJourneys": 19,
+  "ordinarySearches": 11,
+  "sameInputsSameResults": true,
+  "desktopMobileControls": "pass",
+  "url": "https://6af8365acf7552d1d9e1768a--tcc-v9-preproduction-20261028.netlify.app"
+}

@@ -1,0 +1,802 @@
+{
+  "status": "PASS",
+  "previousSite": "site-served-manifest-final",
+  "candidateSite": "site-atlante-renewed",
+  "unchangedFiles": 4308,
+  "changedFiles": [
+    {
+      "path": "manifest.json",
+      "sha256": "90c0229f7e6e3538439257fd51f9d3a25522eb57ce949b3a70f17f749e18a19a"
+    },
+    {
+      "path": "prepared-v9/index.json",
+      "sha256": "10e7388a7925aef8e2203a40b8c990e4d8dbb6fbb8aa2dac31110f0cb9945fad"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0081.json.bin",
+      "sha256": "992ff2795616ebe0a959a7f7d7fc79ec1684c30fdefe2f1ed13577d2d318aa90"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0080.json.bin",
+      "sha256": "43c868838f9601be8df590ffe4f35c5cfd14034711bf641c59a1f262634a55e1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0045.json.bin",
+      "sha256": "726e6d64ad4152995d716fce46c0f933bf63fb338624f0bb51e32553a52b5a15"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0044.json.bin",
+      "sha256": "82578c18f562d19e3e0dc7190d897243befb800e9637ba7c65f58f1e1b9b86fc"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0013.json.bin",
+      "sha256": "9f2f81e45ac971e9374bbb35e0a90920cd3242f9d0c0bca03908161f6ac4fbb7"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0012.json.bin",
+      "sha256": "b6e2592f64ff0ee87d1a2e2efc465734d06cc7a29af8936526c1ef239a103c43"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0104.json.bin",
+      "sha256": "70edc9010e3f42754059704b644a8eb1001301914de35317736a95041ea22cf0"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0105.json.bin",
+      "sha256": "7c6c34f9af09d27cfde72b7d792d8cfc7dd2f79fff332ea92336a21354ca42b6"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0032.json.bin",
+      "sha256": "de223c50abff2c5bbb15eaf6d4bc8230704e1b069ee76e3aa1e95220ef4a6288"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0033.json.bin",
+      "sha256": "07c8ddc9013f5afd1bd54d1b14a66e381fc066229b7a70cda354e6b08e9329c9"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0064.json.bin",
+      "sha256": "de86e777c27d77501eaf749285c06dc5fdae04acbc5d7d00f349f07d813e4f7a"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0065.json.bin",
+      "sha256": "d8296a9057a678964e03fffba61eaf2f346ab21b9d1305a2d22c07895c872a7c"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0094.json.bin",
+      "sha256": "e61de37b0e933a032cbf5d499716e9788d187d5bb0c01c8d1700ea80811a37a1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0095.json.bin",
+      "sha256": "61943344cbf9fd1a883d79b77bb3d3d3f06094b231fde4c8a7bbc931c8d0b28e"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0050.json.bin",
+      "sha256": "08c40cc6e821aa30d2a66bdff2ccdf703e0ccb0b4f14c125ada31bfca12f15e4"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0051.json.bin",
+      "sha256": "763079761848df87c6b9f59d659aa3415c9e866655cb4a2474918373826fc463"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0006.json.bin",
+      "sha256": "24e0e1d722d3d1a911768462b8999232ddf3a2d6043fa1dc3c4ae8a7e9888f84"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0007.json.bin",
+      "sha256": "2e6613d3bfd9cb625b7a498e36db26b6ac8c4768fd52351d9fcd295aa7f8f679"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0019.json.bin",
+      "sha256": "b0aa5e9be5d6e8fc396d75ff3bc9c1100dcebf50d7901a8db3b0934f873ec746"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0018.json.bin",
+      "sha256": "bfbb8b9a1161ca028ae40642b16b8a1fbb3bd6fc80159e515cb6082f522164de"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0038.json.bin",
+      "sha256": "bc5f877109be7b94174ba17a69004b404df35aa4ffb9958b4aec2ec63a57fd7e"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0039.json.bin",
+      "sha256": "6a286c21dcdee909aed371b2cd216fd1b0a2832b550cf52b64773d9d9223e37b"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0027.json.bin",
+      "sha256": "9c86c10b28067c00561c7ffa39054d4a7e9183d511180910093fa2c226568f10"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0026.json.bin",
+      "sha256": "0cd982a4dace1d27125e540878057805adbcb8dbcf811a424c79c888f09f2a29"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0071.json.bin",
+      "sha256": "3a0e45e58d9b4d108687d2a09a30ddf5661c7c865dae5c9037a91f5119d9a3c2"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0070.json.bin",
+      "sha256": "7b68d575ea93f691116f8d5bc364a6045061b0fc512b70d4f521a3c573b06c60"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0089.json.bin",
+      "sha256": "d7d4506d9c21a03a29e8e96c995084480ca56169aebe036733301301b46fbdff"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0088.json.bin",
+      "sha256": "25d5b75d9d5d64df53985fe59334050b962a8da431d1afee6a95435240258720"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0004.json.bin",
+      "sha256": "5b43d8f6739b35cc9a32bf01713cfbbf3cd4d8dba9a6415c21c6862aa60f8f55"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0005.json.bin",
+      "sha256": "50553faec6d02c33ed69ab5bffa15befab0bccb23e1ccc0892bab17464f1335d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0052.json.bin",
+      "sha256": "5b071d399e63733dd3d90af63470d25becc05cbdd287db8c9de0a72e08b87b8d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0053.json.bin",
+      "sha256": "25f0b9ea8c74589670b72a79db2e7c70e84ab9aa13e6c81b6492dd1c0b9ea47b"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0073.json.bin",
+      "sha256": "a0844537bab45d628d0b6c250fcf358f6c41985327f7f9ff08a7702ee7ad03ba"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0072.json.bin",
+      "sha256": "8a28ed88bb45a6f5d81e4649c19329812136bc26a3ed2c1a88ce08166391fa56"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0025.json.bin",
+      "sha256": "c39daa2f5b19910a924d925a2da0ae0b9788fb8c9a252305ef602f39ef334834"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0024.json.bin",
+      "sha256": "15de69d286db6bb6ae2154ddb2ee168be29251879b378a16aba752df577b8fa1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0058.json.bin",
+      "sha256": "ea58435e2d1f27b6bb8ad785a4a31e63418f874e41b655774b6c47185fa4ab88"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0059.json.bin",
+      "sha256": "ec643a0e3f264d9017b1fe4c11a4bf69fd2106b5d50727319b362fff76b0ce76"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0011.json.bin",
+      "sha256": "399f53c39c6bada9988e82f107dbc0ffdfdb8b1510e415028ce733be384a4185"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0010.json.bin",
+      "sha256": "e0bd1dee2910994b73c11087d04fd27ef4fa85116d74c7bfe08cc9aa45b30be2"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0047.json.bin",
+      "sha256": "7d35d476fcad17b76aac80cde800d8589c82e19dba7f65b13bccc241e7889665"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0046.json.bin",
+      "sha256": "572cbdfca6c1e55808a77d58914644854fa04a1ed3015f77fde8a26f4acb6777"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0083.json.bin",
+      "sha256": "327c7c85de42d9e31b314a50be4f57aebddc2cc6bfb99fa4468c67b01887055e"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0082.json.bin",
+      "sha256": "3a2e7c870429de8b6e6bc61649fcbf4d9029ef96878e717c0325fa38bb7c7289"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0066.json.bin",
+      "sha256": "831f31ebb023e48f4df6f8200d002f8e49ff8d99ef4d183544956b52e353e0a5"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0067.json.bin",
+      "sha256": "938e7d4c7a469208b5d48f96d70ca82031d8733f47b0ac8db79bf1ae0982f95f"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0030.json.bin",
+      "sha256": "01c75a85e4d106e8219b5bccab8c781addfb4cd05d596d9749f860bc76c5c082"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0031.json.bin",
+      "sha256": "dc1a84ca6ac2b49cc9c8443c23a8659bf377d618d0185ed8265ee106887a5369"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0079.json.bin",
+      "sha256": "f7f85d169e41ca4e4394afbeb2927ea28c3269a8a5ad93209f91d7f1d8cdd91c"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0078.json.bin",
+      "sha256": "28a42549b8222a8e32a5d61a02ee5bdfa3e7c62c615d4b98e994708162e31783"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0055.json.bin",
+      "sha256": "55ae81312f5346c67f2a0da1a3620ab9597874615957dcc0e7b9e6afad8f2957"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0054.json.bin",
+      "sha256": "5f3cb5ef65e6715b4e23cd0454fef84d6f72615cd61b466e5f9ee11db295726d"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0003.json.bin",
+      "sha256": "05611f66803ffc1f1a37a24cee161366a9d43b40151bab5e9558c6b133c39ae3"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0002.json.bin",
+      "sha256": "9044ce64c780f81f8d3d46e4158e195302368767fb8dbcc4851c0180c260a7cd"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0022.json.bin",
+      "sha256": "32c685f38b07c825ba0f445981145c2490f092275c1c3b4574ca7c02481a1334"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0023.json.bin",
+      "sha256": "352c68d413b290c8d114a847db2b295bfba64dcb022e595817a1e4b042794bf2"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0074.json.bin",
+      "sha256": "fcee769f44d4daddf40a31dae6011581d7e8cea4125a6028aaafd5e289c034ff"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0075.json.bin",
+      "sha256": "5f9d6e79b01ec708186666020ef963c7a900ee474c2bffe88880f73bc18ae11d"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0009.json.bin",
+      "sha256": "4497db93b8b63c2403bb1774798b29ed34523473d51b934c784f92b97788b75f"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0008.json.bin",
+      "sha256": "752ba4c24970448179d0c43ef82f19c40c3a5443f7f53f0658c73d818b7df82e"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0040.json.bin",
+      "sha256": "81a8444fb909f2f55bece59b222979d42f51e690f94e2242d7c26c1e8389f58a"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0041.json.bin",
+      "sha256": "02fc4ee025ffeb31eb840f7d24fa78003a719a7a7e5ac24514d528664ac4b1a5"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0084.json.bin",
+      "sha256": "b1b916f7c3ccba4a540ed11c8b16f757b35c2cdc4a8eb15a3526cfa9321928ea"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0085.json.bin",
+      "sha256": "6f270215451a5ed3e8cd8ba56a4fd8ff4bf335ae79026b0c18aac7dd81fdc510"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0016.json.bin",
+      "sha256": "f01c10740c86abf9fe94a1784d7b2de3588b5bcee6b01d219d07fd008e8fc306"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0017.json.bin",
+      "sha256": "bb32a34c07e92cdff885ac02b0c6dbccdcb319e18a95ad0df71f7891ca5c3c26"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0037.json.bin",
+      "sha256": "d60d93c014b9679c0665b2ea4e15b6c47a8f5ce388c120aeab3c04b8bf3280ca"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0036.json.bin",
+      "sha256": "e4f3c8d6ecfc0feeb2b5fdcb549cca2b4ea25ca8fdd46b06ffff4c517cc607e4"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0061.json.bin",
+      "sha256": "9ea62c4b91988b2aa28253e82d1aba9ae5bfc5d8514289cf96b9ce2c91f2f8a1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0060.json.bin",
+      "sha256": "7d708067ab0be084b3a060b8b013224b9f310c0f16b9e9af044b349291d0e61d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0028.json.bin",
+      "sha256": "87bb032ba3ea6ee8528e7f20601b28ee78d6840f498a9dfb1e8e6e3df5bad6e2"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0029.json.bin",
+      "sha256": "7049553639fc06c14847ece24dd4b3ee5ca214236c5a69e2b38807861bddcbf4"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0014.json.bin",
+      "sha256": "8d2ce344dda9370f30b280b5451bdd5f8a1e8010e87254e09b759e65d585e9fa"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0015.json.bin",
+      "sha256": "cdd7261ac4759ce2350f5926d232668892d6f4a492b6c7fd33728e1aef5ee7a6"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0042.json.bin",
+      "sha256": "fdbbed22a7abb37e73a1d6ef35a96045ecf8fa7f47b2d50e8b44707bebd4c782"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0043.json.bin",
+      "sha256": "2836dc803dedd31be70e9a82850b2bc66f73bed90952cea60e640203f098336b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0099.json.bin",
+      "sha256": "1defad237db3c4165fb381eb5bcf0764758357541856260efcba3de666175d61"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0098.json.bin",
+      "sha256": "14ade90b2f8b1054a6de310d288a9af8dcfbacf813748d0d0e49739ac86c45b1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0103.json.bin",
+      "sha256": "8b6fc67703973ed7004fda816878bdf453d0dcde27ff3ac8beaffcf1c0119e99"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0102.json.bin",
+      "sha256": "276321bae42d072bd83ae6b0cb5698f00b66074d08024c4595c46ba9b078046b"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0063.json.bin",
+      "sha256": "5d40e901e51fd8fa3816395796262b3ca05fd71192f62e5458eae7591fd9420b"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0062.json.bin",
+      "sha256": "e293d5df73d21da33d766077583491114f9eb88e222faba998acde32f2b8cec8"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0035.json.bin",
+      "sha256": "0a8ce88d7d595e588129b9b6774d11f5a85b1e023a19a1bbf6d491501f7563f7"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0034.json.bin",
+      "sha256": "85c916252ea69739ad02059fbbc4b085cb980c5f12dae2c23168e64abd85ee35"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0001.json.bin",
+      "sha256": "ee6cffa4aa4765db18c911e2a2dfb9b6bde042f08fb07a4dbd4a075a9d65222f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0000.json.bin",
+      "sha256": "72746fa1f03627af797baad4420c42fd3209f84881aa96bfbe1b87c301bbffd8"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0108.json.bin",
+      "sha256": "65215ba2351083239700487ee0f520782be7d5bd600c041ceffc8624185f9891"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0093.json.bin",
+      "sha256": "277ea5e50632997e1456b9273c472fb7aa0a4f149a7e9cdf10bf8cf4b8590605"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0092.json.bin",
+      "sha256": "b90a4509ddaa9129bfeb00c353d3cb4d662895bd43feed2121a99a1e0bf9b7ab"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0057.json.bin",
+      "sha256": "14ece99d0d4c93889060f38d73f232029969dfb808ef809b9a4ca330d15bfc87"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0056.json.bin",
+      "sha256": "113237fd8ae9a6ea59f07e452aa14c9b1d2e0aa64a43248c5f5ef5a09d5c5c78"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0048.json.bin",
+      "sha256": "30c90161143cc48336111f2c0649961dabe965aa373e56d7b770f7a1953bfc5b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0049.json.bin",
+      "sha256": "54fd06443afe7c0367c75b3ed7ac48e0cc546315b5f9c90a3c8da97ece1491e4"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0069.json.bin",
+      "sha256": "ba9eb82e641f40fec54a3686523b2a74e76a4594e455281416ba06549f8ed015"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0068.json.bin",
+      "sha256": "29521ee1576a7a7a2ca6bd6b55ca1033983e5d163fe34e1b6842265a465bb7ed"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0076.json.bin",
+      "sha256": "1b332f5555514d9e52751a41b00d2afbb778d81f2aecd2e272fe5dd7ac901012"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0077.json.bin",
+      "sha256": "83d4f8d0685bc331f25c79d1c9e7b2ac70846a0998cd8c827b96b28da79130e7"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0020.json.bin",
+      "sha256": "9ac297e39534872c1bc31a9b6d776ab22826e9803de4f5b4f51b59727c3caf22"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0021.json.bin",
+      "sha256": "87b9a871cf8a3f293f9dbf2d26fe2ea0785cf857b41719fc527ba29a9cd5be57"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0012.json.bin",
+      "sha256": "7562f2c202d67be104e903dc96b60de4d4a7e275b77cb1919326a415789a578d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0013.json.bin",
+      "sha256": "b647f208e0164924c7f4f91b6ffaa8113a2703744c0395188a6b6339af464af8"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0044.json.bin",
+      "sha256": "4f0b0fffd20bc6c248e868d562a16ad7b6940c284f29f4862f754c9e9aac2637"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0045.json.bin",
+      "sha256": "e8bbda32abee887a9b4dbc9b2aab5d47123392d19c9b91088e8b6fe52210006b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0080.json.bin",
+      "sha256": "f849c9f81113a5cb4edc0560eeff2e2b08e4bef3646f43778eb6c23db73279a5"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0081.json.bin",
+      "sha256": "e16d8f1d19ddae057537c82b7b998e3e5dbc0f0d653b88687ba71c4e4b1cb6fd"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0065.json.bin",
+      "sha256": "58ac2832c1e4517229895779b2ef973035d7f7df39e720bf81abce68c56b30c8"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0064.json.bin",
+      "sha256": "da1390a4f5e681abdd2285cc83c8140a6e5dfaa1a10094660207eb8a7cb59abd"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0033.json.bin",
+      "sha256": "5f6b7e236f54c89de3f9b222d6d3d6b2db5d074f2c77b1102b2272890f96f839"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0032.json.bin",
+      "sha256": "b9fcda2e316092d0f5a001eec5781605b4faef0e0ccb76bdd59e000a66412bcf"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0018.json.bin",
+      "sha256": "109614a94cdfbfca231ecea55f33e769d8f728a74e9fb4f85fcec53ff97ebc0a"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0019.json.bin",
+      "sha256": "394cf11505439862c97a51ba7894be9896e89285af08ebcb4c4b7f50b80ec27c"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0007.json.bin",
+      "sha256": "20bcf209ed6f6f98c4889614ce834720e6d702b76138bb3ae1387f5bd658aff1"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0006.json.bin",
+      "sha256": "14d6dc188be5e9bd6c563e95e9ded4110297f63f64edb6f8993144207855af82"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0051.json.bin",
+      "sha256": "d3c8132e245cc5fa0f58c57f0085c88d6e466e18f45c0a410d7661c1e5e26137"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0050.json.bin",
+      "sha256": "d8defe1e6b0d7a27a69a36aa3f62506a7c139493e6c248ed3b8d53711581ed30"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0070.json.bin",
+      "sha256": "f50f3ed94ee68ce73d203c8a234927150d1f6fad82d739565016bc66fd789b28"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0071.json.bin",
+      "sha256": "dfbca8464f30fe2d05cece154fad1d8fa439f8bec2cd864e16dde9a94fa59474"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0026.json.bin",
+      "sha256": "15600a59be7aab3f39087ecbd00821448168f2936d4f3333e0304b048ccde9e4"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0027.json.bin",
+      "sha256": "512d58a32cf73cfeb9430da32f244edb69592c1beca8d56144d0636060273ba5"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0039.json.bin",
+      "sha256": "dbc1bd9577d8da054c717d153cd2fbf48297e9ca8f4da62e21658be5655f58bb"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0038.json.bin",
+      "sha256": "8dbae7ed5c8043441e88dc8ecae2027fb3d69f5b375cafa35a92f9b76ff4c94d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0097.json.bin",
+      "sha256": "fcf1ad2d218c6040f4c2eab6f2a61e79267add085cd4455a2d3d0b4c83f2f661"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0096.json.bin",
+      "sha256": "bd757f340b5ec9fc018c9b0a2afbe6ad26343cd8e47cae50beb0b0be32132753"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0053.json.bin",
+      "sha256": "b933789237d2aa8b997193c38b9348a2d9e73dc70416b28faea352122d553d7b"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0052.json.bin",
+      "sha256": "9a2022434b18dd0e127c16716b947343f90f102aa44fd315ce7ec428d5a8d306"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0005.json.bin",
+      "sha256": "d40a64ce52f1cb2e21512c7bd4bb9ac492a490df9825b486c6fdaabebdc4f031"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0004.json.bin",
+      "sha256": "c8a4dfcf08c220c00e459878e9a029df89b7acc6fad4227f9bd4c17beb7545d3"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0024.json.bin",
+      "sha256": "96174f2f150208379941cb726fb9ed39c1f339e667212580ad42305d88057439"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0025.json.bin",
+      "sha256": "fa2083027f089fe73e9dc2799400bb7d3eb801031b13ec2ad544069eceae0d40"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0072.json.bin",
+      "sha256": "a7d56e925d6005f86958ebf153bbc14dfd77ac8a2b91b90c2639f35b096a0c5b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0073.json.bin",
+      "sha256": "95311ef588345839be102bc138de14c9cc0cbc8783d92b4bde910587ddf51cb6"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0082.json.bin",
+      "sha256": "5c608dae049323c99fcaf7def812d940f6f42b86d5c1b0a2a1c4d43ed3dd58d9"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0046.json.bin",
+      "sha256": "1727dd1eef9dd53e8dbb3db98468c6d8310839d684a60c2a3686e3e9730fac7f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0047.json.bin",
+      "sha256": "1e4f24145b08522bdd846ecead0242cae1c2bd29959616ee10e14473ab0d5ae6"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0010.json.bin",
+      "sha256": "61dbd1a7f1b2a7f0c453039ba767fab9cab9c10c34ec7bf0c1620aea5274bbd2"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0011.json.bin",
+      "sha256": "09febcc211a420bbd9855376642d00b1bb941a8c03460bbfb94a4f11b45ce707"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0107.json.bin",
+      "sha256": "a24da647ebd1daab713e5044619c96a52f590ac0d5f3adc991eb0d0e5d96c06f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0106.json.bin",
+      "sha256": "15eb25dda35e66594850e8cb5b021d368d0fb31e417136abc306d6b1acc97717"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0059.json.bin",
+      "sha256": "2674269ad692c1e56afacae6feceb100caa6f0cf602b55c08105e71fdb4e4db6"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0058.json.bin",
+      "sha256": "519e0226dda16f797aea3a2db477b96398eaafb9776c813f3c8bb6dda2a42af4"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0078.json.bin",
+      "sha256": "bc37b055eb661ee8ed91e889871cdf674f5c211c8910ab4a5cbf97207bf264ad"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0079.json.bin",
+      "sha256": "1f28ef758443644f42bf1cc5b1213d77b48611c2081dd0532de619c0ee8878e5"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0031.json.bin",
+      "sha256": "545e5b4f3cf4a2a3d2cec13d27ee29b33989ff26303ee8a1584f7231ab7f80c6"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0030.json.bin",
+      "sha256": "5140ccafd4553990d80fcaf2b91ab5a4e02167d2d5d91afc5b094bd6e5ede2cc"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0067.json.bin",
+      "sha256": "8274924e33d5e886875c22b297024e3181ed623c444067b62e8a422bf81285fe"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0066.json.bin",
+      "sha256": "ae67f71e2f786e864fd684a1a056414fa1094d0ccd7f9315a14cc65f2572031c"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0002.json.bin",
+      "sha256": "50053ebe06b37f1bf83c36ca7f2f48471c8376d775069ceba209654d6a85c5e9"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0003.json.bin",
+      "sha256": "6d1f0910385ea26aa5434938e20d9dc9504ece1485025a30f02e006f338515f9"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0090.json.bin",
+      "sha256": "5e0f94bd0d4c4b01367f4a00d1f29dfcc09bea1184030b296c902f64c2cc5806"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0091.json.bin",
+      "sha256": "30a2a3e46898490bafd0d5b3e58ab31013251ea06690ab0f91c96ebc4074bc06"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0054.json.bin",
+      "sha256": "bfe057ed6995dea811d7b383aaa6ff3a8d4a14f7536e04930c96c352ce880090"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0055.json.bin",
+      "sha256": "6cddd40858b77a9d58f50fb64658cfbf78fed49ba246c9fcf7a5899d9480e5b8"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0075.json.bin",
+      "sha256": "25b79a7be21d39e92f6e23f5e400318ef645c38b752f1ce3ab1ebd98b403ebec"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0074.json.bin",
+      "sha256": "bfb3b76cd74a4f58ebac2ac1bf7bf08f4aa01e64016e756fcce2dc8e87bf90ee"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0023.json.bin",
+      "sha256": "fd424822c0edb5b1bce94a680eaa5cc4e7605f25d7e40618b92e2f56077e542e"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0022.json.bin",
+      "sha256": "b94d06997cbd92af33566609d5ed99036128824394fa2e91a24fb06bb67a265e"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0017.json.bin",
+      "sha256": "c2436083219091e0b178801f5f63c08aaf047b3411d4345f19e15cb462198340"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0016.json.bin",
+      "sha256": "3c431b194dc05e4d64614944a90b85e8f38f0d3190054deeb0965b663ee4ea7c"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0041.json.bin",
+      "sha256": "9b575272b108bc0c203279bc62b4f5a2fa4868f41587c7099de6d2850dc71611"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0040.json.bin",
+      "sha256": "9ae18e1e05e4546cf4fd6c18b57304c55cf567df0102d88ffa5774f8b2cf2647"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0100.json.bin",
+      "sha256": "b1ff63f2fe85c2855331757c371ff46582056cc67153b432dc5014f1bee47ded"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0101.json.bin",
+      "sha256": "698170d24e55de5c93cf5f30dbc2bb5fba97ef4839ba344abb86632b4afe50cb"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0008.json.bin",
+      "sha256": "c5a94598cbe9d3c17ba38cf6a6c6d56034be913945d5a27c9c5be7bf4aee7d17"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0009.json.bin",
+      "sha256": "c96ba5f8dec56f05885f9f4f1476f0b67c420dbd040c98a61c1356b60e5c50c7"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0029.json.bin",
+      "sha256": "1d23f49fa23e3d6ebebd35f84c889e3f0c81349d14fd6b9317f42ef1d434cbd0"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0028.json.bin",
+      "sha256": "42348ccfff28cc0b74eb540778c52447cd67443a46c6855ca93e9288fbe79a75"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0060.json.bin",
+      "sha256": "9eff2b830d9854aaf66384eccd9f0d4adf182d8cb4ec8f97cc4a4236cd937a07"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0061.json.bin",
+      "sha256": "f18231dacc0686024ff004cf0fcd3e90a82314aed87ae1d174e9d843b9bf1a30"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0036.json.bin",
+      "sha256": "1811bd329027f6524d092ba056cfc90c106da7051ccd8410a2faf87a180e46f6"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0037.json.bin",
+      "sha256": "baf9c273d7603a2da75e82110634ceb37a840ecadb7f9a008ea48c6c6ca5bd58"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0043.json.bin",
+      "sha256": "9147764e0c65952cc3b3379d30ff09cb116a06a29cd8afa9d52096f51f51953c"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0042.json.bin",
+      "sha256": "f53fed51e8072941be83166bcd6a9fd8f40441b3c4ac2d46dbe29cf16fbd661b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0087.json.bin",
+      "sha256": "a816674dd3324499506da68b302e78a282a3e63c75fa441e05562046e9f219f6"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0086.json.bin",
+      "sha256": "c50899eaf7ac8259e5e18a2da8b7c2671bd27910d0d301d032137de86b141546"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0015.json.bin",
+      "sha256": "229234a27de17feba59241689a9746d4e47b6517eeecf521a6e6d47c5201b9ba"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0014.json.bin",
+      "sha256": "e6e036d90630268fe41f9bcea508a9011b236568d8ba11cacb43ebb1bee3e0ee"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0034.json.bin",
+      "sha256": "9d297b9e6a9df38adb3d51d6c3bdeadde2338dc88b5109f2012a789c4189b8ee"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0035.json.bin",
+      "sha256": "446e99f77fa2790e6f0d2969def14b6ab1880e4380b5cb6568e6776ed163abb3"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0062.json.bin",
+      "sha256": "5017c917f7bfd84945523a1733aa5ff5892c9c87f1a61a0bb00444c97d7f2491"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0063.json.bin",
+      "sha256": "816cc74e4411562e7c804ed64f983c175b90c0786a0016e894d263b3591632fd"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0049.json.bin",
+      "sha256": "1b76dba3ea1a271482c31971bc4f518fd6db314a904035c13a859514efcc4b4f"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0048.json.bin",
+      "sha256": "a0b1b479569ec136d0d31b52ffaac76e8747e3df0fe38d6a5bf38b3722663eb6"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0056.json.bin",
+      "sha256": "7107a889efb92e327d237b1543a3075c682500743d96e4460e6d966e96acc53a"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0057.json.bin",
+      "sha256": "0f3a27674aafceac86ee023ac9e3307fa7697b17f9cbda821923b04bf3aee3fd"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0000.json.bin",
+      "sha256": "46e707bbd3bfd00cbe71a8db9cbf630d4f3d0b729a311bed532dcc31bb6949fe"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0001.json.bin",
+      "sha256": "3e535ae058cdbd9c89258a4561044795e2c3bc82516749954d39a722c45c61bc"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0021.json.bin",
+      "sha256": "0271e1baae91c8e543dde1ee9ffa182d487a14c42f36b9ba4c87b631e39e60c1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0020.json.bin",
+      "sha256": "d0d3e61d12d1cce6c35772fd31b716c6cf76e616dab9a2f794552704126052e6"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0077.json.bin",
+      "sha256": "1ffe9e046b109e3961f2c7dca1c7afff40504de075625dd8c0cfbab9a033373a"
+    },
+    {
+      "path": "prepared-v9/shards/IT__atlante_direct__0076.json.bin",
+      "sha256": "053f363266597b6235ddf233bf999c87220ef4ea70e1c549af4aebdcf3ae7d3d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0068.json.bin",
+      "sha256": "240cbc7436bdeea9e76c8d804195f0dfdfaa2590a121d08d0262d4a1c0462d08"
+    },
+    {
+      "path": "prepared-v9/shards/FR__atlante_direct__0069.json.bin",
+      "sha256": "bf624ccccd3a1ad9198cab8e5fc7668656de6210500ffd5c11aa5117b33466d2"
+    },
+    {
+      "path": "prepared-v9/joins/FR__irve_static.json.bin",
+      "sha256": "90a3521403639b2cbd577971d1436f1f7a3bcd4e9060286aadb828c051a51826"
+    },
+    {
+      "path": "v9-production-shell/shell-config.json",
+      "sha256": "f207c2c513534e83f166cc1c24803dd4106462b4f06a87af28840c72ff5890d9"
+    },
+    {
+      "path": "v9-production-shell/national-catalogue-policy.json",
+      "sha256": "aa5e063bc434f4125b018958f9a56e252d6bb8805a86e459936bbcce8ce8b131"
+    }
+  ],
+  "removedFiles": [
+    "prepared-v9/shards/IT__atlante_direct__0083.json.bin"
+  ],
+  "publicScanFindings": [],
+  "runtimeCodeUnchanged": true,
+  "catalogueRulesUnchanged": true
+}

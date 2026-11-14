@@ -1,3 +1,9 @@
+## État courant — 14 novembre 2026 (remplace les constats datés ci-dessous)
+
+Nouveau brouillon isolé https://6af8365acf7552d1d9e1768a--tcc-v9-preproduction-20261028.netlify.app .19parcours tarifaires,11recherches/neufpays et contrôlesG9/mobile exécutés à distance PASS ; contrôleSHA exhaustif3247fragments/ressources critiques PASS, classementdense exact64019résultats ;latence66.7s encorelimitante. Bundle33 `0bce189c…`,31sources inchangées, Atlante FR/IT acquis le5novembre. Preuves : `docs/v9-rebuild/evidence/restoration-20261114/README.md`. Anciennes URL inchangées ; aucune promotion globale G2–G8,122handoffs ouverts après troisreplaysréels d’archives,13prouvés. Les sections suivantes sont historiques et ne décrivent pas une collecte fraîche du14novembre.
+
+---
+
 # Restauration tarifaire et renouvellement — candidat 33 sources
 
 Bundle immuable : `8ad8e0811e8ae0ecdb879affc1a38e0fa299f1b4d93c33c2ae920fa745941fc2`.

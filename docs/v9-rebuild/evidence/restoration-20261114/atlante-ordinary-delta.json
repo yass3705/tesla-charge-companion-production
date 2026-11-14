@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "browser": "Firefox160.0",
+  "identicalInputs": "2026-11-05T12:00 local country time; radius5km; same vehicle defaults",
+  "allElevenRowsIdentical": true,
+  "countries": [
+    "BE",
+    "CH",
+    "DE",
+    "ES",
+    "FR",
+    "GB",
+    "IT",
+    "MA",
+    "NL"
+  ],
+  "historicalNote": "Four ranking hashes differ from the November5 evidence in the current browser, on BOTH old and new packages. No difference between packages with the same browser/inputs. Previous per-station rows unavailable, so no cause inferred."
+}
