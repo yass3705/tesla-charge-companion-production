@@ -1,3 +1,15 @@
+## Préproduction vérifiée — renouvellement du 14 novembre 2026
+
+URL : **https://6af8470ab1f6ac03083a27f4--tcc-v9-preproduction-20261028.netlify.app**. Déploiement6af8470ab1f6ac03083a27f4 ready/deploy-preview, published_at=null, sans connexionGit. Bundle33 `29ab85449b08a68376e1b6b726476614a771aa96b12452f4d2e4014451d3e7f1`, paquet `site-national-direct-20261114` horscheckout. Seuls FR:irve_static,BE:nap_static etFR:allego_direct changent depuis le précédent brouillon ;30sources sont identiques. Acquisitions réelles du14novembre, aucune fraîcheur générale des autres archives prétendue.
+
+**Vérifications exécutées sur cette URL :** HTTPS/200/noindex, manifestes et **3245fragments signés**, ressources critiques dont crosswalk11669931octets et ledger16352606octets ;20parcours tarifaires et11recherches/neufpays exactement identiques au local ; contrôles utilisateur/mobile,20/40/60fiches,carte,pagination,filtres,abonnements,simulation,Buc unique/sixEVSE,TeslaMilan/Chesnay autonomes,Fécamp sans prix inventé. Audit de portée des neuf pays PASS avec le même moteur que le paquet servi. Preuves : [recette et reçus](../restoration-20261114/national-renewal/README.md).
+
+Rollback6af8365acf7552d1d9e1768a toujours ready et accessible, ressources critiques revérifiées ; son contrôle complet antérieur reste conservé. Paquets/bundles précédents et sitepublic inchangés. Bump : renouvellement refusé après réponses fournisseur « Too many requests » ; le SHA du dernier canonique valide est inchangé dans ce nouveau bundle. Aucun résultat partiel importé.
+
+**Candidat partiel, G2–G8 restent FAIL globalement.** Les transmissions restantes, la cadence non démontrée, REVE partiel, Electroverse national13/16, les exceptions fiscales/portée internationales et la latence dense restent ouverts. Aucune activation permanente d’Actions ni publication publique. Les pilotes UK suivants sont distincts de ce paquet ; consulter le journal DataLab pour leur état actuel. Les preuves de classement dense sont réutilisées sur le catalogueNL et le moteur inchangés ; aucune amélioration de performance revendiquée.
+
+---
+
 ## État courant — 14 novembre 2026 (remplace les constats datés ci-dessous)
 
 Nouveau brouillon isolé https://6af8365acf7552d1d9e1768a--tcc-v9-preproduction-20261028.netlify.app .19parcours tarifaires,11recherches/neufpays et contrôlesG9/mobile exécutés à distance PASS ; contrôleSHA exhaustif3247fragments/ressources critiques PASS, classementdense exact64019résultats ;latence66.7s encorelimitante. Bundle33 `0bce189c…`,31sources inchangées, Atlante FR/IT acquis le5novembre. Preuves : `docs/v9-rebuild/evidence/restoration-20261114/README.md`. Anciennes URL inchangées ; aucune promotion globale G2–G8,122handoffs ouverts après troisreplaysréels d’archives,13prouvés. Les sections suivantes sont historiques et ne décrivent pas une collecte fraîche du14novembre.

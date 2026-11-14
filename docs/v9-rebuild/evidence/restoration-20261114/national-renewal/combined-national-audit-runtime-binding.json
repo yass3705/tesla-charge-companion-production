@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "runtimeUsedByAuditEqualsServedPackage": {
+    "assets/v9/data-engine.js": "45520df87a3328a08268f141787581f6553c2509fa8d3adf12e832c83f10796f",
+    "assets/v9/adapters/canonical-v9.js": "6de7a95ad69c208bd97d39ac4fdb628adc75ca64f003ce5ceb6ffc90beb8ffcf"
+  }
+}

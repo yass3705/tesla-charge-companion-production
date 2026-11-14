@@ -1,0 +1,392 @@
+{
+  "status": "PASS",
+  "previousSite": "site-national-fr-be-20261114",
+  "candidateSite": "site-national-direct-20261114",
+  "unchangedFiles": 4408,
+  "changedFiles": [
+    {
+      "path": "manifest.json",
+      "sha256": "6e3b12f857b46a49e764f1d36c3a95383a53c69dba6196de8a4205ec6e688134"
+    },
+    {
+      "path": "prepared-v9/index.json",
+      "sha256": "2be1ab5f08ad80e6a79a60423b21aa5a9f6064f82c8acbcd6661fad4c230405d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0035.json.bin",
+      "sha256": "e95f66b5f47be68bbc6a5525ef57d91b4a52bad99272eae8c8a5016b18e586a4"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0034.json.bin",
+      "sha256": "b5d3fe7e0673072a4dd0068c28164c0dba0752a81ddbfe42b0c345c5fe89b64f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0042.json.bin",
+      "sha256": "7239a9085b8afad72662769267c47c8942bcb7a872ca21304a7babfa36ccea62"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0043.json.bin",
+      "sha256": "7bc7fa7432a4d6fb5944a00222759407c68d78c140e9396ec854500b6b19be01"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0076.json.bin",
+      "sha256": "53084b42e143b303e427e8eeea7c681f1fc9e1df67bd614bc03c7acd3f36741e"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0077.json.bin",
+      "sha256": "49e40df5303bd0bde2019d9c698468dc08b345adbf58605eeef13e6a0fd5a6ee"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0048.json.bin",
+      "sha256": "b3c7fa64befc58814fb65086d54560262ded0c220d2897e18e7faf1029204a3f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0049.json.bin",
+      "sha256": "901507ad56c87953a4a43b16d5676dfd391bd6c55fd9fc224762c3366b2964aa"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0001.json.bin",
+      "sha256": "fb2fd8d1f8c81e15541ab58d97e6ecdcb1e1ef40cf936ce95c6fbfdc198bbc8c"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0000.json.bin",
+      "sha256": "6b4cf8e3681fe085541da8e95e3c7604ec12819102059ced8def52ad24ef0870"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0022.json.bin",
+      "sha256": "a8df035a47a832f2d1b267b7e3cb00cd861323663796677b9ed35ac8abb198c0"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0023.json.bin",
+      "sha256": "ff05ee992e5ad067609079bcd8ae80ec2abbd1cae76862f07adb14aee9ad8891"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0055.json.bin",
+      "sha256": "788b17260b552eb5361c0282f8e24f0fe1f54f1b5efb35767a848b46f32b4e6b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0054.json.bin",
+      "sha256": "374cd3ed23f05d7b5d7ec440d190ff3ce051032436f1eac5776552fa58e5b153"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0028.json.bin",
+      "sha256": "ed46f3002cc2399f75af47af844b611742b426f703a5ef5a89929fc87460cf19"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0029.json.bin",
+      "sha256": "299de2793c6348ac82e1584418436b5301972fd91cec9975d3eeaf561ebd4b4b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0061.json.bin",
+      "sha256": "061c99f399383a3a19d91a7bae5c9d031f5b2153e8f11de9660e0e38edb37fad"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0060.json.bin",
+      "sha256": "b8a05909fde97e66261ad79cbeae098722a1a50c5df426ce5622b4ac264ee972"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0016.json.bin",
+      "sha256": "e9d6eed62e4ebb874e0e9f196c0c7df3585fa500769a3b9e52c51771ffd7e332"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0017.json.bin",
+      "sha256": "29d75cf499626192360e4d9c21aff71a462463f01e4ee7931062fa29b2e6e8ad"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0084.json.bin",
+      "sha256": "9c37bccab1e86cd1def46cbebb10acdebe33faad8303c8108e90e92d45e0f4b4"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0085.json.bin",
+      "sha256": "b6c98420510583b58029e2b3b700d75a1471b17f358acaa33974f4e5a3832ba1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0025.json.bin",
+      "sha256": "cb8d52f2da5c401558098c09142b66660b6ab63167736f374f97530cdbdefdee"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0024.json.bin",
+      "sha256": "1014a9d903ffef706263eecc4ac2ca8081c23e2275a74a7f31177116c4da845a"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0052.json.bin",
+      "sha256": "677ca6612e51f3de07346a5ae17bd26867669f3545d88319e7d7328865a58ba3"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0053.json.bin",
+      "sha256": "2c4485a3ce693301875f9fd6b8560bf42369fc6c583182650c357d69c596eca9"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0089.json.bin",
+      "sha256": "f18641598a44a76bab4cdccb97cc2c3c9c59deb786e84ae0ca5ce3d4998648c0"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0088.json.bin",
+      "sha256": "10e96c9789684d8a2826dd7633c9beaad6698cbefebb628d66ebe00527d03a4f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0066.json.bin",
+      "sha256": "7fee2f4cc895f45eaf02ce8494f7bdc671335292c6ef6a20fe7fca99622a4da7"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0067.json.bin",
+      "sha256": "73847767d37658b26a806b8c7435b559095ec9ecfdc195b70d1eeb0ca30236de"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0083.json.bin",
+      "sha256": "ce01d1c207a2d0d66a8702df7e167382a909a1a9a069763922310c75caef2e8f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0082.json.bin",
+      "sha256": "a2104cc42f06c445e0fc0a81acd3dac44b479c2600c0ceb132f53150df2d0476"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0011.json.bin",
+      "sha256": "76a6a736a21c866390d0184a57dd0c9be8d1d186e045ddde70ca25778f7ea638"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0010.json.bin",
+      "sha256": "9ddf727a665cd4989252d30a7d15e5a833dfd8c71c0deff643d642662d8160ed"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0058.json.bin",
+      "sha256": "14113f0cfb4bac1f031e85f7abac94f2056237e90e38987cc1424ab1ee3bb6e0"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0059.json.bin",
+      "sha256": "9504d380cf7d9c55c6efc405f816601a23f3b61d094323e6a493765d3d2e1515"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0032.json.bin",
+      "sha256": "f082f98e4c6733fd194039c08f97aefce54159944630da48c94aab5d97875299"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0033.json.bin",
+      "sha256": "608bfdac1287fed95b173ef1925c1ae87c336f8d0552832210f899d56e5db985"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0045.json.bin",
+      "sha256": "9701d4487b045b0a2011e3995cbf1989c45dca90b87a26bcd2dd42d0c7020a6a"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0044.json.bin",
+      "sha256": "7534d88b1ab2386eb3a01c740d47b15a4420a3f3471b286a1c77b6a0032027e0"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0071.json.bin",
+      "sha256": "3882c74709fa534334e70cc2fca2d2ff1207d1a818dfed066b028c4466c20b21"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0070.json.bin",
+      "sha256": "33b0459211fa241d993b70287e982c2261ef1e32d80ef2d272162ce68808c680"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0038.json.bin",
+      "sha256": "14a7aa768b978cee95a0fedb8d681aac5f0e86f7af99c5212f3e3f0593ed53a3"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0039.json.bin",
+      "sha256": "9e4e2b2c3bea08d0a3910c6ae5ffe43fd436f94faf1c1b8970491986d4a2036e"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0006.json.bin",
+      "sha256": "bb5ef06d307b7690f52426199eea8b9f1efed1fa6ffa28b2cf30f4901b629671"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0007.json.bin",
+      "sha256": "59713b47e89828a081eec131d0ef1c77b843bb82d91b9f0c3eceb26d139ec36a"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0062.json.bin",
+      "sha256": "4b7088fce67d78a4eabba3096094b232a7ff26786e2dbdd9f0cdd829616d67c5"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0063.json.bin",
+      "sha256": "c872fefd650fa02f123eb64640addbe8b6e2c4ffedc0d7a1275b11902caf1312"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0015.json.bin",
+      "sha256": "e4e101bc25458227d2a00731fa96068c299d503aeee78a9bb6f08472a2b0f1bb"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0014.json.bin",
+      "sha256": "dd313fc3b206a4f24786a36017b0da143d417743b132455f58cae879ba696e92"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0087.json.bin",
+      "sha256": "92a3675b54372a1c83cb947c40115f924a9025113c01d3c8cfb0c20225d0837a"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0086.json.bin",
+      "sha256": "c6b8030dc25acf600d1ccbec681e901576ca55df1594d8696eb2f0a05a24b6ab"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0068.json.bin",
+      "sha256": "8dca3ba87a1063a575a92e1c7dc6fb61a4ad7f33696456e70cad5226a3289dea"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0069.json.bin",
+      "sha256": "0546d9be3eb47b569de4540f11e898a5a30633a2f444f7e3c6dbd16100e5da75"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0021.json.bin",
+      "sha256": "d3f5158e8b1c8271d22ca33994bb9cebe1bcb444aca5cd9198ec7245124cf75b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0020.json.bin",
+      "sha256": "38b7668707d1d83c35967a83d06f721a4fe0612e44c96d7322678e55102b0af3"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0056.json.bin",
+      "sha256": "67c0d5ee4d93e9aac636a1ebfeadb093d563f7453deba19fc4b10ffd7723634e"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0057.json.bin",
+      "sha256": "fba261ab7987d6a9a7dc52dd679cefb4c55aa9c68681d95bf432241e7e21f851"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0075.json.bin",
+      "sha256": "8a2a3a893eac4ca8ac04543aa9a0dab59492449615abee7b364dbed2966a96b9"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0074.json.bin",
+      "sha256": "0fc14284204a139c470e004986d5207849a625726840d83af634a5c8e56ca453"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0002.json.bin",
+      "sha256": "b065fab2664ba6275c53ef75813dfdf2384252e8830cc79ae9cc2282b7d95207"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0003.json.bin",
+      "sha256": "22b9f2131ecaac30884d7ed88cc9950f6930d2162d8d4f6d9c3d67097cc28db3"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0036.json.bin",
+      "sha256": "b7430a6a95245aae81f19959ce1ffe30227520de87214fda9e56baec1bff06f6"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0037.json.bin",
+      "sha256": "6198f11831a2ad82dfb60230285050368f131c0ed4c490daeafd2a9d97488dc5"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0008.json.bin",
+      "sha256": "8b699cc3311cd2ee5e09162ae2e48189b2de40e8f50c52e249d613a926bf2665"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0009.json.bin",
+      "sha256": "8486d8a2ae3f08e120a86cc8ebcd324651ea01ce9dd5975fed2f5f0c79dc48de"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0041.json.bin",
+      "sha256": "fae3d3ef8c4ac7b52649f379dd7d6b415e5eb6dfe5bd431f3fe31adec95e67c1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0040.json.bin",
+      "sha256": "13922ee0baa3642757bc5bc7f58a19e63fc03e57c8415064390d9f5089f30549"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0072.json.bin",
+      "sha256": "55c21aa32dd5430bf27623ced30fcfc946df60d0a0ce2ce16dac71ad4a62c4e6"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0073.json.bin",
+      "sha256": "19b66824bf92320da8035c5224a417e91dabc33c63b4f722170e9cd8e1886f36"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0005.json.bin",
+      "sha256": "fefc5025c75e093c7c2fc491c4bf3c87fad60a884a0a4bfa128037bc20fb36c2"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0004.json.bin",
+      "sha256": "8adb8a51419ea5e5d7615ae165a27429a5a0f65bc22a2aa67fa20174a790d25f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0031.json.bin",
+      "sha256": "10acaedbb654c969bd2d7f7919965505099b1903ec6e65312443e77f741e238b"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0030.json.bin",
+      "sha256": "7efd65db611652e8e435ff68cd96c904a49442a64d5072fe27db81bbec5d6632"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0078.json.bin",
+      "sha256": "0d9a655b56d52724f55158353862ee4e89afe9d4f94710a102505636c75f70a4"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0079.json.bin",
+      "sha256": "a7996073c9077fc180d69efeec23c8edb2a89fbfcd0188de09575d6462b513e4"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0046.json.bin",
+      "sha256": "b08c8534a2ae1b21073e487f3bf4288f5dadb3c41104f9ebb1fa1713d48401f8"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0047.json.bin",
+      "sha256": "2f65a4c1a2832a0559c95b6403b01ac461a3f12f1c345fdeb598b0541a49ac5f"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0065.json.bin",
+      "sha256": "5a007aa19141a39b93402f5b351d4fb72a0ecb7f04b249165823390aa055521e"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0064.json.bin",
+      "sha256": "c8a5d4cb47ce2e0e583f1f604cc33a14756fe75670766f8f4aef97b81ff022cd"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0080.json.bin",
+      "sha256": "ee9a66ef302adf05e76058ceb6ff691601dfdb580b3f5b985a1b5ee9b25ecbc1"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0081.json.bin",
+      "sha256": "dca3ceb59940274d2e888cd3d8da40ebec07e099f23aee50e7e4109a84e6eaba"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0012.json.bin",
+      "sha256": "21e84cdb09547f1f5233810d01cb5acff82432d1605efdfc1c45912c4e13c88d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0013.json.bin",
+      "sha256": "df91f3ec9921d3713057fbc6a667023bd2ded66cb799535eb91dcc6d0cf37cbb"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0026.json.bin",
+      "sha256": "72a3f602df10ca6ac6e1222ccabe076388a35f396bd50f642f1e94fd5f862f4d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0027.json.bin",
+      "sha256": "ca8bf7329cb50835f47f412fb1492d11707ba9bde546a27024893bca4d339ed8"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0051.json.bin",
+      "sha256": "22cbfbfba5d476d1d54e33cfd61640c99a5e27987f478f393ae4c9858a82868d"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0050.json.bin",
+      "sha256": "dad35ab969b74ce09cb777c37529a2de7885da73d6a897e4398598ac986419ba"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0018.json.bin",
+      "sha256": "96ef8d01e7664802e335d1856b7ccae0e15f187b07eb73a7998da598eca494d9"
+    },
+    {
+      "path": "prepared-v9/shards/FR__allego_direct__0019.json.bin",
+      "sha256": "52cc5a8a49c75d43c141aadb3f96002450a86eb279265886c0f5542ed7fc4891"
+    },
+    {
+      "path": "prepared-v9/joins/FR__irve_static.json.bin",
+      "sha256": "0ce0ebf640f8d5ab3a53c18bdf642d5ab612002256ccb1b771c39b45b9752496"
+    },
+    {
+      "path": "v9-production-shell/shell-config.json",
+      "sha256": "030e0f539abf85222f770c7abfef40916ff1258e55f4fd8bdd2d631e825303f7"
+    },
+    {
+      "path": "v9-production-shell/national-catalogue-policy.json",
+      "sha256": "c0c8dbeec7a7f642a74811e0e9089162eb2f770e6b0b8d7662ebff9f12a02800"
+    }
+  ],
+  "removedFiles": [],
+  "publicScanFindings": [],
+  "runtimeCodeUnchanged": true,
+  "catalogueRulesUnchanged": true
+}

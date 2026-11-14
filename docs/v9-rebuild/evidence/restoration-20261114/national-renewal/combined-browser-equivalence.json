@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "url": "https://6af8470ab1f6ac03083a27f4--tcc-v9-preproduction-20261028.netlify.app",
+  "sameFixedInputs": true,
+  "checks": {
+    "targeted": {
+      "rows": 20,
+      "exactlyIdentical": true
+    },
+    "ordinary": {
+      "rows": 11,
+      "exactlyIdentical": true
+    }
+  }
+}

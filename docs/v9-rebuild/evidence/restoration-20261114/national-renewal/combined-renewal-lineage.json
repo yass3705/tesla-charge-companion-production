@@ -1,0 +1,95 @@
+{
+  "status": "PASS",
+  "bundleId": "29ab85449b08a68376e1b6b726476614a771aa96b12452f4d2e4014451d3e7f1",
+  "previousBundleId": "0bce189c967136aa3c0a46ad298e6b1be4304c80c8eb8c6ff4abb2d5e080ceb6",
+  "sourceSetUnchanged": true,
+  "changedSources": {
+    "BE:nap_static": {
+      "before": {
+        "canonicalSchemaVersion": 1,
+        "path": "BE__nap_static.json",
+        "sha256": "9d565e3cadc6474312b275faa7442427fa761d713c5707a43f9b6feee5398cfc",
+        "source": "BE:nap_static",
+        "sourceArtifactSha256": "4cf6879c4dfba64bd715ed0c7ec0b2df31602133e4b49f79aa2fc0841bc06604"
+      },
+      "after": {
+        "canonicalSchemaVersion": 1,
+        "path": "BE__nap_static.json",
+        "sha256": "d85930dcf89ee139136a3bda67bb4a9f5fbfda461e6ac21f06fdff12578ca16f",
+        "source": "BE:nap_static",
+        "sourceArtifactSha256": "410bdb7646a626faa7fa8ce3a6abc98a1121b71f862bee4edd6cc237511bfb99"
+      }
+    },
+    "FR:allego_direct": {
+      "before": {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__allego_direct.json",
+        "sha256": "0a564ef2afb5f9fbcef0c2a4cc1b3ad22e87cb00170fedcada402ba42395b691",
+        "source": "FR:allego_direct",
+        "sourceArtifactSha256": "7c860dbe4d6c428d307dc589d8c682660f213e9a3c5f5c4ad3aff739d0ad6386"
+      },
+      "after": {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__allego_direct.json",
+        "sha256": "8e9be93b13db60489c344a3d43e1644b6513526073fc7f6c525a38afe64a4fb0",
+        "source": "FR:allego_direct",
+        "sourceArtifactSha256": "049b8b72d9c7be15defba2c4b0a97c1f13514482cf22db6e8bc228bd696a8ab2"
+      }
+    },
+    "FR:irve_static": {
+      "before": {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__irve_static.json",
+        "sha256": "27c18f3ca111518850e81bf6701d197c9fa1cdab65d4333a156a7efe45f03721",
+        "source": "FR:irve_static",
+        "sourceArtifactSha256": "f5bbc827032409cd2242b7429327af93ba3c0efce88785deea260b128065d2df"
+      },
+      "after": {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__irve_static.json",
+        "sha256": "4a034e8a86f951690e4980fbf8c887e66b035d4de482f42c95f1e0323c5ca876",
+        "source": "FR:irve_static",
+        "sourceArtifactSha256": "9d603aa14cd2155dd2e68d56b96ba991ebeadc6f6a04539ec348cae5d90219b9"
+      }
+    }
+  },
+  "unchangedSources": [
+    "BE:powerdot_direct",
+    "CH:swiss_integration",
+    "DE:bnetza_afir_archive",
+    "DE:ionity_direct",
+    "ES:reve_static",
+    "FR:archived_direct_exact",
+    "FR:atlante_direct",
+    "FR:belib_stations",
+    "FR:bump_national_exact",
+    "FR:driveco_evse_tariffs",
+    "FR:electra_emsp_exact",
+    "FR:emsp_exact",
+    "FR:ionity_direct",
+    "FR:izivia_fast_map",
+    "FR:ozecar_monta",
+    "FR:powerdot_direct",
+    "FR:zephyre_epowerdirect_exact",
+    "GB:allego_pcpr_direct",
+    "GB:blink_pcpr_direct",
+    "GB:connected_kerb_midhope_verified",
+    "GB:eco_movement_pcpr_raw",
+    "GB:gridserve_pcpr_direct",
+    "GB:ionity_direct",
+    "GB:source_ev_pcpr_direct",
+    "GB:ubitricity_pcpr_direct",
+    "IT:atlante_direct",
+    "IT:ionity_direct",
+    "MA:evgo",
+    "NL:dotnl_static",
+    "NL:electra_direct_exact"
+  ],
+  "bumpLastGoodPreserved": {
+    "FR:bump_national_exact": "b5e66cac67cb25022c9e43291cbfdb6ba38db8ab8d5abac8363fdc05b1131286"
+  },
+  "bumpFailedRunsNotImported": [
+    43589225728,
+    43589681840
+  ]
+}

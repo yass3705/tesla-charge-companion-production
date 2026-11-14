@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "previous": "site-national-fr-be-20261114",
+  "candidate": "site-national-direct-20261114",
+  "fixedSessionOrdinarySearchesIdentical": 11,
+  "denseAmsterdamProofReused": "unchanged NL catalogue and all runtime code; no performance improvement claimed"
+}

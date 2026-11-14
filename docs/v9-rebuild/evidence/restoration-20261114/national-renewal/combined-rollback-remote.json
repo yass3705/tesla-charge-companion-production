@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "method": "Previous immutable preview remains accessible, same local verified package and prepared bundle; no production alias modified",
+  "url": "https://6af8365acf7552d1d9e1768a--tcc-v9-preproduction-20261028.netlify.app",
+  "deployState": "ready",
+  "checkedAssets": [
+    {
+      "path": "index.html",
+      "sha256": "eb1cef1ef63f1081af9a134f87ea8e797732bdad4f0a7e7136fb4a1a75978a52",
+      "bytes": 264
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "90c0229f7e6e3538439257fd51f9d3a25522eb57ce949b3a70f17f749e18a19a",
+      "bytes": 683111
+    },
+    {
+      "path": "prepared-v9/index.json",
+      "sha256": "10e7388a7925aef8e2203a40b8c990e4d8dbb6fbb8aa2dac31110f0cb9945fad",
+      "bytes": 824247
+    },
+    {
+      "path": "v9-production-shell/bridge.js",
+      "sha256": "c74f3f63681d2a70701db4039bba4af42a8ec1bfecc413c51f83885cda2a8ae0",
+      "bytes": 156685
+    },
+    {
+      "path": "runtime/data/v9/france-crosswalk.json",
+      "sha256": "f050f8ea12d49591b24be2905aa2eaf7bb5bc5480473c59fffdebf72ef852c44",
+      "bytes": 11669931
+    }
+  ],
+  "previousFullFragmentProof": "restoration-20261114/atlante-remote-integrity.json",
+  "allFragmentsRetested": false,
+  "oldBundlePreserved": true
+}
