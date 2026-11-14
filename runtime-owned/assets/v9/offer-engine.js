@@ -99,7 +99,8 @@
   function rankWins(next,current){if(!current)return true;if(next.score!==current.score)return next.score>current.score;return next.sourceId.localeCompare(current.sourceId)<0;}
 
   function mergeEquivalentOffers(current,next){
-    const currentRank=rankOf(current),nextRank=rankOf(next),winner=rankWins(nextRank,currentRank)?clone(next):clone(current),loser=winner===next?current:next;
+    const currentRank=rankOf(current),nextRank=rankOf(next),nextWins=rankWins(nextRank,currentRank);
+    const winner=clone(nextWins?next:current),loser=nextWins?current:next;
     const provenance=[...(current?.provenance||[]),provenanceEntry(current),...(next?.provenance||[]),provenanceEntry(next)];
     const uniqueProv=new Map();
     for(const p of provenance){const key=`${text(p.sourceId)}|${text(p.offerId)}|${number(p.priority)??0}`;uniqueProv.set(key,{sourceId:text(p.sourceId)||'unknown',offerId:text(p.offerId)||null,priority:number(p.priority)??0});}

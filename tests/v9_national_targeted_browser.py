@@ -54,10 +54,14 @@ function targetScope(fragment,reference,offer,raw){
  return matches[0].stationId;
 }
 const selected=process.argv[3]?new Set(JSON.parse(process.argv[3])):null;
-const targets=sources.filter(source=>!selected||selected.has(source)).flatMap(source=>source==='FR:archived_direct_exact'?[{source,family:'zewatt'},{source,family:'zephyre'}]:[{source}]).map(({source,family})=>{
+const targets=sources.filter(source=>!selected||selected.has(source)).flatMap(source=>{
+ if(source==='FR:archived_direct_exact')return[{source,family:'zewatt'},{source,family:'zephyre'}];
+ if(source==='GB:source_ev_pcpr_direct'&&JSON.parse(fs.readFileSync(path.join(process.argv[2],source.replace(':','__')+'.json'))).offers.some(o=>o.calculationHold==='historical_payg_evidence_mismatch'))return[{source},{source,family:'held'}];
+ return[{source}];
+}).map(({source,family})=>{
  const data=JSON.parse(fs.readFileSync(path.join(process.argv[2],source.replace(':','__')+'.json')));
- const rawOnly=['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
- const fragments=adapter.toFragments(data).filter(st=>!family||st.offers.some(o=>o.metadata?.sourceOfferId?.startsWith(family+'-'))).filter(st=>st.latitude!=null&&st.longitude!=null&&(rawOnly?st.unparsedOffers.length:st.offers.length));
+ const rawOnly=family==='held'||['GB:blink_pcpr_direct','GB:allego_pcpr_direct','GB:eco_movement_pcpr_raw','FR:powerdot_direct','NL:electra_direct_exact'].includes(source);
+ const fragments=adapter.toFragments(data).filter(st=>!family||(family==='held'?!st.offers.length&&st.unparsedOffers.some(o=>o.calculationHold==='historical_payg_evidence_mismatch'):st.offers.some(o=>o.metadata?.sourceOfferId?.startsWith(family+'-')))).filter(st=>st.latitude!=null&&st.longitude!=null&&(rawOnly?st.unparsedOffers.length:st.offers.length));
  if(!fragments.length)throw Error('No representative archived offer: '+source);
  // A parking rate is not a billed fee when the default session has no idle
  // period. Select an archived positive charging fee applicable to this session.
@@ -69,7 +73,7 @@ const targets=sources.filter(source=>!selected||selected.has(source)).flatMap(so
  const chosen=candidates.find(x=>x.targetIds.length&&x.targetIds.every(id=>id&&id===x.targetIds[0])&&compound(x.st))||
    candidates.find(x=>x.targetIds.length&&x.targetIds.every(id=>id&&id===x.targetIds[0]))||candidates[0];
  const st=chosen.st,excluded=chosen.targetIds.some(id=>!id)||!chosen.targetIds.length;
- return{source,family,excluded,exclusionReason:excluded?'exact_national_scope_unproved':null,id:excluded?st.canonicalId:chosen.targetIds[0],sourceStationId:st.canonicalId,lat:st.latitude,lon:st.longitude,country:st.countryCode,rawOnly,compound:compound(st),pricedIds:st.offers.map(o=>o.id),rawIds:st.unparsedOffers.map(o=>o.id)};
+ return{source,family,date:family==='held'?'2026-11-14':'2026-10-15',excluded,exclusionReason:excluded?'exact_national_scope_unproved':null,id:excluded?st.canonicalId:chosen.targetIds[0],sourceStationId:st.canonicalId,lat:st.latitude,lon:st.longitude,country:st.countryCode,rawOnly,compound:compound(st),pricedIds:st.offers.map(o=>o.id),rawIds:st.unparsedOffers.map(o=>o.id)};
 });
 console.log(JSON.stringify(targets));
 '''
@@ -97,7 +101,7 @@ const target=arguments[0],done=arguments[1];
  sessionStorage.setItem(`tcc-v9-country:${target.lat.toFixed(3)},${target.lon.toFixed(3)}`,target.country);
  document.getElementById('simOrigin').value=target.source;
  document.getElementById('simMaxDistance').value='2';
- document.getElementById('simDate').value='2026-10-15';
+ document.getElementById('simDate').value=target.date;
  document.getElementById('simTime').value='14:00';
  document.getElementById('simUnplugTime').value='';
  document.getElementById('simOperatorFilter').dataset.v9Mode='all';
@@ -131,7 +135,7 @@ const target=arguments[0],done=arguments[1];
  card.querySelectorAll('details').forEach(el=>el.open=true);
  const text=card.textContent;
  const calculated=[...card.querySelectorAll('[data-v9-effective-total]')].map(el=>Number(el.dataset.v9EffectiveTotal));
- return{source:target.source,stationId:target.id,page:map.page,offers:offers.length,raw:raw.length,badScope,missingOfferIds,missingRawIds,
+ return{source:target.source,family:target.family||null,stationId:target.id,page:map.page,offers:offers.length,raw:raw.length,badScope,missingOfferIds,missingRawIds,
    complete:evaluated.filter(o=>o.result?.complete&&Number.isFinite(o.costPerRecoveredKm)).length,
    compound:evaluated.some(o=>o.result?.complete&&(o.result.components?.chargingTime>0||o.result.components?.parkingTime>0)),
    calculated,rawLabel:text.includes('Tarif incalculable'),channels:['Direct','Electra','Electroverse'].every(c=>text.includes(c)),

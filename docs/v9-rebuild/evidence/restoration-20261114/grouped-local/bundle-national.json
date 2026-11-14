@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "bundleId": "c49ade5f92a4f185b5e67ccd4a4e7dca32c06479285c6ac29d0c4ff802dbcb96",
+  "previous": "b87a89b7738dbff72421a35776da1c4be03e3e21ebfb820b695283ad4c9d11a6",
+  "changedSources": [
+    "FR:izivia_fast_map",
+    "FR:ozecar_monta",
+    "GB:source_ev_pcpr_direct"
+  ],
+  "unchangedSources": [
+    "BE:nap_static",
+    "BE:powerdot_direct",
+    "CH:swiss_integration",
+    "DE:bnetza_afir_archive",
+    "DE:ionity_direct",
+    "ES:reve_static",
+    "FR:allego_direct",
+    "FR:archived_direct_exact",
+    "FR:atlante_direct",
+    "FR:belib_stations",
+    "FR:bump_national_exact",
+    "FR:driveco_evse_tariffs",
+    "FR:electra_emsp_exact",
+    "FR:emsp_exact",
+    "FR:ionity_direct",
+    "FR:irve_static",
+    "FR:powerdot_direct",
+    "FR:zephyre_epowerdirect_exact",
+    "GB:allego_pcpr_direct",
+    "GB:blink_pcpr_direct",
+    "GB:connected_kerb_midhope_verified",
+    "GB:eco_movement_pcpr_raw",
+    "GB:gridserve_pcpr_direct",
+    "GB:ionity_direct",
+    "GB:ubitricity_pcpr_direct",
+    "IT:atlante_direct",
+    "IT:ionity_direct",
+    "MA:evgo",
+    "NL:dotnl_static",
+    "NL:electra_direct_exact"
+  ]
+}
