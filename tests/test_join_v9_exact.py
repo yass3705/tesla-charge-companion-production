@@ -44,6 +44,12 @@ class ExactJoinTest(unittest.TestCase):
         self.national["evses"].append({"id": "n3", "country": "FR", "officialEvseId": "FR*ABC*E1", "stationId": "other"})
         self.assertEqual(MODULE.match_offers(self.national, [self.source()])["unmatched"][0]["reason"], "ambiguous_exact_evse")
 
+    def test_ambiguity_remains_after_a_restricted_station_is_filtered(self):
+        self.national["evses"][0]["rawSourceFields"] = {"ambiguousNationalEvseId": True}
+        result = MODULE.match_offers(self.national, [self.source()])
+        self.assertEqual(result["matches"], [])
+        self.assertEqual(result["unmatched"][0]["reason"], "ambiguous_exact_evse")
+
     def test_archived_electra_nl_connector_crosswalk(self):
         tariff = "NL:ELD:ELECTRA-PAYG:d2f126b4e593a5d4"
         national = {"schemaVersion": "1.0.0", "stations": [{"stationId": "NL:ELD:NL*ELD*PBARDB",

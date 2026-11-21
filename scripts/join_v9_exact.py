@@ -39,6 +39,9 @@ def match_offers(national: dict, tariff_sources: list[dict]) -> dict:
                 unmatched.append({"offerId": offer["id"], "sourceId": source_id, "reason": "no_exact_evse" if not candidates else "ambiguous_exact_evse"})
                 continue
             target = candidates[0]
+            if (target.get("rawSourceFields") or {}).get("ambiguousNationalEvseId"):
+                unmatched.append({"offerId": offer["id"], "sourceId": source_id, "reason": "ambiguous_exact_evse"})
+                continue
             target_connector_id = None
             source_connector_id = scope.get("connectorId")
             if source_connector_id is not None:

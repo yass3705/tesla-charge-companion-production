@@ -53,11 +53,14 @@ def national_policy(candidate: Path, index: dict) -> dict:
         if catalogues.get(country) != source["source"]:
             continue
         counts = Counter()
+        conflicting = set()
         for descriptor in source.get("shards", [source]):
             raw = (candidate / descriptor["path"]).read_bytes()
             data = json.loads(gzip.decompress(raw) if descriptor.get("encoding") == "gzip" else raw)
             counts.update(row["officialEvseId"] for row in data["evses"] if row.get("officialEvseId"))
-        ambiguous[country] = sorted(key for key, count in counts.items() if count > 1)
+            conflicting.update(row["officialEvseId"] for row in data["evses"] if row.get("officialEvseId")
+                               and (row.get("rawSourceFields") or {}).get("ambiguousNationalEvseId"))
+        ambiguous[country] = sorted(conflicting.union(key for key, count in counts.items() if count > 1))
     return {"schemaVersion": 1, "bundleId": index["bundleId"],
             "indexSha256": digest((candidate / "index.json").read_bytes()),
             "catalogues": catalogues, "ambiguousEvseIds": ambiguous}
