@@ -1,3 +1,9 @@
+## Recette distante du candidat suisse du 21 novembre
+
+[Ouvrir le brouillon de recette](https://6b01a403ef31f5a551927fa2--tcc-v9-preproduction-20261028.netlify.app). Le manifeste servi et les 3 242 fragments ont été comparés aux octets locaux. Firefox a vérifié 24 parcours tarifaires, onze recherches ordinaires dans les neuf pays, les neuf parcours Tesla, les contrôles G9 et le mobile. Les deux stations suisses qui partagent un identifiant EVSE sont distinctes et aucun prix ne leur est attribué par cet identifiant ambigu. Le brouillon précédent reste accessible et les deux ressources témoins du site public ont conservé leur SHA.
+
+Amsterdam à 100 km conserve les 64,019 stations, les montants, la carte, la pagination et le classement de l’oracle de comparaison. La mesure distante isolée est de 56.796 s à froid. Ce délai demeure une limite G7/G8. Les cadences installées et les dernières acquisitions britanniques sont suivies séparément du contenu servi. G2–G8 restent ouverts. [Preuves de la recette](evidence/restoration-20261121/swiss-consolidated/remote-integrity.json).
+
 ## Recette distante du 21 novembre — candidat 6b019c9c
 
 [Brouillon Netlify](https://6b019c9cdd3d0f7827ea0491--tcc-v9-preproduction-20261028.netlify.app). Vérification HTTPS, noindex, manifeste, ressources critiques et 3 244 fragments signés. Firefox a vérifié les 24 parcours tarifaires, onze recherches sur neuf pays, les fiches Tesla de neuf pays, les contrôles G9 et le mobile. Le brouillon précédent répond toujours avec son bundle identifié. Les empreintes du site public sont conservées. [Preuves distantes](evidence/restoration-20261121/consolidated/remote-integrity.json).

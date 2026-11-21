@@ -1,0 +1,11 @@
+{
+  "nationalSHA": "8aa2d9e61412c8d034307617f34dd47119e24ae51eeffc128ea75dbc5635334c",
+  "publicSHA": "fe5fd0f32af775827f8625c2caba232ffaf6302276e6f6df515f72a3ab5c5fb4",
+  "canonicalSHA": "22ad8af515d7398c37d52a23e58a3a7dd5e8b242a14a16c9830c4278b70a0bcf",
+  "publicEvses": 15213,
+  "ambiguousPublicRows": 163,
+  "offers": 13260,
+  "ambiguousOffers": 0,
+  "source": "CH:swiss_integration",
+  "snapshotServed": false
+}
