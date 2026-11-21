@@ -563,9 +563,18 @@
   }
   // A lane is evaluated independently. Distinct tariffs for a single EVSE/power
   // are not ranked against each other: their evidence is marked ambiguous.
-  function tariffLaneState(evaluation,station,category){
-    const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])]
-      .filter(item=>item&&offerPriceCategory(item)===category);
+  function evaluationLanes(evaluation){
+    const lanes=new Map();
+    for(const item of [evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])]){
+      if(!item)continue;
+      const category=offerPriceCategory(item);
+      if(!lanes.has(category))lanes.set(category,[]);
+      lanes.get(category).push(item);
+    }
+    return lanes;
+  }
+  function tariffLaneState(evaluation,station,category,laneOffers){
+    const offers=laneOffers??evaluationLanes(evaluation).get(category)??[];
     if(!offers.length){
       if(!station?.unparsedOffers?.length)return{status:'missing',item:null,offers:[],diagnostics:[]};
       const evseIds=new Set((station?.evses||[]).map(evse=>text(evse.id)).filter(Boolean));
@@ -828,7 +837,9 @@
     if(!evaluation)return evaluation;
     const all=[evaluation.best,...(evaluation.alternatives||[])].filter(Boolean);
     const lanes=['direct',...(selectedSubscriptions||[]).map(id=>'subscription:'+text(id)),'electra','electroverse'];
-    const valid=lanes.map(lane=>tariffLaneState(evaluation,station,lane))
+    const grouped=evaluationLanes(evaluation);
+    const valid=lanes.filter(lane=>grouped.get(lane)?.some(pricedItem))
+      .map(lane=>tariffLaneState(evaluation,station,lane,grouped.get(lane)))
       .filter(state=>state.status==='priced'&&state.item).map(state=>state.item)
       .sort((a,b)=>Number(a.total)-Number(b.total));
     const best=valid[0]||null;
@@ -1017,7 +1028,7 @@
   }
   function cardLanes(subscriptions=[]){return['direct',...(subscriptions||[]).map(id=>'subscription:'+text(id)),'electra','electroverse'];}
   function stationCards(variants,subscriptions=[],summaryOnly=false){
-    const cards=new Map();
+    const cards=new Map(),lanes=cardLanes(subscriptions);
     for(const [index,row] of (variants||[]).entries()){
       const station=row?.station||{},id=text(station.id||station.canonicalId||station.stationId);
       // A missing identifier must never merge two stations by name or location.
@@ -1044,6 +1055,11 @@
         }
         card.station={...card.station,evses:[...evses.values()]};
       }
+      const grouped=evaluationLanes(row.evaluation);
+      // A lane can be priced only if it contains a priced candidate. Keep all
+      // candidates in that lane for the per-PDC ambiguity and scope checks.
+      const rankable=lanes.filter(lane=>grouped.get(lane)?.some(pricedItem));
+      if(summaryOnly&&!rankable.length)continue;
       const entries=pdcEntries(row);
       let group;
       if(!summaryOnly){
@@ -1058,8 +1074,8 @@
       for(const pdc of entries){
         if(group){card.pdcIds.add(pdc.id);group.pdcIds.add(pdc.id);}
         const scoped={...station,evses:pdc.evses};
-        for(const lane of cardLanes(subscriptions)){
-          const state=tariffLaneState(row.evaluation,scoped,lane);
+        for(const lane of rankable){
+          const state=tariffLaneState(row.evaluation,scoped,lane,grouped.get(lane));
           if(state.status!=='priced'||!pricedItem(state.item))continue;
           const total=state.item.congestion?.available?congestionAdjustedTotal(state.item,congestionLaneKey(scoped,row.evaluation,lane)):num(state.item.total);
           if(total==null)continue;

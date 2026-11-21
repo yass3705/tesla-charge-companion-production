@@ -70,7 +70,7 @@ def verify(site: Path, base_url: str, read, *, allow_local: bool = False,
                 "runtime/assets/v9/adapters/canonical-v9.js", "runtime/assets/v9/adapters/tesla-json.js",
                 "runtime/assets/v9/pricing-engine.js", "runtime/assets/v9/session-engine.js",
                 "runtime/assets/v9/charge-model-engine.js", "runtime/assets/v9/session-planner-engine.js",
-                "runtime/data/tesla_stations.json", "data/exchange_rates.json",
+                "runtime/data/tesla_stations.json", "data/tesla_stations.json", "runtime/assets/v9/runtime-engine.js", "data/exchange_rates.json",
                 "runtime/assets/v9/offer-engine.js", "runtime/assets/v9/runtime-engine.js"]
     assets=list(ASSETS)+[path for path in additional if (site/path).is_file()]
     if config.get("nationalPolicySha256"):

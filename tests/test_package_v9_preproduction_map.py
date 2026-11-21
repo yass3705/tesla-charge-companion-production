@@ -52,6 +52,26 @@ class PreparedMapPackageTests(unittest.TestCase):
                                   "path": "sources/FR__ionity_direct.json",
                                   "sha256": hashlib.sha256(data).hexdigest()}]}
             (candidate / "index.json").write_text(json.dumps(index))
+            mac = root / "ingress"
+            raw = json.dumps([{"id": "mac", "countryCode": "FR", "pricing": {},
+                               "chargingConfigurations": [{"id": "source-config"}]}]).encode()
+            folder = mac / "data/tesla/mac"
+            folder.mkdir(parents=True)
+            (folder / "catalogue.json").write_bytes(raw)
+            mac_sha = hashlib.sha256(raw).hexdigest()
+            (folder / "last-good.json").write_text(json.dumps({
+                "status": "last-good", "schemaVersion": 1, "cataloguePath": "data/tesla/mac/catalogue.json",
+                "catalogueCommit": "c"*40, "catalogueSha256": mac_sha, "catalogueBytes": len(raw),
+                "stationCount": 1, "countryDates": {"FR": "2026-10-23"}, "countriesUpdated": ["FR"],
+                "sourceRepository": "yass3705/tesla-charge-companion-production",
+                "sourcePath": "data/tesla/mac/staging/catalogue.json"}))
+            with self.assertRaisesRegex(ValueError, "SHA mismatch"):
+                package(site, candidate, root/"bad-renewal", tesla_mac=mac, tesla_sha256="0"*64)
+            renewed = root / "with-mac-ingress"
+            package(site, candidate, renewed, tesla_mac=mac, tesla_sha256=mac_sha)
+            self.assertEqual((renewed/"v9-production-runtime/data/tesla_stations.json").read_bytes(), raw)
+            self.assertEqual(json.loads((renewed/"v9-production-shell/shell-config.json").read_bytes())["teslaArtifactSha256"], mac_sha)
+            self.assertEqual((site/"v9-production-runtime/data/tesla_stations.json").read_bytes(), tesla)
             result = package(site, candidate, output)
             self.assertTrue(result["notPublished"])
             for name in ["charge-model-engine.js", "session-planner-engine.js"]:

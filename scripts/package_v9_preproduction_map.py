@@ -20,6 +20,11 @@ import sys
 import tempfile
 from pathlib import Path, PurePosixPath
 
+if __package__:
+    from .tesla_mac_source import verify as verify_tesla_mac
+else:
+    from tesla_mac_source import verify as verify_tesla_mac
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -305,7 +310,7 @@ def verify_preview_manifest(site: Path, bundle_id: str) -> bool:
     return True
 
 
-def package(site: Path, candidate: Path, destination: Path, fx: Path | None = None, fx_sha256: str | None = None) -> dict:
+def package(site: Path, candidate: Path, destination: Path, fx: Path | None = None, fx_sha256: str | None = None, *, tesla_mac: Path | None = None, tesla_sha256: str | None = None) -> dict:
     fx_bytes = None
     if fx is not None or fx_sha256 is not None:
         if fx is None or not re.fullmatch(r"[a-f0-9]{64}", fx_sha256 or ""):
@@ -348,11 +353,26 @@ def package(site: Path, candidate: Path, destination: Path, fx: Path | None = No
     if (len(manifest_rows) != 1 or manifest_rows[0].get("bytes") != len(tesla_bytes) or
             manifest_rows[0].get("sha256") != digest(tesla_bytes)):
         raise ValueError("Historical Tesla import SHA mismatch")
+    mac_proof = None
+    if tesla_mac is not None or tesla_sha256 is not None:
+        if tesla_mac is None or not re.fullmatch(r"[a-f0-9]{64}", tesla_sha256 or ""):
+            raise ValueError("Renewed Tesla catalogue requires its pinned SHA")
+        mac_proof, catalogue = verify_tesla_mac(tesla_mac)
+        tesla_bytes = catalogue.read_bytes()
+        if mac_proof["catalogueSha256"] != tesla_sha256 or digest(tesla_bytes) != tesla_sha256:
+            raise ValueError("Renewed Tesla catalogue SHA mismatch")
     index = check_candidate(candidate)
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="tcc-v9-isolated-", dir=destination.parent) as tmp:
         stage = Path(tmp) / "site"
         shutil.copytree(site, stage, copy_function=copy_preview_file)
+        if mac_proof:
+            (stage / runtime / tesla_sources[0]["path"]).write_bytes(tesla_bytes)
+            mirror = stage / tesla_sources[0]["path"]
+            if mirror.exists():
+                mirror.write_bytes(tesla_bytes)
+            config["teslaCountryDates"] = mac_proof["countryDates"]
+            config["teslaCatalogueCommit"] = mac_proof["catalogueCommit"]
         if fx_bytes is not None:
             (stage / "data/exchange_rates.json").write_bytes(fx_bytes)
             config["fxArtifactSha256"] = fx_sha256
@@ -440,8 +460,10 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True, help="NEW directory OUTSIDE Production checkout")
     parser.add_argument("--fx", type=Path)
     parser.add_argument("--fx-sha256")
+    parser.add_argument("--tesla-mac", type=Path)
+    parser.add_argument("--tesla-sha256")
     args = parser.parse_args()
-    print(json.dumps(package(args.site, args.prepared, args.out, args.fx, args.fx_sha256), ensure_ascii=False))
+    print(json.dumps(package(args.site, args.prepared, args.out, args.fx, args.fx_sha256, tesla_mac=args.tesla_mac, tesla_sha256=args.tesla_sha256), ensure_ascii=False))
 
 
 if __name__ == "__main__":

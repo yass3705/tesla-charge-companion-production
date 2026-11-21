@@ -1,3 +1,7 @@
+## Nouveau candidat isolé : catalogue Tesla/Mac et classement
+
+L’empaquetage accepte le catalogue Tesla/Mac autonome sous réserve de vérification de son manifeste d’origine et de son SHA attendu. Les deux chemins servis reçoivent les mêmes octets. La version précédente reste intacte. Le classement réutilise les listes de candidats par canal lors des évaluations par PDC, tout en vérifiant les ambiguïtés sur chaque PDC. Firefox sur les entrées locales de comparaison : 50,015 s et mêmes empreintes pour les 64 019 stations. Les cinq modes passent leur oracle. [Mesure locale](evidence/restoration-20261121/dense-rankable-local.json).
+
 ## Import du catalogue Tesla/Mac
 
 Le constructeur Production vérifie le contenu et les SHA du manifeste Mac, l’origine, les identités, les configurations et les dates des pays déclarés. Le plancher de 1 100 stations et la liste fixe des pays historiques ont été retirés. L’archive réelle et le cas d’un lot à une seule station passent. Les altérations du contenu, du compteur, de la provenance et de la portée datée sont rejetées. Le collecteur Mac reste autonome. Ce contrôle porte sur l’import et le dernier catalogue disponible ; aucune nouvelle acquisition Mac n’en découle.
