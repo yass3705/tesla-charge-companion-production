@@ -39,7 +39,7 @@ def match_offers(national: dict, tariff_sources: list[dict]) -> dict:
                 unmatched.append({"offerId": offer["id"], "sourceId": source_id, "reason": "no_exact_evse" if not candidates else "ambiguous_exact_evse"})
                 continue
             target = candidates[0]
-            if (target.get("rawSourceFields") or {}).get("ambiguousNationalEvseId"):
+            if isinstance(target.get("rawSourceFields"), dict) and target["rawSourceFields"].get("ambiguousNationalEvseId"):
                 unmatched.append({"offerId": offer["id"], "sourceId": source_id, "reason": "ambiguous_exact_evse"})
                 continue
             target_connector_id = None

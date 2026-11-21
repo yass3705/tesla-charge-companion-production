@@ -24,6 +24,7 @@ class ExactJoinTest(unittest.TestCase):
                 "offers": [{"id": "offer", "channel": channel, "scope": {"evseId": "s1", "connectorId": "sc1"}}]}
 
     def test_exact_connector_only_and_channel(self):
+        self.national["evses"][0]["rawSourceFields"] = ["preserved source record"]
         result = MODULE.match_offers(self.national, [self.source(channel="Electroverse")])
         self.assertEqual(result["matches"][0]["nationalConnectorId"], "c1")
         self.assertEqual(result["matches"][0]["channel"], "Electroverse")

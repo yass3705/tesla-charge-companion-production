@@ -59,7 +59,8 @@ def national_policy(candidate: Path, index: dict) -> dict:
             data = json.loads(gzip.decompress(raw) if descriptor.get("encoding") == "gzip" else raw)
             counts.update(row["officialEvseId"] for row in data["evses"] if row.get("officialEvseId"))
             conflicting.update(row["officialEvseId"] for row in data["evses"] if row.get("officialEvseId")
-                               and (row.get("rawSourceFields") or {}).get("ambiguousNationalEvseId"))
+                               and isinstance(row.get("rawSourceFields"), dict)
+                               and row["rawSourceFields"].get("ambiguousNationalEvseId"))
         ambiguous[country] = sorted(conflicting.union(key for key, count in counts.items() if count > 1))
     return {"schemaVersion": 1, "bundleId": index["bundleId"],
             "indexSha256": digest((candidate / "index.json").read_bytes()),
