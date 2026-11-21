@@ -1,3 +1,11 @@
+## Recette distante du 21 novembre — candidat 6b019c9c
+
+[Brouillon Netlify](https://6b019c9cdd3d0f7827ea0491--tcc-v9-preproduction-20261028.netlify.app). Vérification HTTPS, noindex, manifeste, ressources critiques et 3 244 fragments signés. Firefox a vérifié les 24 parcours tarifaires, onze recherches sur neuf pays, les fiches Tesla de neuf pays, les contrôles G9 et le mobile. Le brouillon précédent répond toujours avec son bundle identifié. Les empreintes du site public sont conservées. [Preuves distantes](evidence/restoration-20261121/consolidated/remote-integrity.json).
+
+Amsterdam à 100 km : 64 019 stations, mêmes signatures de carte, classement, pagination et évaluations ; 52,961 s à froid sans autre session Firefox, 114,465 s pendant les recettes concurrentes. Le délai reste une limite utilisateur. [Mesure isolée](evidence/restoration-20261121/consolidated/dense-remote-isolated.json).
+
+Les collectes IONITY, les connecteurs EVGO et l’import du dernier catalogue Tesla/Mac ont alimenté ce candidat. La couverture et la fraîcheur des trois canaux restent propres à chaque source. Les autres cadences et transferts ouverts, le cache Electroverse incomplet et la latence dense empêchent la clôture globale G2–G8.
+
 ## Recette du lot Tesla/Mac et EVGO
 
 Le bundle 9dd05c6d réutilise les 32 sources identiques du lot précédent et remplace uniquement EVGO. Le catalogue Tesla/Mac autonome, importé séparément, a sa propre empreinte 5794c764. Le scénario du Chesnay à 14 h pour 45 kWh donne 18,00 € sur cette entrée, contre 18,90 € sur l’archive antérieure. Le contrôle vérifie la tranche de la configuration source, sa devise et ses frais avant de comparer le résultat Firefox. L’oracle antérieur reste associé à son SHA. Les deux entrées ont des règles différentes. La recette Tesla locale couvre les neuf pays. [Parcours](evidence/restoration-20261121/consolidated/tesla-nine-local.json).
