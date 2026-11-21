@@ -41,6 +41,57 @@ def write_json(path,obj):
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(obj,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 
+def validate_gridserve_snapshot(grid_payload, verified, crosswalk):
+    sources=grid_payload.get("sources") or []
+    if len(sources)!=1 or sources[0].get("id")!="gridserve-pcpr-direct":
+        raise AssertionError("Gridserve runtime source identity mismatch")
+    if verified.get("status")!="validated_public_connector_exact" or verified.get("validatedForV9") is not True:
+        raise AssertionError("Gridserve public-only validation missing")
+    if grid_payload.get("collectedAt")!=verified.get("collectedAt"):
+        raise AssertionError("Gridserve public-only dataset / audit timestamp mismatch")
+    grid_locs=sources[0].get("locations") or []
+    grid_tariffs={str(t.get("id")):t for t in sources[0].get("tariffs") or []}
+    if len(grid_locs)!=verified.get("publicLocations") or len(grid_tariffs)!=verified.get("distinctExactTariffIds"):
+        raise AssertionError("Gridserve public location / tariff coverage mismatch")
+    if len(grid_tariffs) != len(sources[0].get("tariffs", [])) or any(t.get("id") is None for t in grid_tariffs.values()):
+        raise AssertionError("Gridserve duplicate or missing tariff identity")
+    scopes = {}
+    location_ids = set()
+    public_connectors=priced=0
+    for loc in grid_locs:
+        if loc.get("publish") is not True or str(loc.get("country_code"))!="GB":
+            raise AssertionError("Unpublished / non-GB Gridserve site in V9")
+        if not loc.get("id") or loc["id"] in location_ids:
+            raise AssertionError("Gridserve missing or duplicated source location")
+        location_ids.add(loc["id"])
+        for evse in loc.get("evses") or []:
+            if str(evse.get("status")).upper()=="REMOVED":
+                raise AssertionError("Retired Gridserve EVSE in V9")
+            for conn in evse.get("connectors") or []:
+                public_connectors+=1
+                tids=conn.get("tariff_ids") or []
+                if any(str(tid) not in grid_tariffs for tid in tids):
+                    raise AssertionError("Gridserve connector with unresolved tariff")
+                key = (loc["id"], evse.get("uid"), conn.get("id"))
+                if (not all(key) or key in scopes or len(set(tids)) != len(tids)
+                        or any(grid_tariffs[str(tid)].get("party_id") != loc.get("party_id") for tid in tids)):
+                    raise AssertionError("Gridserve connector identity or tariff owner mismatch")
+                scopes[key] = sorted(tids)
+                priced+=bool(tids)
+    if (public_connectors!=verified.get("publicConnectors")
+        or priced!=verified.get("exactPricedConnectors")
+        or public_connectors!=priced+verified.get("unpricedPublicConnectors",0)
+        or verified.get("publicUnmappedTariffReferences")):
+        raise AssertionError("Gridserve public-only exact connector integrity regression")
+    if crosswalk.get("collectedAt") != grid_payload["collectedAt"] or crosswalk.get("provider") != "GRIDSERVE":
+        raise AssertionError("Gridserve connector evidence origin mismatch")
+    links = crosswalk["links"]
+    exact = {(row["locationId"], row["evseUid"], row["connectorId"]): sorted(row["tariffIds"]) for row in links}
+    if (len(exact) != len(links) or exact != scopes
+            or any(link.get("priceVerified") is not bool(link["tariffIds"]) for link in links)):
+        raise AssertionError("Gridserve exact connector evidence mismatch")
+
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--stable",required=True)
@@ -792,35 +843,8 @@ def main():
     if grid_data.exists() and grid_report.exists():
         with gzip.open(grid_data,"rt",encoding="utf-8") as f: grid_payload=json.load(f)
         verified=load_json(grid_report)
-        sources=grid_payload.get("sources") or []
-        if len(sources)!=1 or sources[0].get("id")!="gridserve-pcpr-direct":
-            raise AssertionError("Gridserve runtime source identity mismatch")
-        if verified.get("status")!="validated_public_connector_exact" or verified.get("validatedForV9") is not True:
-            raise AssertionError("Gridserve public-only validation missing")
-        if grid_payload.get("collectedAt")!=verified.get("collectedAt"):
-            raise AssertionError("Gridserve public-only dataset / audit timestamp mismatch")
-        grid_locs=sources[0].get("locations") or []
-        grid_tariffs={str(t.get("id")):t for t in sources[0].get("tariffs") or []}
-        if len(grid_locs)!=verified.get("publicLocations") or len(grid_tariffs)!=verified.get("distinctExactTariffIds"):
-            raise AssertionError("Gridserve public location / tariff coverage mismatch")
-        public_connectors=priced=0
-        for loc in grid_locs:
-            if loc.get("publish") is not True or str(loc.get("country_code"))!="GB":
-                raise AssertionError("Unpublished / non-GB Gridserve site in V9")
-            for evse in loc.get("evses") or []:
-                if str(evse.get("status")).upper()=="REMOVED":
-                    raise AssertionError("Retired Gridserve EVSE in V9")
-                for conn in evse.get("connectors") or []:
-                    public_connectors+=1
-                    tids=conn.get("tariff_ids") or []
-                    if any(str(tid) not in grid_tariffs for tid in tids):
-                        raise AssertionError("Gridserve connector with unresolved tariff")
-                    priced+=bool(tids)
-        if (len(grid_locs)<100 or public_connectors!=verified.get("publicConnectors")
-            or priced!=verified.get("exactPricedConnectors")
-            or public_connectors!=priced+verified.get("unpricedPublicConnectors",0)
-            or verified.get("publicUnmappedTariffReferences")):
-            raise AssertionError("Gridserve public-only exact connector integrity regression")
+        with gzip.open(dl/"reports/uk/gridserve-v9-connector-crosswalk.json.gz", "rt", encoding="utf-8") as stream:
+            validate_gridserve_snapshot(grid_payload, verified, json.load(stream))
         current_registry=load_json(registry)
         grid_source=next(s for s in current_registry["sources"] if s.get("id")=="uk-gridserve-pcpr-direct")
         grid_source["active"]=True
