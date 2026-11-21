@@ -1234,7 +1234,7 @@
       const pending=(async()=>{
         const summaries=[];let inventory=[],count=Infinity,lastYield=performance.now();
         for(let offset=0;offset<count;offset+=40){
-          const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitMapInventory:offset>0});
+          const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitSubscriptionOptions:true,omitMapInventory:offset>0});
           if(offset===0){count=Number(batch.diagnostics?.sourceStationCount) || batch.stations.length;inventory=batch.mapStations||[];}
           const baseRows=rowsFromArea(batch,origin),pricedStations=baseRows.filter(row=>row.station.offers?.length),unpriced=baseRows.filter(row=>!row.station.offers?.length);
           const evaluated=stationCards(variantsByPower(w,pricedStations,batch.effectiveSession||query.session,selected)

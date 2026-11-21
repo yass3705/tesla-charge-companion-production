@@ -1,3 +1,7 @@
+## Catalogue des abonnements pendant le classement
+
+Le balayage de classement évalue toujours les abonnements sélectionnés. Seule la construction du menu des abonnements est réservée à la page visible. Le runtime réutilise aussi le même index des stations pour le routage. Les tests du runtime et des cinq modes de classement passent. Sur le paquet local de comparaison, Firefox mesure 52,610 s avec les mêmes stations, classements, évaluations et cartes. Ce changement postérieur au brouillon reste validé localement. [Mesure et empreintes](evidence/restoration-20261121/dense-summary-subscriptions-local.json).
+
 ## Amsterdam à 100 km sur le brouillon du 21 novembre
 
 Firefox a mesuré 51,419 secondes à froid sur le brouillon 6b01917b. Les 64 019 stations, le classement, les évaluations, la carte et la page ont les mêmes empreintes que dans le paquet local aux mêmes entrées. Le premier essai distant avait renvoyé un résultat nul sans motif exploitable. Le banc de mesure restitue désormais le message de l'application dans ce cas. La répétition a abouti, avec zéro erreur de source. La latence reste une limite G7/G8. [Mesure distante](evidence/restoration-20261121/renewed-ionity/dense-amsterdam.json).
