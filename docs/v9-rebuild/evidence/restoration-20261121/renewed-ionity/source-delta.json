@@ -1,0 +1,74 @@
+[
+  {
+    "source": "DE:ionity_direct",
+    "collectionRun": 44902592666,
+    "productionImportRun": 44903986822,
+    "servedCanonicalSha256": "222ea1afb29beac24126edcdea4256fd7a799f5caf1e3ca2b0f63a3057f7caf6",
+    "stations": {
+      "added": 2,
+      "removed": 0
+    },
+    "evses": {
+      "added": 18,
+      "removed": 0
+    },
+    "offers": {
+      "added": 18,
+      "removed": 0
+    }
+  },
+  {
+    "source": "FR:ionity_direct",
+    "collectionRun": 44902592666,
+    "productionImportRun": 44903986822,
+    "servedCanonicalSha256": "fed6536ad116e2ff17585aa7938efe8f3357eccba6be2c2d40e6081cacd31a8a",
+    "stations": {
+      "added": 0,
+      "removed": 0
+    },
+    "evses": {
+      "added": 6,
+      "removed": 0
+    },
+    "offers": {
+      "added": 6,
+      "removed": 0
+    }
+  },
+  {
+    "source": "GB:ionity_direct",
+    "collectionRun": 44902592666,
+    "productionImportRun": 44903986822,
+    "servedCanonicalSha256": "c2b9e5b08c7c380a51849e673a3d081e5d784ba301405c8728dea8aa1e84fdc0",
+    "stations": {
+      "added": 2,
+      "removed": 0
+    },
+    "evses": {
+      "added": 32,
+      "removed": 2
+    },
+    "offers": {
+      "added": 32,
+      "removed": 2
+    }
+  },
+  {
+    "source": "IT:ionity_direct",
+    "collectionRun": 44902592666,
+    "productionImportRun": 44903986822,
+    "servedCanonicalSha256": "d305ffd761ddbb55eee8a05da1a2c8f24c9a2cd937081857ceb83e0df11da6ff",
+    "stations": {
+      "added": 1,
+      "removed": 0
+    },
+    "evses": {
+      "added": 10,
+      "removed": 0
+    },
+    "offers": {
+      "added": 10,
+      "removed": 0
+    }
+  }
+]

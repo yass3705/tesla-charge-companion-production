@@ -1,3 +1,7 @@
+## Candidat IONITY renouvelé — recette distante du 21 novembre
+
+Le brouillon https://6b01917b60790d93e2aff701--tcc-v9-preproduction-20261028.netlify.app sert le bundle 96bfbdaf4210a72e96fd85ca41b483deffd5d33663572965e7822ca057c6c8f2. Les quatre jeux IONITY issus du run 44902592666, importés par le run 44903986822, remplacent leurs versions antérieures. Les 29 autres sources sont conservées. Vérification distante du paquet, des fragments, des parcours tarifaires, des neuf pays et du mobile réussie. Le brouillon c49ade5f est disponible en retour arrière. Les nouveaux horaires Data Lab doivent encore être observés sur leur événement réel ; REVE est partiel. La couverture complète et la performance dense restent ouvertes. [Preuves](evidence/restoration-20261121/renewed-ionity/remote-integrity.json).
+
 ## Import automatisé vérifié — 21 novembre
 
 Le run 44903986822 du workflow permanent importe la collecte IONITY précédente via le code Production fd9adbe. Les dix fichiers de son artefact 14707341515 sont identiques à une reproduction locale indépendante. Les quatre pays FR, DE, IT et GB et leurs relations et SHA passent. Huit tests d’import et un essai d’altération de la collecte passent. Cette preuve porte sur un rejeu manuel distant. La cadence reste à démontrer sur son propre événement et le brouillon c49ade5f précède ce renouvellement. [Reçu de l’import](evidence/restoration-20261121/github-import-ionity.json).
