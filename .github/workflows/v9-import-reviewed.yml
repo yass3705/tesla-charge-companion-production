@@ -1,0 +1,45 @@
+name: Import reviewed Data Lab collection into an isolated snapshot
+on:
+  workflow_call:
+    inputs:
+      collection_run:
+        required: true
+        type: string
+      production_sha:
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  import:
+    if: github.repository == 'yass3705/tesla-charge-companion-data-lab' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: yass3705/tesla-charge-companion-production
+          ref: ${{ inputs.production_sha }}
+          path: production
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 00b3ef4228e5c8ce30013f2f8c2527340dd03f86
+          path: data-lab
+          persist-credentials: false
+      - name: Check the producer and download its immutable collection
+        env:
+          RUN_ID: ${{ inputs.collection_run }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 production/scripts/download_v9_scheduled_ionity.py "$RUN_ID" "$RUNNER_TEMP/input"
+      - name: Normalize and import exact sources
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/data-lab" python3 production/scripts/import_v9_scheduled_ionity.py --collection "$RUNNER_TEMP/input/collection" --provenance "$RUNNER_TEMP/input/provenance.json" --out "$RUNNER_TEMP/snapshot"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tcc-v9-import-IONITY
+          path: ${{ runner.temp }}/snapshot
+          if-no-files-found: error
+          retention-days: 30
