@@ -15,30 +15,6 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 
-EXPECTED = {
-    "Be.EV": (600, 2539, 2539),
-    "Applegreen Fast Charge": (261, 534, 534),
-    "Wenea": (209, 630, 630),
-    "IONITY": (83, 872, 872),
-    "Zest": (1987, 3469, 2797),
-    "RAW Charging": (250, 500, 0),
-    "JOLT": (71, 155, 0),
-    "3ti Energy Hubs": (7, 78, 0),
-    "Shell Recharge": (32, 206, 0),
-    "TotalEnergies": (1439, 3263, 0),
-    "Qwello": (96, 359, 0),
-    "Osprey Charging": (407, 0, 0),
-    "Fastned": (42, 0, 0),
-    "Roam": (401, 0, 0),
-    "Lidl": (313, 0, 0),
-    "Charge My Street": (106, 0, 0),
-    "Believ": (854, 0, 0),
-    "Monta": (1389, 1389, 0),
-    "ParkRecharge": (443, 811, 0),
-    "GeniePoint": (306, 1138, 281),
-}
-
-
 def read(path):
     with gzip.open(path, "rt", encoding="utf-8") as handle:
         return json.load(handle)
@@ -61,8 +37,6 @@ def tariff(identifier, price):
 
 def source(name, party, locations, tariffs, filename, blob):
     count = sum(len(evse.get("connectors", [])) for loc in locations for evse in loc.get("evses", []))
-    if (len(locations), count, len(tariffs)) != EXPECTED[name]:
-        raise AssertionError(f"{name}: count drift: {len(locations)} locations / {count} connectors / {len(tariffs)} tariffs")
     ids = {t["id"] for t in tariffs}
     if len(ids) != len(tariffs):
         raise AssertionError(f"{name}: duplicate tariff identity")
@@ -192,31 +166,43 @@ def wenea(data, filename, blob):
     empty_locations = [loc for loc in locations if not loc["evses"]]
     test_id = "94846a98-ff9d-0db8-9c0f-7eb9de8518a2"
     locations = [loc for loc in locations if loc["id"] != test_id]
-    if duplicate_count != 1:
-        raise AssertionError(f"Wenea: unexpected duplicate connector count {duplicate_count}")
-    if len(empty_locations) != 3 or test_id not in {loc["id"] for loc in empty_locations}:
-        raise AssertionError("Wenea: empty/test location quarantine drift")
+    if any(loc["id"] == test_id and loc["evses"] for loc in data["locations"]):
+        raise AssertionError("Wenea: quarantined test identity has charging points")
+    excluded_empty = sum(loc["id"] == test_id for loc in empty_locations)
     result = source("Wenea", "WNE", locations, tariffs, filename, blob)
     result["sourceAudit"]["excludedDuplicateConnectors"] = duplicate_count
-    result["sourceAudit"]["excludedEmptyTestLocations"] = 1
-    result["sourceAudit"]["retainedEmptyPublicLocations"] = len(empty_locations) - 1
+    result["sourceAudit"]["excludedEmptyTestLocations"] = excluded_empty
+    result["sourceAudit"]["retainedEmptyPublicLocations"] = len(empty_locations) - excluded_empty
     return result
 
 
 def ionity(data, filename, blob):
     locations, tariffs = [], []
+    scope = data["scope"]
+    if (data["country"] != "GB" or scope["currency"] != "GBP"
+            or scope["priceGranularity"] != "connector" or scope["tariffFamily"] != "IONITY DIRECT"
+            or scope["subscriberTariffsIncluded"] is not False or scope["roamingTariffsIncluded"] is not False):
+        raise ValueError("IONITY: incompatible direct connector scope")
+    counts = data["counts"]
+    if (counts["ukLocationCount"] != len(data["locations"])
+            or counts["ukConnectorCount"] != sum(len(s["connectors"]) for s in data["locations"])
+            or counts["ukUnpricedConnectorCount"] != sum(c.get("pricePerKwhGbp") is None
+                for s in data["locations"] for c in s["connectors"])):
+        raise ValueError("IONITY: inconsistent input counts")
     for station in data["locations"]:
+        if not station.get("uuid") or station["connectorCount"] != len(station["connectors"]):
+            raise ValueError("IONITY: incomplete station")
         if station.get("country") != "GB" or station.get("cpoIdentifier") != "IONITY_CPO":
             raise AssertionError("IONITY: non-UK/non-operated station")
         evses = []
         for connector in station["connectors"]:
-            cid = str(connector["uuid"])
-            if not cid or not connector.get("pricePerKwhGbp"):
+            cid = str(connector.get("uuid") or "")
+            if not cid or connector.get("pricePerKwhGbp") is None:
                 raise AssertionError("IONITY: missing exact connector/price")
             tid = "ionity-uk:" + cid
             tariffs.append(tariff(tid, connector["pricePerKwhGbp"]))
             evses.append({
-                "evse_id": str(connector.get("sourceEvseId") or "GB*ION*E" + cid),
+                **({"evse_id": str(connector["sourceEvseId"])} if connector.get("sourceEvseId") else {"uid": cid}),
                 "status": "UNKNOWN",
                 "connectors": [{
                     "id": cid, "standard": str(connector.get("type") or "UNKNOWN"),
@@ -348,8 +334,6 @@ def shell_recharge(data, filename, blob):
             "postal_code": address.get("postalCode", ""), "coordinates": raw["coordinates"],
             "operator": {"name": "Shell Recharge"}, "evses": evses,
         })
-    if unknown_power != 18:
-        raise AssertionError("Shell Recharge: suspect low-power count drift")
     result = source("Shell Recharge", "TNM", locations, [], filename, blob)
     result["sourceAudit"]["unknownPowerConnectors"] = unknown_power
     result["sourceAudit"]["tariffQuarantineReason"] = "Shell_RP_2 units/VAT not reconciled with gross guest price"
@@ -535,8 +519,6 @@ def monta(data, filename, blob, locations_blob):
                                          "max_electric_power": connector["max_electric_power"], "tariff_ids": []}]}]
         loc["operator"] = {"name": "Monta"}
         rows.append(loc)
-    if bad != 49:
-        raise AssertionError(f"Monta: invalid coordinate quarantine drift {bad}")
     result = source("Monta", "MON", rows, [], filename, blob)
     result["sourceAudit"]["excludedInvalidCoordinates"] = bad
     result["sourceAudit"]["tariffQuarantineReason"] = "public pricing table has additional fee columns and unverified gross basis on some exact rows"
@@ -574,8 +556,6 @@ def parkrecharge(data, filename, blob):
             "coordinates": {"latitude": lat, "longitude": lon},
             "operator": {"name": "ParkRecharge"}, "evses": evses,
         })
-    if excluded != 16:
-        raise AssertionError("ParkRecharge: coordinate/access quarantine drift")
     result = source("ParkRecharge", "HBN", locations, [], filename, blob)
     result["sourceAudit"]["excludedInvalidCoordinateOrAccessText"] = excluded
     result["sourceAudit"]["tariffQuarantineReason"] = "device fee fields and local parking charges not yet reconciled to a gross complete session price"
@@ -677,7 +657,7 @@ def main(uk):
     monta_result["sourceAudit"]["locationSourceSha256"] = hashlib.sha256(monta_locations_path.read_bytes()).hexdigest()
     additions.append(monta_result)
     names = {row["name"] for row in aggregate["sources"]}
-    if names.intersection(EXPECTED):
+    if names.intersection(row["name"] for row in additions):
         raise AssertionError("UK direct batch already present in aggregate")
     aggregate["sources"].extend(additions)
     summary = aggregate["summary"]

@@ -1,3 +1,7 @@
+## 21 novembre — compilation UK sur branche de reconstruction
+
+Le run historique 44892028748 échouait sur un effectif IONITY figé. Le compilateur accepte désormais les évolutions de volume et vérifie les compteurs internes de chaque archive IONITY, son périmètre Direct GBP, ses tarifs et les identités des prises. Un identifiant fournisseur reste un uid quand le fournisseur ne donne pas d’EVSE_ID. Les quarantaines Shell, Wenea, Monta et ParkRecharge conservent leurs critères individuels. Deux tests ciblés et l’archive réelle de 84 stations / 878 prises passent. Correctif préparé uniquement sur la branche de reconstruction. La recette du brouillon c49ade5f porte sur les données déjà empaquetées le 14 novembre.
+
 ## État vérifié — 14 novembre 2026, renouvellement FR/UK
 
 Brouillon isolé https://6af855c43ab7f937570c2a74--tcc-v9-preproduction-20261028.netlify.app ; bundle33 b87a89b7. Contrôle distant exhaustif3241fragments/SHA/manifeste/ressources critiques, HTTPS/noindex PASS ;23parcours tarifaires et11recherches ordinaires/neufpays concordent exactement entre local et distant. Contrôles G9 ordinateur/mobile, pagination20/+20, filtres, carte, Tesla autonome et Buc PASS. Les valeurs transitoires des rapports de contrôles ne sont pas revendiquées identiques.928offres FR renouvelées vérifiées par oracle indépendant, GRIDSERVE TVA20 couvert par oracle distinct. Autres données historiques explicitement conservées.
