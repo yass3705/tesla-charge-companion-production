@@ -1,3 +1,7 @@
+## Import du catalogue Tesla/Mac
+
+Le constructeur Production vérifie le contenu et les SHA du manifeste Mac, l’origine, les identités, les configurations et les dates des pays déclarés. Le plancher de 1 100 stations et la liste fixe des pays historiques ont été retirés. L’archive réelle et le cas d’un lot à une seule station passent. Les altérations du contenu, du compteur, de la provenance et de la portée datée sont rejetées. Le collecteur Mac reste autonome. Ce contrôle porte sur l’import et le dernier catalogue disponible ; aucune nouvelle acquisition Mac n’en découle.
+
 ## Catalogue des abonnements pendant le classement
 
 Le balayage de classement évalue toujours les abonnements sélectionnés. Seule la construction du menu des abonnements est réservée à la page visible. Le runtime réutilise aussi le même index des stations pour le routage. Les tests du runtime et des cinq modes de classement passent. Sur le paquet local de comparaison, Firefox mesure 52,610 s avec les mêmes stations, classements, évaluations et cartes. Ce changement postérieur au brouillon reste validé localement. [Mesure et empreintes](evidence/restoration-20261121/dense-summary-subscriptions-local.json).
