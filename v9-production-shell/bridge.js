@@ -567,6 +567,7 @@
     const offers=[evaluation?.best,...(evaluation?.alternatives||[]),...(evaluation?.incomplete||[])]
       .filter(item=>item&&offerPriceCategory(item)===category);
     if(!offers.length){
+      if(!station?.unparsedOffers?.length)return{status:'missing',item:null,offers:[],diagnostics:[]};
       const evseIds=new Set((station?.evses||[]).map(evse=>text(evse.id)).filter(Boolean));
       const connectorIds=new Set((station?.evses||[]).flatMap(evse=>(evse.connectors||[]).map(c=>text(c.id))).filter(Boolean));
       const pending=(station?.unparsedOffers||[]).filter(raw=>{
@@ -580,13 +581,19 @@
         :{status:'missing',item:null,offers:[],diagnostics:[]};
     }
     const sourceOffers=station?.offers||[];
-    const localEvseIds=new Set((station?.evses||[]).flatMap(evse=>[text(evse.id),text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)]).filter(Boolean));
+    let localEvseIds;
     const diagnostics=offers.map(item=>({offerId:text(item.offerId),reason:text(item.result?.reason||item.incompletePricingReason||'')}));
     if(offers.some(item=>/ambig/i.test(text(item.result?.reason))||sourceOffers.some(offer=>{
       if(text(offer?.id||offer?.offerId)!==text(item.offerId)||offer?.metadata?.tariffAmbiguous!==true)return false;
       const conflicted=offer.metadata.ambiguousPdcIds;
-      return !Array.isArray(conflicted)||conflicted.some(id=>localEvseIds.has(text(id)));
+      if(!Array.isArray(conflicted))return true;
+      localEvseIds??=new Set((station?.evses||[]).flatMap(evse=>[text(evse.id),text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)]).filter(Boolean));
+      return conflicted.some(id=>localEvseIds.has(text(id)));
     })))return{status:'ambiguous',item:null,offers,diagnostics};
+    if(offers.length===1){
+      const item=offers[0];
+      return pricedItem(item)?{status:'priced',item,offers,diagnostics}:{status:'unresolved',item:null,offers,diagnostics};
+    }
     const descriptions=new Set();
     for(const item of offers){
       const source=sourceOffers.find(offer=>text(offer?.id||offer?.offerId)===text(item.offerId));
@@ -1050,7 +1057,7 @@
         for(const lane of cardLanes(subscriptions)){
           const state=tariffLaneState(row.evaluation,scoped,lane);
           if(state.status!=='priced'||!pricedItem(state.item))continue;
-          const key=congestionLaneKey(scoped,row.evaluation,lane),total=congestionAdjustedTotal(state.item,key);
+          const total=state.item.congestion?.available?congestionAdjustedTotal(state.item,congestionLaneKey(scoped,row.evaluation,lane)):num(state.item.total);
           if(total==null)continue;
           card.rankingChoices.push({row,pdc,lane,total,costPerKm:num(state.item.costPerRecoveredKm),score:row.score});
           if(!card.bestChoice||total<card.bestChoice.total){

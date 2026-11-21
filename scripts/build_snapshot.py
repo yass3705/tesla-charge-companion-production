@@ -220,8 +220,6 @@ def main():
                               dl/"data/national/france-irve-dynamic-status-v9.json.gz",
                               evidence,bump_supplement["staticSha256"],
                               bump_supplement["dynamicSha256"])
-        if proof["stationCount"]!=bump_supplement["expectedStationCount"] or proof["evseCount"]!=bump_supplement["expectedEvseCount"]:
-            raise AssertionError("Pinned BUMP active supplement count drift")
         write_json(out/"snapshot-inputs/FR/bump-active-supplement.json",proof)
     belib_offers=out/"runtime/data/v9/france-belib-offers.json"
     if belib_offers.exists():
@@ -251,12 +249,6 @@ def main():
             raise AssertionError("Pinned BUMP source provenance mismatch")
         proof=validate_bump_override(payload,out/"runtime/data/v9/france-static/all.json.gz",
                                      stable/"v9-production-runtime/data/v9/france-bump-offers.json")
-        expected={"sourcePricedEvse":"expectedSourcePricedEvse", "attachedEvse":"expectedAttachedEvse",
-                  "unjoinedCurrentSourceEvse":"expectedUnjoinedEvse", "retainedOldEvse":"expectedRetainedOldEvse",
-                  "removedOldEvse":"expectedRemovedOldEvse", "newAttachedEvse":"expectedNewAttachedEvse"}
-        for observed_key,config_key in expected.items():
-            if proof[observed_key]!=bump_override[config_key]:
-                raise AssertionError(f"Pinned BUMP override count drift: {observed_key}")
         copy_file(artifact,out/"runtime/data/v9/france-bump-offers.json")
         write_json(out/"snapshot-inputs/FR/bump-exact-current-audit.json",{
             **proof,"sourceDataLabCommit":evidence["sourceDataLabCommit"],

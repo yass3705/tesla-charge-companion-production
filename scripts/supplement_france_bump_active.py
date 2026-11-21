@@ -94,10 +94,10 @@ def discover(pinned_static, newer_static, dynamic, bump_graphql, unjoined_catalo
                         "approvedStations": len(stations),
                         "approvedEvse": sum(len(s["evses"]) for s in stations)},
              "rejectedGeoOrName": rejected_geo, "stations": stations}
-    if proof["counts"] != {"unjoinedSourceEvse": 543, "absentNewerIrve": 485,
-                           "notPositivelyActive": 16, "rejectedGeoOrName": 3,
-                           "approvedStations": 21, "approvedEvse": 39}:
-        raise AssertionError(f"BUMP selective IRVE proof counts changed: {proof['counts']}")
+    classified = absent + inactive + [row["evseId"] for row in rejected_geo] + [
+        row["evseId"] for station in stations for row in station["evses"]]
+    if len(classified) != len(set(classified)) or set(classified) != ids:
+        raise AssertionError("BUMP disposition missing or duplicated for an input EVSE")
     return proof
 
 
@@ -163,8 +163,12 @@ def supplement(target, source, dynamic, evidence, expected_source_sha, expected_
                 raise AssertionError(f"BUMP approved EVSE already pinned elsewhere: {sid}")
             additions.append(row)
         accepted.update(current)
-    if len(additions) + len(already_present) != 21 or len(accepted) != 39:
-        raise AssertionError("BUMP approved active supplement count drift")
+    expected_stations = [station["nationalStationId"] for station in proof["stations"]]
+    expected_evses = [item["evseId"].upper() for station in proof["stations"] for item in station["evses"]]
+    if (len(expected_stations) != len(set(expected_stations))
+            or set(expected_stations) != set(already_present) | {row[0] for row in additions}
+            or len(expected_evses) != len(accepted) or set(expected_evses) != accepted):
+        raise AssertionError("BUMP supplement differs from the signed EVSE/station identities")
     manifest_path = Path(target) / "manifest.json"
     manifest = json.loads(manifest_path.read_text())
     tile_by_id = {entry["id"]: entry for entry in manifest["tiles"]}
