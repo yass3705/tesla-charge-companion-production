@@ -1016,7 +1016,7 @@
     return [...entries.values()];
   }
   function cardLanes(subscriptions=[]){return['direct',...(subscriptions||[]).map(id=>'subscription:'+text(id)),'electra','electroverse'];}
-  function stationCards(variants,subscriptions=[]){
+  function stationCards(variants,subscriptions=[],summaryOnly=false){
     const cards=new Map();
     for(const [index,row] of (variants||[]).entries()){
       const station=row?.station||{},id=text(station.id||station.canonicalId||station.stationId);
@@ -1028,7 +1028,7 @@
         distanceKm:row.distanceKm,distanceEstimated:row.distanceEstimated};cards.set(key,card);}
       // Keep the station-wide view independent from the selected cheapest PDC.
       // Input variants contain only the EVSE/connector subset evaluated upstream.
-      if(card.variants.length){
+      if(!summaryOnly&&card.variants.length){
         const evses=new Map((card.station.evses||[]).map(evse=>[text(evse.id||evse.evseId),evse]));
         for(const evse of station.evses||[]){
           const id=text(evse.id||evse.evseId);
@@ -1044,22 +1044,27 @@
         }
         card.station={...card.station,evses:[...evses.values()]};
       }
-      card.variants.push(row);
-      const kind=text(row.powerLine?.kind||connectorKind((station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{})).toUpperCase();
-      const power=num(row.powerLine?.powerKw??row.displayPowerKw);
-      const groupKey=kind+'|'+String(power);
-      let group=card.powerGroups.find(item=>item.key===groupKey);
-      if(!group){group={key:groupKey,kind,powerKw:power,variants:[],pdcIds:new Set()};card.powerGroups.push(group);}
       const entries=pdcEntries(row);
-      group.variants.push({...row,pdcEntries:entries});
-      for(const pdc of entries){card.pdcIds.add(pdc.id);group.pdcIds.add(pdc.id);
+      let group;
+      if(!summaryOnly){
+        card.variants.push(row);
+        const kind=text(row.powerLine?.kind||connectorKind((station.evses||[]).flatMap(evse=>evse.connectors||[])[0]||{})).toUpperCase();
+        const power=num(row.powerLine?.powerKw??row.displayPowerKw);
+        const groupKey=kind+'|'+String(power);
+        group=card.powerGroups.find(item=>item.key===groupKey);
+        if(!group){group={key:groupKey,kind,powerKw:power,variants:[],pdcIds:new Set()};card.powerGroups.push(group);}
+        group.variants.push({...row,pdcEntries:entries});
+      }
+      for(const pdc of entries){
+        if(group){card.pdcIds.add(pdc.id);group.pdcIds.add(pdc.id);}
         const scoped={...station,evses:pdc.evses};
         for(const lane of cardLanes(subscriptions)){
           const state=tariffLaneState(row.evaluation,scoped,lane);
           if(state.status!=='priced'||!pricedItem(state.item))continue;
           const total=state.item.congestion?.available?congestionAdjustedTotal(state.item,congestionLaneKey(scoped,row.evaluation,lane)):num(state.item.total);
           if(total==null)continue;
-          card.rankingChoices.push({row,pdc,lane,total,costPerKm:num(state.item.costPerRecoveredKm),score:row.score});
+          const costPerKm=num(state.item.costPerRecoveredKm);
+          card.rankingChoices.push(summaryOnly?{costPerKm,score:row.score}:{row,pdc,lane,total,costPerKm,score:row.score});
           if(!card.bestChoice||total<card.bestChoice.total){
             card.bestChoice={row,pdc,station:scoped,item:state.item,lane,total};
             card.evaluation={...row.evaluation,best:state.item};
@@ -1070,6 +1075,7 @@
         }
       }
     }
+    if(summaryOnly)return [...cards.values()];
     return [...cards.values()].map(card=>{
       card.pointCount=card.pdcIds.size;
       card.powerGroups.sort((a,b)=>a.kind.localeCompare(b.kind)||a.powerKw-b.powerKw);
@@ -1232,7 +1238,7 @@
           if(offset===0){count=Number(batch.diagnostics?.sourceStationCount) || batch.stations.length;inventory=batch.mapStations||[];}
           const baseRows=rowsFromArea(batch,origin),pricedStations=baseRows.filter(row=>row.station.offers?.length),unpriced=baseRows.filter(row=>!row.station.offers?.length);
           const evaluated=stationCards(variantsByPower(w,pricedStations,batch.effectiveSession||query.session,selected)
-            .filter(row=>variantMatchesFilters(row,input)),selected);
+            .filter(row=>variantMatchesFilters(row,input)),selected,true);
           const byId=new Map(evaluated.map(card=>[card.station.id,rankingSummary(card)]));
           for(const row of unpriced){
             const lines=powerLines(row);
