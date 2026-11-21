@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """User regressions on an actual isolated package/URL; no supplier traffic."""
 from __future__ import annotations
-import argparse, functools, json, threading
+import argparse, functools, hashlib, json, threading
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from selenium import webdriver
@@ -11,6 +11,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 BUC='tcc:65a4419836d7213884ef581d66a51a526ccf8e82970bdd8bd017c8f3c8ac8ded'
 
 def run(site, url=None):
+    # Independent 45 kWh, 14:00 Paris oracle for each immutable Mac input.
+    catalogue = (site / "runtime/data/tesla_stations.json").read_bytes()
+    pin = hashlib.sha256(catalogue).hexdigest()
+    rates = {"363af2e80f05a01015889f2be1ece4055c74c3f75d1b804fca66f51d01ef57c5": 0.42,
+             "5794c76480ceaee63d73a6cf39ee8fb24ed68357cafdaa44b90ddd09a80f01d4": 0.40}
+    rate = rates[pin]
+    station = next(row for row in json.loads(catalogue) if row["id"] == "tesla-le-chesnay-france")
+    cfg = next(row for row in station["chargingConfigurations"] if row["id"] == "main")
+    rules = [r for r in cfg["pricing"]["rules"] if r["start"] <= "14:00" < (r["end"] if r["end"] != "00:00" else "24:00")]
+    assert len(rules) == 1 and rules[0]["pricePerKwh"] == rate and rules[0]["currency"] == "EUR"
+    assert all(rules[0].get(key) == 0 for key in ("chargePerMinute", "connectionFee", "idlePerMinute"))
+    chesnay_total = 45 * rate
     server=None
     if not url:
         class Quiet(SimpleHTTPRequestHandler):
@@ -31,7 +43,7 @@ input.value='Adresse de recette';save.click();return {sameGroup:true,stored:loca
             browser.switch_to.alert.accept();assert browser.execute_script("return localStorage.getItem('tccDefaultOrigin')")=='Adresse de recette';output['address']={'sameGroup':True,'stored':True}
             for name,country,lat,lon,radius in [('Buc','FR',48.771,2.128,3),('Milan Arduino','IT',45.47814258,9.15235154,2),('Le Chesnay','FR',48.828051,2.1191,2),('Paris','FR',48.8566,2.3522,5)]:
                 result=browser.execute_async_script(r'''
-const [name,country,lat,lon,radius,buc]=arguments[0],done=arguments[1];
+const [name,country,lat,lon,radius,buc,expectedChesnayTotal]=arguments[0],done=arguments[1];
 (async()=>{
 window.resolveOrigin=async()=>({lat,lon,label:name});sessionStorage.setItem(`tcc-v9-country:${lat.toFixed(3)},${lon.toFixed(3)}`,country);
 document.getElementById('simOrigin').value=name;document.getElementById('simMaxDistance').value=String(radius);
@@ -62,7 +74,7 @@ if(name==='Le Chesnay'){
  const match=area.mapStations.find(s=>s.id==='tesla-le-chesnay-france');if(!match)throw Error('Autonomous Tesla Chesnay missing');
  if(match.page)area=await area.navigateToPage(match.page);
  const evaluation=area.sessionEvaluations?.['tesla-le-chesnay-france'];
- if(!evaluation?.best?.result?.complete||Math.abs(evaluation.best.total-18.9)>1e-8)throw Error('Tesla Chesnay configuration quote missing');
+ if(!evaluation?.best?.result?.complete||Math.abs(evaluation.best.total-expectedChesnayTotal)>1e-8)throw Error('Tesla Chesnay configuration quote missing');
  target={id:'tesla-le-chesnay-france',total:evaluation.best.total,currency:evaluation.best.targetCurrency,complete:true};
 }
 const bad=area.stations.flatMap(s=>s.offers||[]).filter(o=>o.metadata?.nationalJoin&&!(o.evseIds||[]).length);
@@ -74,7 +86,7 @@ if(identity[0].label!=='FR*ABC*E1')throw Error('Official EVSE label missing');
 document.querySelector('.v9-view-map')?.click();const markers=document.querySelectorAll('.v9-map-marker').length;
 if(ids.length&&!markers)throw Error('Map empty');document.querySelector('.v9-map-zoom-in')?.click();document.querySelector('.v9-map-zoom-out')?.click();
 return {name,country,matching:ids.length,initial,counts,pageRoundtrip,target,markers,sourceErrors:area.diagnostics.errors,mapIds:ids};
-})().then(done).catch(e=>done({error:String(e)}));''',[name,country,lat,lon,radius,BUC])
+})().then(done).catch(e=>done({error:String(e)}));''',[name,country,lat,lon,radius,BUC,chesnay_total])
                 assert not result.get('error'),result
                 assert not result['sourceErrors'],result
                 output['queries'].append(result)

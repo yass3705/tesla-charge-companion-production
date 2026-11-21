@@ -1,3 +1,7 @@
+## Recette du lot Tesla/Mac et EVGO
+
+Le bundle 9dd05c6d réutilise les 32 sources identiques du lot précédent et remplace uniquement EVGO. Le catalogue Tesla/Mac autonome, importé séparément, a sa propre empreinte 5794c764. Le scénario du Chesnay à 14 h pour 45 kWh donne 18,00 € sur cette entrée, contre 18,90 € sur l’archive antérieure. Le contrôle vérifie la tranche de la configuration source, sa devise et ses frais avant de comparer le résultat Firefox. L’oracle antérieur reste associé à son SHA. Les deux entrées ont des règles différentes. La recette Tesla locale couvre les neuf pays. [Parcours](evidence/restoration-20261121/consolidated/tesla-nine-local.json).
+
 ## Nouveau candidat isolé : catalogue Tesla/Mac et classement
 
 L’empaquetage accepte le catalogue Tesla/Mac autonome sous réserve de vérification de son manifeste d’origine et de son SHA attendu. Les deux chemins servis reçoivent les mêmes octets. La version précédente reste intacte. Le classement réutilise les listes de candidats par canal lors des évaluations par PDC, tout en vérifiant les ambiguïtés sur chaque PDC. Firefox sur les entrées locales de comparaison : 50,015 s et mêmes empreintes pour les 64 019 stations. Les cinq modes passent leur oracle. [Mesure locale](evidence/restoration-20261121/dense-rankable-local.json).
