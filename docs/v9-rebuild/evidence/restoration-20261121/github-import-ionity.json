@@ -1,0 +1,27 @@
+{
+  "receipt": {
+    "runId": 44902592666,
+    "workflowId": 425938005,
+    "head": "50c46bf1843560b9b06090c803ef80065f984dc6",
+    "event": "workflow_dispatch",
+    "artifactId": 14707095052,
+    "artifactZipSha256": "825f76fc59c05cb0ac0dd420fa0c8deee5741af61052cf779030b508bf4d462c",
+    "bundle": "da9ad19032b7892ed506da29ab6fe2ff78fefa4f39648a9f00539fcde0f80ac4",
+    "sourceArtifactSetSha256": "385566745fd2fbc6b6c7cdd67ee4a072e52be4969518a509d1111448252a7634",
+    "sources": [
+      "DE:ionity_direct",
+      "FR:ionity_direct",
+      "GB:ionity_direct",
+      "IT:ionity_direct"
+    ],
+    "published": false
+  },
+  "importRun": 44903986822,
+  "sourceJobSkippedOnReplay": true,
+  "importArtifact": 14707341515,
+  "sha256": "544803b910325136db966ef35ee7f31f373d1f68ce4edd5fc3095efc5a1959a6",
+  "allRemoteFilesByteIdenticalToIndependentLocalReplay": true,
+  "verifiedFiles": 10,
+  "netlifyContainsThisImport": false,
+  "remoteImportStatus": "PASS"
+}

@@ -1,3 +1,7 @@
+## Import automatisé vérifié — 21 novembre
+
+Le run 44903986822 du workflow permanent importe la collecte IONITY précédente via le code Production fd9adbe. Les dix fichiers de son artefact 14707341515 sont identiques à une reproduction locale indépendante. Les quatre pays FR, DE, IT et GB et leurs relations et SHA passent. Huit tests d’import et un essai d’altération de la collecte passent. Cette preuve porte sur un rejeu manuel distant. La cadence reste à démontrer sur son propre événement et le brouillon c49ade5f précède ce renouvellement. [Reçu de l’import](evidence/restoration-20261121/github-import-ionity.json).
+
 ## 21 novembre — brouillon groupé et renouvellement isolé
 
 Le déploiement `6b0189a12171bc09025b975d` sert le bundle `c49ade5f92a4f185b5e67ccd4a4e7dca32c06479285c6ac29d0c4ff802dbcb96`. Le contrôle HTTPS/noindex et les SHA de 3 242 fragments passent, de même que 24 parcours tarifaires Firefox, 11 recherches sur neuf pays, la pagination et le mobile. Le brouillon précédent reste accessible. Les deux ressources de contrôle du site public conservent leurs SHA.
