@@ -57,6 +57,11 @@ def measure(site: Path, firefox: str, url: str = None) -> dict:
                   return Array.from(hash,b=>b.toString(16).padStart(2,'0')).join('');
                 };
                 window.compare().then(async area=>{
+                  if(!area){
+                    const reason=document.querySelector('#results .warn')?.textContent
+                      || document.getElementById('routeStatus')?.textContent;
+                    throw new Error(reason || 'Dense search returned no area');
+                  }
                   const ranks=area.mapRankingRows||[],map=area.mapStations||[];
                   const rankRows=ranks.map(row=>[row.station.id,row.total,row.costPerKm,row.distanceKm,
                     row.score?.totalTimeMinutes,row.evaluation?.best?.total]);

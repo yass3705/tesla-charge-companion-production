@@ -1,3 +1,7 @@
+## Amsterdam à 100 km sur le brouillon du 21 novembre
+
+Firefox a mesuré 51,419 secondes à froid sur le brouillon 6b01917b. Les 64 019 stations, le classement, les évaluations, la carte et la page ont les mêmes empreintes que dans le paquet local aux mêmes entrées. Le premier essai distant avait renvoyé un résultat nul sans motif exploitable. Le banc de mesure restitue désormais le message de l'application dans ce cas. La répétition a abouti, avec zéro erreur de source. La latence reste une limite G7/G8. [Mesure distante](evidence/restoration-20261121/renewed-ionity/dense-amsterdam.json).
+
 ## Candidat IONITY renouvelé — recette distante du 21 novembre
 
 Le brouillon https://6b01917b60790d93e2aff701--tcc-v9-preproduction-20261028.netlify.app sert le bundle 96bfbdaf4210a72e96fd85ca41b483deffd5d33663572965e7822ca057c6c8f2. Les quatre jeux IONITY issus du run 44902592666, importés par le run 44903986822, remplacent leurs versions antérieures. Les 29 autres sources sont conservées. Vérification distante du paquet, des fragments, des parcours tarifaires, des neuf pays et du mobile réussie. Le brouillon c49ade5f est disponible en retour arrière. Les nouveaux horaires Data Lab doivent encore être observés sur leur événement réel ; REVE est partiel. La couverture complète et la performance dense restent ouvertes. [Preuves](evidence/restoration-20261121/renewed-ionity/remote-integrity.json).
