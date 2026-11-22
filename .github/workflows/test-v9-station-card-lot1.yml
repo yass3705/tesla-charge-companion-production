@@ -5,6 +5,7 @@ on:
     paths:
       - 'v9-production-shell/bridge.js'
       - 'tests/v9-station-card-lot1.test.mjs'
+      - 'tests/v9-physical-site-identity-132.test.mjs'
       - 'tests/v9-station-card-browser.mjs'
       - '.github/workflows/test-v9-station-card-lot1.yml'
   workflow_dispatch:
@@ -22,7 +23,7 @@ jobs:
         with:
           node-version: '22'
       - name: Run targeted presentation and tariff tests
-        run: node --test tests/v9-station-card-lot1.test.mjs tests/v9-shell-grouping.test.mjs tests/v9-tariff-lanes.test.mjs tests/v9-tesla-global-layout.test.mjs
+        run: node --test tests/v9-station-card-lot1.test.mjs tests/v9-physical-site-identity-132.test.mjs tests/v9-shell-grouping.test.mjs tests/v9-tariff-lanes.test.mjs tests/v9-tesla-global-layout.test.mjs
       - name: Install browser driver using system Chrome
         run: npm install --no-save --no-package-lock playwright@1.55.1
       - name: Check desktop and mobile card layouts
