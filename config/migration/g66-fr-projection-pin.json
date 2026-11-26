@@ -1,0 +1,12 @@
+{
+  "run": 45779072857,
+  "artifact": 15097153360,
+  "codeSha": "04fa6142333e498a1fe13ce3e9a2fe2532552b78",
+  "name": "tcc-v9-g66-fr-runtime-boundary",
+  "zipSha256": "21056f8da6f6a074da7dc9c2e45f2886bddd688969e0d97d36c7b83ec73988cf",
+  "files": {
+    "g66-runtime-identity-projection.csv.gz": "b50a0df4053c59000de05a7afcd7618fdfd216df5ed35140374c32dc7d9d1050",
+    "g66-runtime-quotes.csv.gz": "e75bdb8708b70d15b6ffa68c6501fc35768a1465052f8b7213eab334059789a9",
+    "g66-runtime-report.json": "eb1b51c73040cd810416419191475e558b5a1d42db30a9cd4976a4b0ebf5b534"
+  }
+}
