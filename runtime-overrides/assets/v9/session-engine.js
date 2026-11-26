@@ -267,8 +267,17 @@
        g66Scope.some(k=>q.scope?.[k]!==request[k])||
        !g66ExactValue(q.session,request.session))return reject('g66_response_scope_mismatch');
     if(!g66Allowed.has(q.decision))return reject(text(q.reason||q.decision)||'g66_quote_unavailable');
+    // Separate opt-in: the verified gate can prove zero temporal cost for
+    // this exact planner session, not absence of congestion across the tariff.
+    // The pinned generation, gate SHA, EVSE/connector and full session above
+    // must all match; never reuse this evidence for a changed session.
+    const sessionZero=options.g66SessionZeroTemporalProof===true&&
+      options.g66PlannerProtocol===true&&request.session.protocol==='planner-v1'&&
+      q.lineage?.protocol==='planner-v1'&&
+      q.congestionEvidence==='NO_POSITIVE_TEMPORAL_AMOUNT_PROVEN_FOR_EXACT_ARCHIVED_SESSION'&&
+      q.reason==='ARCHIVED_EXACT_SESSION_ZERO_TEMPORAL_COMPONENTS';
     if(request.session.includeCongestionFees===false&&
-       (q.congestionEvidence!=='NO_POSITIVE_TEMPORAL_COMPONENT_IN_ARCHIVED_SIGNATURE'||
+       ((!sessionZero&&q.congestionEvidence!=='NO_POSITIVE_TEMPORAL_COMPONENT_IN_ARCHIVED_SIGNATURE')||
         Number(q.components?.time)!==0||Number(q.components?.parking)!==0))return reject('g66_congestion_proof_missing');
     const decimal=v=>typeof v==='string'&&/^\d+(?:\.\d+)?$/.test(v)&&Number.isFinite(Number(v));
     if(!decimal(q.estimateEur)||!q.components||!['energy','time','parking','flat','total'].every(k=>decimal(q.components[k]))||
@@ -276,7 +285,7 @@
        money(['energy','time','parking','flat'].reduce((v,k)=>v+Number(q.components[k]),0))!==money(Number(q.estimateEur)))return reject('g66_response_amount_invalid');
     return{complete:true,currency:'EUR',totalEur:Number(q.estimateEur),components:{energy:Number(q.components.energy),
       chargingTime:Number(q.components.time),parkingTime:Number(q.components.parking),connectionFee:Number(q.components.flat)},
-      diagnosticOnly:true,publicationEligible:false,g66Decision:q.decision,g66Lineage:q.lineage};
+      diagnosticOnly:true,publicationEligible:false,g66Decision:q.decision,g66Lineage:q.lineage,...(sessionZero?{g66CongestionEvidence:q.congestionEvidence}:{})};
   }
 
   function evaluateStation(station,session={},options={}){
