@@ -49,6 +49,7 @@ jobs:
           tests/v9-offer-exact-scope.test.mjs
           tests/v9-g66b4-dynamic-transport.test.mjs
           tests/v9-deterministic-ranking-ties.test.mjs
+          tests/v9-g66b5-planner-protocol.test.mjs
       - name: Immutable import, packaging and remote-check contracts
         run: |
           python -m unittest discover -s tests -p 'test_import_v9_bundle.py'

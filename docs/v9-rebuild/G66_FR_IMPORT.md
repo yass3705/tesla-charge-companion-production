@@ -13,3 +13,7 @@ Parent b4f6d1af55b951cd93feaf210d96958e50828823. Add explicit FR Electroverse di
 ## G6.6b-4 retry — deterministic ranking
 
 Run 45868606202 failed at test_g66b4_runtime_transport.cjs:60 (reverse-input equality). Unpriced co-located points used distance alone, so ties inherited load order. Retain existing primary criteria; use name, station ID, country and exact EVSE/connector scope as final ties. Sort calculable totals with undefined cost/km deterministically too. No tariff or matching change. Parent 6682943d70509eae80dabdf167f1ce67b0058a68. Revert this patch to roll back. Full replay unchanged.
+
+## G6.6b-5a — opt-in planner protocol
+
+New explicit g66PlannerProtocol option transports six-decimal planner minutes/energy and each timeline interval, and compares the entire echoed session recursively. No whole-second conversion. Exclusion of congestion requires archived-signature evidence of no positive temporal component and zero time/parking output. Legacy protocol unchanged; no browser endpoint or config activation. Actual gate support limited to independently proved cases, conditional fractional sessions remain unresolved. Parent e5005177ba3fe0659301a3169dfb6e3b2f1a8d84.

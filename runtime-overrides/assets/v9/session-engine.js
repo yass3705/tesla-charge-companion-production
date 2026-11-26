@@ -202,7 +202,34 @@
   // generation must accompany every response; no fallback to empty rules.
   const g66Scope=['nationalStationKey','nationalEvseKey','nationalConnectorKey','source_id','tariff_signature'];
   const g66Allowed=new Set(['DIAGNOSTIC_ESTIMATE_AGREEMENT','SEGMENT_ROUNDING_EXPLAINED']);
-  function g66Request(station,offer,profile,session){
+  // Planner protocol carries the actual six-decimal minute/energy model, not
+  // a session rounded to whole seconds. The external gate checks its coherence.
+  function g66PlannerSession(session){
+    const fixed=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0&&Math.abs(Number(v.toFixed(6))-v)<1e-8?v.toFixed(6):null;
+    const zone=session.timeZone||session.stationTimeZone;
+    const duration=fixed(session.durationMinutes),charging=fixed(session.chargingMinutes),parking=fixed(session.postChargeMinutes),energy=fixed(session.energyKwh);
+    if(zone!=='Europe/Paris'||typeof session.startAt!=='string'||!/(?:Z|[+-]\d{2}:\d{2})$/.test(session.startAt)||
+       !Number.isFinite(Date.parse(session.startAt))||[duration,charging,parking,energy].some(v=>v===null)||
+       Number(duration)<=0||Number(duration)>10080||Math.abs(Number(duration)-Number(charging)-Number(parking))>0.00000101||
+       (!Number(charging)&&Number(energy)>0)||typeof session.includeCongestionFees!=='boolean'||
+       !Array.isArray(session.chargeTimeline)||session.chargeTimeline.length>2048)return null;
+    const timeline=[];
+    for(const row of session.chargeTimeline){
+      const offsetMinutes=fixed(row?.offsetMinutes),durationMinutes=fixed(row?.durationMinutes),energyKwh=fixed(row?.energyKwh);
+      if([offsetMinutes,durationMinutes,energyKwh].some(v=>v===null)||Number(durationMinutes)<=0)return null;
+      timeline.push({offsetMinutes,durationMinutes,energyKwh});
+    }
+    if(Number(charging)>0&&!timeline.length||Number(charging)===0&&timeline.length)return null;
+    return {protocol:'planner-v1',startAt:session.startAt,timeZone:zone,energy,durationMinutes:duration,
+      chargingMinutes:charging,postChargeMinutes:parking,includeCongestionFees:session.includeCongestionFees,chargeTimeline:timeline};
+  }
+  function g66ExactValue(a,b){
+    if(a===b)return true;
+    if(a===null||b===null||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;
+    const keys=Object.keys(a).sort(),other=Object.keys(b).sort();
+    return keys.length===other.length&&keys.every((k,i)=>k===other[i]&&g66ExactValue(a[k],b[k]));
+  }
+  function g66Request(station,offer,profile,session,options){
     const m=offer?.metadata||{},reject=reason=>({reason});
     if(station?.countryCode!=='FR'||offer.provider!=='Electroverse'||offer.kind!=='roaming'||m.g66Dynamic!==true||
        g66Scope.some(k=>typeof m[k]!=='string'||!m[k])||station.id!==m.nationalStationKey||
@@ -210,6 +237,11 @@
        !Array.isArray(offer.connectorIds)||offer.connectorIds.length!==1||offer.connectorIds[0]!==m.nationalConnectorKey||
        !Array.isArray(offer.evseIds)||offer.evseIds.length!==1||offer.evseIds[0]!==m.nationalEvseKey||
        !(profile.powerKw>0))return reject('g66_identity_scope_mismatch');
+    if(options?.g66PlannerProtocol===true){
+      const plannerSession=g66PlannerSession(session);
+      if(!plannerSession)return reject('g66_planner_session_invalid');
+      return {request:{country:'FR',channel:'Electroverse',...Object.fromEntries(g66Scope.map(k=>[k,m[k]])),session:plannerSession}};
+    }
     const seconds=v=>typeof v==='number'&&Number.isFinite(v)&&Math.abs(v*60-Math.round(v*60))<1e-8?Math.round(v*60):null;
     const s=seconds(session.durationMinutes),c=seconds(session.chargingMinutes),p=seconds(session.postChargeMinutes);
     const zone=session.timeZone||session.stationTimeZone;
@@ -225,7 +257,7 @@
   }
   function g66Result(station,offer,profile,session,options){
     const reject=reason=>({complete:false,currency:'EUR',reason,diagnosticOnly:true});
-    const {request,reason}=g66Request(station,offer,profile,session);
+    const {request,reason}=g66Request(station,offer,profile,session,options);
     if(!request)return reject(reason);
     if(options.g66DiagnosticEnabled!==true||typeof options.g66QuoteTransport!=='function'||typeof options.g66NationalSha256!=='string'||typeof options.g66GateCodeSha!=='string')return reject('g66_transport_disabled');
     let q;
@@ -233,8 +265,11 @@
     if(!q||q.diagnosticOnly!==true||q.publicationEligible!==false||q.currency!=='EUR'||
        q.lineage?.nationalCanonicalSha256!==options.g66NationalSha256||q.lineage?.codeSha!==options.g66GateCodeSha||
        g66Scope.some(k=>q.scope?.[k]!==request[k])||
-       Object.keys(request.session).some(k=>q.session?.[k]!==request.session[k]))return reject('g66_response_scope_mismatch');
+       !g66ExactValue(q.session,request.session))return reject('g66_response_scope_mismatch');
     if(!g66Allowed.has(q.decision))return reject(text(q.reason||q.decision)||'g66_quote_unavailable');
+    if(request.session.includeCongestionFees===false&&
+       (q.congestionEvidence!=='NO_POSITIVE_TEMPORAL_COMPONENT_IN_ARCHIVED_SIGNATURE'||
+        Number(q.components?.time)!==0||Number(q.components?.parking)!==0))return reject('g66_congestion_proof_missing');
     const decimal=v=>typeof v==='string'&&/^\d+(?:\.\d+)?$/.test(v)&&Number.isFinite(Number(v));
     if(!decimal(q.estimateEur)||!q.components||!['energy','time','parking','flat','total'].every(k=>decimal(q.components[k]))||
        q.components.total!==q.estimateEur||
