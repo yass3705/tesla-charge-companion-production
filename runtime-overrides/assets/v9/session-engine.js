@@ -197,6 +197,53 @@
     return all.filter(rule=>num(rule?.congestionTimePerMinute)!=null&&num(rule.congestionTimePerMinute)>0);
   }
 
+  // Explicit opt-in for the reconstruction-only, independently checked FR quote gate.
+  // Never send or interpret a raw tariff here. The exact session and immutable
+  // generation must accompany every response; no fallback to empty rules.
+  const g66Scope=['nationalStationKey','nationalEvseKey','nationalConnectorKey','source_id','tariff_signature'];
+  const g66Allowed=new Set(['DIAGNOSTIC_ESTIMATE_AGREEMENT','SEGMENT_ROUNDING_EXPLAINED']);
+  function g66Request(station,offer,profile,session){
+    const m=offer?.metadata||{},reject=reason=>({reason});
+    if(station?.countryCode!=='FR'||offer.provider!=='Electroverse'||offer.kind!=='roaming'||m.g66Dynamic!==true||
+       g66Scope.some(k=>typeof m[k]!=='string'||!m[k])||station.id!==m.nationalStationKey||
+       profile.connectorId!==m.nationalConnectorKey||!profile.evseIds.includes(evseIdentity(m.nationalEvseKey))||
+       !Array.isArray(offer.connectorIds)||offer.connectorIds.length!==1||offer.connectorIds[0]!==m.nationalConnectorKey||
+       !Array.isArray(offer.evseIds)||offer.evseIds.length!==1||offer.evseIds[0]!==m.nationalEvseKey||
+       !(profile.powerKw>0))return reject('g66_identity_scope_mismatch');
+    const seconds=v=>typeof v==='number'&&Number.isFinite(v)&&Math.abs(v*60-Math.round(v*60))<1e-8?Math.round(v*60):null;
+    const s=seconds(session.durationMinutes),c=seconds(session.chargingMinutes),p=seconds(session.postChargeMinutes);
+    const zone=session.timeZone||session.stationTimeZone;
+    if(zone!=='Europe/Paris'||typeof session.startAt!=='string'||!/(?:Z|[+-]\d{2}:\d{2})$/.test(session.startAt)||
+       !Number.isFinite(Date.parse(session.startAt))||typeof session.energyKwh!=='number'||!Number.isFinite(session.energyKwh)||session.energyKwh<0||
+       [s,c,p].some(v=>v===null||v<0)||s<=0||s>604800||c+p!==s||(!c&&session.energyKwh>0)||
+       typeof session.includeCongestionFees!=='boolean')return reject('g66_session_invalid');
+    if(!session.includeCongestionFees)return reject('CONGESTION_EXCLUSION_NOT_PROVEN');
+    // Do not discard an explicit varying power/energy timeline to make a quote.
+    if(Array.isArray(session.chargeTimeline)&&session.chargeTimeline.length)return reject('g66_charge_timeline_not_supported');
+    return {request:{country:'FR',channel:'Electroverse',...Object.fromEntries(g66Scope.map(k=>[k,m[k]])),
+      session:{startAt:session.startAt,timeZone:zone,energy:session.energyKwh,seconds:s,chargeSeconds:c,parkSeconds:p,includeCongestionFees:session.includeCongestionFees}}};
+  }
+  function g66Result(station,offer,profile,session,options){
+    const reject=reason=>({complete:false,currency:'EUR',reason,diagnosticOnly:true});
+    const {request,reason}=g66Request(station,offer,profile,session);
+    if(!request)return reject(reason);
+    if(options.g66DiagnosticEnabled!==true||typeof options.g66QuoteTransport!=='function'||typeof options.g66NationalSha256!=='string'||typeof options.g66GateCodeSha!=='string')return reject('g66_transport_disabled');
+    let q;
+    try{q=options.g66QuoteTransport(request);}catch(_){return reject('g66_transport_failure');}
+    if(!q||q.diagnosticOnly!==true||q.publicationEligible!==false||q.currency!=='EUR'||
+       q.lineage?.nationalCanonicalSha256!==options.g66NationalSha256||q.lineage?.codeSha!==options.g66GateCodeSha||
+       g66Scope.some(k=>q.scope?.[k]!==request[k])||
+       Object.keys(request.session).some(k=>q.session?.[k]!==request.session[k]))return reject('g66_response_scope_mismatch');
+    if(!g66Allowed.has(q.decision))return reject(text(q.reason||q.decision)||'g66_quote_unavailable');
+    const decimal=v=>typeof v==='string'&&/^\d+(?:\.\d+)?$/.test(v)&&Number.isFinite(Number(v));
+    if(!decimal(q.estimateEur)||!q.components||!['energy','time','parking','flat','total'].every(k=>decimal(q.components[k]))||
+       q.components.total!==q.estimateEur||
+       money(['energy','time','parking','flat'].reduce((v,k)=>v+Number(q.components[k]),0))!==money(Number(q.estimateEur)))return reject('g66_response_amount_invalid');
+    return{complete:true,currency:'EUR',totalEur:Number(q.estimateEur),components:{energy:Number(q.components.energy),
+      chargingTime:Number(q.components.time),parkingTime:Number(q.components.parking),connectionFee:Number(q.components.flat)},
+      diagnosticOnly:true,publicationEligible:false,g66Decision:q.decision,g66Lineage:q.lineage};
+  }
+
   function evaluateStation(station,session={},options={}){
     const selectedSubscriptions=options.selectedSubscriptions||session.selectedSubscriptions||[];
     const chargingProfile=stationChargingProfile(station),chargingKind=chargingProfile.kind,chargingPowerKw=chargingProfile.powerKw,chargingPlugName=chargingProfile.plugName,chargingConnectorId=chargingProfile.connectorId;
@@ -220,11 +267,13 @@
       const postChargeMinutes=Math.max(0,num(currentSession.postChargeMinutes)??0);
       const unknownPostCharge=offer?.pricing?.postChargeFeeUnknown===true||offer?.metadata?.postChargeFeeUnknown===true;
       const validity=evaluateOfferValidity(offer,currentSession);
-      const locked=validity.complete?evaluateSessionStartLockedOffer(offer,currentSession):null;
-      const timeline=validity.complete&&!locked?evaluateTimelineOffer(offer,currentSession):null;
+      const locked=validity.complete&&offer?.metadata?.g66Dynamic!==true?evaluateSessionStartLockedOffer(offer,currentSession):null;
+      const timeline=validity.complete&&!locked&&offer?.metadata?.g66Dynamic!==true?evaluateTimelineOffer(offer,currentSession):null;
       const feeRules=congestionRules(offer?.pricing);
       const result=validity.complete===false
         ?validity
+        :offer?.metadata?.g66Dynamic===true
+        ?g66Result(station,offer,profile,currentSession,options)
         :unknownPostCharge&&postChargeMinutes>0
         ?{complete:false,reason:'post_charge_fee_unknown_for_station',offerId:text(offer.id||offer.offerId),postChargeMinutes}
         :feeRules.length
