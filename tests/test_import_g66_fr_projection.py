@@ -1,6 +1,6 @@
 import copy, pathlib, sys, unittest
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[1]/"scripts"))
-from import_g66_fr_projection import crosswalk
+from import_g66_fr_projection import crosswalk, canonical_plug
 class CrosswalkTest(unittest.TestCase):
     def setUp(self):
         self.n={"source":{"id":"FR:irve_static"},"stations":[{"id":"s","sourceStationId":"FRS"}],
@@ -26,4 +26,17 @@ class CrosswalkTest(unittest.TestCase):
         self.r["evse_id"]="missing";self.assertEqual(self.reason(),"EVSE_ABSENT")
     def test_other_plug(self):
         self.r["national_plug"]="EF";self.assertEqual(self.reason(),"PLUG_OR_CURRENT_MISMATCH")
+    def test_real_compact_labels(self):
+        for label,plug,kind,kw in [("IRVE · Type 2 22 kW","TYPE2","AC",22),("IRVE · CCS 150 kW","CCS","DC",150),("IRVE · EF 3.7 kW","EF","AC",3.7)]:
+            self.n["connectors"][0].update(plugType=label,kind=kind,powerKw=kw)
+            self.r.update(national_plug=plug,national_mode=kind,national_kw=str(kw))
+            self.assertEqual(self.reason(),"EXACT_RUNTIME_CROSSWALK")
+    def test_labels_fail_closed(self):
+        for label in ("IRVE · Type 20 22 kW","IRVE · CCS unknown","IRVE · Type 2 22 kW extra","CHAdeMO",None):
+            self.assertIsNone(canonical_plug(label))
+    def test_label_not_power_or_mode_override(self):
+        self.n["connectors"][0].update(plugType="IRVE · Type 2 22 kW",powerKw=11)
+        self.assertEqual(self.reason(),"POWER_MISMATCH")
+        self.n["connectors"][0].update(powerKw=22,kind="DC")
+        self.assertEqual(self.reason(),"PLUG_OR_CURRENT_MISMATCH")
 if __name__=="__main__": unittest.main()

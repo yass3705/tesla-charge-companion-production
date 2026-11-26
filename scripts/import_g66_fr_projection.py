@@ -1,12 +1,19 @@
 """G6.6b-1: import an immutable diagnostic projection into the exact national
 canonical catalogue. No price attachment, source mutation or publication."""
-import argparse, collections, csv, gzip, hashlib, io, json, math, os, tempfile, zipfile
+import argparse, collections, csv, gzip, hashlib, io, json, math, os, re, tempfile, zipfile
 from pathlib import Path
 from import_v9_bundle import verify
 
 SOURCE = "FR:irve_static"
 NAMES = {"g66-runtime-identity-projection.csv.gz", "g66-runtime-quotes.csv.gz", "g66-runtime-report.json"}
 PLUG = {"TYPE2": "TYPE2", "Type 2": "TYPE2", "CCS": "CCS", "EF": "EF"}
+def canonical_plug(value):
+    """IRVE compact group label is not an OCPI plug token."""
+    if not isinstance(value, str): return None
+    if value in PLUG: return PLUG[value]
+    match = re.fullmatch(r"IRVE · (Type 2|CCS|EF) [0-9]+(?:\.[0-9]+)? kW", value)
+    return PLUG[match.group(1)] if match else None
+
 def digest(b): return hashlib.sha256(b).hexdigest()
 def rows(b): return list(csv.DictReader(io.StringIO(gzip.decompress(b).decode("utf-8"))))
 def power(v):
@@ -62,7 +69,7 @@ def crosswalk(national, projection):
             elif (e.get("rawSourceFields") or {}).get("ambiguousNationalEvseId"): reason = "EVSE_AMBIGUOUS"
             elif power(r["national_kw"]) is None: reason = "NATIONAL_POWER_MISSING"
             else:
-                cs = [c for c in connectors[e["id"]] if PLUG.get(c.get("plugType")) == r["national_plug"] and c.get("kind") == r["national_mode"]]
+                cs = [c for c in connectors[e["id"]] if canonical_plug(c.get("plugType")) == r["national_plug"] and c.get("kind") == r["national_mode"]]
                 if not cs: reason = "PLUG_OR_CURRENT_MISMATCH"
                 else:
                     matches = [c for c in cs if power(c.get("powerKw")) == power(r["national_kw"])]
