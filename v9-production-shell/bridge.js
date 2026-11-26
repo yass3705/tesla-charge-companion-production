@@ -128,8 +128,22 @@
       Math.min(...x.rankingChoices.map(choice=>num(choice.costPerKm)??Infinity)):
       (num(x.costPerKm)??Infinity);
     const available=(rows||[]).filter(x=>rankable(x)&&Number.isFinite(x.distanceKm));
-    const unknown=(rows||[]).filter(x=>!rankable(x)&&Number.isFinite(x.distanceKm)).sort((a,b)=>a.distanceKm-b.distanceKm);
-    const nameTie=(a,b)=>text(a.station?.name).localeCompare(text(b.station?.name),'fr');
+    // Same-price or unpriced co-located points must never inherit source load order.
+    // Station IDs are sufficient for cached station cards; individual variants
+    // also need exact EVSE/connector keys, including unpriced variants.
+    const lex=(a,b)=>a<b?-1:a>b?1:0;
+    const identities=x=>{
+      const st=x.station||{};
+      const evses=(st.evses||[]).map(e=>[text(e.id||e.evseId||e.pdcId),
+        (e.connectors||[]).map(c=>text(c.id||c.connectorId)).filter(Boolean).sort()]).sort((a,b)=>lex(JSON.stringify(a),JSON.stringify(b)));
+      return JSON.stringify([text(x.stationKey),text(x.evaluation?.best?.evseId||x.evseId),
+        text(x.evaluation?.best?.connectorId||x.connectorId||x.powerLine?.connectorId),evses,
+        text(x.powerLine?.kind),text(x.powerLine?.powerKw??x.displayPowerKw)]);
+    };
+    const nameTie=(a,b)=>text(a.station?.name).localeCompare(text(b.station?.name),'fr')||
+      lex(text(a.station?.id||a.station?.canonicalId||a.station?.stationId),text(b.station?.id||b.station?.canonicalId||b.station?.stationId))||
+      lex(text(a.station?.countryCode),text(b.station?.countryCode))||lex(identities(a),identities(b));
+    const unknown=(rows||[]).filter(x=>!rankable(x)&&Number.isFinite(x.distanceKm)).sort((a,b)=>a.distanceKm-b.distanceKm||nameTie(a,b));
     if(mode==='price'){
       available.sort((a,b)=>a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
       return available.concat(unknown).slice(0,limit);
@@ -144,13 +158,14 @@
     }
     if(mode==='costPerKm'){
       const withCost=available.filter(x=>Number.isFinite(cost(x))),withoutCost=available.filter(x=>!Number.isFinite(cost(x)));
-      withCost.sort((a,b)=>cost(a)-cost(b)||a.total-b.total||a.distanceKm-b.distanceKm||text(a.station?.name).localeCompare(text(b.station?.name),'fr'));
+      withCost.sort((a,b)=>cost(a)-cost(b)||a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
+      withoutCost.sort((a,b)=>a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
       return withCost.concat(withoutCost,unknown).slice(0,limit);
     }
     if(!available.length)return unknown.slice(0,limit);
     const costs=available.map(x=>x.total),distances=available.map(x=>x.distanceKm),minC=Math.min(...costs),maxC=Math.max(...costs),minD=Math.min(...distances),maxD=Math.max(...distances),w=rankingWeights(mode);
     for(const row of available){const cn=maxC===minC?0:(row.total-minC)/(maxC-minC),dn=maxD===minD?0:(row.distanceKm-minD)/(maxD-minD);row.shellScore=w.price*cn+w.distance*dn;}
-    available.sort((a,b)=>a.shellScore-b.shellScore||a.total-b.total||a.distanceKm-b.distanceKm||text(a.station?.name).localeCompare(text(b.station?.name),'fr'));
+    available.sort((a,b)=>a.shellScore-b.shellScore||a.total-b.total||a.distanceKm-b.distanceKm||nameTie(a,b));
     return available.concat(unknown).slice(0,limit);
   }
   function combineDateTime(date,time,startValue=null){

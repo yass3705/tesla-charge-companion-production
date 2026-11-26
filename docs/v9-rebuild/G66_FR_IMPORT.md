@@ -9,3 +9,7 @@ G6.6b-1 run 45822764677 succeeded technically but returned 0/24115 joins. The ca
 ## G6.6b-4 — opt-in session transport
 
 Parent b4f6d1af55b951cd93feaf210d96958e50828823. Add explicit FR Electroverse diagnostic branch to actual session engine. No fallback to empty rules, exact canonical target and source signature, explicit seconds/timezone/congestion, exact response and generation/code pin. A provided charge timeline is refused until the gate supports it, not silently reduced to an average. Direct/Electra/Tesla paths untouched. Only explicit diagnostic test options enable quotes; no browser endpoint, config or published asset changed. Production CI verifies fixtures, Data Lab runner exercises exact requests against real Python/Node gate. Rollback revert targeted commit.
+
+## G6.6b-4 retry — deterministic ranking
+
+Run 45868606202 failed at test_g66b4_runtime_transport.cjs:60 (reverse-input equality). Unpriced co-located points used distance alone, so ties inherited load order. Retain existing primary criteria; use name, station ID, country and exact EVSE/connector scope as final ties. Sort calculable totals with undefined cost/km deterministically too. No tariff or matching change. Parent 6682943d70509eae80dabdf167f1ce67b0058a68. Revert this patch to roll back. Full replay unchanged.
