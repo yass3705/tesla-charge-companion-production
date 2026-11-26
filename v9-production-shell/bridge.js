@@ -860,7 +860,7 @@
     const best=valid[0]||null;
     return{...evaluation,best,alternatives:all.filter(item=>item!==best)};
   }
-  function variantsByPower(w,rows,session,selectedSubscriptions=[]){
+  function variantsByPower(w,rows,session,selectedSubscriptions=[],diagnosticOptions={}){
     const planner=w.TCCV9SessionPlannerEngine,sessionEngine=w.TCCV9SessionEngine,scoreEngine=w.TCCV9StationScoreEngine;
     if(!planner?.planStation||!sessionEngine?.evaluateStation||!sessionEngine?.offerMatchesChargingKind||!scoreEngine?.scoreStation)throw new Error('per-power pricing engines unavailable');
     const variants=[];
@@ -897,7 +897,7 @@
           (offer.scope?.connectorId==null||group.connectorIds.has(text(offer.scope.connectorId))));
         const variant={...station,evses,offers:guardedOffers.concat(electraPlusOffers({...station,offers:guardedOffers},selectedSubscriptions)),unparsedOffers},routeMap={[text(station.id||station.canonicalId||station.stationId)]:row.route||{}};
         const plan=planner.planStation(variant,session,{route:{byStationId:routeMap}});
-        const rawEvaluation=sessionEngine.evaluateStation(variant,plan.effectiveSession,{selectedSubscriptions,targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}});
+        const rawEvaluation=sessionEngine.evaluateStation(variant,plan.effectiveSession,{...diagnosticOptions,selectedSubscriptions,targetCurrency:session.targetCurrency||'EUR',fxRates:session.fxRates||{}});
         const evaluation=consistentLaneEvaluation(rawEvaluation,variant,selectedSubscriptions);
         const score=scoreEngine.scoreStation(variant,evaluation,plan.effectiveSession,{route:{byStationId:routeMap},plan});
         const line={kind:group.kind,powerKw:group.powerKw,count:group.evseKeys.size};
@@ -1256,19 +1256,20 @@
       evaluation:best?{best:{total:best.total,targetCurrency:best.targetCurrency,costPerRecoveredKm:best.costPerRecoveredKm,result:{complete:true}}}:null,
       summaryOnly:true};
   }
-  async function rankedPage(w,engine,query,input,origin,selected){
-    const key=JSON.stringify({...query,stationOffset:0});
-    const cardsFor=area=>stationCards(variantsByPower(w,rowsFromArea(area,origin),area.effectiveSession||query.session,selected)
+  async function rankedPage(w,engine,query,input,origin,selected,diagnosticOptions={}){
+    const transport=diagnosticOptions.g66QuoteTransport;
+    const key=JSON.stringify({...query,stationOffset:0,g66:transport?[diagnosticOptions.g66NationalSha256,diagnosticOptions.g66GateCodeSha]:null});
+    const cardsFor=area=>stationCards(variantsByPower(w,rowsFromArea(area,origin),area.effectiveSession||query.session,selected,diagnosticOptions)
       .filter(row=>variantMatchesFilters(row,input)),selected);
     let cached=searchRankingCache.get(engine);
-    if(!cached||cached.key!==key){
+    if(!cached||cached.key!==key||cached.transport!==transport){
       const pending=(async()=>{
         const summaries=[];let inventory=[],count=Infinity,lastYield=performance.now();
         for(let offset=0;offset<count;offset+=40){
           const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitSubscriptionOptions:true,omitMapInventory:offset>0});
           if(offset===0){count=Number(batch.diagnostics?.sourceStationCount) || batch.stations.length;inventory=batch.mapStations||[];}
           const baseRows=rowsFromArea(batch,origin),pricedStations=baseRows.filter(row=>row.station.offers?.length),unpriced=baseRows.filter(row=>!row.station.offers?.length);
-          const evaluated=stationCards(variantsByPower(w,pricedStations,batch.effectiveSession||query.session,selected)
+          const evaluated=stationCards(variantsByPower(w,pricedStations,batch.effectiveSession||query.session,selected,diagnosticOptions)
             .filter(row=>variantMatchesFilters(row,input)),selected,true);
           const byId=new Map(evaluated.map(card=>[card.station.id,rankingSummary(card)]));
           for(const row of unpriced){
@@ -1285,7 +1286,7 @@
         }
         return{summaries,inventory,count,order:null};
       })();
-      cached={key,pending};searchRankingCache.set(engine,cached);
+      cached={key,pending,transport};searchRankingCache.set(engine,cached);
       pending.catch(()=>{if(searchRankingCache.get(engine)===cached)searchRankingCache.delete(engine);});
     }
     const calculated=await cached.pending;
@@ -1312,9 +1313,21 @@
     const queryMode=countryQueryMode(countryCode,scope,input.operatorIds||[]);
     if(input.radiusKm>100)throw new Error('Le rayon maximal est de 100 km. Choisissez un rayon inférieur ou égal à 100 km.');
     const queryRadius=input.radiusKm>0?input.radiusKm:20,filters=areaFiltersFromInputs(input),session=buildSession(input,countryCode);session.fxRates=engine.__tccFxRates||{};
+    // Reconstruction-only injected transport. No endpoint, default opt-in,
+    // serialized response cache, or public configuration is introduced here.
+    const d=cfg.mode==='candidate'&&countryCode==='FR'?cfg.g66DiagnosticTransport:null;
+    const diagnosticOptions=d?.enabled===true&&typeof d.quote==='function'&&
+      /^[a-f0-9]{64}$/.test(d.nationalCanonicalSha256||'')&&/^[a-f0-9]{40}$/.test(d.gateCodeSha||'')?
+      {g66DiagnosticEnabled:true,g66PlannerProtocol:true,g66SessionZeroTemporalProof:true,
+       g66NationalSha256:d.nationalCanonicalSha256,g66GateCodeSha:d.gateCodeSha,g66QuoteTransport:d.quote}:{};
+    if(diagnosticOptions.g66DiagnosticEnabled){
+      session.timeZone='Europe/Paris';
+      session.includeCongestionFees=input.includeCongestionFees!==false;
+      if(Number.isFinite(input.postChargeMinutes)&&input.postChargeMinutes>=0)session.postChargeMinutes=input.postChargeMinutes;
+    }
     if(queryMode==='tesla-only')filters.operatorIds=['tesla'];
     const selected=selectedSubscriptionsForConfig(w,cfg);
-    const {area,rows}=await rankedPage(w,engine,{countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},globalRouting:true,routingBudget:80,perOperatorFloor:2,stationLimit:160,stationOffset:Math.max(0,Math.floor(Number(input.stationOffset)||0)),sortBy:'finalCost'},input,origin,selected);
+    const {area,rows}=await rankedPage(w,engine,{countryCode,origin:{lat:Number(origin.lat),lon:Number(origin.lon)},radiusKm:queryRadius,filters,session,vehicleProfileId:'generic-ev-preview',selectedSubscriptions:selected,subscriptionFilters:{countryCodes:[countryCode],coverageMode:'any'},globalRouting:true,routingBudget:80,perOperatorFloor:2,stationLimit:160,stationOffset:Math.max(0,Math.floor(Number(input.stationOffset)||0)),sortBy:'finalCost'},input,origin,selected,diagnosticOptions);
     if(queryMode==='tesla-only'&&!area.stations?.some(isTeslaStation))throw new Error(`no Tesla V9 station in ${countryCode}`);
     area.selectedSubscriptions=selected;area.preproductionCandidate=engine.__tccPreparedCandidate||null;
     area.displayFxRates=session.fxRates;return{area,rows,origin,countryCode,queryRadius,partialRadius:!(input.radiusKm>0),selectedSubscriptions:selected};
