@@ -51,6 +51,66 @@
     "cpuProfile": {
       "TCCV9CanonicalAdapter.toFragments": {
         "calls": 92,
+        "cpuMs": 2542
+      },
+      "TCCV9ChargeModelEngine.estimate": {
+        "calls": 100399,
+        "cpuMs": 1588
+      },
+      "TCCV9OfferEngine.eligibleOffers": {
+        "calls": 100399,
+        "cpuMs": 885
+      },
+      "TCCV9OfferEngine.prepareOffers": {
+        "calls": 64179,
+        "cpuMs": 4923
+      },
+      "TCCV9PricingEngine.evaluateOffer": {
+        "calls": 100749,
+        "cpuMs": 4859
+      },
+      "TCCV9SessionEngine.evaluateStation": {
+        "calls": 100399,
+        "cpuMs": 9684
+      },
+      "TCCV9SessionPlannerEngine.planStation": {
+        "calls": 100239,
+        "cpuMs": 2958
+      },
+      "TCCV9StationScoreEngine.scoreStation": {
+        "calls": 100399,
+        "cpuMs": 811
+      }
+    },
+    "elapsedMs": 51432,
+    "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca",
+    "mapCount": 64019,
+    "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+    "matching": 64019,
+    "pageSha": "3c800d097c7ab4f6cb67b5a93b2fd40570040f83d8dcc7bf1bbcb8cd638b78a5",
+    "rankCount": 64019,
+    "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+    "shardCount": 92,
+    "shardLastResponseMs": 14021,
+    "sourceErrors": [],
+    "visible": 160
+  },
+  "comparison": [
+    "evaluationSha",
+    "rankCount",
+    "rankSha",
+    "mapSha",
+    "pageSha",
+    "matching",
+    "sourceErrors",
+    "visible"
+  ],
+  "mode": "Firefox cold on local immutable package and isolated copy; single paired sample, no remote performance claim",
+  "bundle": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+  "initialOptimization": {
+    "cpuProfile": {
+      "TCCV9CanonicalAdapter.toFragments": {
+        "calls": 92,
         "cpuMs": 2266
       },
       "TCCV9ChargeModelEngine.estimate": {
@@ -94,17 +154,5 @@
     "shardLastResponseMs": 11639,
     "sourceErrors": [],
     "visible": 160
-  },
-  "comparison": [
-    "evaluationSha",
-    "rankCount",
-    "rankSha",
-    "mapSha",
-    "pageSha",
-    "matching",
-    "sourceErrors",
-    "visible"
-  ],
-  "mode": "Firefox cold on local immutable package and isolated copy; single paired sample, no remote performance claim",
-  "bundle": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff"
+  }
 }

@@ -311,13 +311,16 @@
       const consolidation=consolidateNational(items,registry.nationalCatalogues||{},registry.nationalAmbiguousEvseIds||{});
       diagnostics.consolidation=consolidation.diagnostics;
       const resolved=resolveEntities(fragmentsForRadius(consolidation.items,query.origin,query.radiusKm)),inRadius=resolved.filter(st=>!query.origin||!Number.isFinite(Number(query.radiusKm))||distanceKm(query.origin,st)<=Number(query.radiusKm)+1e-9),baseFiltered=inRadius.filter(st=>stationMatchesFilters(st,query.filters||{}));
-      return{items,ruleItems,diagnostics,resolved,inRadius,baseFiltered,availableOperators:deriveOperators(baseFiltered),subscriptionOfferPool:baseFiltered.flatMap(st=>(st.offers||[]).filter(offer=>text(offer?.subscriptionId)))};
+      diagnostics.fragmentCount=items.length;
+      diagnostics.mergedStationCount=resolved.length;
+      diagnostics.inRadiusCount=inRadius.length;
+      return{ruleItems,diagnostics,baseFiltered,availableOperators:deriveOperators(baseFiltered),subscriptionOfferPool:baseFiltered.flatMap(st=>(st.offers||[]).filter(offer=>text(offer?.subscriptionId)))};
     }
     async function queryArea(query={}){
       const key=JSON.stringify({countryCode:query.countryCode,origin:query.origin,radiusKm:query.radiusKm,filters:query.filters});
       if(!areaCache||areaCache.key!==key){const promise=loadSpatialArea(query);areaCache={key,promise};promise.catch(()=>{if(areaCache?.promise===promise)areaCache=null;});}
       const snapshot=await areaCache.promise;
-      const{items,ruleItems,diagnostics,resolved,inRadius,baseFiltered,availableOperators,subscriptionOfferPool}=snapshot;
+      const{ruleItems,diagnostics,baseFiltered,availableOperators,subscriptionOfferPool}=snapshot;
       const stationLimit=Math.floor(number(query.stationLimit)||0),stationOffset=Math.max(0,Math.floor(number(query.stationOffset)||0)),requestedIds=Array.isArray(query.stationIds)?new Set(query.stationIds):null,selected=requestedIds?baseFiltered.filter(st=>requestedIds.has(st.id)):(stationLimit>0?baseFiltered.slice(stationOffset,stationOffset+stationLimit):baseFiltered);
       // A prepared source with no separate offer rules already carries its
       // canonical offers. Keep the resolved station objects read-only and
@@ -331,7 +334,7 @@
         globalRoutingCandidates=snapshot.routingSelections.get(routeKey);
       }
       const mapStations=query.omitMapInventory?[]:baseFiltered.map((st,index)=>({id:st.id,latitude:st.latitude,longitude:st.longitude,name:st.name,countryCode:st.countryCode,physicalOperator:st.physicalOperator,hasRawOffer:(st.unparsedOffers||[]).some(o=>o.calculationStatus==='not_evaluated'),page:stationLimit>0?Math.floor(index/stationLimit):0}));
-      return{query:clone(query),stations:filtered,mapStations,globalRoutingCandidates,operators,availableOperators,subscriptionOfferPool,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,fragmentCount:items.length,offerRuleCount:ruleItems.length,mergedStationCount:resolved.length,inRadiusCount:inRadius.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationOffset+stationLimit,stationOffset,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
+      return{query:clone(query),stations:filtered,mapStations,globalRoutingCandidates,operators,availableOperators,subscriptionOfferPool,routingCandidates,freshness:{generatedAt:new Date().toISOString()},diagnostics:{...diagnostics,offerRuleCount:ruleItems.length,filteredCount:baseFiltered.length,sourceStationCount:baseFiltered.length,stationLimitApplied:stationLimit>0&&baseFiltered.length>stationOffset+stationLimit,stationOffset,stationLimit:stationLimit>0?stationLimit:null,routingCandidateCount:routingCandidates.length}};
     }
     api={queryArea,registerLoader,deriveOperators,eligibleOffers,selectRoutingCandidates,sources:()=>clone(sources)};return api;
   }

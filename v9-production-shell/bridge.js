@@ -1077,7 +1077,13 @@
       // candidates in that lane for the per-PDC ambiguity and scope checks.
       const rankable=lanes.filter(lane=>grouped.get(lane)?.some(pricedItem));
       if(summaryOnly&&!rankable.length)continue;
-      const entries=pdcEntries(row);
+      // The summary only needs the minima across PDCs. Once this variant
+      // was scoped and evaluated, a non-empty lane varies by PDC only for
+      // ambiguous identities or a per-PDC congestion selection.
+      const sharedRanking=summaryOnly&&station.evses?.length>0&&
+        !(station.offers||[]).some(offer=>offer.metadata?.tariffAmbiguous)&&
+        !rankable.some(lane=>grouped.get(lane).some(item=>item.congestion?.available));
+      const entries=sharedRanking?[{evses:station.evses}]:pdcEntries(row);
       let group;
       if(!summaryOnly){
         card.variants.push(row);
@@ -1090,7 +1096,7 @@
       }
       for(const pdc of entries){
         if(group){card.pdcIds.add(pdc.id);group.pdcIds.add(pdc.id);}
-        const scoped={...station,evses:pdc.evses};
+        const scoped=sharedRanking?station:{...station,evses:pdc.evses};
         for(const lane of rankable){
           const state=tariffLaneState(row.evaluation,scoped,lane,grouped.get(lane));
           if(state.status!=='priced'||!pricedItem(state.item))continue;
