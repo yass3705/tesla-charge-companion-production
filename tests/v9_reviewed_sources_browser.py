@@ -52,7 +52,9 @@ def verify(site, url, cases, mobile):
                     window.resolveOrigin=async()=>({lat,lon,label:name});
                     sessionStorage.setItem('tcc-v9-country:'+lat.toFixed(3)+','+lon.toFixed(3),test.country||'FR');
                     get('simOrigin').value=name;get('simMaxDistance').value='1';
-                    get('simDate').value='2026-11-28';get('simTime').value='19:45';get('simUnplugTime').value='20:45';
+                    const metropolis=source==='FR:metropolis_official';
+                    get('simDate').value='2026-11-28';get('simTime').value=metropolis?'13:00':'19:45';
+                    get('simUnplugTime').value=metropolis?'14:00':'20:45';
                     get('simNow').value='45';get('simTarget').value='50';
                     get('simOperatorFilter').dataset.v9Mode='all';
                     get('simRanking').value='price';
@@ -77,7 +79,7 @@ def verify(site, url, cases, mobile):
                       if(offered.length||!station.unparsedOffers.some(o=>o.id===test.rawOfferId&&o.scope.evseId===evse.id&&
                          o.rawOffer?.feeSemantics?.safeForFullSessionCost===false))throw Error('DRIVECO fee lost or priced');
                       if(detail.textContent.includes(test.rawOfferId))throw Error('unproved offer displayed as a calculation');
-                    }else if(test.source==='FR:metropolis_official'){
+                    }else if(metropolis){
                       const direct=[...detail.querySelectorAll('[data-v9-lane-label="Direct"]')];
                       if(offered.length!==1||offered[0].id!==test.offerId||
                          offered[0].metadata.nationalJoin?.nationalSource!=='FR:irve_static'||

@@ -514,5 +514,335 @@
     "exactStationIdIntersection": 0,
     "offersAdmitted": 0,
     "remaining": "Qualify historical fallback and scope at the national point."
+  },
+  "kilowattInventory": {
+    "artifactId": 13438342511,
+    "zipSha256": "f48ad4e2b0d8494a5720fef913a6fed7849e488fe9705b1bd677ef366a08f317",
+    "runId": 42076753318,
+    "jobId": 127418895478,
+    "runHeadSha": "fb2efece12321c7dcb347166f7a6b4f5eec1e4b5",
+    "manifestSha256": "24fec6a0d02274ab4181360de021ce3cd6c41e63d5825c977ce0112cc6f63f29",
+    "files": [
+      {
+        "path": "reports/morocco/kilowatt/latest-public-station-inventory.json",
+        "sha256": "0c582df0ca41b3ad98bc63f5953965d81294da1233238e87067f8922bef121ed",
+        "bytes": 26766
+      },
+      {
+        "path": "scripts/morocco/kilowatt_public_station_inventory.py",
+        "sha256": "0160297d46c3e0853a7ca3f077bded140ccd7271a78cd2d0486293c420143c97",
+        "bytes": 3994
+      }
+    ],
+    "records": 41,
+    "publicCandidates": 37,
+    "nativeTariffDocumented": false
+  },
+  "moroccoCatalogueReview": {
+    "fastvolt": {
+      "publicCandidates": 97,
+      "uniqueSourceIds": 97,
+      "uniqueCoordinates": 97,
+      "multipointCoordinates": 0,
+      "maxSameLocationPoints": 1,
+      "operatorLabelCounts": {
+        "FastVolt / Afrimobility": 97
+      }
+    },
+    "kilowatt": {
+      "publicCandidates": 37,
+      "uniqueSourceIds": 37,
+      "uniqueCoordinates": 37,
+      "multipointCoordinates": 0,
+      "maxSameLocationPoints": 1,
+      "operatorLabelCounts": {
+        "Kilowatt": 37
+      }
+    },
+    "commonExactCoordinates": {
+      "fastvolt:kilowatt": 0,
+      "fastvolt:evgo": 0,
+      "kilowatt:evgo": 0
+    },
+    "remaining": "Grouping and duplicate policy exercise, including nonidentical coordinates; connector identity and power must be preserved. No tariff established by the inventory."
+  },
+  "remainingArchiveIdentityReview": {
+    "FR:siceco_cotedor": {
+      "artifactId": 14706009795,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "siceco_cotedor_official.json"
+    },
+    "MA:kilowatt_tariff_overlay": {
+      "artifactId": 14709568901,
+      "identityFields": {
+        "station_id": 37
+      },
+      "termFields": {},
+      "primaryArtifact": "latest-v9-tariff-overlay.json"
+    },
+    "FR:greenspot": {
+      "artifactId": 14709613184,
+      "identityFields": {
+        "evseId": 226,
+        "id_station_itinerance": 226,
+        "id_pdc_itinerance": 226
+      },
+      "termFields": {
+        "currency": 452,
+        "vat": 226
+      },
+      "primaryArtifact": "greenspot-france-current.json.gz"
+    },
+    "FR:mobisdec_official": {
+      "artifactId": 14707797317,
+      "identityFields": {
+        "id_station_itinerance": 3,
+        "id_pdc_itinerance": 3
+      },
+      "termFields": {},
+      "primaryArtifact": "mobisdec_official_calvados.json"
+    },
+    "FR:izivia_official": {
+      "artifactId": 14707642715,
+      "identityFields": {},
+      "termFields": {
+        "currency": 1
+      },
+      "primaryArtifact": "izivia_official_france.json"
+    },
+    "CH:chevp_evpass": {
+      "artifactId": 14708124703,
+      "identityFields": {
+        "evseId": 40
+      },
+      "termFields": {
+        "currency": 40
+      },
+      "primaryArtifact": "chevp-evpass-official-direct-tariffs.json"
+    },
+    "CH:ebs_ecarup": {
+      "artifactId": 14707083292,
+      "identityFields": {
+        "evseId": 6
+      },
+      "termFields": {
+        "currency": 9
+      },
+      "primaryArtifact": "ebs-ecarup-direct-tariffs.json"
+    },
+    "CH:ail_emoti": {
+      "artifactId": 14707366946,
+      "identityFields": {
+        "evseId": 21
+      },
+      "termFields": {
+        "currency": 21,
+        "parkingPenaltyPolicy": 21
+      },
+      "primaryArtifact": "ail-emoti-official-direct-tariffs.json"
+    },
+    "MA:fastvolt_inventory": {
+      "artifactId": 14709737577,
+      "identityFields": {
+        "charger_id": 100
+      },
+      "termFields": {},
+      "primaryArtifact": "latest-public-map-inventory.json"
+    },
+    "CH:autosense_amag": {
+      "artifactId": 14709496492,
+      "identityFields": {
+        "evseId": 44
+      },
+      "termFields": {
+        "currency": 27,
+        "conditionalEligibleBrandPricePerKwh": 27
+      },
+      "primaryArtifact": "autosense-amag-direct-tariffs.json"
+    },
+    "CH:ebs_closeout": {
+      "artifactId": 14710585110,
+      "identityFields": {
+        "evseId": 6
+      },
+      "termFields": {
+        "currency": 14
+      },
+      "primaryArtifact": "ebs-ecarup-direct-tariffs.json"
+    },
+    "FR:sdey": {
+      "artifactId": 14706568715,
+      "identityFields": {},
+      "termFields": {
+        "graceMinutes": 3
+      },
+      "primaryArtifact": "sdey_official_yonne.json"
+    },
+    "FR:mobive": {
+      "artifactId": 14707091324,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "mobive_official_france.json"
+    },
+    "CH:saascharge_official": {
+      "artifactId": 14710000306,
+      "identityFields": {
+        "evseId": 259
+      },
+      "termFields": {
+        "currency": 257
+      },
+      "primaryArtifact": "saascharge-official-direct-tariffs.json"
+    },
+    "CH:iwb_basel": {
+      "artifactId": 14706719582,
+      "identityFields": {
+        "evseId": 31
+      },
+      "termFields": {
+        "currency": 31,
+        "blockingFee": 31,
+        "graceMinutes": 2
+      },
+      "primaryArtifact": "iwb-official-basel-overlay.json"
+    },
+    "FR:ouestcharge": {
+      "artifactId": 14706761646,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "ouestcharge_official_france.json"
+    },
+    "FR:sieeen_nievre": {
+      "artifactId": 14707105702,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "sieeen_nievre_official.json"
+    },
+    "FR:fastned_inventory_family": {
+      "artifactId": 14115183519,
+      "identityFields": {
+        "stationId": 66
+      },
+      "termFields": {},
+      "primaryArtifact": "fastned_direct_stations_france.json.gz"
+    },
+    "CH:ecarup_finalization": {
+      "artifactId": 15266866159,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "switzerland-ecarup-finalization-2026-09-28.json"
+    },
+    "CH:cci_move": {
+      "artifactId": 15265432756,
+      "identityFields": {
+        "evseId": 1829
+      },
+      "termFields": {
+        "currency": 18298
+      },
+      "primaryArtifact": "cci-move-cpo-tariffs-national.json"
+    },
+    "CH:ewo_ecarup": {
+      "artifactId": 15266006399,
+      "identityFields": {
+        "evseId": 7,
+        "chargingStationId": 7,
+        "connectorId": 14
+      },
+      "termFields": {
+        "currency": 14
+      },
+      "primaryArtifact": "ewo-ecarup-direct-tariffs.json"
+    },
+    "CH:tae_matterhorn": {
+      "artifactId": 15265796890,
+      "identityFields": {
+        "evseId": 16,
+        "chargingStationId": 16
+      },
+      "termFields": {
+        "currency": 1
+      },
+      "primaryArtifact": "tae-matterhorn-terminal-direct-tariffs.json"
+    },
+    "CH:mmn_move": {
+      "artifactId": 15265886839,
+      "identityFields": {
+        "evseId": 1
+      },
+      "termFields": {
+        "currency": 6
+      },
+      "primaryArtifact": "mmn-move-cpo-tariffs.json"
+    },
+    "CH:soc_move": {
+      "artifactId": 15265317027,
+      "identityFields": {
+        "evseId": 162
+      },
+      "termFields": {
+        "currency": 1628
+      },
+      "primaryArtifact": "soc-move-cpo-tariffs-national.json"
+    },
+    "CH:ecarup_coordinate": {
+      "artifactId": 15266397090,
+      "identityFields": {
+        "evseId": 3500,
+        "stationId": 5461
+      },
+      "termFields": {},
+      "primaryArtifact": "ecarup-owner-coordinate-safe-overlay.json"
+    },
+    "FR:syded_doubs": {
+      "artifactId": 15223573344,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "syded_doubs_official.json"
+    },
+    "FR:lidl_plus_official": {
+      "artifactId": 15225140518,
+      "identityFields": {},
+      "termFields": {
+        "currency": 2
+      },
+      "primaryArtifact": "lidl_plus_france.json"
+    },
+    "FR:tde90_belfort": {
+      "artifactId": 15223862057,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "tde90_belfort_official.json"
+    },
+    "FR:sied70": {
+      "artifactId": 15224910105,
+      "identityFields": {},
+      "termFields": {
+        "postChargeFee": 2,
+        "graceMinutes": 2
+      },
+      "primaryArtifact": "sied70_official_haute_saone.json"
+    },
+    "FR:eborn_official": {
+      "artifactId": 15224925375,
+      "identityFields": {},
+      "termFields": {
+        "postCharge": 1
+      },
+      "primaryArtifact": "eborn_official_france.json"
+    },
+    "FR:pluginn_fastcharge_official": {
+      "artifactId": 15224646055,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "pluginn_fastcharge_official_france.json"
+    },
+    "MA:kilowatt_inventory": {
+      "artifactId": 13438342511,
+      "identityFields": {},
+      "termFields": {},
+      "primaryArtifact": "latest-public-station-inventory.json"
+    }
   }
 }

@@ -53,3 +53,20 @@ Les [preuves de contrôle des archives et renouvellements](evidence/cli-independ
 Le [reçu de déploiement et de recette](evidence/cli-final-preview-20261128.json) regroupe la composition, la filiation des dérivés, les signatures Firefox et la preuve distante. Le bundle conserve le catalogue national, Tesla et la génération Electroverse. Les trois ajouts tarifaires sont La Borne Bleue AC, EWD et Fastned Standard suisse. DRIVECO remplace le lot précédent et reste brut là où le coût complet dépend de matrixOSF. Le résultat WAAT conservé à l’écran n’affiche aucun tarif attribué au PDC contrôlé.
 
 Les contrôles G3–G8 des entrées et fonctionnalités servies passent pour ce candidat. La comparaison à 100 km retrouve le classement et les tarifs de l’oracle dans les cinq modes pour 64 019 stations. À froid sur Netlify, Paris à 20 km prend 19,857 s sur ordinateur et 18,197 s à 390 px. Londres à 10 km prend 5,445 s à 390 px. Les témoins du site public et les deux brouillons de rollback ont été vérifiés. Les preuves de la chaîne récurrente GitHub et les qualifications restant ouvertes sont suivies séparément dans la matrice.
+
+## Extension Métropolis et décisions restant ouvertes
+
+Le dernier paquet étend le candidat à 38 sources. La grille grand public publiée par le job Data Lab 140678517115 (ZIP 15223952278) concorde avec les règles TTC, les arrondis et les exceptions de l’archive Métropolis épinglée. Le renouvellement vérifié 15273536296 conserve les mêmes règles. Le journal IRVE du candidat rattache chacune des 740 offres Direct à une identité exacte sur 150 stations du catalogue maître. Le pas du kWh entamé, la franchise de dix minutes et la minute entamée après recharge passent sur les 740 offres. Les 14 profils de Neuilly-sur-Seine utilisent les fenêtres locales, et une minute à cheval sur la frontière reste incalculable si sa règle n’est pas démontrée. Les avantages d’abonnement Métropolis restent hors calcul.
+
+Le [registre des 135 instances](evidence/cli-source-admission-20261128.csv) conserve les motifs par source. Les grilles départementales sans attribution à un PDC restent documentaires. Les rapprochements nationaux suisses contraires à l’identité ou à l’opérateur restent refusés. La suite CLI porte sur les preuves encore manquantes des cohortes suisses, la portée prise et TVA/horaire Greenspot, l’appariement France Fastned, les exemples MobiSDEC et le regroupement des inventaires marocains. Chaque évolution qualifiée doit préserver les possibilités de retour arrière. ChatGPT conserve le suivi du lot 5 et le run global de clôture avec diagnostics du CDC Data Lab.
+
+| Porte | Contrôles effectivement réussis sur le brouillon à 38 sources |
+|---|---|
+| G3 | Schéma et identifiants des ajouts contrôlés ; neuf pays, catalogue national maître et catalogue Tesla séparé. |
+| G4 | Manifeste et SHA vérifiés ; 37 sources reprises, une ajoutée ; deux brouillons immuables de retour arrière. |
+| G5 | 740 PDC Métropolis existants enrichis sans ajout de fiche ; journal IRVE et génération Electroverse validés à Ajaccio et Béthune. |
+| G6 | 740 calculs Métropolis, 24 parcours de référence distants et les 64 résultats Midhope rejoués ; frais ou portées insuffisants conservés hors classement. |
+| G7 | Onze recherches aux deux largeurs, Tesla, carte au clavier, filtres, simulation, pagination 20 + 20 et signatures du classement ; Paris 20 km à froid 26,056 s sur ordinateur et 20,400 s à 390 px ; Londres 10 km à 390 px 5,589 s. |
+| G8 | HTTPS, noindex, SHA et navigateurs sur l’URL réelle ; deux fragments ajoutés, 3 330 fragments à empreinte préservée et journal IRVE vérifiés ; témoins du site public préservés. |
+
+[Reçu de la recette à 38 sources](evidence/cli-metropolis-preview-20261128.json). Les contrôles du candidat et les preuves de renouvellement, de qualification et de transfert récurrent restent des critères distincts. Les portes G2 à G8 restent ouvertes globalement. La validation G9 revient à l’utilisateur.
