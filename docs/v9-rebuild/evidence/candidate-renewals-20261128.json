@@ -1,0 +1,60 @@
+{
+  "bundle": {
+    "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+    "base": "6e49cc1d5ab35d00ae79078cbf81e1a8b55fe40f69cc63fa2ca101591d791f8b",
+    "scheduledImport": "7abdd172b0b09bd3c681ed94765d182c2a900925de1b8eb1922f9b15ace832e3",
+    "runId": 46143979010,
+    "sources": [
+      "DE:ionity_direct",
+      "FR:ionity_direct",
+      "GB:ionity_direct",
+      "IT:ionity_direct"
+    ]
+  },
+  "FX": {
+    "sourceArtifact": 15262654180,
+    "ratesSha256": "caef1b80c8c0140266f997a13ebdb682dceaaf502d573245483400cff0d7f0bd",
+    "date": "2026-11-28"
+  },
+  "runtime": {
+    "verifiedCalculatorMembers": 22,
+    "identicalRateModelsAndBindings": true,
+    "archivedFirefoxRequestsCompared": 1047,
+    "catalogueSha256": "d08ec68d959ae7c032edbad343940a90128d3017a3cb14153f994cdb613f7777",
+    "gateNationalSha256": "0316341183ff3fe58c53a0b69316e4ad44b459b53ecf8c49a6c6d342e4fc0ce2",
+    "gateRefusesUnbound": true
+  },
+  "REVE": {
+    "source": "ES:reve_stream",
+    "runId": 46142450876,
+    "head": "669c53ce877ff1d042061c4722793f38476ae6c5",
+    "state": "partial",
+    "parentRunId": 46099803798,
+    "parentGeneration": "58782a56c771556e4feac3a254245fc0a1bec4f214ecb260a5b63c3d9f5878f3",
+    "generation": "47c51867c62a675baaaea3f90cd216e51d503eb98047fdf5a02d4143bfb61d85",
+    "published": false,
+    "artifactId": 15262696462,
+    "zipDigest": "sha256:0d864799db67b43f0e36b23a0387f68450608b5b5d7ee5c46304f984a4df7f59",
+    "event": "schedule",
+    "requestsAttempted": 5,
+    "previousCursor": [
+      100,
+      67
+    ],
+    "currentCursor": [
+      103,
+      69
+    ],
+    "quotaUntil": "2026-11-28T13:00:24.429850+00:00",
+    "sourceComplete": false
+  },
+  "ConnectedKerb": {
+    "source": "GB:connected_kerb_app",
+    "run": 44912916198,
+    "artifact": 14711076512,
+    "zipSha256": "5f80b24dd134bc516fa9d683ed4bba2b49d7a0538e204153a42e8437a7089cef",
+    "acceptance": "FAIL",
+    "reason": "Connected Kerb guest lookup incomplete; preserve last-good"
+  },
+  "dataCutoff": "2026-11-28T12:18Z scheduled generation"
+}
