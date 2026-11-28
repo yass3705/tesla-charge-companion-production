@@ -28,19 +28,18 @@
     'sessionFeeEur','start','validFromDate','validThroughDate'
   ]);
   const billableField=/price|fee|rate|charge|parking|cap|minimum|step|round|tax|vat|surcharge|discount|tier/i;
+  const midhopePricingFields=new Set(['type','verifiedSourceVersion','includesVat',
+    'energyPerKwhGbp','parkingPerStarted30minGbp','idleSupplementPerMinuteGbp']);
+  const pricingFields=new Set(['type','currency','timeZone','rules','componentGroups',
+    'minimumTotalEur','conditionalSessionFees','postChargeFee','priceSelectionBasis',
+    'ocpiFirstMatch','holidayCalendar','incompletePricingReason','verifiedSourceVersion',
+    'taxIncluded','longConnectionFee']);
   function unhandledBillableField(pricing){
-    if(pricing?.type==='connected_kerb_midhope_guest_verified'){
-      const specialKnown=new Set(['type','verifiedSourceVersion','includesVat',
-        'energyPerKwhGbp','parkingPerStarted30minGbp','idleSupplementPerMinuteGbp']);
-      return Object.keys(pricing).find(key=>!specialKnown.has(key))||null;
-    }
-    const topKnown=new Set(['type','currency','timeZone','rules','componentGroups',
-      'minimumTotalEur','conditionalSessionFees','postChargeFee','priceSelectionBasis',
-      'ocpiFirstMatch','holidayCalendar','incompletePricingReason','verifiedSourceVersion',
-      'taxIncluded','longConnectionFee']);
-    if(pricing?.type==='kwh'||pricing?.type==='simple')topKnown.add('pricePerKwh');
+    if(pricing?.type==='connected_kerb_midhope_guest_verified')
+      return Object.keys(pricing).find(key=>!midhopePricingFields.has(key))||null;
+    const simple=pricing?.type==='kwh'||pricing?.type==='simple';
     for(const key of Object.keys(pricing||{}))
-      if(billableField.test(key)&&!topKnown.has(key))return key;
+      if(billableField.test(key)&&!pricingFields.has(key)&&!(simple&&key==='pricePerKwh'))return key;
     for(const group of Array.isArray(pricing?.componentGroups)?pricing.componentGroups:[])
       for(const key of Object.keys(group||{}))
         if(billableField.test(key)&&key!=='kind'&&key!=='rules')return key;
@@ -56,6 +55,7 @@
   // and time zone, so a changed session date or DST side cannot reuse it.
   const dateFormatters=new Map();
   const localMinutes=new Map();
+  const localDates=new Map();
   function dateFormatter(locale,options){
     const key=JSON.stringify([locale,options]);
     if(dateFormatters.has(key))return dateFormatters.get(key);
@@ -87,13 +87,18 @@
     const d=value instanceof Date?value:new Date(value);if(Number.isNaN(d.getTime()))return null;
     try{
       if(timeZone){
+        const cacheKey=String(d.getTime())+'|'+String(timeZone);
+        if(localDates.has(cacheKey))return localDates.get(cacheKey);
         const parts=dateFormatter('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).formatToParts(d);
         const get=t=>parts.find(p=>p.type===t)?.value;
         const weekdays={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
         const weekday=weekdays[get('weekday')];
         const year=Number(get('year')),month=Number(get('month')),day=Number(get('day'));
         if(!Number.isFinite(year)||!Number.isFinite(month)||!Number.isFinite(day)||weekday==null)return null;
-        return{year,month,day,weekday,key:`${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`};
+        const result={year,month,day,weekday,key:`${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`};
+        if(localDates.size>=256)localDates.delete(localDates.keys().next().value);
+        localDates.set(cacheKey,result);
+        return result;
       }
       return{year:d.getFullYear(),month:d.getMonth()+1,day:d.getDate(),weekday:d.getDay(),key:`${String(d.getFullYear()).padStart(4,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
     }catch(_){return null;}
@@ -174,6 +179,11 @@
       }
       return{rule:null,unknown:false};
     }
+    if(candidates.length===1){
+      const [candidate]=candidates;
+      if(candidate.status==='unknown')return{rule:null,unknown:true,reason:'missing_rule_context'};
+      return{rule:candidate.status==='match'?candidate.rule:null,unknown:false};
+    }
     const specificity=rule=>Number(rule?.scope!=='allDay')+Number((rule?.daysOfWeek??rule?.days??[]).length>0)+Number(rule?.holidayOnly===true||rule?.excludeHolidays===true)+Number(rule?.validFromDate!=null||rule?.validThroughDate!=null)+Number(rule?.minDurationMinutes!=null||rule?.maxDurationMinutes!=null)+Number(rule?.minPowerKw!=null||rule?.maxPowerKw!=null);
     candidates.sort((a,b)=>specificity(b.rule)-specificity(a.rule));
     const specificPriced=candidates.some(candidate=>candidate.rule?.scope!=='allDay'&&candidate.status!=='no_match'&&tariffRuleHasPositivePrice(candidate.rule));
@@ -191,7 +201,7 @@
         rule?.congestionTimePerMinute,rule?.congestionStartSoc,rule?.congestionTimeStepSeconds,rule?.ocpiCongestionDurationBands,
         rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur,rule?.connectedTimeAfterFreeStepSeconds
       ]);
-      if(new Set(samePriority.map(row=>signature(row.rule))).size>1)
+      if(samePriority.length>1&&new Set(samePriority.map(row=>signature(row.rule))).size>1)
         return{rule:null,unknown:true,reason:'ambiguous_overlapping_tariff_rules'};
       return{rule:candidate.rule,unknown:false};
     }

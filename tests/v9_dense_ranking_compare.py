@@ -14,7 +14,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def measure(site: Path, firefox: str, url: str = None) -> dict:
+def measure(site: Path, firefox: str, url: str = None, *, all_modes: bool = False) -> dict:
     class Quiet(SimpleHTTPRequestHandler):
         def log_message(self, *_args):
             pass
@@ -80,6 +80,33 @@ def measure(site: Path, firefox: str, url: str = None) -> dict:
             """)
             if result.get("error"):
                 raise AssertionError(result["error"])
+            if all_modes:
+                result["modes"] = browser.execute_async_script("""
+                    const done=arguments[0];
+                    const digest=async rows=>{
+                      const bytes=new TextEncoder().encode(JSON.stringify(rows));
+                      const hash=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
+                      return Array.from(hash,b=>b.toString(16).padStart(2,'0')).join('');
+                    };
+                    (async()=>{
+                      const select=document.getElementById('simRanking'), results={};
+                      for(const mode of [...select.options].map(option=>option.value)){
+                        select.value=mode;
+                        const area=await window.compare();
+                        if(!area)throw new Error('No dense results for '+mode);
+                        const ranked=area.mapRankingRows||[],map=area.mapStations||[];
+                        results[mode]={
+                          ranked:ranked.length,map:map.length,
+                          rankSha:await digest(ranked.map(row=>[row.station.id,row.total,row.costPerKm,
+                            row.distanceKm,row.score?.totalTimeMinutes,row.evaluation?.best?.total])),
+                          mapSha:await digest(map.map(st=>[st.id,st.page]))
+                        };
+                      }
+                      return results;
+                    })().then(done,error=>done({error:String(error)}));
+                """)
+                if result["modes"].get("error") or len(result["modes"]) != 5:
+                    raise AssertionError(f'Missing dense ranking modes: {result["modes"]}')
             return result
     finally:
         server.shutdown()
@@ -92,15 +119,18 @@ def main() -> None:
                         help="Previously measured baseline result with identical fixed inputs")
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--url", help="Actual isolated preview URL for candidate measurement")
+    parser.add_argument("--all-modes", action="store_true", help="Compare the five browser ranking modes after the cold measurement")
     parser.add_argument("--firefox", default="/Applications/Firefox.app/Contents/MacOS/firefox")
     args = parser.parse_args()
     if not args.baseline and not args.baseline_json:
         parser.error("--baseline or --baseline-json is required")
     baseline = (json.loads(args.baseline_json.read_bytes())["baseline"] if args.baseline_json
-                else measure(args.baseline, args.firefox))
-    candidate = measure(args.candidate, args.firefox, args.url)
+                else measure(args.baseline, args.firefox, all_modes=args.all_modes))
+    candidate = measure(args.candidate, args.firefox, args.url, all_modes=args.all_modes)
     keys = ("matching", "visible", "mapCount", "rankCount", "rankSha", "mapSha",
             "pageSha", "evaluationSha", "sourceErrors")
+    if args.all_modes:
+        keys += ("modes",)
     differences = {key: [baseline.get(key), candidate.get(key)] for key in keys
                    if baseline.get(key) != candidate.get(key)}
     result = {"baseline": baseline, "candidate": candidate, "differences": differences,

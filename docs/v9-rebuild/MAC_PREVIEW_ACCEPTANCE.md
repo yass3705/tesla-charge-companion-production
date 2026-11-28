@@ -1,0 +1,19 @@
+# Recette locale et préparation d’une préproduction V9
+
+Le Mac utilise les artefacts dont ChatGPT a établi la provenance dans GitHub. Relever le run, le job, le SHA du code, l’identifiant et le SHA du ZIP, le manifeste d’entrée et la décision de validation. Une collecte partielle reste un checkpoint. L’artefact complet précédent reste disponible pour le rollback.
+
+## Incorporer les nouvelles entrées
+
+- Vérifier l’identité, le SHA et le rôle de chaque entrée sur le Mac. Vérifier les répertoires hors Git et ne versionner que les reçus et preuves publiables.
+- Importer le canonique dans un nouveau bundle dont le nom est le SHA du manifeste. Pour chaque entrée remplacée, enregistrer son prédécesseur. Garder les autres identifiants et empreintes. Un inventaire fournisseur ne constitue ni un catalogue national ni une preuve tarifaire.
+- Exécuter `scripts/extend_v9_prepared_candidate.py` sur l’index spatial précédent et le bundle suivant. Les fragments sont réutilisés lorsqu’ils portent la même empreinte. Examiner les rapports exacts de consolidation et les entrées rejetées. Tesla reste autonome.
+- Pour FX, `scripts/import_v9_scheduled_fx.py` fournit la table, son SHA et sa date à utiliser dans `scripts/package_v9_preproduction_map.py`. Pour Tesla, fournir le paquet Mac et le SHA de catalogue déjà vérifiés.
+- Fournir au paquet le moteur de projection Electroverse lié au bundle et à son IRVE. Un changement de la référence nationale ou de génération exige des preuves de compatibilité avant empaquetage. Le paquet refuse une projection dont les empreintes diffèrent.
+- Vérifier le nouveau paquet et son manifeste de fichiers avec `scripts/check_v9_preview_hosting.py`. Les anciens paquets et le brouillon Netlify `6b0ad1b2d87666f9aec31b2a` servent au rollback.
+
+## Parcours de recette technique
+
+1. Exécuter l’oracle de calcul du paquet et les cas de portée exacte sur les assets réellement empaquetés. Contrôler les frais, conversions, offres incomplètes et priorités des trois canaux.
+2. Firefox ordinateur et mobile. Vérifier neuf pays, Tesla Milan et Le Chesnay, Buc sans doublon, Carrefour Fécamp sans tarif assigné, filtres, navigation carte et pagination. Tester Ajaccio et Béthune avec le moteur signé.
+3. Amsterdam à 100 km. Comparer les signatures complètes du classement, des stations, de la carte et des montants. Les cinq classements sont aussi contrôlés contre l’oracle indépendant des tests de recherche. Conserver les mesures à froid et distinguer les résultats locaux des mesures réseau.
+4. Avant un déploiement de test, contrôler le dossier servi, les protections noindex, les SHA, la portée du site Netlify et le paquet de rollback. Déployer uniquement un brouillon isolé, puis vérifier l’URL réelle et rejouer la recette. La décision utilisateur G9 intervient après cette recette et reste distincte de la publication publique.

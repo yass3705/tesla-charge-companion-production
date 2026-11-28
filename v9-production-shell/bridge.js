@@ -818,6 +818,14 @@
     if(offerConnectorIds.length&&![...connectorIds||[]].some(id=>offerConnectorIds.includes(text(id))))return false;
     return true;
   }
+  function preparedOfferScope(offer){
+    return {offer,id:text(offer.id||offer.offerId)||JSON.stringify(offer),
+      evseIds:(offer.evseIds||[]).map(text).filter(Boolean),connectorIds:(offer.connectorIds||[]).map(text).filter(Boolean)};
+  }
+  function scopeMatches(scope,evseTokens,connectorIds){
+    return (!scope.evseIds.length||scope.evseIds.some(id=>evseTokens.has(id)))&&
+      (!scope.connectorIds.length||scope.connectorIds.some(id=>connectorIds.has(id)));
+  }
   function electraPlusOffers(station,selected=[]){
     if(text(station?.countryCode).toUpperCase()!=='FR'||
        ![text(station?.physicalOperator?.id),text(station?.physicalOperator?.name)].some(value=>value.toLowerCase()==='electra'))return[];
@@ -868,7 +876,11 @@
     const variants=[];
     for(const row of rows||[]){
       const station=row?.station||{},groups=new Map(),unknownEvses=new Map(),unknownConnectorIds=new Set();
+      const offerScopes=(station.offers||[]).map(preparedOfferScope);
       for(const [evseIndex,evse] of (station.evses||[]).entries()){
+        const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex;
+        const evseTokens=new Set([evseKey,text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)].filter(Boolean));
+        const evseScope=[...evseTokens];
         if(!(evse.connectors||[]).length)unknownEvses.set(evseIndex,[]);
         for(const [connectorIndex,raw] of (evse.connectors||[]).entries()){
         const power=num(raw.powerKw??raw.power??evse.powerKw);
@@ -878,8 +890,9 @@
           continue;
         }
         const connector={...raw,powerKw:power},kind=connectorKind(connector),connectorId=text(connector.id||connector.connectorId)||null,plug=text(connector.plugName||connector.type||connector.plugType)||null;
-        const evseKey=text(evse.id||evse.evseId)||'evse-'+evseIndex,evseTokens=new Set([evseKey,text(evse.evseId),...(evse.aliases||[]).map(text),...(evse.pdcIds||[]).map(text)].filter(Boolean)),connectorTokens=new Set(connectorId?[connectorId]:[]);
-        const matching=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,evseTokens,connectorTokens)&&sessionEngine.offerMatchesChargingKind(offer,kind,power,plug,connectorId,[...evseTokens])).map(offer=>text(offer.id||offer.offerId)||JSON.stringify(offer)).sort();
+        const connectorTokens=new Set(connectorId?[connectorId]:[]);
+        const matching=offerScopes.filter(scope=>scopeMatches(scope,evseTokens,connectorTokens)&&
+          sessionEngine.offerMatchesChargingKind(scope.offer,kind,power,plug,connectorId,evseScope)).map(scope=>scope.id).sort();
         const key=[kind,floorPower(power),matching.join(',')].join('|');
         const group=groups.get(key)||{kind,powerKw:floorPower(power),offerIds:matching,evseConnectors:new Map(),evseKeys:new Set(),evseTokens:new Set(),connectorIds:new Set()};
         const connectors=group.evseConnectors.get(evseIndex)||[];
@@ -893,7 +906,7 @@
           const original=station.evses[evseIndex];
           evses.push({...original,connectors:connectors.map(item=>item.connector)});
         }
-        const scopedOffers=(station.offers||[]).filter(offer=>offerAppliesToEvseGroup(offer,group.evseTokens,group.connectorIds));
+        const scopedOffers=offerScopes.filter(scope=>scopeMatches(scope,group.evseTokens,group.connectorIds)).map(scope=>scope.offer);
         const guardedOffers=guardUnverifiedPowerOffers(station,group.kind,group.powerKw,scopedOffers);
         const unparsedOffers=(station.unparsedOffers||[]).filter(offer=>group.evseKeys.has(text(offer.scope?.evseId))&&
           (offer.scope?.connectorId==null||group.connectorIds.has(text(offer.scope.connectorId))));
@@ -1303,7 +1316,7 @@
     const calculated=await cached.pending;
     // Sorting does not change vehicle, EVSE, tariff or session inputs. Retain
     // those exact search results and rebuild only order + map page numbers.
-    if(calculated.order?.mode!==input.rankingMode){
+    if(!calculated.order||calculated.order.mode!==input.rankingMode){
       const ranked=rankRows(calculated.summaries,input.rankingMode,calculated.summaries.length);
       const ranks=new Map(ranked.map((row,index)=>[row.station.id,index]));
       calculated.order={mode:input.rankingMode,ranked,count:calculated.count,

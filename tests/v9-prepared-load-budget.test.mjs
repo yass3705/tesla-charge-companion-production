@@ -17,7 +17,7 @@ for(const source of ['FR:fixture_a','FR:fixture_b']){
 }
 files.set('/preview/index.json',JSON.stringify({schemaVersion:2,bundleId:'fixture',status:'prepared',sources,rejected:[]}));
 let active=0,maximum=0,loads=0;
-const prepared=await loadPrepared({baseUrl:'https://test.invalid/preview',adapter:{toFragments},cryptoImpl:webcrypto,fetchImpl:async url=>{
+const prepared=await loadPrepared({baseUrl:'https://test.invalid/preview',nationalCatalogues:{},adapter:{toFragments},cryptoImpl:webcrypto,fetchImpl:async url=>{
  const path=new URL(url).pathname,body=files.get(path);if(!body)return new Response('',{status:404});
  if(!path.endsWith('index.json')){loads++;active++;maximum=Math.max(maximum,active);await new Promise(r=>setTimeout(r,10));active--;}
  return new Response(body);
