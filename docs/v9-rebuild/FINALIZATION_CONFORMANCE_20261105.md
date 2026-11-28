@@ -193,3 +193,7 @@ Actions Data Lab reste désactivé. L’autorisation historique portait sur un s
 Avant une reprise quotidienne : autoriser une fenêtre bornée Data Lab après préflight des SHA/déclencheurs, exercer les familles réellement renouvelables et leur last-good, puis importer un candidat explicitement épinglé. La bascule des workflows main et la publication du site public sont deux décisions distinctes. Aucun succès Netlify ne clôture ces points.
 
 Preuves finales de ce lot : [recette distante](evidence/g9-finalization-preview-20261105.md). Les onze parcours ciblés ne signifient pas onze tarifs calculables : trois anciennes fiches CPO autonomes sont volontairement exclues faute de portée nationale démontrée ; deux cohortes restent brutes. Les offres exactes restantes sont évaluées, dont Electra et Electroverse.
+
+## Recette locale du 28 novembre après optimisation du classement
+
+Firefox a vérifié 11 recherches sur neuf pays, 24 parcours tarifaires, le catalogue Tesla autonome et les contrôles G9 sur ordinateur et mobile. Le candidat local utilise le code Production 19c90bb. La mesure Amsterdam à 100 km reste de 51,432 s à froid. G8 reste ouverte. [Mesures et empreintes des rapports locaux](evidence/dense-ranking-local-20261128.json)

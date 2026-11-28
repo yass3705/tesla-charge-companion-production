@@ -154,5 +154,19 @@
     "shardLastResponseMs": 11639,
     "sourceErrors": [],
     "visible": 160
+  },
+  "firefoxLoopbackAfterOptimization": {
+    "productionCommit": "19c90bb",
+    "ordinarySearches": 11,
+    "countries": 9,
+    "tariffScenarios": 24,
+    "teslaAutonomous": "pass",
+    "g9ControlsAndMobile": "pass",
+    "reportSha256": {
+      "v9_g9_ordinary_search_browser": "a2c5e84c160843f47ad67f4aaae80fe27c7111e1430b69d853d3fbd5355c4962",
+      "v9_g9_final_user_browser": "10fed77b6b05b36010abe948e7fa79a7f53a6297c70235e18480d2b6464f03e1",
+      "v9_tesla_autonomous_browser": "2f1344e38e119a2431fb6ffc827a81192195d9f5949736eae3603408e3254dbc",
+      "local-tariff-tests": "cb345af591cfa0fd2d15bfb3a77eb7ca5e53bbeb663c9c4cb162502967bf7544"
+    }
   }
 }
