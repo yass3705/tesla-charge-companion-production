@@ -211,3 +211,5 @@ Le paquet local comporte 33 sources et 4 516 fichiers. Le catalogue, les fragmen
 Le candidat est local. G7/G8 restent ouverts pour le prochain renouvellement intégré, la latence dense et la recette distante du prochain brouillon. Les reçus de nouvelles sources s’intègrent selon la procédure Mac. [Preuves](evidence/mac-prepreview-20261128.json) · [Procédure](MAC_PREVIEW_ACCEPTANCE.md)
 
 Une seconde comparaison Firefox confirme les mêmes listes, montants et pages de carte pour chacun des cinq modes de tri. Chaque mode couvre les 64 019 stations.
+
+La mesure de l’interface par paliers part de 100 km et confirme à chaque rayon l’intégralité des résultats, l’absence de recouvrement entre les pages et la conservation du zoom. À 100 km, le premier rendu avec carte prend 42,248 s et le changement de page 715 ms, sans instrumentation par appel. Le manifeste et tous les fichiers du paquet de rollback ont été revérifiés localement.
