@@ -77,6 +77,12 @@ def verify(site, url, cases, mobile):
                       if(offered.length||!station.unparsedOffers.some(o=>o.id===test.rawOfferId&&o.scope.evseId===evse.id&&
                          o.rawOffer?.feeSemantics?.safeForFullSessionCost===false))throw Error('DRIVECO fee lost or priced');
                       if(detail.textContent.includes(test.rawOfferId))throw Error('unproved offer displayed as a calculation');
+                    }else if(test.source==='FR:metropolis_official'){
+                      const direct=[...detail.querySelectorAll('[data-v9-lane-label="Direct"]')];
+                      if(offered.length!==1||offered[0].id!==test.offerId||
+                         offered[0].metadata.nationalJoin?.nationalSource!=='FR:irve_static'||
+                         !direct.some(row=>row.dataset.v9TariffState==='priced'&&row.textContent.includes(test.provider)))
+                        throw Error('Métropolis energy and post-charge pricing are missing or misbound');
                     }else if(test.currency){
                       if(offered.length!==1||offered[0].currency!==test.currency||
                          offered[0].metadata.nationalJoin?.nationalSource!=='CH:swiss_integration')

@@ -599,6 +599,41 @@
         sourceId:data.source.id,sourceOfferId:raw.id,artifactSha256:data.source.artifactSha256,
         compiledSha256:proof.compiledSha256,generatedAt:proof.generatedAt,timeZone:'Europe/Paris'}};
   }
+  function provedMetropolisOffer(data,offer,index){
+    if(data.source?.id!=='FR:metropolis_official'||offer.channel!=='Direct'||offer.calculationHold||
+       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null||
+       data.source.exactScopeSha256!=='34de93be88651a7365de4ea1367b16d185da90bd09c8b7206bfb49817f36414b')return null;
+    const raw=offer.rawOffer,e=index.evses.get(offer.scope?.evseId),station=index.stations.get(e?.stationId);
+    const cpo=index.cpos.get(e?.cpoId);
+    const fields=['address','energyEurPerKwh','id_pdc_itinerance','id_station_itinerance','postChargeEurPerMinute',
+      'postChargeGraceMinutes','postChargeSchedule','powerKw','rule','sourceUrl','station'];
+    if(!e?.officialEvseId||e.rawSourceFields?.ambiguousNationalEvseId||station?.country!=='FR'||
+       station.publicAccessDecision==='exclude_non_public'||cpo?.name?.toLowerCase()!=='spie citynetworks'||
+       raw?.id_pdc_itinerance!==e.officialEvseId||raw.id_station_itinerance!==station.sourceStationId||
+       Object.keys(raw).some(k=>!fields.includes(k))||raw.postChargeGraceMinutes!==10||
+       ![0.44,0.53,0.63].includes(raw.energyEurPerKwh)||!Number.isFinite(raw.powerKw)||raw.powerKw<=0)return null;
+    let postChargeFee;
+    if(raw.postChargeSchedule!=null){
+      const windows=[{start:'08:00',end:'20:00',eurPerMinute:0.2},{start:'20:00',end:'08:00',eurPerMinute:0.1}];
+      if(!['FRMGPP92051T','FRMGPP92051U','FRMGPP92051V'].includes(station.sourceStationId)||
+         raw.postChargeEurPerMinute!==null||!Array.isArray(raw.postChargeSchedule)||raw.postChargeSchedule.length!==2||
+         raw.postChargeSchedule.some((w,i)=>Object.keys(w||{}).length!==3||Object.keys(windows[i]).some(k=>w[k]!==windows[i][k])))return null;
+      postChargeFee={graceMinutes:10,localRateWindows:windows};
+    }else{
+      if(![0.1,0.2].includes(raw.postChargeEurPerMinute))return null;
+      postChargeFee={graceMinutes:10,blockMinutes:1,blockEur:raw.postChargeEurPerMinute,rounding:'started_block'};
+    }
+    const plugs=(index.connectors.get(e.id)||[]).filter(c=>['AC','DC'].includes(c.kind)&&
+      Number.isFinite(c.powerKw)&&(Math.abs(c.powerKw-raw.powerKw)<=0.01||
+        (c.kind==='AC'&&raw.powerKw===7&&c.powerKw===7.4)));
+    if(!plugs.length)return null;
+    return {id:offer.id,provider:'Métropolis Recharge',kind:'direct',currency:'EUR',countries:['FR'],evseIds:[e.id],
+      connectorIds:plugs.map(c=>c.id),subscriptionId:null,
+      pricing:{type:'rules',timeZone:'Europe/Paris',rules:[{scope:'allDay',start:'00:00',end:'24:00',
+        currency:'EUR',pricePerKwh:raw.energyEurPerKwh,energyRounding:'started_kwh'}],postChargeFee},
+      metadata:{verified:true,identityMode:'exact_canonical_metropolis_evse',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,exactScopeSha256:data.source.exactScopeSha256,timeZone:'Europe/Paris'}};
+  }
   // Already compiled historical UK offers, bound to the exact archived connector.
   // The offline transformer reproduces the historical first-match/VAT compiler;
   // the signed input retains both original OCPI and compiled offer unchanged.
@@ -746,7 +781,7 @@
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
     }
-    if(['FR:archived_direct_exact','FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct','FR:electric55_chain','FR:labornebleue_direct','CH:ewd_official','CH:fastned_official'].includes(data.source?.id)){
+    if(['FR:archived_direct_exact','FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct','FR:electric55_chain','FR:labornebleue_direct','CH:ewd_official','CH:fastned_official','FR:metropolis_official'].includes(data.source?.id)){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];
         list.push(row);proofIndex.connectors.set(row.evseId,list);}
     }
@@ -772,7 +807,7 @@
       if(!evse)throw new Error('canonical offer EVSE missing');
       const proved=provedArchivedDirectProfile(data,offer,proofIndex)||provedUbitricityOffer(data,offer,proofIndex)||provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
-        provedRawUkOcpiOffer(data,offer,proofIndex)||provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex)||provedElectric55Offer(data,offer,proofIndex)||provedBorneBleueOffer(data,offer,proofIndex)||provedReviewedSwissOffer(data,offer,proofIndex);
+        provedRawUkOcpiOffer(data,offer,proofIndex)||provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex)||provedElectric55Offer(data,offer,proofIndex)||provedBorneBleueOffer(data,offer,proofIndex)||provedReviewedSwissOffer(data,offer,proofIndex)||provedMetropolisOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
@@ -799,5 +834,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments,proveRawUkOcpiOffer:provedRawUkOcpiOffer,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer,proveElectric55Offer:provedElectric55Offer,proveBorneBleueOffer:provedBorneBleueOffer,proveReviewedSwissOffer:provedReviewedSwissOffer};
+  return{toFragments,proveRawUkOcpiOffer:provedRawUkOcpiOffer,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer,proveElectric55Offer:provedElectric55Offer,proveBorneBleueOffer:provedBorneBleueOffer,proveReviewedSwissOffer:provedReviewedSwissOffer,proveMetropolisOffer:provedMetropolisOffer};
 });

@@ -107,7 +107,8 @@
              !Array.isArray(data.connectors)||!Array.isArray(data.offers))
             throw new Error('candidate source schema or identity invalid');
           const exactProof={'FR:electric55_chain':adapter.proveElectric55Offer,'FR:labornebleue_direct':adapter.proveBorneBleueOffer,
-            'CH:ewd_official':adapter.proveReviewedSwissOffer,'CH:fastned_official':adapter.proveReviewedSwissOffer};
+            'CH:ewd_official':adapter.proveReviewedSwissOffer,'CH:fastned_official':adapter.proveReviewedSwissOffer,
+            'FR:metropolis_official':adapter.proveMetropolisOffer};
           if(Object.hasOwn(exactProof,id)&&(index.schemaVersion!==2||!shaPattern.test(data.source.nationalCanonicalSha256||'')||
              data.source.nationalCanonicalSha256!==index.sources.find(source=>source.source===nationalCatalogues[id.slice(0,2)])?.sourceSha256))
             throw new Error('Enrichment national catalogue SHA mismatch');
