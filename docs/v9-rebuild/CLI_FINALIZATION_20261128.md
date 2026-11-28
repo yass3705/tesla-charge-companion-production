@@ -34,3 +34,16 @@ La mise à jour DRIVECO remplace uniquement la source historique, avec les 5 442
 ## Cohorte historique de 721 lignes
 
 Le rapport archivé de la PR #141 couvre 21 scénarios et 721 résultats, dont 689 concordants, 18 insuffisants, 12 inéligibles attendus et deux corrections. Il contient les identifiants, sorties et preuves de filiation. Le JSON complet des sessions et offres et les octets exacts du snapshot `2026-10-15-v9-tesla-mac-ingress-verified` ne figurent ni dans le cache Mac recherché ni dans les deux exécutions de preuve 39159769308 et 39159769342. Les API d’artefacts de ces exécutions renvoient zéro résultat. La configuration épinglée est versionnée. Une parité intégrale à entrées identiques reste en attente de la récupération du snapshot et des entrées. Les oracles indépendants reproductibles, dont les 64 cas Midhope, restent la preuve des mécanismes effectivement rejoués.
+
+## Critères ouverts après examen des reçus
+
+| Responsable | Reste à établir | Prochaine action vérifiable |
+|---|---|---|
+| CLI · G3/G5/G6 | Les droits et limites de portée des grilles suisses par opérateur, certains relevés eCarUp, les grilles départementales France et les inventaires marocains | Reprendre les lignes `qualification_*` du registre par famille. Contrôler la version nationale de la preuve, les identités de prise, la stabilité de l’opérateur, le canal, les frais combinés et les motifs contradictoires. |
+| CLI · G5/G6 | Éligibilité de groupe et coût complet WAAT, portée des frais après charge et abonnements encore exclus, et offres non attribuées des autres sources | Réutiliser les preuves historiques ou les prochains reçus qualifiés. Chaque variante sans preuve demeure sans coût classable. |
+| CLI · G3/G4/G5/G8 | Futurs apports qualifiés et compatibilité catalogue des jointures dérivées | Vérifier manifeste, version et SHA. Reconstruire les seuls index concernés et vérifier la lecture distante. |
+| CLI · G6 | Comparaison à entrées identiques pour les 721 lignes historiques | Reprendre si le snapshot et les entrées exactes redeviennent disponibles. Les 64 cas Midhope et les tests indépendants sont reproductibles. |
+| ChatGPT · G2/G4/G8 | Transferts et import récurrent, dépendances, cadence et premier renouvellement | Consulter le suivi Data Lab et le passage de relais. Les preuves de ce candidat établissent la chaîne locale et la recette hébergée. |
+| Utilisateur · G9 | Recette fonctionnelle et décision de publication | Tester le brouillon. La mise en production fait l’objet d’une décision séparée. |
+
+Les [preuves de contrôle des archives et renouvellements](evidence/cli-independent-review-20261128.json) lient les ZIP aux exécutions et détaillent le contrôle WAAT. Les résultats incomplets restent ouverts dans la [liste des 135 instances](evidence/cli-source-admission-20261128.csv).

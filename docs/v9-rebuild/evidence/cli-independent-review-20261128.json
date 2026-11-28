@@ -1,0 +1,518 @@
+{
+  "trackerSha": "7b2de4d174c89f264fe551078fb8f6142bd73950",
+  "waat": {
+    "artifactId": 15274504153,
+    "zipSha256": "b6dfa5b8cdc137a243dea29e852b8af563c7b70b778dd000f8ca8d8860c11623",
+    "rankableAtSource": 393,
+    "sourceRankableWithNationalCandidates": 290,
+    "qualification": {
+      "no_exact_national_station_point": 103,
+      "monta_group_scope_and_complete_charge_require_proof": 290,
+      "no_exact_group_match": 152
+    },
+    "offersAdmitted": 0
+  },
+  "waatDecisionJournalSha256": "9a05c30bd7fde9e54ea0eebc32087523bf3b33331c2e655f238ae8357e208fc1",
+  "scheduledRenewals": [
+    {
+      "source": "FR:reveo_official",
+      "artifact": 15273606520,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053755954,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "166687fd343e8b3f552c7b77f41a8b259bc8a292",
+      "zipSha256": "abfc16806613fc122d8293c1411468298c893e6013ce67dc044d0e92ca92ede1",
+      "member": "data/operator_direct/reveo_official_france.json",
+      "memberSha256": "779d4fa0b8235686fee82648f24cc36ebfbca90730550df28afb8ac330181c5d"
+    },
+    {
+      "source": "FR:sied70",
+      "artifact": 15273560659,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053753568,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "6c25284ab4ad8f2056545845a9e59618902a60ae827640f635a2aadb4694252c",
+      "member": "sied70_official_haute_saone.json",
+      "memberSha256": "8bfbf00a17a9d90c79360ccce10de5a0ca95d057b73708eb6557cf0759604e95"
+    },
+    {
+      "source": "ES:fixed_tariff_secondary",
+      "artifact": 15273541508,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053754670,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "49960005bf151ca6b4535bfc15104ac9b09be0c1",
+      "zipSha256": "54dc2fb0e44a4f1cdde6edab716c21c286026a2926840128ff9b39559d3b3fb1",
+      "member": "reports/fixed-tariff-refresh-spain-secondary-latest.json",
+      "memberSha256": "21254e99346a0a2879134b00a6a7997e67b7d5d15a4b314f13e4a2573fc60e09"
+    },
+    {
+      "source": "FR:metropolis_official",
+      "artifact": 15273536296,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053754512,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "0f52b0d314b9e63f5da1a480f01d72ecd4112952cc6bdc552de9f62e41d3e213",
+      "member": "data/operator_direct/metropolis_official_grand_paris.json",
+      "memberSha256": "7e902c5e386d26aada17324ad7253bfbeb3773ec58758f5c831a8e8d4c98c253"
+    },
+    {
+      "source": "FR:ionity_official",
+      "artifact": 15273491062,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053753584,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "c2e60c6aadacf4212e4711a19ceaf7ee8d27cb96f1e5adc36b8e843ad70c3bb5",
+      "member": "data/operator_direct/ionity_official_france.json",
+      "memberSha256": "742558ab3bead6ffcabf3cabce5ca886c7e37a4444dde8cf922987841f9266f4"
+    },
+    {
+      "source": "FR:eborn_official",
+      "artifact": 15273466340,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053753585,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "2db219a640cd8a6f66710da7240f4ca9781dbdfac156bdf8597f4c2f075b6144",
+      "member": "data/operator_direct/eborn_official_france.json",
+      "memberSha256": "473ec770a483dd5fa897ec698a4296fc581ca7425b9d9e88019323463738f29d"
+    },
+    {
+      "source": "FR:iecharge_official",
+      "artifact": 15273406795,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053754637,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "ccd3f260d99bccc60a96d4caf60ab3bec0fa87d0d2b8a3cc333c27e6bbb7eb80",
+      "member": "data/operator_direct/iecharge_official_france.json",
+      "memberSha256": "96a93573b733e596a909645850776d327a8f60884b896ce52dd39dd336bf19e0"
+    },
+    {
+      "source": "FR:bump_official",
+      "artifact": 15273317279,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053754687,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "6cf78ff134bb1184afefcd9ebed71fd8ad2dd1d9",
+      "zipSha256": "6691473d713515de140ef5145460138fc45314edd6b868ffddd99e66ec16be17",
+      "member": "data/operator_direct/bump_official_france.json",
+      "memberSha256": "ce3c5c8e6053e24b0b4b2b022a84e493663df0704a1787704c5cc3f92a8e91c0"
+    },
+    {
+      "source": "FR:fastned_official",
+      "artifact": 15273245979,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053753620,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "9556339261a77abece0641f0104c54584dab7fe6854fe27f438ffe12a59cf504",
+      "member": "data/operator_direct/fastned_official_france.json",
+      "memberSha256": "02a528ea62be5eb2f6668a58b2d5b6ba3dd8208300eb984c61e2d622f52062a7"
+    },
+    {
+      "source": "FR:soregies_mobilites_official",
+      "artifact": 15273237800,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053755953,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "6cf78ff134bb1184afefcd9ebed71fd8ad2dd1d9",
+      "zipSha256": "a2b5cd68f8831efbe0d53df8ce6ea2d8fd43f0ae84c63a3091b4cfed31c14b47",
+      "member": "data/operator_direct/soregies_mobilites_official_vienne.json",
+      "memberSha256": "8e867c8ab5df1eb5f2027dc93a992bcf55d867cf2d2e24cd92a49c662a8ae37d"
+    },
+    {
+      "source": "FR:atlante_official",
+      "artifact": 15273201167,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053753629,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "a4b559dea1d722478583fbde9f257dffb03c853c47d2a221b18023d8dbf2721c",
+      "member": "data/operator_direct/atlante_official_france.json",
+      "memberSha256": "23f270e21e193053c97f4673a725e64b6365bda79e0dc6850508ea9c675014c0"
+    },
+    {
+      "source": "FR:syded_doubs",
+      "artifact": 15273111958,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053753617,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "77bd5fcfd51918b783035a5670f1a774744c8307bde8705ec0ab25eb3680ab15",
+      "member": "syded_doubs_official.json",
+      "memberSha256": "603979d8d9e5b80685b372a73387e699d17a467dbd2779b4b077d5fb0e3c3dc8"
+    },
+    {
+      "source": "FR:driveco_official",
+      "artifact": 15273066497,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053753495,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "727b3aab7e0b6014c8854b73730e258a18f7676f6a57cc5de4788ac0d6e8c1ea",
+      "member": "data/operator_direct/driveco_official_france.json",
+      "memberSha256": "28635e122f95a46ff22213b233c37afd080ea15bffa12b247ad4b28730bdd7e1"
+    },
+    {
+      "source": "FR:allego_official",
+      "artifact": 15273061810,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053754874,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "6cf78ff134bb1184afefcd9ebed71fd8ad2dd1d9",
+      "zipSha256": "2897c3f7743b4ee9206b929baa96e6a85e848e898de4b5391de744af2c5ac66b",
+      "member": "data/operator_direct/allego_official_france.json",
+      "memberSha256": "60a17ef0f427d7d3101c04f93300effe23c817d9e5e82ee3fe345a25e008dfa2"
+    },
+    {
+      "source": "FR:pluginn_fastcharge_official",
+      "artifact": 15272942072,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053754890,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "763bef19888dbd32574cde34376dac87adfd050b3daf78b89c14e52281ea9af8",
+      "member": "data/operator_direct/pluginn_fastcharge_official_france.json",
+      "memberSha256": "25e850cd3c9867f7ca8ee935e2a70ca832954f4fc221c6abece419d74dbc6d7b"
+    },
+    {
+      "source": "FR:lidl_plus_official",
+      "artifact": 15272862029,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053754712,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "f498c963f0c45afd7ad0048e6a1035b01a7ec64046eeec79bdb9dfb9a48a2c61",
+      "member": "data/operator_direct/lidl_plus_france.json",
+      "memberSha256": "a1c813aa7c1f617c57d6e8848cf05ef0df28f8f17f8e5a5034d654127f749d1e"
+    },
+    {
+      "source": "FR:freshmile_official",
+      "artifact": 15272642586,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053754443,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "38acb849c7bae6b2aecba951152fc3804dc8187f8b249bddf4994354dd733a77",
+      "member": "data/operator_direct/freshmile_official_france.json",
+      "memberSha256": "dcb78c789ce9679406e65e90a0fd1b2858652d14ca8e1bc0d2bf79588f01dbed"
+    },
+    {
+      "source": "FR:siceco_cotedor",
+      "artifact": 15272529301,
+      "status": "verified",
+      "runId": 46169278087,
+      "jobId": 141053753304,
+      "runHeadSha": "b6a4652130b68a2e1565aa4ac3bfdb0045d9b386",
+      "collectorSha": "b5758416426acc8b30b7043a096f12f85390c670",
+      "zipSha256": "3571aac982ee446229f905253f723fc6506bcf0990767181d273f8def5ecec8e",
+      "member": "siceco_cotedor_official.json",
+      "memberSha256": "8c7e3246439da3b5ab67fdcdb1db98094359153ea71eb866c8baea28cc8a7617"
+    }
+  ],
+  "swissScope": {
+    "CH:chevp_evpass": {
+      "rows": 40,
+      "artifact": "14708124703",
+      "counts": {
+        "EVSE_national_unique": 40,
+        "opérateur_exact": 40,
+        "station_source_non_vérifiable": 40
+      }
+    },
+    "CH:migrol_official": {
+      "rows": 1114,
+      "artifact": "14707740702",
+      "counts": {
+        "EVSE_national_unique": 1114,
+        "opérateur_exact": 1114,
+        "station_exacte": 1114
+      }
+    },
+    "CH:ebs_ecarup": {
+      "rows": 3,
+      "artifact": "14707083292",
+      "counts": {
+        "EVSE_national_unique": 3,
+        "opérateur_exact": 3,
+        "station_source_non_vérifiable": 3
+      }
+    },
+    "CH:ail_emoti": {
+      "rows": 21,
+      "artifact": "14707366946",
+      "counts": {
+        "EVSE_national_unique": 21,
+        "opérateur_exact": 21,
+        "station_source_non_vérifiable": 21
+      }
+    },
+    "CH:ionity_national": {
+      "rows": 164,
+      "artifact": "14707157874",
+      "counts": {
+        "aucun_EVSE_national": 164
+      }
+    },
+    "CH:autosense_amag": {
+      "rows": 27,
+      "artifact": "14709496492",
+      "counts": {
+        "EVSE_national_unique": 27,
+        "opérateur_exact": 27,
+        "station_source_non_vérifiable": 27
+      }
+    },
+    "CH:ebs_closeout": {
+      "rows": 6,
+      "artifact": "14710585110",
+      "counts": {
+        "EVSE_national_unique": 6,
+        "opérateur_exact": 6,
+        "station_source_non_vérifiable": 6
+      }
+    },
+    "CH:ewd_official": {
+      "rows": 8,
+      "artifact": "14707157957",
+      "counts": {
+        "EVSE_national_unique": 8,
+        "opérateur_exact": 8,
+        "station_exacte": 8
+      }
+    },
+    "CH:partino_restricted": {
+      "rows": 218,
+      "artifact": "14709775807",
+      "counts": {
+        "aucun_EVSE_national": 215,
+        "EVSE_national_unique": 3,
+        "opérateur_exact": 3,
+        "station_source_non_vérifiable": 3
+      }
+    },
+    "CH:lidl_official": {
+      "rows": 173,
+      "artifact": "14707576188",
+      "counts": {
+        "aucun_EVSE_national": 173
+      }
+    },
+    "CH:saascharge_official": {
+      "rows": 255,
+      "artifact": "14710000306",
+      "counts": {
+        "EVSE_national_unique": 255,
+        "opérateur_exact": 255,
+        "station_source_non_vérifiable": 255
+      }
+    },
+    "CH:iwb_basel": {
+      "rows": 31,
+      "artifact": "14706719582",
+      "counts": {
+        "EVSE_national_unique": 31,
+        "opérateur_exact": 31,
+        "station_source_non_vérifiable": 31
+      }
+    },
+    "CH:swiss_bundle": {
+      "rows": 20133,
+      "artifact": "13450016691",
+      "counts": {
+        "EVSE_national_unique": 14292,
+        "opérateur_source_non_vérifiable": 14292,
+        "station_source_non_vérifiable": 14292,
+        "aucun_EVSE_national": 5716,
+        "EVSE_national_ambigu": 92,
+        "ID_incomparable": 33
+      }
+    },
+    "CH:swiss_integration": {
+      "rows": 15152,
+      "artifact": "13452790700",
+      "counts": {
+        "EVSE_national_unique": 14182,
+        "opérateur_source_non_vérifiable": 14182,
+        "station_exacte": 14066,
+        "aucun_EVSE_national": 856,
+        "station_contradictoire": 116,
+        "EVSE_national_ambigu": 81,
+        "ID_incomparable": 33
+      }
+    },
+    "CH:cci_move": {
+      "rows": 1829,
+      "artifact": "15265432756",
+      "counts": {
+        "EVSE_national_unique": 1773,
+        "opérateur_contradictoire": 1773,
+        "station_source_non_vérifiable": 1773,
+        "EVSE_national_ambigu": 56
+      }
+    },
+    "CH:shell_evpass": {
+      "rows": 1158,
+      "artifact": "15265282091",
+      "counts": {
+        "aucun_EVSE_national": 1158
+      }
+    },
+    "CH:plenitude_official": {
+      "rows": 163,
+      "artifact": "15266071046",
+      "counts": {
+        "aucun_EVSE_national": 163
+      }
+    },
+    "CH:fastned_official": {
+      "rows": 78,
+      "artifact": "15265482483",
+      "counts": {
+        "EVSE_national_unique": 78,
+        "opérateur_exact": 78,
+        "station_exacte": 78
+      }
+    },
+    "CH:ewo_ecarup": {
+      "rows": 7,
+      "artifact": "15266006399",
+      "counts": {
+        "EVSE_national_unique": 7,
+        "opérateur_exact": 7,
+        "station_exacte": 7
+      }
+    },
+    "CH:powerup_monta": {
+      "rows": 238,
+      "artifact": "15265243710",
+      "counts": {
+        "EVSE_national_unique": 237,
+        "opérateur_exact": 237,
+        "station_source_non_vérifiable": 237,
+        "aucun_EVSE_national": 1
+      }
+    },
+    "CH:tae_matterhorn": {
+      "rows": 16,
+      "artifact": "15265796890",
+      "counts": {
+        "ID_incomparable": 16
+      }
+    },
+    "CH:mmn_move": {
+      "rows": 1,
+      "artifact": "15265886839",
+      "counts": {
+        "EVSE_national_unique": 1,
+        "opérateur_contradictoire": 1,
+        "station_source_non_vérifiable": 1
+      }
+    },
+    "CH:cpi_finalization": {
+      "rows": 35,
+      "artifact": "15265572507",
+      "counts": {
+        "aucun_EVSE_national": 35
+      }
+    },
+    "CH:soc_move": {
+      "rows": 162,
+      "artifact": "15265317027",
+      "counts": {
+        "EVSE_national_unique": 162,
+        "opérateur_contradictoire": 162,
+        "station_source_non_vérifiable": 162
+      }
+    },
+    "CH:plenitude_closeout": {
+      "rows": 183,
+      "artifact": "15265274260",
+      "counts": {
+        "aucun_EVSE_national": 183
+      }
+    },
+    "CH:powerup_closeout": {
+      "rows": 238,
+      "artifact": "15265837988",
+      "counts": {
+        "EVSE_national_unique": 237,
+        "opérateur_exact": 237,
+        "station_source_non_vérifiable": 237,
+        "aucun_EVSE_national": 1
+      }
+    },
+    "CH:ecarup_coordinate": {
+      "rows": 3101,
+      "artifact": "15266397090",
+      "counts": {
+        "EVSE_national_unique": 3101,
+        "opérateur_exact": 3101,
+        "station_source_non_vérifiable": 3101
+      }
+    },
+    "CH:ecarup_owner": {
+      "rows": 3036,
+      "artifact": "15266900500",
+      "counts": {
+        "EVSE_national_unique": 3036,
+        "opérateur_exact": 3036,
+        "station_source_non_vérifiable": 3036
+      }
+    }
+  },
+  "historical721": {
+    "scenarios": 21,
+    "rows": 721,
+    "previousPinnedManifest": "2b7b9964d8fce26f65aaf1e508717a114cb68ca16c66fb3c06ba9a076f2db52f",
+    "checksWithoutArtifacts": [
+      39159769308,
+      39159769342
+    ],
+    "exactHistoricalInputsAvailable": false
+  },
+  "greenspotScope": {
+    "artifactId": 14709613184,
+    "artifactZipSha256": "111c2a7e9cd195f2cb4ac80c6b67c08b32534fc02fc58a5ac0f168d7eb843169",
+    "rows": 226,
+    "nationalDecisionCounts": {
+      "station_evse_power_agree": 221,
+      "(('start',), 'EUR', 'True', 'False')": 18,
+      "(('kwh',), 'EUR', 'False', 'False')": 145,
+      "(('kwh', 'minute', 'minute_parking'), 'EUR', 'False', 'False')": 24,
+      "(('kwh', 'minute', 'minute_parking', 'start'), 'EUR', 'False', 'False')": 22,
+      "(('kwh', 'minute_parking'), 'EUR', 'False', 'False')": 6,
+      "(('minute', 'minute_parking'), 'EUR', 'False', 'False')": 2,
+      "missing_or_nonunique_evse": 5,
+      "(('kwh', 'start'), 'EUR', 'False', 'False')": 4
+    }
+  },
+  "fastnedFranceScope": {
+    "officialStationPagesWithStandardRate": 66,
+    "nationalStationsWithOperatorFastned": 66,
+    "exactStationIdIntersection": 0,
+    "offersAdmitted": 0,
+    "remaining": "Qualify historical fallback and scope at the national point."
+  }
+}

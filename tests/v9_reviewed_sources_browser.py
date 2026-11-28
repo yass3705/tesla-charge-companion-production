@@ -69,7 +69,11 @@ def verify(site, url, cases, mobile):
                     const detail=points.find(point=>point.querySelector('summary')?.textContent.includes(evseId));
                     if(!detail)throw Error('EVSE missing from the station card');
                     const offered=station.offers.filter(o=>o.metadata?.sourceId===source&&o.evseIds.includes(evse.id));
-                    if(test.rawOfferId){
+                    if(test.unassignedReason){
+                      const direct=[...detail.querySelectorAll('[data-v9-lane-label="Direct"]')];
+                      if(offered.length||!direct.some(row=>row.dataset.v9TariffState==='missing'&&row.textContent.includes('Prix non disponible')))
+                        throw Error('unproved WAAT group promoted to an actual quote');
+                    }else if(test.rawOfferId){
                       if(offered.length||!station.unparsedOffers.some(o=>o.id===test.rawOfferId&&o.scope.evseId===evse.id&&
                          o.rawOffer?.feeSemantics?.safeForFullSessionCost===false))throw Error('DRIVECO fee lost or priced');
                       if(detail.textContent.includes(test.rawOfferId))throw Error('unproved offer displayed as a calculation');
@@ -89,7 +93,8 @@ def verify(site, url, cases, mobile):
                          Math.abs(Number(row.dataset.v9EffectiveTotal)-3.75)<.01))
                         throw Error('duration tariff is missing or has the wrong total: '+direct.map(r=>r.dataset.v9EffectiveTotal));
                     }
-                    return {source,stationId,evseId,offers:offered.length,viewport:innerWidth,scroll:document.documentElement.scrollWidth};
+                    return {source,stationId,evseId,offers:offered.length,unassignedReason:test.unassignedReason,
+                      viewport:innerWidth,scroll:document.documentElement.scrollWidth};
                   })().then(done).catch(e=>done({error:String(e)}));
                 """, case)
                 assert not result.get('error'), (case, result)

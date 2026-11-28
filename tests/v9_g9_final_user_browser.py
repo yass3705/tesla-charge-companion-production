@@ -6,6 +6,7 @@ from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 
 BUC='tcc:65a4419836d7213884ef581d66a51a526ccf8e82970bdd8bd017c8f3c8ac8ded'
@@ -126,6 +127,16 @@ return {name,country,matching:ids.length,initial,counts,pageRoundtrip,target,mar
                 assert not result.get('error'),result
                 assert not result['sourceErrors'],result
                 output['queries'].append(result)
+                if name == 'Paris':
+                    canvas = browser.find_element('css selector', '.v9-real-map')
+                    zoom = browser.find_element('css selector', '.v9-map-zoom-in')
+                    assert canvas.aria_role == 'region' and 'Carte interactive' in canvas.accessible_name
+                    assert zoom.accessible_name == 'Zoomer'
+                    before = browser.execute_script("return document.getElementById('v9MapSummary')._v9MapView.zoom")
+                    zoom.send_keys(Keys.ENTER)
+                    after = browser.execute_script("return document.getElementById('v9MapSummary')._v9MapView.zoom")
+                    assert after == before + 1, (before, after)
+                    output['keyboardMapZoom'] = True
             controls=browser.execute_async_script(r"""
 const done=arguments[0];
 (async()=>{
