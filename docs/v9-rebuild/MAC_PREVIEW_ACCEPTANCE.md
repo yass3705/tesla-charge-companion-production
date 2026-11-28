@@ -17,3 +17,16 @@ Le Mac utilise les artefacts dont ChatGPT a établi la provenance dans GitHub. R
 2. Firefox ordinateur et mobile. Vérifier neuf pays, Tesla Milan et Le Chesnay, Buc sans doublon, Carrefour Fécamp sans tarif assigné, filtres, navigation carte et pagination. Tester Ajaccio et Béthune avec le moteur signé.
 3. Mesurer les performances des recherches courantes sur ordinateur et mobile, en distinguant les mesures locales des mesures réseau. Contrôler les cinq classements avec l’oracle de recherche. Réutiliser les preuves de couverture et de non-régression à 100 km tant que les entrées concernées sont identiques. L’optimisation résiduelle de la latence à 100 km en zone très dense est reportée au [backlog post-finalisation](POST_FINALIZATION_BACKLOG.md).
 4. Avant un déploiement de test, contrôler le dossier servi, les protections noindex, les SHA, la portée du site Netlify et le paquet de rollback. Déployer uniquement un brouillon isolé, puis vérifier l’URL réelle et rejouer la recette. La décision utilisateur G9 intervient après cette recette et reste distincte de la publication publique.
+
+## Critères Mac ouverts avant la prochaine recette
+
+| Porte | Preuves disponibles | Contrôle restant pour le prochain candidat |
+|---|---|---|
+| G3 | Catalogue canonique, identité nationale et Tesla autonome éprouvés sur le bundle courant | Valider le rôle, la provenance, les identifiants et les unités de chaque nouvel apport destiné au catalogue |
+| G4 | Deltas de fichiers, SHA et restauration locaux éprouvés. Qwello et TotalEnergies reçus et contrôlés sur le Mac | Constituer un nouveau snapshot à partir des seules entrées admissibles, contrôler les remplacements et conserver leur prédécesseur |
+| G5 | Le journal France Electroverse et sa projection correspondent au catalogue épinglé | Vérifier la portée EVSE et prise de toute nouvelle offre et la compatibilité du journal si l’IRVE change |
+| G6 | Oracles locaux et moteur signé éprouvés pour les entrées courantes | Rejouer les scénarios tarifaires touchés par toute règle ou source modifiée et vérifier l’absence de prix inventés |
+| G7 | Recherche, couverture, tri, carte, pagination, filtres et scénarios Firefox démontrés localement | Rejouer les parcours affectés et mesurer les recherches courantes sur la composition retenue |
+| G8 | Contrôles de paquet et retour arrière local démontrés | Recette HTTPS sur le prochain brouillon, SHA distants, noindex, Firefox, provenance, performances courantes et restauration |
+
+Une preuve officielle dont la portée est historique ou documentaire reste dans les preuves d’intégration. Qwello Saône-et-Loire valide le tarif initial publié à 22 kW. TotalEnergies documente les familles station-service, concessions et Charge+. Ces éléments exigent une attribution tarifaire actuelle à la station ou à la prise avant d’alimenter le calcul. Les cas de station et de puissance servant à qualifier les sources sont conservés avec leur provenance.

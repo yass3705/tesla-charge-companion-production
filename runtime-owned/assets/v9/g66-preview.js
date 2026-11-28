@@ -14,8 +14,12 @@
     }
     const d=JSON.parse(new TextDecoder().decode(await bytes('descriptor.json',config.g66DescriptorSha256)));
     if(d.bundleId!==config.preparedBundleId)throw Error('Génération Electroverse incompatible');
-    let bindingPromise,worker,sequence=0;
+    let bindingPromise,worker,warming,sequence=0;
     const pending=new Map();
+    // The descriptor pins one immutable generation. Cache only successful
+    // worker responses for the exact serialized connector and planner session.
+    const recentQuotes=new Map();
+    const maxCachedQuotes=2048;
     async function attach(fragments,entry){
       if(entry.sourceSha256!==d.catalogueSha256)throw Error('Catalogue IRVE incompatible');
       bindingPromise??=(async()=>{
@@ -52,13 +56,29 @@
       const id=++sequence;
       return new Promise((resolve,reject)=>{pending.set(id,{resolve,reject});worker.postMessage({id,descriptor:d,requests});});
     }
+    function warm(){
+      if(worker||warming)return;
+      // Initialize the signed local calculator while the search loads its
+      // spatial inputs. An empty request performs no pricing.
+      const initialized=quoteBatch([]);
+      const startedWorker=worker;
+      warming=initialized.catch(()=>{
+        if(worker&&worker===startedWorker){worker.terminate();worker=null;}
+      }).finally(()=>{warming=null;});
+    }
     // Scope answers to a single evaluation pass. Caller does a normal evaluation
     // with exactly the requests collected from its current station/vehicle/session.
     async function evaluate(calculate){
-      const requested=new Map();
-      const initial=calculate(q=>{requested.set(JSON.stringify(q),q);return null;});
+      const requested=new Map(),answers=new Map();
+      const initial=calculate(q=>{
+        const key=JSON.stringify(q);
+        const known=recentQuotes.get(key);
+        if(known){answers.set(key,known);return known;}
+        requested.set(key,q);return null;
+      });
       if(!requested.size)return initial;
-      const pairs=[...requested],answers=new Map();
+      if(warming)await warming;
+      const pairs=[...requested];
       for(let i=0;i<pairs.length;i+=128){
         const batch=pairs.slice(i,i+128);
         let reply;
@@ -68,11 +88,16 @@
           return initial;
         }
         if(!Array.isArray(reply)||reply.length!==batch.length)throw Error('Réponse tarifaire incomplète');
-        batch.forEach(([key],j)=>answers.set(key,reply[j]));
+        batch.forEach(([key],j)=>{
+          const answer=reply[j];answers.set(key,answer);
+          if(typeof answer?.estimateEur!=='string')return;
+          if(recentQuotes.size>=maxCachedQuotes)recentQuotes.delete(recentQuotes.keys().next().value);
+          recentQuotes.set(key,answer);
+        });
       }
       return calculate(q=>answers.get(JSON.stringify(q)));
     }
-    return {attach,evaluate,enabled:true,nationalCanonicalSha256:d.nationalCanonicalSha256,gateCodeSha:d.gateCodeSha,
+    return {attach,evaluate,warm,enabled:true,nationalCanonicalSha256:d.nationalCanonicalSha256,gateCodeSha:d.gateCodeSha,
       quote:()=>null};
   }
   root.TCCV9G66Preview={create};

@@ -1281,17 +1281,28 @@
     const transport=diagnosticOptions.g66QuoteTransport;
     const key=JSON.stringify({...query,stationOffset:0,g66:transport?[diagnosticOptions.g66NationalSha256,diagnosticOptions.g66GateCodeSha]:null});
     async function evaluateRows(rows,area,compact=false){
-      const calculate=quote=>stationCards(variantsByPower(w,rows,area.effectiveSession||query.session,selected,
+      const calculate=(batch,quote)=>stationCards(variantsByPower(w,batch,area.effectiveSession||query.session,selected,
         quote?{...diagnosticOptions,g66QuoteTransport:quote}:diagnosticOptions).filter(row=>variantMatchesFilters(row,input)),selected,compact);
-      return diagnosticOptions.evaluateBatch?diagnosticOptions.evaluateBatch(calculate):calculate(null);
+      if(!diagnosticOptions.evaluateBatch)return calculate(rows);
+      // Only stations carrying a bound dynamic offer need the two-pass quote
+      // protocol. Both groups keep every lane and use the same planner session.
+      const dynamic=[],independent=[];
+      for(const row of rows){
+        const target=row.station.offers?.some(offer=>offer.metadata?.g66Dynamic===true)?dynamic:independent;
+        target.push(row);
+      }
+      const cards=calculate(independent);
+      if(dynamic.length)cards.push(...await diagnosticOptions.evaluateBatch(quote=>calculate(dynamic,quote)));
+      return cards;
     }
     let cached=searchRankingCache.get(engine);
     if(!cached||cached.key!==key||cached.transport!==transport){
       const pending=(async()=>{
         const summaries=[];let inventory=[],count=Infinity,lastYield=performance.now();
         const filterPower=Boolean(input.connectorKinds?.length||input.minPowerKw!=null||input.maxPowerKw!=null);
-        for(let offset=0;offset<count;offset+=40){
-          const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitSubscriptionOptions:true,omitMapInventory:offset>0,omitLocalRoutingCandidates:true});
+        const batchSize=diagnosticOptions.evaluateBatch?160:40;
+        for(let offset=0;offset<count;offset+=batchSize){
+          const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:batchSize,skipSessionEvaluation:true,omitSubscriptionOptions:true,omitMapInventory:offset>0,omitLocalRoutingCandidates:true});
           if(offset===0){count=Number(batch.diagnostics?.sourceStationCount) || batch.stations.length;inventory=batch.mapStations||[];}
           const baseRows=rowsFromArea(batch,origin),pricedStations=baseRows.filter(row=>row.station.offers?.length),unpriced=baseRows.filter(row=>!row.station.offers?.length);
           const evaluated=await evaluateRows(pricedStations,batch,true);
@@ -1304,7 +1315,7 @@
           summaries.push(...baseRows.map(row=>byId.get(row.station.id)).filter(Boolean));
           // Keep input and paint responsive while avoiding a timer for every
           // small batch. A slower device still yields after its first batch.
-          if(offset+40<count&&performance.now()-lastYield>=50){
+          if(offset+batchSize<count&&performance.now()-lastYield>=50){
             await new Promise(resolve=>setTimeout(resolve,0));lastYield=performance.now();
           }
         }
@@ -1345,6 +1356,7 @@
       {g66DiagnosticEnabled:true,g66PlannerProtocol:true,g66SessionZeroTemporalProof:true,
        evaluateBatch:d.evaluate,g66NationalSha256:d.nationalCanonicalSha256,g66GateCodeSha:d.gateCodeSha,g66QuoteTransport:d.quote}:{};
     if(diagnosticOptions.g66DiagnosticEnabled){
+      if(!filters.operatorIds?.length||filters.operatorIds.some(id=>text(id).toLowerCase()!=='tesla'))d.warm?.();
       session.timeZone='Europe/Paris';
       session.includeCongestionFees=input.includeCongestionFees!==false;
       if(Number.isFinite(input.postChargeMinutes)&&input.postChargeMinutes>=0)session.postChargeMinutes=input.postChargeMinutes;
