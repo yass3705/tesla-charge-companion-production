@@ -128,7 +128,141 @@
       "visible": 160
     },
     "equivalentDefaultRanking": true,
-    "firstScopeTrialDiscarded": true
+    "firstScopeTrialDiscarded": true,
+    "allModesBrowser": {
+      "baseline": {
+        "cpuProfile": {
+          "TCCV9OfferEngine.dedupeOffers": {
+            "calls": 0,
+            "cpuMs": 0
+          },
+          "TCCV9SessionEngine.evaluateStation": {
+            "calls": 100399,
+            "cpuMs": 8047
+          },
+          "TCCV9SessionPlannerEngine.planStation": {
+            "calls": 100239,
+            "cpuMs": 2456
+          },
+          "TCCV9StationScoreEngine.scoreStation": {
+            "calls": 100399,
+            "cpuMs": 956
+          }
+        },
+        "elapsedMs": 53669,
+        "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca",
+        "mapCount": 64019,
+        "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+        "matching": 64019,
+        "modes": {
+          "balanced": {
+            "map": 64019,
+            "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+            "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+            "ranked": 64019
+          },
+          "costPerKm": {
+            "map": 64019,
+            "mapSha": "92d1c826180a2dadf0e4031f586831b0ec3d1fcb4949498bd86b7c6eb755b03d",
+            "rankSha": "27fe0140f77ea59df9bc4ee791f1b839a49445f2e5bf86afca0cc1a66e281853",
+            "ranked": 64019
+          },
+          "distance": {
+            "map": 64019,
+            "mapSha": "abc4d299d802e6a3a81c5b26f47d892b73f6b1bb4630e9460eaeef0b622a7893",
+            "rankSha": "4b4ed3684ed9aa284d5dac865c3f4b99acf7e18783f3a1dd187d1017a2eedb33",
+            "ranked": 64019
+          },
+          "price": {
+            "map": 64019,
+            "mapSha": "2953d488f268060ca1799cdf8a453dd2d258f462308be375c7292e96d0141258",
+            "rankSha": "0d9f10688e327622b42a9d665747ea47d59a86a9c4e2d3601376b7d4801bbcaf",
+            "ranked": 64019
+          },
+          "totalTime": {
+            "map": 64019,
+            "mapSha": "dd089e84a25a0fa535c9277b14c39a2e176babdfc756315f5c7a40c0a810dd00",
+            "rankSha": "616838db19aedd6d6d1989a224cfe54ea91329a3636530a6791befeb5f5f16d7",
+            "ranked": 64019
+          }
+        },
+        "pageSha": "3c800d097c7ab4f6cb67b5a93b2fd40570040f83d8dcc7bf1bbcb8cd638b78a5",
+        "rankCount": 64019,
+        "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+        "shardCount": 92,
+        "shardLastResponseMs": 17276,
+        "sourceErrors": [],
+        "visible": 160
+      },
+      "candidate": {
+        "cpuProfile": {
+          "TCCV9OfferEngine.dedupeOffers": {
+            "calls": 0,
+            "cpuMs": 0
+          },
+          "TCCV9SessionEngine.evaluateStation": {
+            "calls": 100399,
+            "cpuMs": 5920
+          },
+          "TCCV9SessionPlannerEngine.planStation": {
+            "calls": 100239,
+            "cpuMs": 2386
+          },
+          "TCCV9StationScoreEngine.scoreStation": {
+            "calls": 100399,
+            "cpuMs": 979
+          }
+        },
+        "elapsedMs": 50183,
+        "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca",
+        "mapCount": 64019,
+        "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+        "matching": 64019,
+        "modes": {
+          "balanced": {
+            "map": 64019,
+            "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+            "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+            "ranked": 64019
+          },
+          "costPerKm": {
+            "map": 64019,
+            "mapSha": "92d1c826180a2dadf0e4031f586831b0ec3d1fcb4949498bd86b7c6eb755b03d",
+            "rankSha": "27fe0140f77ea59df9bc4ee791f1b839a49445f2e5bf86afca0cc1a66e281853",
+            "ranked": 64019
+          },
+          "distance": {
+            "map": 64019,
+            "mapSha": "abc4d299d802e6a3a81c5b26f47d892b73f6b1bb4630e9460eaeef0b622a7893",
+            "rankSha": "4b4ed3684ed9aa284d5dac865c3f4b99acf7e18783f3a1dd187d1017a2eedb33",
+            "ranked": 64019
+          },
+          "price": {
+            "map": 64019,
+            "mapSha": "2953d488f268060ca1799cdf8a453dd2d258f462308be375c7292e96d0141258",
+            "rankSha": "0d9f10688e327622b42a9d665747ea47d59a86a9c4e2d3601376b7d4801bbcaf",
+            "ranked": 64019
+          },
+          "totalTime": {
+            "map": 64019,
+            "mapSha": "dd089e84a25a0fa535c9277b14c39a2e176babdfc756315f5c7a40c0a810dd00",
+            "rankSha": "616838db19aedd6d6d1989a224cfe54ea91329a3636530a6791befeb5f5f16d7",
+            "ranked": 64019
+          }
+        },
+        "pageSha": "3c800d097c7ab4f6cb67b5a93b2fd40570040f83d8dcc7bf1bbcb8cd638b78a5",
+        "rankCount": 64019,
+        "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+        "shardCount": 92,
+        "shardLastResponseMs": 17296,
+        "sourceErrors": [],
+        "visible": 160
+      },
+      "candidateUrl": null,
+      "deployed": false,
+      "differences": {},
+      "sameBusinessResult": true
+    }
   },
   "tests": {
     "activeNodeFilesPassed": 31,
