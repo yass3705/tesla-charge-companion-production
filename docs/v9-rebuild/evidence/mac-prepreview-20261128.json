@@ -1,0 +1,222 @@
+{
+  "productionBase": "ea48f5c297f049a34b35641d74b1b9d20b93652d",
+  "runtimeCommit": "8f186365310b5eb15769483618844bf7d73c3df4",
+  "productionReadOnlyCI": {
+    "run": 46161413727,
+    "conclusion": "success"
+  },
+  "localOnly": true,
+  "package": {
+    "status": "hosting_ready_local_only",
+    "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+    "sourceCount": 33,
+    "fileCount": 4516,
+    "bytes": 373774329,
+    "largestAsset": "prepared-v9/joins/FR__irve_static.json.bin",
+    "largestBytes": 16333651,
+    "deployed": false,
+    "servedFileManifestVerified": true
+  },
+  "delta": {
+    "previousSnapshot": "5e482c97a3336c900f59bf1894aa2453903bc44f063fa1d6ded7f021676356f0",
+    "candidateSnapshot": "25c1aff0d89f4e9c859b4738539b0e4c8d6bf4b6ce5b0f385c7e5ec4e024cd65",
+    "identicalDatasetAndProjection": true,
+    "changedFiles": [
+      "runtime/assets/v9/data-engine.js",
+      "runtime/assets/v9/offer-engine.js",
+      "runtime/assets/v9/pricing-engine.js",
+      "v9-production-shell/bridge.js"
+    ],
+    "unchangedFiles": 4511,
+    "scanPass": true
+  },
+  "amsterdam100km": {
+    "reference": {
+      "cpuProfile": {
+        "TCCV9CanonicalAdapter.toFragments": {
+          "calls": 92,
+          "cpuMs": 3047
+        },
+        "TCCV9ChargeModelEngine.estimate": {
+          "calls": 100399,
+          "cpuMs": 1797
+        },
+        "TCCV9OfferEngine.eligibleOffers": {
+          "calls": 100399,
+          "cpuMs": 882
+        },
+        "TCCV9OfferEngine.prepareOffers": {
+          "calls": 64179,
+          "cpuMs": 5028
+        },
+        "TCCV9PricingEngine.evaluateOffer": {
+          "calls": 100749,
+          "cpuMs": 5277
+        },
+        "TCCV9SessionEngine.evaluateStation": {
+          "calls": 100399,
+          "cpuMs": 10416
+        },
+        "TCCV9SessionPlannerEngine.planStation": {
+          "calls": 100239,
+          "cpuMs": 3436
+        },
+        "TCCV9StationScoreEngine.scoreStation": {
+          "calls": 100399,
+          "cpuMs": 994
+        }
+      },
+      "elapsedMs": 55585,
+      "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca",
+      "mapCount": 64019,
+      "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+      "matching": 64019,
+      "pageSha": "3c800d097c7ab4f6cb67b5a93b2fd40570040f83d8dcc7bf1bbcb8cd638b78a5",
+      "rankCount": 64019,
+      "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+      "shardCount": 92,
+      "shardLastResponseMs": 16737,
+      "sourceErrors": [],
+      "visible": 160
+    },
+    "optimized": {
+      "cpuProfile": {
+        "TCCV9CanonicalAdapter.toFragments": {
+          "calls": 92,
+          "cpuMs": 2753
+        },
+        "TCCV9ChargeModelEngine.estimate": {
+          "calls": 100399,
+          "cpuMs": 1600
+        },
+        "TCCV9OfferEngine.eligibleOffers": {
+          "calls": 100399,
+          "cpuMs": 883
+        },
+        "TCCV9OfferEngine.prepareOffers": {
+          "calls": 64179,
+          "cpuMs": 4949
+        },
+        "TCCV9PricingEngine.evaluateOffer": {
+          "calls": 100749,
+          "cpuMs": 3544
+        },
+        "TCCV9SessionEngine.evaluateStation": {
+          "calls": 100399,
+          "cpuMs": 8608
+        },
+        "TCCV9SessionPlannerEngine.planStation": {
+          "calls": 100239,
+          "cpuMs": 3020
+        },
+        "TCCV9StationScoreEngine.scoreStation": {
+          "calls": 100399,
+          "cpuMs": 893
+        }
+      },
+      "elapsedMs": 48202,
+      "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca",
+      "mapCount": 64019,
+      "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+      "matching": 64019,
+      "pageSha": "3c800d097c7ab4f6cb67b5a93b2fd40570040f83d8dcc7bf1bbcb8cd638b78a5",
+      "rankCount": 64019,
+      "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+      "shardCount": 92,
+      "shardLastResponseMs": 13627,
+      "sourceErrors": [],
+      "visible": 160
+    },
+    "equivalentDefaultRanking": true,
+    "firstScopeTrialDiscarded": true
+  },
+  "tests": {
+    "activeNodeFilesPassed": 31,
+    "activePythonTestsPassed": 27,
+    "historicalInvalidComponents": {
+      "fixtures": [
+        {
+          "file": "reports/tariff-scenarios/france-real-offer-fixtures.json",
+          "sha256": "462abf9635934f86f2b971269bf4c59ae527c516346bd65c58fddb7ac36c2802"
+        },
+        {
+          "file": "reports/tariff-scenarios/france-runtime-offer-fixtures.json",
+          "sha256": "289d772d97c4722f51b153f5099ece56f5c90b61b20904ca68ed2992eaa86820"
+        }
+      ],
+      "offers": 84,
+      "evaluations": 588,
+      "incorrectlyCalculated": []
+    },
+    "localRecipe": {
+      "hosting": {
+        "status": 0,
+        "logSha256": "21d7a09e098c8421cbe665310423330ce9f985401358d8652ab914551f5222b8"
+      },
+      "dense": {
+        "status": 0,
+        "logSha256": "4e0894c6fd5ed45b92acfde23b3231e7630329f6088b49c371e1049d24499080"
+      },
+      "packaged-oracle": {
+        "status": 0,
+        "logSha256": "019f0dd3415cc5c8cc4dbc083c980f0523d4ea90854eff8f0a381556898baadc"
+      },
+      "scope-oracle": {
+        "status": 0,
+        "logSha256": "0193a912ba0cd6420e36a482c6a8c2f983fdf0a7ccbe4db92970485e8e6fb0b5"
+      },
+      "historical-oracle": {
+        "status": 0,
+        "logSha256": "4dd663bf953c220c0d33f4950c676bf2560ee23f998e733ca74e66c597ad0ac0"
+      },
+      "ordinary": {
+        "status": 0,
+        "logSha256": "a2c5e84c160843f47ad67f4aaae80fe27c7111e1430b69d853d3fbd5355c4962"
+      },
+      "g9": {
+        "status": 0,
+        "logSha256": "37319c31ca43d7094cfc40f09dfcec41acf0bfb057f452770ad7b4d4fa6a6b63"
+      },
+      "tesla": {
+        "status": 0,
+        "logSha256": "2e290347a774f0e0c9289c0afaba2e1b4af35b8fceeba0e72516aa7ac580fcaa"
+      },
+      "targeted": {
+        "status": 0,
+        "logSha256": "cb345af591cfa0fd2d15bfb3a77eb7ca5e53bbeb663c9c4cb162502967bf7544"
+      },
+      "exact-quote": {
+        "status": 0,
+        "logSha256": "44ed50f25d38df9e4e2bba50b7c95f20804fb894f8b76d4fcbf96900f1c7b8b4"
+      },
+      "three-mobile": {
+        "status": 0,
+        "logSha256": "2a8500f178f316889aa0304fcfea1c85d48f0fd86195b42cfbbbbfdfb53c59de"
+      }
+    },
+    "ordinarySearches": 11,
+    "countryCount": 9,
+    "targetedTariffPaths": 24,
+    "checkoutWideNode": {
+      "total": 91,
+      "passed": 70,
+      "withoutRequiredHistoricalInputsOrArchivedContext": 21
+    },
+    "checkoutWidePython": {
+      "total": 118,
+      "failed": 1,
+      "errors": 8,
+      "skipped": 1,
+      "sameFailuresOnPriorCommit": true
+    },
+    "pinnedHistoricalBump": "pass"
+  },
+  "limitations": [
+    "Single cold paired profile; dense latency remains open.",
+    "Some older tests require specific archives and old build layouts.",
+    "Legacy raw IZIVIA FAST connectedTimeRounding is still rejected on the recorded old payload.",
+    "Legacy Electra full-evaluation assertion conflicts with the present raw-offer hold policy.",
+    "Legacy Matosinhos presentation URL assertion is outside the nine-country preview and remains unverified for its original build.",
+    "New source integration requires verified receipts from the GitHub workstream."
+  ]
+}
