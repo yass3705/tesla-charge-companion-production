@@ -1,0 +1,334 @@
+{
+  "runtimeCommit": "47a2fe11dea88600b8fd428c90f1260a877357c2",
+  "productionReadOnlyCI": {
+    "run": 46167748553,
+    "conclusion": "success"
+  },
+  "previewState": "local-only",
+  "packageDelta": {
+    "from": "25c1aff0d89f4e9c859b4738539b0e4c8d6bf4b6ce5b0f385c7e5ec4e024cd65",
+    "to": "bcf66be21850606181e56835af142029fe0d352a2f883a66029ccac3b60b290c",
+    "bundle": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+    "changed": [
+      "runtime/assets/v9/g66-preview.js",
+      "v9-production-shell/bridge.js"
+    ],
+    "fileCount": 4515
+  },
+  "paris20km": {
+    "reference": {
+      "cpuProfile": {
+        "TCCV9OfferEngine.dedupeOffers": {
+          "calls": 0,
+          "cpuMs": 0
+        },
+        "TCCV9SessionEngine.evaluateStation": {
+          "calls": 25072,
+          "cpuMs": 2209
+        },
+        "TCCV9SessionPlannerEngine.planStation": {
+          "calls": 24912,
+          "cpuMs": 677
+        },
+        "TCCV9StationScoreEngine.scoreStation": {
+          "calls": 25072,
+          "cpuMs": 214
+        }
+      },
+      "elapsedMs": 23711,
+      "evaluationSha": "4c0f6048a77038dea9a2ce867f9e6defae1b685a36cd79e839eff061b95fb9fb",
+      "firstCardsMs": 23552,
+      "mapCount": 3746,
+      "mapSha": "e05baedb0ba58b43021566d0a82733ed6c301d2d1b495df6f23ea100b8a55b7b",
+      "matching": 3746,
+      "pageSha": "c76909df41073598876e0b96e14f72cff6b3514b2f314bfb7d49f29e4565d7c8",
+      "phases": {
+        "electroverse": {
+          "count": 3,
+          "firstMs": -396,
+          "lastMs": 8005
+        },
+        "external": {
+          "count": 147,
+          "firstMs": 7066,
+          "lastMs": 7927
+        },
+        "local": {
+          "count": 6,
+          "firstMs": -555,
+          "lastMs": 144
+        },
+        "shards": {
+          "count": 53,
+          "firstMs": 83,
+          "lastMs": 5550
+        }
+      },
+      "rankCount": 3746,
+      "rankSha": "2350d58a09cf0c16579766a0744810d21f1fdd6436eebc7178718c12a1569926",
+      "routing": 864,
+      "shardCount": 53,
+      "shardLastResponseMs": 5550,
+      "sourceErrors": [],
+      "visible": 160,
+      "workerPhases": {
+        "batches": 93,
+        "errors": 0,
+        "firstRoundTripMs": 3206,
+        "firstStartMs": 7999,
+        "lastResponseMs": 23121,
+        "requests": 1849,
+        "roundTripMs": 9567
+      },
+      "modes": {
+        "balanced": {
+          "map": 3746,
+          "mapSha": "e05baedb0ba58b43021566d0a82733ed6c301d2d1b495df6f23ea100b8a55b7b",
+          "rankSha": "2350d58a09cf0c16579766a0744810d21f1fdd6436eebc7178718c12a1569926",
+          "ranked": 3746
+        },
+        "costPerKm": {
+          "map": 3746,
+          "mapSha": "fb56971f95c5785cf9d8608e8c24504701b0bce2fd070039d4b0bb03fb335488",
+          "rankSha": "b519e038b31449061ef5d4e3ed101a9cb739f3fac20ce8477f977be65febac4b",
+          "ranked": 3746
+        },
+        "distance": {
+          "map": 3746,
+          "mapSha": "dd0964ab6725a139fea0f2c01f0dac1b155fd33436422b9ef0ac2fefb2278191",
+          "rankSha": "185b3b58c9aad3581a245fa2e9371de4bad5ceac5e2413d1a4f08fbdeeeb95e6",
+          "ranked": 3746
+        },
+        "price": {
+          "map": 3746,
+          "mapSha": "0b007c994b2203038a9d6e87812aaeea970e32c4d0f41e81b56ff776c5e54454",
+          "rankSha": "22859ce2a0b06eb31dc866de4e687a3a0746738c39572b347a696ed6968efdb7",
+          "ranked": 3746
+        },
+        "totalTime": {
+          "map": 3746,
+          "mapSha": "77ac9b80bcb3de98692238292794c2aba687b9a9ab3b3ed893d63d7fc795a9a3",
+          "rankSha": "09eed7db2163455c71270149c799a0f01aea311b52917bce9ed8f20922f06e36",
+          "ranked": 3746
+        }
+      }
+    },
+    "optimized": {
+      "cpuProfile": {
+        "TCCV9OfferEngine.dedupeOffers": {
+          "calls": 0,
+          "cpuMs": 0
+        },
+        "TCCV9SessionEngine.evaluateStation": {
+          "calls": 14675,
+          "cpuMs": 1369
+        },
+        "TCCV9SessionPlannerEngine.planStation": {
+          "calls": 14515,
+          "cpuMs": 369
+        },
+        "TCCV9StationScoreEngine.scoreStation": {
+          "calls": 14675,
+          "cpuMs": 129
+        }
+      },
+      "elapsedMs": 19007,
+      "evaluationSha": "4c0f6048a77038dea9a2ce867f9e6defae1b685a36cd79e839eff061b95fb9fb",
+      "firstCardsMs": 18852,
+      "mapCount": 3746,
+      "mapSha": "e05baedb0ba58b43021566d0a82733ed6c301d2d1b495df6f23ea100b8a55b7b",
+      "matching": 3746,
+      "pageSha": "c76909df41073598876e0b96e14f72cff6b3514b2f314bfb7d49f29e4565d7c8",
+      "phases": {
+        "electroverse": {
+          "count": 2,
+          "firstMs": 26,
+          "lastMs": 5935
+        },
+        "external": {
+          "count": 147,
+          "firstMs": 8723,
+          "lastMs": 9632
+        },
+        "local": {
+          "count": 1,
+          "firstMs": 10,
+          "lastMs": 150
+        },
+        "shards": {
+          "count": 53,
+          "firstMs": 7,
+          "lastMs": 7100
+        }
+      },
+      "rankCount": 3746,
+      "rankSha": "2350d58a09cf0c16579766a0744810d21f1fdd6436eebc7178718c12a1569926",
+      "routing": 909,
+      "shardCount": 53,
+      "shardLastResponseMs": 7100,
+      "sourceErrors": [],
+      "visible": 160,
+      "workerPhases": {
+        "batches": 27,
+        "errors": 0,
+        "firstRoundTripMs": 7050,
+        "firstStartMs": 6,
+        "lastResponseMs": 18178,
+        "requests": 1610,
+        "roundTripMs": 12404
+      },
+      "modes": {
+        "balanced": {
+          "map": 3746,
+          "mapSha": "e05baedb0ba58b43021566d0a82733ed6c301d2d1b495df6f23ea100b8a55b7b",
+          "rankSha": "2350d58a09cf0c16579766a0744810d21f1fdd6436eebc7178718c12a1569926",
+          "ranked": 3746
+        },
+        "costPerKm": {
+          "map": 3746,
+          "mapSha": "fb56971f95c5785cf9d8608e8c24504701b0bce2fd070039d4b0bb03fb335488",
+          "rankSha": "b519e038b31449061ef5d4e3ed101a9cb739f3fac20ce8477f977be65febac4b",
+          "ranked": 3746
+        },
+        "distance": {
+          "map": 3746,
+          "mapSha": "dd0964ab6725a139fea0f2c01f0dac1b155fd33436422b9ef0ac2fefb2278191",
+          "rankSha": "185b3b58c9aad3581a245fa2e9371de4bad5ceac5e2413d1a4f08fbdeeeb95e6",
+          "ranked": 3746
+        },
+        "price": {
+          "map": 3746,
+          "mapSha": "0b007c994b2203038a9d6e87812aaeea970e32c4d0f41e81b56ff776c5e54454",
+          "rankSha": "22859ce2a0b06eb31dc866de4e687a3a0746738c39572b347a696ed6968efdb7",
+          "ranked": 3746
+        },
+        "totalTime": {
+          "map": 3746,
+          "mapSha": "77ac9b80bcb3de98692238292794c2aba687b9a9ab3b3ed893d63d7fc795a9a3",
+          "rankSha": "09eed7db2163455c71270149c799a0f01aea311b52917bce9ed8f20922f06e36",
+          "ranked": 3746
+        }
+      }
+    },
+    "exactEqualFields": [
+      "matching",
+      "rankCount",
+      "mapCount",
+      "visible",
+      "rankSha",
+      "mapSha",
+      "pageSha",
+      "evaluationSha",
+      "sourceErrors",
+      "modes"
+    ],
+    "optimizationTrials": {
+      "before": {
+        "batches": 93,
+        "errors": 0,
+        "firstRoundTripMs": 3259,
+        "firstStartMs": 7633,
+        "lastResponseMs": 22063,
+        "requests": 1849,
+        "roundTripMs": 9456
+      },
+      "after": {
+        "batches": 26,
+        "errors": 0,
+        "firstRoundTripMs": 3357,
+        "firstStartMs": 7953,
+        "lastResponseMs": 19476,
+        "requests": 1610,
+        "roundTripMs": 8356
+      },
+      "warm": {
+        "batches": 27,
+        "errors": 0,
+        "firstRoundTripMs": 6670,
+        "firstStartMs": 388,
+        "lastResponseMs": 18430,
+        "requests": 1610,
+        "roundTripMs": 11997
+      }
+    }
+  },
+  "verifiedIntakes": [
+    {
+      "sourceId": "FR:qwello_saone_et_loire",
+      "runId": 46162765462,
+      "jobId": 141034074809,
+      "artifactId": 15270094627,
+      "runHeadSha": "58cda381d7d3a80a6c447097cde8adb5eb4c2571",
+      "artifactZipSha256": "6f5128cfd79bfdad674273780faf0706b3b8fbb351829546ab414e4cc24aa1bd",
+      "artifactSetSha256": "c6ef0f0cf8e208edeb088f35cdc2d733acc035682b32422e62e037516f540f53",
+      "scope": "Verified ZIP SHA, CRC, exact entry set, file SHA and size, set digest and official source contract; two HTTP 200 sources. Historical initial 22 kW tariff only; current exact station tariff not verified, not nationwide, roaming separated. No promotion or import. Workflow identity from unchanged main and handoff, connector cannot independently list all workflow registrations."
+    },
+    {
+      "sourceId": "FR:totalenergies_official",
+      "runId": 46164064879,
+      "jobId": 141038048904,
+      "artifactId": 15270882003,
+      "runHeadSha": "fe50edd3d3d156939d45051e09bc96a80fde6615",
+      "artifactZipSha256": "4b05a1a25584d94ee8432f01429c93849e1099b88c2f8ba6ab45478a39794510",
+      "artifactSetSha256": "cdfb191767e76be3284ac1c808ec32dbbc3c91348327599c9c0b8b83e9385ea7",
+      "scope": "ZIP SHA, CRC, exact entry set, file sizes and SHA, set SHA verified. Collector contract passed: seven official HTTP 200 sources, three station samples, station-service direct, distinct local concessions and Charge+ eMSP; no uniform national tariff. Retain the output as scoped evidence, never apply station-service rates to other concessions without exact scope. No import or promotion. Workflow ID and unchanged main observed; active registration list inherited from verified handoff, not independently readable via connector."
+    }
+  ],
+  "intakeDisposition": "official evidence outside the priced snapshot",
+  "localFirefox": {
+    "ordinary": 11,
+    "countries": 9,
+    "tariffCases": 24,
+    "mobileWidth": 390,
+    "results": {
+      "hosting": {
+        "status": 0,
+        "logSha256": "064278a25bd60e300d78a98611500377ba7ad92151a0af4c8cbf574a2551127a"
+      },
+      "paris-reference": {
+        "status": 0,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "paris-optimized": {
+        "status": 0,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "packaged-oracle": {
+        "status": 0,
+        "logSha256": "019f0dd3415cc5c8cc4dbc083c980f0523d4ea90854eff8f0a381556898baadc"
+      },
+      "scope-oracle": {
+        "status": 0,
+        "logSha256": "0193a912ba0cd6420e36a482c6a8c2f983fdf0a7ccbe4db92970485e8e6fb0b5"
+      },
+      "historical-oracle": {
+        "status": 0,
+        "logSha256": "4dd663bf953c220c0d33f4950c676bf2560ee23f998e733ca74e66c597ad0ac0"
+      },
+      "ordinary": {
+        "status": 0,
+        "logSha256": "a2c5e84c160843f47ad67f4aaae80fe27c7111e1430b69d853d3fbd5355c4962"
+      },
+      "g9": {
+        "status": 0,
+        "logSha256": "617962758fb11a95107b44ed81f585cb37b8ead5b74331c8dc5ef3fa7a56c925"
+      },
+      "tesla": {
+        "status": 0,
+        "logSha256": "f51463f8ee21cf660be661f4207b60f1a7117c92c8bee8dbc3487e79491a030b"
+      },
+      "targeted": {
+        "status": 0,
+        "logSha256": "cb345af591cfa0fd2d15bfb3a77eb7ca5e53bbeb663c9c4cb162502967bf7544"
+      },
+      "exact-quote": {
+        "status": 0,
+        "logSha256": "a6a46c00fcffd479bb8c13adbf6a2fbca2c58a5b8a92fce1a9dcac221bd48bd2"
+      },
+      "three-mobile": {
+        "status": 0,
+        "logSha256": "6aafe4da814a4ef05f0214b35bc161e82e0886ac81ed1b53571e115aef9f1c98"
+      }
+    }
+  }
+}
