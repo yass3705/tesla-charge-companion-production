@@ -1,0 +1,30 @@
+{
+  "source": {
+    "bundleId": "d791233d815fbee6e5f1b7bed3ff95028d79d7d0fef621102dce27330cba0987",
+    "previous": "afee49dcb53ef7b6a648334688862021371c518cfbbcc9cdaa61f273332e4454",
+    "nationalSha256": "0316341183ff3fe58c53a0b69316e4ad44b459b53ecf8c49a6c6d342e4fc0ce2",
+    "privateRecoveryManifestSha256": "cc8f947aaf9946a9c08e650d43f186a3f55816418f2a18b740adc1ad1f667bd4",
+    "alignmentArtifact": 15137656729,
+    "ledgerArtifact": 15059529583,
+    "ledgerZipSha256": "e52d5d4fd5a0a9923e4a5f6137cd65643dd6777d42c2c27ecbb311a893cf5b2d",
+    "crosswalkSha256": "b7123566e8560d72af73267351eb5f5d48a10faea09d6aa40ffe3d9bccab975a",
+    "otherSourcesPreserved": 32
+  },
+  "projection": {
+    "bundleId": "d791233d815fbee6e5f1b7bed3ff95028d79d7d0fef621102dce27330cba0987",
+    "nationalCanonicalSha256": "0316341183ff3fe58c53a0b69316e4ad44b459b53ecf8c49a6c6d342e4fc0ce2",
+    "gateCodeSha": "d268712f7e87c78ce1ce65c343505662687adcfe",
+    "recoverySha256": "cc8f947aaf9946a9c08e650d43f186a3f55816418f2a18b740adc1ad1f667bd4",
+    "ledgerArtifact": 15059529583,
+    "matched": 24115,
+    "bound": 24102,
+    "unbound": 13,
+    "signatures": 262
+  },
+  "candidate": {
+    "status": "prepared",
+    "bundleId": "d791233d815fbee6e5f1b7bed3ff95028d79d7d0fef621102dce27330cba0987",
+    "sources": 33,
+    "reusedSources": 32
+  }
+}

@@ -1,5 +1,12 @@
 ## Recette distante du candidat suisse du 21 novembre
 
+## 28 novembre 2026 — Intégration locale de la génération Electroverse au candidat complet
+
+Le bundle `d791233d815fbee6e5f1b7bed3ff95028d79d7d0fef621102dce27330cba0987` reprend 32 sources inchangées et le canonique IRVE utilisé pour G6.6b-6e. La projection a vérifié les 24 115 paires du journal SQLite G5. 24 102 disposent de la portée requise pour le calcul. Les 13 autres restent sans attribution calculable. Les entrées privées restent dans la sauvegarde hors Git. Preuve : `docs/v9-rebuild/evidence/g66-full-candidate-20261128.json`.
+
+Prochaine vérification : tester le moteur dynamique dans la carte complète, puis contrôler les octets et les parcours sur le nouveau brouillon isolé. Les portes globales et la recette utilisateur restent ouvertes.
+
+
 [Ouvrir le brouillon de recette](https://6b01a403ef31f5a551927fa2--tcc-v9-preproduction-20261028.netlify.app). Le manifeste servi et les 3 242 fragments ont été comparés aux octets locaux. Firefox a vérifié 24 parcours tarifaires, onze recherches ordinaires dans les neuf pays, les neuf parcours Tesla, les contrôles G9 et le mobile. Les deux stations suisses qui partagent un identifiant EVSE sont distinctes et aucun prix ne leur est attribué par cet identifiant ambigu. Le brouillon précédent reste accessible et les deux ressources témoins du site public ont conservé leur SHA.
 
 Amsterdam à 100 km conserve les 64,019 stations, les montants, la carte, la pagination et le classement de l’oracle de comparaison. La mesure distante isolée est de 56.796 s à froid. Ce délai demeure une limite G7/G8. Les cadences installées et les dernières acquisitions britanniques sont suivies séparément du contenu servi. G2–G8 restent ouverts. [Preuves de la recette](evidence/restoration-20261121/swiss-consolidated/remote-integrity.json).
