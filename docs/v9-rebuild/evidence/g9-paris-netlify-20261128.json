@@ -1,0 +1,879 @@
+{
+  "date": "2026-11-28",
+  "deployment": {
+    "id": "6b0b0a928b626934e4f9cacf",
+    "site_id": "c4df2a8f-f57a-4d59-9e8f-df6da40f713f",
+    "state": "ready",
+    "context": "deploy-preview",
+    "deploy_ssl_url": "https://6b0b0a928b626934e4f9cacf--tcc-v9-preproduction-20261028.netlify.app",
+    "published_at": null,
+    "rollbackUrl": "https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app",
+    "localSnapshot": "bcf66be21850606181e56835af142029fe0d352a2f883a66029ccac3b60b290c"
+  },
+  "runtimeSource": "47a2fe11dea88600b8fd428c90f1260a877357c2",
+  "servedBundle": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+  "servedManifestSha256": "7b96df35f075e4c763be98ab25956b861311ed3384bd59f0982ec8b54b149885",
+  "servedFiles": 4515,
+  "integrity": {
+    "browserVerified": false,
+    "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+    "checkedAssets": [
+      "index.html",
+      "robots.txt",
+      "v9-production-shell/index.html",
+      "v9-production-shell/shell-config.json",
+      "v9-production-shell/bridge.js",
+      "prepared-v9/index.json",
+      "manifest.json",
+      "provenance/base-snapshot-manifest.json",
+      "runtime/assets/v9/data-engine.js",
+      "runtime/assets/v9/preproduction-candidate-loader.js",
+      "runtime/assets/v9/adapters/canonical-v9.js",
+      "runtime/assets/v9/adapters/tesla-json.js",
+      "runtime/assets/v9/pricing-engine.js",
+      "runtime/assets/v9/session-engine.js",
+      "runtime/assets/v9/charge-model-engine.js",
+      "runtime/assets/v9/session-planner-engine.js",
+      "runtime/data/tesla_stations.json",
+      "data/tesla_stations.json",
+      "runtime/assets/v9/runtime-engine.js",
+      "data/exchange_rates.json",
+      "runtime/assets/v9/offer-engine.js",
+      "runtime/assets/v9/runtime-engine.js",
+      "v9-production-shell/national-catalogue-policy.json",
+      "runtime/assets/v9/g66-preview.js",
+      "g66-preview/descriptor.json",
+      "g66-preview/LICENSE",
+      "g66-preview/LICENSE-CPython",
+      "g66-preview/bindings.bin",
+      "g66-preview/calculator.zip",
+      "g66-preview/pyodide-lock.json",
+      "g66-preview/pyodide.asm.js",
+      "g66-preview/pyodide.asm.wasm",
+      "g66-preview/pyodide.js",
+      "g66-preview/python_stdlib.zip",
+      "g66-preview/rates.bin",
+      "g66-preview/runner.js",
+      "g66-preview/tariff-engine.js",
+      "g66-preview/worker.js",
+      "prepared-v9/joins/FR__irve_static.json.bin",
+      "runtime/data/v9/france-crosswalk.json",
+      "prepared-v9/shards/BE__nap_static__0000.json.bin"
+    ],
+    "fragmentReceiptSha256": "efafbb1363802c47898e5c267605b4bf15034189b3c37d868c79abe70d37fa18",
+    "githubHandoffVerified": false,
+    "previouslyVerifiedFragmentsReused": 0,
+    "servedFileManifestVerified": true,
+    "signedFragmentsVerified": 3243,
+    "status": "remote_static_verified"
+  },
+  "dataBinding": {
+    "preparedIndexSha256": "2008b662668a02db9e4f9df818d3936c1c1d815303dd6850d5de75b2051164d8",
+    "signedFranceJoinLedger": {
+      "bytes": 16333651,
+      "encoding": "gzip",
+      "nationalSource": "FR:irve_static",
+      "path": "joins/FR__irve_static.json.bin",
+      "sha256": "154d906e88b3e58f3833853945e2c8e026c0a7153bc34b4580b025a46e31d628",
+      "status": "exact_identity_only",
+      "uncompressedBytes": 51926612,
+      "uncompressedSha256": "e836f5c9abbaf9180e0517236979e33d1a7a91cb6215dae2c6031eeffbb167ab"
+    },
+    "signedElectroverseDescriptorSha256": "3e78b7132861332734da3b6b286dcefce03517216d188e9520b1e281d661e3b8",
+    "preservedElectroverseBinding": {
+      "bound": 24102,
+      "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+      "catalogueSha256": "d08ec68d959ae7c032edbad343940a90128d3017a3cb14153f994cdb613f7777",
+      "gateCodeSha": "d268712f7e87c78ce1ce65c343505662687adcfe",
+      "ledgerArtifact": 15059529583,
+      "matched": 24115,
+      "nationalCanonicalSha256": "0316341183ff3fe58c53a0b69316e4ad44b459b53ecf8c49a6c6d342e4fc0ce2",
+      "recoverySha256": "cc8f947aaf9946a9c08e650d43f186a3f55816418f2a18b740adc1ad1f667bd4",
+      "signatures": 262,
+      "unbound": 13
+    },
+    "fecamp": {
+      "stationId": "tcc:9b113cb493f52405cda4d54933f6865d47b224bad46fec7c1a5e15fe946d51f9",
+      "sourceIds": [
+        "FR:irve_static"
+      ],
+      "evseIds": [
+        "FRALLEGO9004281",
+        "FRALLEGO9007331",
+        "FRALLEGO9007022",
+        "FRALLEGO9004282",
+        "FRALLEGO9007332",
+        "FRALLEGO9004342",
+        "FRALLEGO9007021",
+        "FRALLEGO9004341"
+      ],
+      "ac": 4,
+      "dc": 4,
+      "allChannels": true,
+      "unavailable": true
+    },
+    "nationalStaticTariffMatchesToFecamp": 0
+  },
+  "testReceipts": {
+    "paris-desktop": {
+      "exitCode": 0,
+      "sha256": "5f0cb2fedc26550b517c05407d1947050aea706e98d4fe819d35f29249c83302"
+    },
+    "paris-mobile": {
+      "exitCode": 0,
+      "sha256": "e7a2db4605dec54a3f7ebc4fdc9e06bee0e7e657668a56e3c92ac12d30eb79ca"
+    },
+    "amsterdam-desktop": {
+      "exitCode": 0,
+      "sha256": "0a59c72afe5531f841ab4b049e283b7342e1ad96243f76bac17c70238f21759c"
+    },
+    "london-mobile": {
+      "exitCode": 0,
+      "sha256": "c5398bb8217749f444a5b0e8c68977eff07d936e6d64df121492b16867a0a6e6"
+    },
+    "desktop": {
+      "exitCode": 0,
+      "sha256": "97818bddf5491fc5c91d2ae5a137486bd80fe33f104122cc2e88c87f04a381a0"
+    },
+    "mobile": {
+      "exitCode": 0,
+      "sha256": "15ace535b5b309fb8519fd65eb055452d3f1971236ed10f84f5fabab70957200"
+    },
+    "controls": {
+      "exitCode": 0,
+      "sha256": "548ff057a1e1f199c2cd4d28a98a4af2813bf97d347b271f9e20ae1c78fae47d"
+    },
+    "tesla": {
+      "exitCode": 0,
+      "sha256": "5aa24aafe27a4d91add942901c6ee859b3669497f86debb5c53747a049b900ba"
+    },
+    "tariffs": {
+      "exitCode": 0,
+      "sha256": "cb345af591cfa0fd2d15bfb3a77eb7ca5e53bbeb663c9c4cb162502967bf7544"
+    },
+    "ajaccio": {
+      "exitCode": 0,
+      "sha256": "a6a46c00fcffd479bb8c13adbf6a2fbca2c58a5b8a92fce1a9dcac221bd48bd2"
+    },
+    "bethune": {
+      "exitCode": 0,
+      "sha256": "6aafe4da814a4ef05f0214b35bc161e82e0886ac81ed1b53571e115aef9f1c98"
+    },
+    "swiss": {
+      "exitCode": 0,
+      "sha256": "23e5e877405304a24d1095240d9daa63adf78b3cc3e1d1ce3eb9343715ae90e6"
+    },
+    "rollback": {
+      "exitCode": 0,
+      "sha256": "2d4d0f4df29d4bef685591f022e5086ad707a7b69919b357967d3192798e0399"
+    },
+    "integrity": {
+      "exitCode": 0,
+      "sha256": "ec6970d1c7ce22a02c36dac9b7835773ad7b56a236a32e187671cc56bf13728a"
+    }
+  },
+  "coldRemoteSearches": [
+    {
+      "scenario": "paris-desktop",
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 83,
+      "completeStationEvaluations": 160,
+      "durationMs": 19341,
+      "globallyRankedStations": 3746,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 3746,
+      "matchingStations": 3746,
+      "nextPage": true,
+      "operatorOptionCount": 83,
+      "pageStations": 160,
+      "pricedOffers": 1985,
+      "radiusKm": 20,
+      "rawLabelVisible": true,
+      "rawOffers": 266,
+      "scrollWidth": 1280,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 1280,
+      "visibleCalculatedTariffs": 277,
+      "visibleMarkers": 8,
+      "pagination": {
+        "durationMs": 783,
+        "firstPage": 20,
+        "mapMarkers": 35,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    },
+    {
+      "scenario": "paris-mobile",
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 83,
+      "completeStationEvaluations": 160,
+      "durationMs": 18736,
+      "globallyRankedStations": 3746,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 3746,
+      "matchingStations": 3746,
+      "nextPage": true,
+      "operatorOptionCount": 83,
+      "pageStations": 160,
+      "pricedOffers": 1985,
+      "radiusKm": 20,
+      "rawLabelVisible": true,
+      "rawOffers": 266,
+      "scrollWidth": 390,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 390,
+      "visibleCalculatedTariffs": 277,
+      "visibleMarkers": 8,
+      "pagination": {
+        "durationMs": 1005,
+        "firstPage": 20,
+        "mapMarkers": 37,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    },
+    {
+      "scenario": "amsterdam-desktop",
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 36,
+      "completeStationEvaluations": 160,
+      "durationMs": 9288,
+      "globallyRankedStations": 7138,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 7138,
+      "matchingStations": 7138,
+      "nextPage": true,
+      "operatorOptionCount": 36,
+      "pageStations": 160,
+      "pricedOffers": 1177,
+      "radiusKm": 20,
+      "rawLabelVisible": false,
+      "rawOffers": 0,
+      "scrollWidth": 1280,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 1280,
+      "visibleCalculatedTariffs": 98,
+      "visibleMarkers": 10,
+      "pagination": {
+        "durationMs": 535,
+        "firstPage": 20,
+        "mapMarkers": 39,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    },
+    {
+      "scenario": "london-mobile",
+      "requestedRadiusKm": 10,
+      "availableOperatorCount": 5,
+      "completeStationEvaluations": 160,
+      "durationMs": 6211,
+      "globallyRankedStations": 8029,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 8029,
+      "matchingStations": 8029,
+      "nextPage": true,
+      "operatorOptionCount": 5,
+      "pageStations": 160,
+      "pricedOffers": 177,
+      "radiusKm": 10,
+      "rawLabelVisible": true,
+      "rawOffers": 1,
+      "scrollWidth": 390,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 390,
+      "visibleCalculatedTariffs": 33,
+      "visibleMarkers": 13,
+      "pagination": {
+        "durationMs": 155,
+        "firstPage": 20,
+        "mapMarkers": 37,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    }
+  ],
+  "localPairedParis20km": {
+    "beforeMs": 23711,
+    "afterMs": 19007,
+    "matching": 3746,
+    "modeSignatures": {
+      "balanced": {
+        "map": 3746,
+        "mapSha": "e05baedb0ba58b43021566d0a82733ed6c301d2d1b495df6f23ea100b8a55b7b",
+        "rankSha": "2350d58a09cf0c16579766a0744810d21f1fdd6436eebc7178718c12a1569926",
+        "ranked": 3746
+      },
+      "costPerKm": {
+        "map": 3746,
+        "mapSha": "fb56971f95c5785cf9d8608e8c24504701b0bce2fd070039d4b0bb03fb335488",
+        "rankSha": "b519e038b31449061ef5d4e3ed101a9cb739f3fac20ce8477f977be65febac4b",
+        "ranked": 3746
+      },
+      "distance": {
+        "map": 3746,
+        "mapSha": "dd0964ab6725a139fea0f2c01f0dac1b155fd33436422b9ef0ac2fefb2278191",
+        "rankSha": "185b3b58c9aad3581a245fa2e9371de4bad5ceac5e2413d1a4f08fbdeeeb95e6",
+        "ranked": 3746
+      },
+      "price": {
+        "map": 3746,
+        "mapSha": "0b007c994b2203038a9d6e87812aaeea970e32c4d0f41e81b56ff776c5e54454",
+        "rankSha": "22859ce2a0b06eb31dc866de4e687a3a0746738c39572b347a696ed6968efdb7",
+        "ranked": 3746
+      },
+      "totalTime": {
+        "map": 3746,
+        "mapSha": "77ac9b80bcb3de98692238292794c2aba687b9a9ab3b3ed893d63d7fc795a9a3",
+        "rankSha": "09eed7db2163455c71270149c799a0f01aea311b52917bce9ed8f20922f06e36",
+        "ranked": 3746
+      }
+    }
+  },
+  "browser": {
+    "countries": [
+      "BE",
+      "CH",
+      "DE",
+      "ES",
+      "FR",
+      "GB",
+      "IT",
+      "MA",
+      "NL"
+    ],
+    "caseResults": [
+      {
+        "name": "Fécamp Carrefour Allego",
+        "country": "FR",
+        "matching": 17,
+        "priced": 6,
+        "rankingSha256": "e8f1591a09c66316ac4855568252acd20a306ab1719add85d2b07bd633b93049",
+        "initialCards": 17,
+        "afterMore": 17
+      },
+      {
+        "name": "Rouen",
+        "country": "FR",
+        "matching": 210,
+        "priced": 45,
+        "rankingSha256": "576d909f2a7785ea826f59f2311f6fc839d7b02217a73426ea942fce2b494e6e",
+        "initialCards": 20,
+        "afterMore": 40
+      },
+      {
+        "name": "Lyon",
+        "country": "FR",
+        "matching": 231,
+        "priced": 139,
+        "rankingSha256": "907effbad05f4c37e17c24f73faac7bb0fee2b4eb49cf64da0c9a0caadf756a4",
+        "initialCards": 20,
+        "afterMore": 40
+      },
+      {
+        "name": "Milan",
+        "country": "IT",
+        "matching": 11,
+        "priced": 11,
+        "rankingSha256": "d844fad9bbc0758aebc1634f309c296d36679d80a6c7132ee713d1dbb3fc2b8c",
+        "initialCards": 11,
+        "afterMore": 11
+      },
+      {
+        "name": "Berlin",
+        "country": "DE",
+        "matching": 813,
+        "priced": 2,
+        "rankingSha256": "1a897dd39bdb43794c71deed2d9ad4ab9bd52388e2625aa9609103b5672b0e99",
+        "initialCards": 20,
+        "afterMore": 40
+      },
+      {
+        "name": "Amsterdam",
+        "country": "NL",
+        "matching": 1369,
+        "priced": 297,
+        "rankingSha256": "246980b2987e5ca1c6b3a5d24eab3ff5b6d544818922f131b213708d267ca534",
+        "initialCards": 20,
+        "afterMore": 40
+      },
+      {
+        "name": "London",
+        "country": "GB",
+        "matching": 2406,
+        "priced": 636,
+        "rankingSha256": "4ab16241ac192a0328bec98acb3192929323ef075b04c357d4e91d41d18327ec",
+        "initialCards": 20,
+        "afterMore": 40
+      },
+      {
+        "name": "Brussels",
+        "country": "BE",
+        "matching": 955,
+        "priced": 119,
+        "rankingSha256": "a175f714085bfb4788d943c39a283941763e8077ec623531ccf7a55f53321de4",
+        "initialCards": 20,
+        "afterMore": 40
+      },
+      {
+        "name": "Zurich",
+        "country": "CH",
+        "matching": 188,
+        "priced": 25,
+        "rankingSha256": "3a596859b39927f60fd1ed10e519b3b8548479fc5b8661dbbfed5f989c1642ec",
+        "initialCards": 20,
+        "afterMore": 40
+      },
+      {
+        "name": "Madrid",
+        "country": "ES",
+        "matching": 323,
+        "priced": 2,
+        "rankingSha256": "464e0e1238077ee137a9f8ec36e3a5d57b15d74382c84a9d6fb2f23c782aad5c",
+        "initialCards": 20,
+        "afterMore": 40
+      },
+      {
+        "name": "Agadir",
+        "country": "MA",
+        "matching": 2,
+        "priced": 1,
+        "rankingSha256": "c6a9f46a5e02ae5c98d9eef775e53dbbe522fbe3705a0ca40e78270fc8a7f457",
+        "initialCards": 2,
+        "afterMore": 2
+      }
+    ],
+    "desktopAndMobileRankingMatchesLocal": true,
+    "mobileViewportPx": 390,
+    "targetedTariffCases": 24,
+    "tariffCases": [
+      {
+        "family": "zewatt",
+        "source": "FR:archived_direct_exact"
+      },
+      {
+        "family": "zephyre",
+        "source": "FR:archived_direct_exact"
+      },
+      {
+        "family": null,
+        "source": "FR:electra_emsp_exact"
+      },
+      {
+        "family": null,
+        "source": "FR:bump_national_exact"
+      },
+      {
+        "family": null,
+        "source": "BE:nap_static"
+      },
+      {
+        "family": null,
+        "source": "GB:gridserve_pcpr_direct"
+      },
+      {
+        "family": null,
+        "source": "GB:blink_pcpr_direct"
+      },
+      {
+        "family": null,
+        "source": "GB:allego_pcpr_direct"
+      },
+      {
+        "family": null,
+        "source": "GB:ubitricity_pcpr_direct"
+      },
+      {
+        "family": null,
+        "source": "FR:allego_direct"
+      },
+      {
+        "family": null,
+        "source": "FR:belib_stations"
+      },
+      {
+        "family": null,
+        "source": "CH:swiss_integration"
+      },
+      {
+        "source": "FR:emsp_exact"
+      },
+      {
+        "source": "FR:atlante_direct"
+      },
+      {
+        "family": null,
+        "source": "IT:atlante_direct"
+      },
+      {
+        "family": null,
+        "source": "IT:ionity_direct"
+      },
+      {
+        "family": null,
+        "source": "GB:ionity_direct"
+      },
+      {
+        "source": "DE:ionity_direct"
+      },
+      {
+        "family": null,
+        "source": "GB:source_ev_pcpr_direct"
+      },
+      {
+        "family": "held",
+        "source": "GB:source_ev_pcpr_direct"
+      },
+      {
+        "family": null,
+        "source": "NL:dotnl_static"
+      },
+      {
+        "family": null,
+        "source": "NL:electra_direct_exact"
+      },
+      {
+        "family": null,
+        "source": "GB:eco_movement_pcpr_raw"
+      },
+      {
+        "source": "FR:powerdot_direct"
+      }
+    ],
+    "tesla": [
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "FR",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-le-chesnay-france",
+        "total": 18
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "IT",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-milan-italy",
+        "total": 21.6
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "CH",
+        "currency": "CHF",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-affoltern-switzerland",
+        "total": 20.25
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "DE",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-aachen-germany",
+        "total": 19.8
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "ES",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-aguadulce-spain",
+        "total": 15.75
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "NL",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-s-hertogenbosch-netherlands",
+        "total": 18.45
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "GB",
+        "currency": "GBP",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-aberdeen-uk",
+        "total": 21.6
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "MA",
+        "currency": "MAD",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-agadir-morocco",
+        "total": 76.629483
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "BE",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-aalst-belgium",
+        "total": 25.2
+      }
+    ],
+    "controls": {
+      "emptySocBlocked": true,
+      "feedbackAccessible": true,
+      "invalidBatteryBlocked": true,
+      "maxRadius": 100,
+      "missingSocPlannerUnpriced": true,
+      "networks": {
+        "observed": [
+          "totalenergies-marketing-france",
+          "bouygues-energies-services"
+        ],
+        "selected": [
+          "totalenergies-marketing-france",
+          "bouygues-energies-services"
+        ]
+      },
+      "powerFiltered": 28,
+      "teslaFiltered": 1,
+      "unqualifiedSubscriptionsExcluded": true,
+      "vehicle": {
+        "ac": 22,
+        "capacity": 90,
+        "consumption": 18,
+        "dc": 180
+      }
+    },
+    "ajaccio": [
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5813",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5805",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5808",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5809",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5807",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5806",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5812",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5811",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5810",
+        "total": "22.8"
+      }
+    ],
+    "bethune": [
+      {
+        "text": "ElectroversePrix calculé · 18,00 €ElectroverseDétail du tarif · ElectroverseÉnergie : 18,00 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-10083",
+        "total": "18"
+      },
+      {
+        "text": "ElectroversePrix calculé · 18,00 €ElectroverseDétail du tarif · ElectroverseÉnergie : 18,00 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-10088",
+        "total": "18"
+      },
+      {
+        "text": "ElectroversePrix calculé · 18,00 €ElectroverseDétail du tarif · ElectroverseÉnergie : 18,00 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-10089",
+        "total": "18"
+      },
+      {
+        "text": "ElectroversePrix calculé · 18,00 €ElectroverseDétail du tarif · ElectroverseÉnergie : 18,00 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-10082",
+        "total": "18"
+      },
+      {
+        "text": "ElectroversePrix calculé · 18,00 €ElectroverseDétail du tarif · ElectroverseÉnergie : 18,00 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-10087",
+        "total": "18"
+      },
+      {
+        "text": "ElectroversePrix calculé · 18,00 €ElectroverseDétail du tarif · ElectroverseÉnergie : 18,00 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-10086",
+        "total": "18"
+      },
+      {
+        "text": "ElectroversePrix calculé · 18,00 €ElectroverseDétail du tarif · ElectroverseÉnergie : 18,00 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-10085",
+        "total": "18"
+      },
+      {
+        "text": "ElectroversePrix calculé · 18,00 €ElectroverseDétail du tarif · ElectroverseÉnergie : 18,00 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-10084",
+        "total": "18"
+      }
+    ],
+    "swiss": {
+      "url": "https://6b0b0a928b626934e4f9cacf--tcc-v9-preproduction-20261028.netlify.app",
+      "status": "pass",
+      "officialEvseId": "CH*CCC*E50049",
+      "records": [
+        {
+          "evse": "tcc:0139c162fa42d25c6778a555af8425eb9698aab549545d6be6ae446dc3b7a591",
+          "priced": 0,
+          "raw": 0,
+          "station": "tcc:78e1f1c3388e3a3f5fd306526674e3853e0b8fadd6ffeaaee3b381ce328bf517"
+        },
+        {
+          "evse": "tcc:2cb146a04810895474229cc99e842f2eca1ca897b85f738e13b0c3fc252fae52",
+          "priced": 0,
+          "raw": 0,
+          "station": "tcc:84af0bece9b0623929ef0aa1383b2e29e7ce465f61922b492f8fe71d82f41105"
+        }
+      ]
+    }
+  },
+  "rollback": {
+    "url": "https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app",
+    "verification": {
+      "browserVerified": false,
+      "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+      "checkedAssets": [
+        "index.html",
+        "robots.txt",
+        "v9-production-shell/index.html",
+        "v9-production-shell/shell-config.json",
+        "v9-production-shell/bridge.js",
+        "prepared-v9/index.json",
+        "manifest.json",
+        "provenance/base-snapshot-manifest.json",
+        "runtime/assets/v9/data-engine.js",
+        "runtime/assets/v9/preproduction-candidate-loader.js",
+        "runtime/assets/v9/adapters/canonical-v9.js",
+        "runtime/assets/v9/adapters/tesla-json.js",
+        "runtime/assets/v9/pricing-engine.js",
+        "runtime/assets/v9/session-engine.js",
+        "runtime/assets/v9/charge-model-engine.js",
+        "runtime/assets/v9/session-planner-engine.js",
+        "runtime/data/tesla_stations.json",
+        "data/tesla_stations.json",
+        "runtime/assets/v9/runtime-engine.js",
+        "data/exchange_rates.json",
+        "runtime/assets/v9/offer-engine.js",
+        "runtime/assets/v9/runtime-engine.js",
+        "v9-production-shell/national-catalogue-policy.json",
+        "runtime/assets/v9/g66-preview.js",
+        "g66-preview/descriptor.json",
+        "g66-preview/LICENSE",
+        "g66-preview/LICENSE-CPython",
+        "g66-preview/bindings.bin",
+        "g66-preview/calculator.zip",
+        "g66-preview/pyodide-lock.json",
+        "g66-preview/pyodide.asm.js",
+        "g66-preview/pyodide.asm.wasm",
+        "g66-preview/pyodide.js",
+        "g66-preview/python_stdlib.zip",
+        "g66-preview/rates.bin",
+        "g66-preview/runner.js",
+        "g66-preview/tariff-engine.js",
+        "g66-preview/worker.js",
+        "prepared-v9/joins/FR__irve_static.json.bin",
+        "runtime/data/v9/france-crosswalk.json",
+        "prepared-v9/shards/BE__nap_static__0000.json.bin"
+      ],
+      "fragmentReceiptSha256": null,
+      "githubHandoffVerified": false,
+      "previouslyVerifiedFragmentsReused": 0,
+      "servedFileManifestVerified": true,
+      "signedFragmentsVerified": 1,
+      "status": "remote_static_verified"
+    }
+  },
+  "publicWitnesses": {
+    "index.html": {
+      "url": "https://yass3705.github.io/tesla-charge-companion-production/index.html",
+      "status": 200,
+      "sha256": "36ded0763fd1dac257b2e019180730e9ed0d3a6668705a5b14fdcee3a3c37aa1"
+    },
+    "manifest.json": {
+      "url": "https://yass3705.github.io/tesla-charge-companion-production/manifest.json",
+      "status": 200,
+      "sha256": "965a4570ec9724cdcfeeace9f927107e3619b5c127622a2b5c43cde8259237e9"
+    }
+  },
+  "remaining": {
+    "automation": "outside the draft receipt; GitHub handoffs remain tracked separately",
+    "formAssociation": {
+      "missingOnThisDraft": [
+        "simOrigin",
+        "simDate",
+        "simTime",
+        "simUnplugTime",
+        "simNow",
+        "simTarget",
+        "simCondition",
+        "simProfile",
+        "simMaxDistance",
+        "simRanking"
+      ],
+      "locallyVerifiedFollowUp": {
+        "baseSnapshot": "bcf66be21850606181e56835af142029fe0d352a2f883a66029ccac3b60b290c",
+        "localSnapshot": "aaddd881e51e618f7a4ad1ab5cc27f5c5f0d66b11c8ce5b69f9962a1abdec22a",
+        "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+        "changedFiles": [
+          "v9-production-shell/bridge.js"
+        ]
+      },
+      "labelTestSha256": "9e6e8f37ab5def34123aa6d0bd1a25883f29618d9dd5cf5f4cc7904c49f570a0"
+    },
+    "userG9": "pending"
+  }
+}

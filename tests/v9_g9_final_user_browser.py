@@ -10,7 +10,22 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 BUC='tcc:65a4419836d7213884ef581d66a51a526ccf8e82970bdd8bd017c8f3c8ac8ded'
 
-def run(site, url=None):
+def check_form_labels(browser, *, check_focus=False):
+    expected = ('simOrigin', 'simDate', 'simTime', 'simUnplugTime', 'simNow', 'simTarget',
+                'simCondition', 'simProfile', 'simMaxDistance', 'simRanking')
+    labels = browser.execute_script("""
+    return Object.fromEntries(arguments[0].map(id=>[
+      id, [...document.getElementById(id).labels].map(label=>label.textContent.trim()).join(' ')
+    ]));
+    """, expected)
+    assert all(labels.values()), labels
+    if check_focus:
+        browser.find_element('css selector', 'label[for="simOrigin"]').click()
+        assert browser.switch_to.active_element.get_attribute('id') == 'simOrigin'
+    return labels
+
+
+def run(site, url=None, *, require_form_labels=False):
     # Independent 45 kWh, 14:00 Paris oracle for each immutable Mac input.
     catalogue = (site / "runtime/data/tesla_stations.json").read_bytes()
     pin = hashlib.sha256(catalogue).hexdigest()
@@ -36,6 +51,8 @@ def run(site, url=None):
         with webdriver.Firefox(options=options) as browser:
             browser.set_window_size(1280,900);browser.set_script_timeout(180);browser.get(url)
             WebDriverWait(browser,30).until(lambda b:b.execute_script('return window.__TCC_V9_SHELL__?.ready'))
+            if require_form_labels:
+                output['formLabels'] = check_form_labels(browser, check_focus=True)
             layout=browser.execute_script('''
 const save=document.getElementById('v9SaveDefaultOrigin'),gps=document.getElementById('v9UseCurrentPosition'),input=document.getElementById('simOrigin');
 if(!save||!gps||save.parentElement!==gps.parentElement||!input.parentElement.contains(save))throw Error('Address actions misplaced');
@@ -138,6 +155,8 @@ const done=arguments[0];
             browser.execute_script("const f=document.createElement('iframe');f.id='mobile';f.style.cssText='width:390px;height:844px;border:0';f.src=arguments[0];document.body.append(f);",url.rstrip('/')+'/v9-production-shell/')
             browser.switch_to.frame('mobile')
             WebDriverWait(browser,30).until(lambda b:b.execute_script('return window.__TCC_V9_SHELL__?.ready'))
+            if require_form_labels:
+                assert check_form_labels(browser) == output['formLabels']
             browser.execute_async_script("""const done=arguments[0];window.resolveOrigin=async()=>({lat:48.8566,lon:2.3522,label:'Paris mobile'});sessionStorage.setItem('tcc-v9-country:48.857,2.352','FR');document.getElementById('simOrigin').value='Paris mobile';document.getElementById('simMaxDistance').value='5';document.getElementById('simOperatorFilter').dataset.v9Mode='all';compare().then(a=>{document.querySelector('.v9-view-map')?.click();done(!!a);}).catch(e=>done(String(e)));""")
             mobile=browser.execute_script('''
 const d=document.documentElement,save=document.getElementById('v9SaveDefaultOrigin'),gps=document.getElementById('v9UseCurrentPosition');
@@ -150,5 +169,7 @@ return {width:innerWidth,scrollWidth:d.scrollWidth,sameGroup:save.parentElement=
         if server: server.shutdown();server.server_close()
     return output
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--site',type=Path,required=True);p.add_argument('--url');a=p.parse_args()
-    print(json.dumps(run(a.site,a.url),ensure_ascii=False))
+    p=argparse.ArgumentParser();p.add_argument('--site',type=Path,required=True);p.add_argument('--url')
+    p.add_argument('--require-form-labels',action='store_true')
+    a=p.parse_args()
+    print(json.dumps(run(a.site,a.url,require_form_labels=a.require_form_labels),ensure_ascii=False))

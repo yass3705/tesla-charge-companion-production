@@ -18,6 +18,8 @@ Le Mac utilise les artefacts dont ChatGPT a établi la provenance dans GitHub. R
 3. Mesurer les performances des recherches courantes sur ordinateur et mobile, en distinguant les mesures locales des mesures réseau. Contrôler les cinq classements avec l’oracle de recherche. Réutiliser les preuves de couverture et de non-régression à 100 km tant que les entrées concernées sont identiques. L’optimisation résiduelle de la latence à 100 km en zone très dense est reportée au [backlog post-finalisation](POST_FINALIZATION_BACKLOG.md).
 4. Avant un déploiement de test, contrôler le dossier servi, les protections noindex, les SHA, la portée du site Netlify et le paquet de rollback. Déployer uniquement un brouillon isolé, puis vérifier l’URL réelle et rejouer la recette. La décision utilisateur G9 intervient après cette recette et reste distincte de la publication publique.
 
+Pour les prochains paquets, exécuter `v9_g9_ordinary_search_browser.py` sur ordinateur puis avec `--mobile` à 390 px. Comparer les signatures du classement. Exécuter `v9_g9_final_user_browser.py --require-form-labels` pour vérifier les libellés des champs de recherche sur les deux largeurs. Les mesures de la première recherche distante s’effectuent sur l’URL immuable avec `v9_radius_performance_browser.py --url <URL> --radii 20 --viewport-width 1280`, puis avec `--viewport-width 390`.
+
 ## Critères Mac ouverts avant la prochaine recette
 
 | Porte | Preuves disponibles | Contrôle restant pour le prochain candidat |

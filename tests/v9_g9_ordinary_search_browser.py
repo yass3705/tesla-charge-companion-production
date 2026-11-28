@@ -8,6 +8,7 @@ import json
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urljoin
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -30,7 +31,7 @@ SEARCHES = [
 ]
 
 
-def run(site: Path, url: str | None = None) -> list[dict]:
+def run(site: Path, url: str | None = None, *, mobile: bool = False) -> list[dict]:
     server = None
     if url is None:
         class Quiet(SimpleHTTPRequestHandler):
@@ -46,7 +47,18 @@ def run(site: Path, url: str | None = None) -> list[dict]:
         with webdriver.Firefox(options=options) as browser:
             browser.set_window_size(1280, 900)
             browser.set_script_timeout(180)
-            browser.get(url or f"http://127.0.0.1:{server.server_port}/")
+            origin = url or f"http://127.0.0.1:{server.server_port}/"
+            if mobile:
+                browser.get(urljoin(origin, "control/index.html"))
+                browser.execute_script("""
+                    const frame=document.createElement('iframe');
+                    frame.id='v9-mobile-recipe';
+                    frame.style.cssText='width:390px;height:844px;border:0';
+                    frame.src=arguments[0];document.body.append(frame);
+                """, urljoin(origin, "v9-production-shell/"))
+                browser.switch_to.frame("v9-mobile-recipe")
+            else:
+                browser.get(origin)
             WebDriverWait(browser, 30).until(lambda d: d.execute_script("return window.__TCC_V9_SHELL__?.ready"))
             for name, country, lat, lon in SEARCHES:
                 result = browser.execute_async_script(r"""
@@ -113,7 +125,7 @@ const [name,country,lat,lon,fecampId]=arguments[0],done=arguments[1];
  }
  const rankBytes=new TextEncoder().encode(JSON.stringify(ranked.map(row=>[row.station.id,row.total,row.costPerKm,row.distanceKm,row.score?.totalTimeMinutes])));
  const rankingSha256=[...new Uint8Array(await crypto.subtle.digest('SHA-256',rankBytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
- return{name,country,simulationStartAt:area.effectiveSession?.startAt,rankingSha256,matching:ranked.length,priced,unpriced:ranked.length-priced,
+ return{name,country,viewportWidth:innerWidth,scrollWidth:document.documentElement.scrollWidth,simulationStartAt:area.effectiveSession?.startAt,rankingSha256,matching:ranked.length,priced,unpriced:ranked.length-priced,
    rawStations,pageOffers,pageRawOffers,pageIncomplete,
    initialCards:initial,afterMore,firstCard,firstRanked:ranked[0]?.station?.id||null,
    markerLabels:markerLabels.slice(0,5),
@@ -122,6 +134,8 @@ const [name,country,lat,lon,fecampId]=arguments[0],done=arguments[1];
 """, [name, country, lat, lon, FECAMP_ID])
                 if result.get("error") or result.get("sourceErrors"):
                     raise AssertionError(result)
+                if mobile and (result["viewportWidth"] != 390 or result["scrollWidth"] > 390):
+                    raise AssertionError(f"Mobile overflow: {result}")
                 results.append(result)
     finally:
         if server is not None:
@@ -134,5 +148,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--site", type=Path, required=True)
     parser.add_argument("--url")
+    parser.add_argument("--mobile", action="store_true")
     args = parser.parse_args()
-    print(json.dumps(run(args.site, args.url), ensure_ascii=False))
+    print(json.dumps(run(args.site, args.url, mobile=args.mobile), ensure_ascii=False))

@@ -1,3 +1,7 @@
+## 28 novembre — Brouillon optimisé pour les recherches courantes
+
+Le [brouillon Netlify 6b0b0a92](https://6b0b0a928b626934e4f9cacf--tcc-v9-preproduction-20261028.netlify.app) est prêt en contexte `deploy-preview`, sans publication. Le paquet Mac `nov28-followup/site-paris-optimized` conserve les 33 sources et les manifestes signés du candidat. Le [brouillon 6b0ad1b2](https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app) répond séparément et son intégrité critique a été revérifiée pour le retour arrière. Le reçu relie les deux URL à leurs paquets locaux et aux deux empreintes témoins du site public. [Recette distante](evidence/g9-paris-netlify-20261128.json).
+
 ## 28 novembre — Recette distante du candidat Electroverse, IONITY et FX
 
 [Brouillon Netlify vérifié](https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app). Bundle `0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff`, snapshot `5e482c97a3336c900f59bf1894aa2453903bc44f063fa1d6ded7f021676356f0`. 3243 fragments et les ressources du moteur contrôlés sur HTTPS avec noindex. Firefox : 24 parcours tarifaires, 11 recherches sur neuf pays, contrôles G9, mobile à 390 px et Tesla autonome. À Ajaccio, la session de recette restitue 21,60 € d’énergie et 1,20 € de frais Electroverse. À Béthune, la fiche Bump – Vivalto Santé affiche les trois montants sur le même PDC. Fécamp et Buc conservent leurs PDC nationaux. Le retour arrière et les deux ressources témoins publiques ont été vérifiés. [Preuve](evidence/g9-served-electroverse-20261128.json).

@@ -8,6 +8,7 @@ import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urljoin
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from urllib3.exceptions import HTTPError
@@ -15,12 +16,15 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def measure(site: Path, lat: float, lon: float, country: str, label: str, budget_ms: int, radii=None, viewport_width=1280):
+def measure(site: Path, lat: float, lon: float, country: str, label: str, budget_ms: int, radii=None, viewport_width=1280, *, url=None):
     class Quiet(SimpleHTTPRequestHandler):
         def log_message(self, *_args):
             pass
-    server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=str(site)))
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    server = None
+    if url is None:
+        server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=str(site)))
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+    origin = url or f'http://127.0.0.1:{server.server_port}/'
     options = Options(); options.add_argument('-headless')
     options.binary_location = '/Applications/Firefox.app/Contents/MacOS/firefox'
     rows = []
@@ -35,13 +39,13 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
                     return browser.execute_async_script(script, *args)
                 except (WebDriverException, HTTPError) as error:
                     return {'error': str(error)[:300], 'durationMs': round((time.monotonic()-started)*1000), 'browserTransportFailed': True}
-            browser.get(f'http://127.0.0.1:{server.server_port}/')
+            browser.get(origin)
             WebDriverWait(browser, 30).until(lambda d: d.execute_script('return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error'))
             if viewport_width < 500:
-                browser.get(f'http://127.0.0.1:{server.server_port}/control/index.html')
+                browser.get(urljoin(origin, 'control/index.html'))
                 browser.execute_script('''const frame=document.createElement('iframe');frame.id='v9-mobile-fixture';
                   frame.style.cssText=`width:${arguments[1]}px;height:844px;border:0`;frame.src=arguments[0];document.body.append(frame);''',
-                  f'http://127.0.0.1:{server.server_port}/v9-production-shell/', viewport_width)
+                  urljoin(origin, 'v9-production-shell/'), viewport_width)
                 browser.switch_to.frame('v9-mobile-fixture')
                 WebDriverWait(browser, 30).until(lambda d: d.execute_script('return window.__TCC_V9_SHELL__?.ready || window.__TCC_V9_SHELL__?.error'))
             for radius in requested:
@@ -103,13 +107,14 @@ def measure(site: Path, lat: float, lon: float, country: str, label: str, budget
                 if not result.get('error') and result['durationMs'] <= budget_ms and result['mapStations'] == result['matchingStations']:
                     break
     finally:
-        server.shutdown(); server.server_close()
+        if server is not None:
+            server.shutdown(); server.server_close()
     # A timed-out browser is closed before trying a smaller radius. Never run a
     # second expensive search alongside the abandoned JavaScript computation.
     if rows and rows[-1].get('browserTransportFailed'):
         remaining=[radius for radius in requested if radius < rows[-1]['requestedRadiusKm']]
         if remaining:
-            rows.extend(measure(site,lat,lon,country,label,budget_ms,remaining,viewport_width))
+            rows.extend(measure(site,lat,lon,country,label,budget_ms,remaining,viewport_width,url=url))
     return rows
 
 if __name__ == '__main__':
@@ -117,5 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('--lat',type=float,default=48.856);parser.add_argument('--lon',type=float,default=2.352)
     parser.add_argument('--country',default='FR');parser.add_argument('--label',default='Paris performance')
     parser.add_argument('--budget-ms',type=int,default=10000)
+    parser.add_argument('--url');parser.add_argument('--radii',type=int,nargs='+')
+    parser.add_argument('--viewport-width',type=int,default=1280)
     args=parser.parse_args()
-    print(json.dumps(measure(args.site,args.lat,args.lon,args.country,args.label,args.budget_ms),ensure_ascii=False))
+    print(json.dumps(measure(args.site,args.lat,args.lon,args.country,args.label,args.budget_ms,args.radii,args.viewport_width,url=args.url),ensure_ascii=False))

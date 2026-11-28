@@ -1371,6 +1371,10 @@
 
   function normalizeLegacyChrome(w){
     const d=w.document;
+    for(const field of d.querySelectorAll('#compare .grid input[id], #compare .grid select[id]')){
+      const label=field.previousElementSibling;
+      if(label?.tagName==='LABEL'&&!label.htmlFor&&field.labels?.length===0)label.htmlFor=field.id;
+    }
     const radiusInput=d.getElementById('simMaxDistance');if(radiusInput){radiusInput.max='100';radiusInput.setAttribute('aria-description','Rayon maximal : 100 km');}
     d.documentElement.dataset.tccVersion='v9';
     d.title='Tesla Charge Companion V9';

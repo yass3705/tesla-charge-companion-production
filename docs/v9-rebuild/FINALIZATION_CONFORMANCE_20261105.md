@@ -1,5 +1,20 @@
 > Décision utilisateur du 28 novembre 2026. La latence du test de charge à 100 km en zone très dense relève désormais du [backlog post-finalisation](POST_FINALIZATION_BACKLOG.md). Les anciennes mentions de blocage lié à cette latence sont des constats historiques. La recette des usages courants et les contrôles de couverture et de précision restent applicables.
 
+## 28 novembre — Recette du brouillon optimisé pour les recherches courantes
+
+[Brouillon isolé](https://6b0b0a928b626934e4f9cacf--tcc-v9-preproduction-20261028.netlify.app). Le snapshot `bcf66be21850606181e56835af142029fe0d352a2f883a66029ccac3b60b290c` conserve le bundle à 33 sources du brouillon de retour arrière. À froid sur Firefox, Paris à 20 km prend 19,341 s sur ordinateur et 18,736 s à 390 px. Les 3 746 stations figurent dans le classement et sur la carte. Amsterdam à 20 km prend 9,288 s sur ordinateur et Londres à 10 km 6,211 s à 390 px. Les durées incluent le chargement sur Netlify et le premier rendu de la carte à partir du lancement de la recherche.
+
+| Porte | Preuve acquise sur cette composition | Limite de cette recette |
+|---|---|---|
+| G3 | Neuf pays, catalogue Tesla autonome, six EVSE à Buc et huit à Fécamp | Les nouvelles données suivent la qualification source par source |
+| G4 | Manifeste, provenances, fragments servis et version précédente contrôlés | Les renouvellements et transferts GitHub restent suivis par leurs propres reçus |
+| G5 | Journal France et génération Electroverse épinglés, portée de la prise vérifiée à Béthune, Fécamp sans attribution | Les futurs changements de catalogue nécessitent une nouvelle preuve d’identité |
+| G6 | 24 parcours tarifaires distants, cas de frais Electroverse à Ajaccio et trois canaux à Béthune | Résultats liés aux entrées et scénarios du paquet |
+| G7 | Onze recherches sur neuf pays avec les mêmes signatures sur ordinateur, à 390 px et en local, carte et pagination 20 + 20, cinq modes éprouvés en comparaison locale | L’association de dix champs à leur libellé a été corrigée et testée sur un paquet local distinct |
+| G8 | Recette HTTPS/noindex, SHA, témoin public et rollback vérifiés | Clôture globale conditionnée aux preuves de la chaîne et à la recette de la prochaine composition |
+
+La recette visuelle G9 reste à l’utilisateur. [Reçu technique et empreintes](evidence/g9-paris-netlify-20261128.json).
+
 ## 28 novembre — Recette distante du candidat Electroverse, IONITY et FX
 
 [Brouillon Netlify vérifié](https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app). Bundle `0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff`, snapshot `5e482c97a3336c900f59bf1894aa2453903bc44f063fa1d6ded7f021676356f0`. 3243 fragments et les ressources du moteur contrôlés sur HTTPS avec noindex. Firefox : 24 parcours tarifaires, 11 recherches sur neuf pays, contrôles G9, mobile à 390 px et Tesla autonome. À Ajaccio, la session de recette restitue 21,60 € d’énergie et 1,20 € de frais Electroverse. À Béthune, la fiche Bump – Vivalto Santé affiche les trois montants sur le même PDC. Fécamp et Buc conservent leurs PDC nationaux. Le retour arrière et les deux ressources témoins publiques ont été vérifiés. [Preuve](evidence/g9-served-electroverse-20261128.json).
