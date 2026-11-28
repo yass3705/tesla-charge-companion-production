@@ -206,6 +206,16 @@
     const isMac=item=>item.source.id==='tesla-global'&&item.source.adapter==='tesla-json';
     const key=(country,id)=>country+'|'+id;
     const add=(k,value)=>{const rows=nationalByKey.get(k)||[];rows.push(value);nationalByKey.set(k,rows);};
+    // Index only identities requested by an enrichment. Keep every national
+    // occurrence of each requested identity so ambiguity still prevents a join.
+    const requested=new Set();
+    for(const item of items){
+      const f=item.fragment,reference=catalogues[f.countryCode];
+      if(!reference||item.source.id==='prepared:'+reference||isMac(item)||isTeslaNetwork(f))continue;
+      for(const evse of f.evses||[]){
+        requested.add(key(f.countryCode,evse.officialEvseId?'official:'+evse.officialEvseId:'internal:'+evse.id));
+      }
+    }
     for(const item of items){
       const f=item.fragment,reference=catalogues[f.countryCode];
       if(isMac(item)){output.push(item);continue;}
@@ -213,9 +223,14 @@
       if(!reference){output.push(item);continue;}
       if(item.source.id!=='prepared:'+reference)continue;
       output.push(item);
+      if(!requested.size)continue;
       for(const evse of f.evses||[]){
-        const value={item,evse};add(key(f.countryCode,'internal:'+evse.id),value);
-        if(evse.officialEvseId)add(key(f.countryCode,'official:'+evse.officialEvseId),value);
+        const internal=key(f.countryCode,'internal:'+evse.id);
+        if(requested.has(internal))add(internal,{item,evse});
+        if(evse.officialEvseId){
+          const official=key(f.countryCode,'official:'+evse.officialEvseId);
+          if(requested.has(official))add(official,{item,evse});
+        }
       }
     }
     for(const item of items){

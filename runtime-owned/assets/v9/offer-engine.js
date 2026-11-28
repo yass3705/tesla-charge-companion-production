@@ -62,23 +62,20 @@
     const cc=country(countryCode||raw?.countryCode);
     // Key construction is read-only: do not deep-copy tariffs just to compare them.
     const offer=raw?.ratesByCountry?.[cc]?{...raw,pricing:{...(raw.pricing||{}),...raw.ratesByCountry[cc]}}:(raw||{});
-    const scope=stableStringify({currency:country(offer.currency),
-      operatorIds:uniq((offer.operatorIds||[]).map(providerId)).sort(),
-      connectorKinds:uniq((offer.connectorKinds||[]).map(v=>text(v).toUpperCase())).sort(),
-      validFrom:text(offer.validFrom),validThrough:text(offer.validThrough),
-      validityBasis:text(offer.validityBasis||offer.metadata?.validityBasis),
-      timeZone:text(offer.metadata?.timeZone),
-      stationIds:uniq((offer.stationIds||[]).map(text)).sort(),
-      evseIds:uniq((offer.evseIds||[]).map(text)).sort(),
-      connectorIds:uniq((offer.connectorIds||[]).map(text)).sort(),
-      networkIds:uniq((offer.networkIds||[]).map(providerId)).sort(),
+    const operatorIds=uniq((offer.operatorIds||[]).map(providerId)).sort();
+    const connectorKinds=uniq((offer.connectorKinds||[]).map(v=>text(v).toUpperCase())).sort();
+    // This fixed schema is emitted in the original stableStringify key order.
+    // The dynamic tariff itself still uses recursive canonical serialization.
+    const scope=JSON.stringify({
+      connectorIds:uniq((offer.connectorIds||[]).map(text)).sort(),connectorKinds,currency:country(offer.currency),
+      evseIds:uniq((offer.evseIds||[]).map(text)).sort(),maxPowerKw:stable(offer.maxPowerKw??null),minPowerKw:stable(offer.minPowerKw??null),
       networkAliases:uniq((offer.networkAliases||[]).map(providerId)).sort(),
-      plugNames:uniq((offer.plugNames||[]).map(text)).sort(),
-      minPowerKw:offer.minPowerKw??null,maxPowerKw:offer.maxPowerKw??null});
+      networkIds:uniq((offer.networkIds||[]).map(providerId)).sort(),operatorIds,
+      plugNames:uniq((offer.plugNames||[]).map(text)).sort(),stationIds:uniq((offer.stationIds||[]).map(text)).sort(),
+      timeZone:text(offer.metadata?.timeZone),validFrom:text(offer.validFrom),validThrough:text(offer.validThrough),
+      validityBasis:text(offer.validityBasis||offer.metadata?.validityBasis)});
     if(text(offer.equivalenceKey))return `explicit|${text(offer.equivalenceKey)}|${cc}|${scope}`;
     const subscriptionId=text(offer.subscriptionId);
-    const connectorKinds=uniq((offer.connectorKinds||[]).map(v=>text(v).toUpperCase())).sort();
-    const operatorIds=uniq((offer.operatorIds||[]).map(providerId)).sort();
     if(subscriptionId)return ['subscription',providerId(offer.provider),subscriptionId,connectorKinds.join(','),cc,scope].join('|');
     const discriminator=text(offer.tariffId||offer.planId||offer.pricingModelId);
     return [
@@ -113,14 +110,31 @@
     return winner;
   }
 
+  function initializeProvenance(offer){
+    const existing=offer.provenance||[], entry=provenanceEntry(offer);
+    offer.provenance=existing.length
+      ?uniq([...existing.map(stableStringify),stableStringify(entry)]).map(value=>JSON.parse(value))
+      :[entry];
+    offer.aliases=uniq([...(offer.aliases||[]),text(offer.id||offer.offerId)]).sort();
+    return offer;
+  }
+
   function dedupeOffers(offers,{countryCode}={}){
+    // A single offer has no competing identity or ordering. Compute its full
+    // semantic key lazily if a later call actually compares it with another.
+    if(offers?.length===1){
+      const raw=offers[0],prepared=preparedOffers.get(raw);
+      if(prepared && prepared.countryCode===country(countryCode))return [raw];
+      const offer=materializeOffer(raw,countryCode);
+      return offer?[initializeProvenance(offer)]:[];
+    }
     const groups=new Map();
     for(const raw of offers||[]){
       const prepared=preparedOffers.get(raw),reusable=prepared&&prepared.countryCode===country(countryCode);
       const offer=reusable?raw:materializeOffer(raw,countryCode);if(!offer)continue;
-      const key=reusable?prepared.key:semanticKey(offer,countryCode);
+      const key=reusable?(prepared.key??=semanticKey(offer,countryCode)):semanticKey(offer,countryCode);
       const current=groups.get(key);
-      if(!current){const first=offer;if(!reusable){first.provenance=uniq([...(first.provenance||[]).map(p=>stableStringify(p)),stableStringify(provenanceEntry(first))]).map(s=>JSON.parse(s));first.aliases=uniq([...(first.aliases||[]),text(first.id||first.offerId)]).sort();}canonicalKeys.set(first,key);groups.set(key,first);}
+      if(!current){const first=offer;if(!reusable)initializeProvenance(first);canonicalKeys.set(first,key);groups.set(key,first);}
       else {const merged=mergeEquivalentOffers(current,offer);canonicalKeys.set(merged,key);groups.set(key,merged);}
     }
     // Group keys are immutable; reuse them instead of serializing each tariff at every sort comparison.
