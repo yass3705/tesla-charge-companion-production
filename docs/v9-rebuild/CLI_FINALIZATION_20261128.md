@@ -47,3 +47,9 @@ Le rapport archivé de la PR #141 couvre 21 scénarios et 721 résultats, dont 6
 | Utilisateur · G9 | Recette fonctionnelle et décision de publication | Tester le brouillon. La mise en production fait l’objet d’une décision séparée. |
 
 Les [preuves de contrôle des archives et renouvellements](evidence/cli-independent-review-20261128.json) lient les ZIP aux exécutions et détaillent le contrôle WAAT. Les résultats incomplets restent ouverts dans la [liste des 135 instances](evidence/cli-source-admission-20261128.csv).
+
+## Recette effective du candidat à 37 sources
+
+Le [reçu de déploiement et de recette](evidence/cli-final-preview-20261128.json) regroupe la composition, la filiation des dérivés, les signatures Firefox et la preuve distante. Le bundle conserve le catalogue national, Tesla et la génération Electroverse. Les trois ajouts tarifaires sont La Borne Bleue AC, EWD et Fastned Standard suisse. DRIVECO remplace le lot précédent et reste brut là où le coût complet dépend de matrixOSF. Le résultat WAAT conservé à l’écran n’affiche aucun tarif attribué au PDC contrôlé.
+
+Les contrôles G3–G8 des entrées et fonctionnalités servies passent pour ce candidat. La comparaison à 100 km retrouve le classement et les tarifs de l’oracle dans les cinq modes pour 64 019 stations. À froid sur Netlify, Paris à 20 km prend 19,857 s sur ordinateur et 18,197 s à 390 px. Londres à 10 km prend 5,445 s à 390 px. Les témoins du site public et les deux brouillons de rollback ont été vérifiés. Les preuves de la chaîne récurrente GitHub et les qualifications restant ouvertes sont suivies séparément dans la matrice.

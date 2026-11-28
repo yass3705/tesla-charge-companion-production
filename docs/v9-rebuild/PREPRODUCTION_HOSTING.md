@@ -1,3 +1,7 @@
+## 28 novembre — Brouillon vérifié à 37 sources
+
+Le [brouillon isolé](https://6b0b1f908a38729720a18edf--tcc-v9-preproduction-20261028.netlify.app) sert le snapshot `06298e28b604c00e461f96aa950cacfccadb346f35859a6b0aac6eed774d8d9a`. Firefox a vérifié les onze recherches sur neuf pays aux deux largeurs, les trois canaux, Tesla autonome, les cas G9 et les offres nouvellement admises. L’intégrité distante repose notamment sur six fragments téléchargés et 3 324 réutilisations prouvées par empreinte. Le [brouillon Electric 55](https://6b0b14279b8a6a39bc6e93b2--tcc-v9-preproduction-20261028.netlify.app) reste le rollback. Voir le [reçu de validation et les mesures](evidence/cli-final-preview-20261128.json).
+
 ## 28 novembre — Brouillon Electric 55 et libellés accessibles
 
 Le [brouillon Electric 55](https://6b0b14279b8a6a39bc6e93b2--tcc-v9-preproduction-20261028.netlify.app) sert le snapshot `f07f4ebccfa4be951c34dc1976bbfc1c4ff5c0a8c2049133201011b0b2fc59ec` en contexte `deploy-preview`. Les 33 sources précédentes et les fichiers de calcul Electroverse sont repris. Le catalogue IRVE est identique. Les deux brouillons précédents restent indépendants et disponibles comme points de retour arrière. [Reçu](evidence/g9-electric55-netlify-20261128.json).

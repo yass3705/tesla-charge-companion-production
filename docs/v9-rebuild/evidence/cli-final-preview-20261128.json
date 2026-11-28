@@ -1,0 +1,1090 @@
+{
+  "deployment": {
+    "id": "6b0b1f908a38729720a18edf",
+    "state": "ready",
+    "context": "deploy-preview",
+    "published_at": null,
+    "deploy_ssl_url": "https://6b0b1f908a38729720a18edf--tcc-v9-preproduction-20261028.netlify.app",
+    "rollbackUrls": [
+      "https://6b0b14279b8a6a39bc6e93b2--tcc-v9-preproduction-20261028.netlify.app",
+      "https://6b0b0a928b626934e4f9cacf--tcc-v9-preproduction-20261028.netlify.app"
+    ],
+    "publicResources": {
+      "index.html": {
+        "url": "https://yass3705.github.io/tesla-charge-companion-production/index.html",
+        "status": 200,
+        "sha256": "36ded0763fd1dac257b2e019180730e9ed0d3a6668705a5b14fdcee3a3c37aa1"
+      },
+      "manifest.json": {
+        "url": "https://yass3705.github.io/tesla-charge-companion-production/manifest.json",
+        "status": 200,
+        "sha256": "965a4570ec9724cdcfeeace9f927107e3619b5c127622a2b5c43cde8259237e9"
+      }
+    }
+  },
+  "snapshot": {
+    "id": "06298e28b604c00e461f96aa950cacfccadb346f35859a6b0aac6eed774d8d9a",
+    "manifestSha256": "134c1ea1e343f788f50b88700127e783387db940edd348a1a6ce62f267316500",
+    "entries": 4602,
+    "bytes": 375112593,
+    "bundleId": "8ba4ae83fc0e80c580d8898a3b7bdb0e5ab2331be2fbd1a7f845976f9d59e087",
+    "sources": [
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "BE__nap_static.json",
+        "sha256": "d85930dcf89ee139136a3bda67bb4a9f5fbfda461e6ac21f06fdff12578ca16f",
+        "source": "BE:nap_static",
+        "sourceArtifactSha256": "410bdb7646a626faa7fa8ce3a6abc98a1121b71f862bee4edd6cc237511bfb99"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "BE__powerdot_direct.json",
+        "sha256": "da20c59beea6771790e24a493c4881179e3cd42e0e3030c109e2075382520197",
+        "source": "BE:powerdot_direct",
+        "sourceArtifactSha256": "1789e1d69261de9af2dc4fed991c74d1175d359841791e7e94c8ad03e9f5199c"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "CH__ewd_official.json",
+        "sha256": "a321bb7eacae98386de6cb9c72c7b86553647bb154fb6a431b76c7dd701264fa",
+        "source": "CH:ewd_official",
+        "sourceArtifactSha256": "47943355448f9617f19ae2b1b693614bcbc7c8b4b9ef758474b8540782711ee6"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "CH__fastned_official.json",
+        "sha256": "4a23bdbbdf9989e1fd05ec87ee2cefbb5b118084a3b5c1acb610a0cd55ef7e23",
+        "source": "CH:fastned_official",
+        "sourceArtifactSha256": "fc752537447821539a52b1dae8f7e809a9df93e0a653afc478c0c34fd522c8b7"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "CH__swiss_integration.json",
+        "sha256": "22ad8af515d7398c37d52a23e58a3a7dd5e8b242a14a16c9830c4278b70a0bcf",
+        "source": "CH:swiss_integration",
+        "sourceArtifactSha256": "fe5fd0f32af775827f8625c2caba232ffaf6302276e6f6df515f72a3ab5c5fb4"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "DE__bnetza_afir_archive.json",
+        "sha256": "58cea512e12b306e52c9a9f875f1a3152f75216aa7c0f936403959710505128b",
+        "source": "DE:bnetza_afir_archive",
+        "sourceArtifactSha256": "ba14bb9eceed07f04aa0caa47ac2aaafc3f2133e5962e492c5ff54b8e0f2d318"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "DE__ionity_direct.json",
+        "sha256": "2be69ad5e449d9a5244d4d64e6dee71144e8fefd147b8e0db885ebf0cfaba89c",
+        "source": "DE:ionity_direct",
+        "sourceArtifactSha256": "f4ec9c0ba8e041fb6d7a341b1433c7c62a54a24e20fc0cbce362aa265f2893f0"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "ES__reve_static.json",
+        "sha256": "bbc05364a8183f2629c5d007994aa001d46837da82e770e18ce8d63d20159353",
+        "source": "ES:reve_static",
+        "sourceArtifactSha256": "24e4eba8120a39b7c0c28d2cd67902ab62fc71a9d0ee4094c2556a62c323af41"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__allego_direct.json",
+        "sha256": "8e9be93b13db60489c344a3d43e1644b6513526073fc7f6c525a38afe64a4fb0",
+        "source": "FR:allego_direct",
+        "sourceArtifactSha256": "049b8b72d9c7be15defba2c4b0a97c1f13514482cf22db6e8bc228bd696a8ab2"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__archived_direct_exact.json",
+        "sha256": "2ba80dfc7d0a33d2e9d7a7f314842c21c9b2a1f4cbff1fd698c7de59045ea85c",
+        "source": "FR:archived_direct_exact",
+        "sourceArtifactSha256": "1b0a92dd047f5da656d9e4cf02a76b9161094ec956c827c4d091d752f6012bc6"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__atlante_direct.json",
+        "sha256": "6448200389c186059626f8e0930184bb14f8411003f2b741aacc6e581b9e2166",
+        "source": "FR:atlante_direct",
+        "sourceArtifactSha256": "8c35037cc8bc3cd905595c8b8b1aec511490f19bae92338e1e8d0e12cb8c9da3"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__belib_stations.json",
+        "sha256": "5a801f565794fc7aabadc0f7fa9bdd51e907a1ef4e1e2635651f3e74be12931a",
+        "source": "FR:belib_stations",
+        "sourceArtifactSha256": "6def469d63dd74bb2127cc00f800ed88d39699f2df585ea48ed482355b301161"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__bump_national_exact.json",
+        "sha256": "b5e66cac67cb25022c9e43291cbfdb6ba38db8ab8d5abac8363fdc05b1131286",
+        "source": "FR:bump_national_exact",
+        "sourceArtifactSha256": "8dc0a71cdb2d89ec2a033a7f7f886a0e0232f832142a054fd8d6a1e73f1f9c85"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__driveco_evse_tariffs.json",
+        "sha256": "b1b48f8a82215e5b9b84bfc0e558896255907e242c0673f723c29ba66b3163c4",
+        "source": "FR:driveco_evse_tariffs",
+        "sourceArtifactSha256": "c14f4eb93d60700f421c1d6ab85adadfb9f70d65eb818dc17dd19496c4e45ca1"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__electra_emsp_exact.json",
+        "sha256": "66e4b2f6bda6c757ad735cfd1e3a010dd4e100a871fbbc451c7b45bc5d56a20a",
+        "source": "FR:electra_emsp_exact",
+        "sourceArtifactSha256": "23e592c65ddc70376603b783041b617c3ac3b3ddb0a1b7e1546b5c592f7af534"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__electric55_chain.json",
+        "sha256": "8cf043d56cb2f1ade38720924debf4e6437228dbd368046b04341f071e1bd304",
+        "source": "FR:electric55_chain",
+        "sourceArtifactSha256": "886e5587da548586197f3cb4cf9b321e3f64ba34e1637dde902d34510ee1830d"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__emsp_exact.json",
+        "sha256": "60c0206b312a054d5d99eca952ae25808de05e24b10e5279fbae92ab29f0e62b",
+        "source": "FR:emsp_exact",
+        "sourceArtifactSha256": "89f37b975984f1c580ce13353478bd0fc5f54635e01557ced6bed5b84c84147b"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__ionity_direct.json",
+        "sha256": "626aa7c652f7adf6f93450ce6d989cbdff1f75f70970a3d8d8570c91b015090c",
+        "source": "FR:ionity_direct",
+        "sourceArtifactSha256": "4a01550cec060f878001efaa9596aa9fead4935456d820a1c485cfebb4af9568"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__irve_static.json",
+        "sha256": "d08ec68d959ae7c032edbad343940a90128d3017a3cb14153f994cdb613f7777",
+        "source": "FR:irve_static",
+        "sourceArtifactSha256": "e721014651a59570fd4a8602a8d284f3ee5990c41b4d82f18099926a3478d567"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__izivia_fast_map.json",
+        "sha256": "b67a8d7d607c4f372490345792b8c307a05951c6d812c634a57112c683347521",
+        "source": "FR:izivia_fast_map",
+        "sourceArtifactSha256": "6d18d87bdee14054b6cad052155f1404cbed4655e9f8516b83d3ce6078bd1c23"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__labornebleue_direct.json",
+        "sha256": "b4895f873601fb39bca2af62805a6bb6529aedf548f3dd65e1e97cd02bc6a12a",
+        "source": "FR:labornebleue_direct",
+        "sourceArtifactSha256": "3dc0b292d8468c877e3380ad0ea5207b8408a056d9344fa78f80d8a775511cfc"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__ozecar_monta.json",
+        "sha256": "b86f8ace357b58f9b187164f332a4089921135a47276bddd397f3640f50a41f9",
+        "source": "FR:ozecar_monta",
+        "sourceArtifactSha256": "97f030d8e6786fe453cf3a1fa6d9f25b4874f532edbc701ea9f4b176496ff1d6"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__powerdot_direct.json",
+        "sha256": "fa67326278f1d56fa9af5bbaf1b0149480d64dbac33adeeb4b92dc6b2e8f7c74",
+        "source": "FR:powerdot_direct",
+        "sourceArtifactSha256": "1789e1d69261de9af2dc4fed991c74d1175d359841791e7e94c8ad03e9f5199c"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "FR__zephyre_epowerdirect_exact.json",
+        "sha256": "8e8ea898140e7114496f113b3697a1e44ce6057a818f3acb8e35c6f87978d9e7",
+        "source": "FR:zephyre_epowerdirect_exact",
+        "sourceArtifactSha256": "5c015cd94691d3aeb763e84fce06d78fe5a4400411e1b024d1d5d6aee18dd9da"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "GB__allego_pcpr_direct.json",
+        "sha256": "6fcbe27fb6e1a9f09ec7ee3dceeec5d3a30a9c63a1ac7873e6a1942787b5602c",
+        "source": "GB:allego_pcpr_direct",
+        "sourceArtifactSha256": "29292e7abdbfc1cd7fb9a2a6aca5fd80dfaf18dfab0b620b89145e37c92f2b13"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "GB__blink_pcpr_direct.json",
+        "sha256": "391916bc705afac5880cc316731cae6f7fc4f6b00cfaa61bb4d1b2a1abeb082f",
+        "source": "GB:blink_pcpr_direct",
+        "sourceArtifactSha256": "f465cd8bd74417e5be40ffd080cba2ed8461d22e7fdf42d6a0ac0a7e82b25728"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "GB__connected_kerb_midhope_verified.json",
+        "sha256": "0d2d2c9cf7b093467e080ebfdd39d26b498577eb207ef3a20cc6057af6af418a",
+        "source": "GB:connected_kerb_midhope_verified",
+        "sourceArtifactSha256": "f19c37f917a692a4d6efd0d1f42cfb94707941fbfb990f987bf938ecd4a12796"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "GB__eco_movement_pcpr_raw.json",
+        "sha256": "15e92a69011e2a7746ca3efeababf1c342392f0057bd3660e48824f10fcdd7d8",
+        "source": "GB:eco_movement_pcpr_raw",
+        "sourceArtifactSha256": "fe1465c6d3216ba9f52d423d58b6047a74be5f6a286e79dd5ecdd88a0587fee9"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "GB__gridserve_pcpr_direct.json",
+        "sha256": "fe5c8f1e84c67325912c084916887802d91a2299740a80476da4fa66e5068f10",
+        "source": "GB:gridserve_pcpr_direct",
+        "sourceArtifactSha256": "995b0e1cf719875336032b4b082c2c84ff02944e38ad6fad9eb82a722e498382"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "GB__ionity_direct.json",
+        "sha256": "a15dd283eb46177d8294f7f016dd476378a26a07875e629eaa0555ac5a9b7c65",
+        "source": "GB:ionity_direct",
+        "sourceArtifactSha256": "2d1f8cc623c3ea670e6caeeba8cfed8be6f480a0ff9bfd50616bda18ac4118b4"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "GB__source_ev_pcpr_direct.json",
+        "sha256": "22a4c6804e9fc73fa99c5b0ea1da39e211d1d17b19c1ce79aeab78a5663e3dab",
+        "source": "GB:source_ev_pcpr_direct",
+        "sourceArtifactSha256": "39dea2e2d7435c1ddc8e57881c2b541461bfe6abb5c2bacf594a9b61c68d5c59"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "GB__ubitricity_pcpr_direct.json",
+        "sha256": "002173d871086b00fbaeefd2b546339cbe2ced0897447b2f945e4272cc3712f2",
+        "source": "GB:ubitricity_pcpr_direct",
+        "sourceArtifactSha256": "af827cb470ec8c62520568c5c2f92cf323c6a98b3cbbb0432ea94e66c429b516"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "IT__atlante_direct.json",
+        "sha256": "8893fcf8b462222fd2c8d67e549fe841dc8b77cef4888e5291e61dad40f6537f",
+        "source": "IT:atlante_direct",
+        "sourceArtifactSha256": "db759780f5d814c615e96375f0b4798b423f117523de0ac0da23d76e633df09d"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "IT__ionity_direct.json",
+        "sha256": "86539d211169f892bf70aabcc3fe4fd67886ec06876f08aed6a8a31b35c99b57",
+        "source": "IT:ionity_direct",
+        "sourceArtifactSha256": "8d785ffe8c4659f340c96863774d57812d2732f49335fca0da7d2514e8f3d746"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "MA__evgo.json",
+        "sha256": "6cf78d6aa01cd30d1ba008ec8473bb5cb6c136664e4d57d5c789f5729c73964c",
+        "source": "MA:evgo",
+        "sourceArtifactSha256": "faa259cb95e607f94fa322bdc8e6f22dfbb812100e10ef601513d605bced8a7b"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "NL__dotnl_static.json",
+        "sha256": "c3a42a6522dec6b0c26724f0990c4d528af244d27535a96fea124d291a07fdf2",
+        "source": "NL:dotnl_static",
+        "sourceArtifactSha256": "bbfbd7c5f72a7efaac8ac7d77a624fdf0f911c27bfb12e8938c0a04a4ee07758"
+      },
+      {
+        "canonicalSchemaVersion": 1,
+        "path": "NL__electra_direct_exact.json",
+        "sha256": "f289b1d3ff7273657d1a5053850d30d0fa923fb91992d3d173b1a88a4dd87d32",
+        "source": "NL:electra_direct_exact",
+        "sourceArtifactSha256": "60f8aeef79a02073ff78bf66c45e95d948f21f602bd7694d824f1d7464d21af5"
+      }
+    ]
+  },
+  "local": {
+    "france": {
+      "borneOffers": 2364,
+      "drivecoRaw": 1601,
+      "sessions": {
+        "crossingWindows": 4,
+        "springDST": 25.5,
+        "autumnDST": 32.5,
+        "subscriberCap": 13.75
+      }
+    },
+    "switzerland": {
+      "CH:ewd_official": 8,
+      "CH:fastned_official": 78
+    },
+    "midhope": "Historical Midhope source oracle: 64 identical-input evaluations pass",
+    "oracles": "Packaged V9 full-session component, channel, subscription and FX oracle: pass",
+    "electric55": 1990
+  },
+  "remote": {
+    "tests": {
+      "desktop": {
+        "reportSha256": "97818bddf5491fc5c91d2ae5a137486bd80fe33f104122cc2e88c87f04a381a0",
+        "searches": [
+          {
+            "name": "Fécamp Carrefour Allego",
+            "country": "FR",
+            "matching": 17,
+            "priced": 6,
+            "initialCards": 17,
+            "afterMore": 17,
+            "rankingSha256": "e8f1591a09c66316ac4855568252acd20a306ab1719add85d2b07bd633b93049",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Rouen",
+            "country": "FR",
+            "matching": 210,
+            "priced": 45,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "576d909f2a7785ea826f59f2311f6fc839d7b02217a73426ea942fce2b494e6e",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Lyon",
+            "country": "FR",
+            "matching": 231,
+            "priced": 139,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "907effbad05f4c37e17c24f73faac7bb0fee2b4eb49cf64da0c9a0caadf756a4",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Milan",
+            "country": "IT",
+            "matching": 11,
+            "priced": 11,
+            "initialCards": 11,
+            "afterMore": 11,
+            "rankingSha256": "d844fad9bbc0758aebc1634f309c296d36679d80a6c7132ee713d1dbb3fc2b8c",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Berlin",
+            "country": "DE",
+            "matching": 813,
+            "priced": 2,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "1a897dd39bdb43794c71deed2d9ad4ab9bd52388e2625aa9609103b5672b0e99",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Amsterdam",
+            "country": "NL",
+            "matching": 1369,
+            "priced": 297,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "246980b2987e5ca1c6b3a5d24eab3ff5b6d544818922f131b213708d267ca534",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "London",
+            "country": "GB",
+            "matching": 2406,
+            "priced": 636,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "4ab16241ac192a0328bec98acb3192929323ef075b04c357d4e91d41d18327ec",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Brussels",
+            "country": "BE",
+            "matching": 955,
+            "priced": 119,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "a175f714085bfb4788d943c39a283941763e8077ec623531ccf7a55f53321de4",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Zurich",
+            "country": "CH",
+            "matching": 188,
+            "priced": 25,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "3a596859b39927f60fd1ed10e519b3b8548479fc5b8661dbbfed5f989c1642ec",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Madrid",
+            "country": "ES",
+            "matching": 323,
+            "priced": 2,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "464e0e1238077ee137a9f8ec36e3a5d57b15d74382c84a9d6fb2f23c782aad5c",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          },
+          {
+            "name": "Agadir",
+            "country": "MA",
+            "matching": 2,
+            "priced": 1,
+            "initialCards": 2,
+            "afterMore": 2,
+            "rankingSha256": "c6a9f46a5e02ae5c98d9eef775e53dbbe522fbe3705a0ca40e78270fc8a7f457",
+            "viewportWidth": 1280,
+            "scrollWidth": 1280
+          }
+        ]
+      },
+      "mobile": {
+        "reportSha256": "15ace535b5b309fb8519fd65eb055452d3f1971236ed10f84f5fabab70957200",
+        "searches": [
+          {
+            "name": "Fécamp Carrefour Allego",
+            "country": "FR",
+            "matching": 17,
+            "priced": 6,
+            "initialCards": 17,
+            "afterMore": 17,
+            "rankingSha256": "e8f1591a09c66316ac4855568252acd20a306ab1719add85d2b07bd633b93049",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Rouen",
+            "country": "FR",
+            "matching": 210,
+            "priced": 45,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "576d909f2a7785ea826f59f2311f6fc839d7b02217a73426ea942fce2b494e6e",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Lyon",
+            "country": "FR",
+            "matching": 231,
+            "priced": 139,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "907effbad05f4c37e17c24f73faac7bb0fee2b4eb49cf64da0c9a0caadf756a4",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Milan",
+            "country": "IT",
+            "matching": 11,
+            "priced": 11,
+            "initialCards": 11,
+            "afterMore": 11,
+            "rankingSha256": "d844fad9bbc0758aebc1634f309c296d36679d80a6c7132ee713d1dbb3fc2b8c",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Berlin",
+            "country": "DE",
+            "matching": 813,
+            "priced": 2,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "1a897dd39bdb43794c71deed2d9ad4ab9bd52388e2625aa9609103b5672b0e99",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Amsterdam",
+            "country": "NL",
+            "matching": 1369,
+            "priced": 297,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "246980b2987e5ca1c6b3a5d24eab3ff5b6d544818922f131b213708d267ca534",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "London",
+            "country": "GB",
+            "matching": 2406,
+            "priced": 636,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "4ab16241ac192a0328bec98acb3192929323ef075b04c357d4e91d41d18327ec",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Brussels",
+            "country": "BE",
+            "matching": 955,
+            "priced": 119,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "a175f714085bfb4788d943c39a283941763e8077ec623531ccf7a55f53321de4",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Zurich",
+            "country": "CH",
+            "matching": 188,
+            "priced": 25,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "3a596859b39927f60fd1ed10e519b3b8548479fc5b8661dbbfed5f989c1642ec",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Madrid",
+            "country": "ES",
+            "matching": 323,
+            "priced": 2,
+            "initialCards": 20,
+            "afterMore": 40,
+            "rankingSha256": "464e0e1238077ee137a9f8ec36e3a5d57b15d74382c84a9d6fb2f23c782aad5c",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          },
+          {
+            "name": "Agadir",
+            "country": "MA",
+            "matching": 2,
+            "priced": 1,
+            "initialCards": 2,
+            "afterMore": 2,
+            "rankingSha256": "c6a9f46a5e02ae5c98d9eef775e53dbbe522fbe3705a0ca40e78270fc8a7f457",
+            "viewportWidth": 390,
+            "scrollWidth": 390
+          }
+        ]
+      },
+      "reviewed-desktop": {
+        "reportSha256": "2eb7710666dac4cc2d106c981411d9e80cc361f6c012a2eb81c5487060037086",
+        "cases": [
+          {
+            "evseId": "FRSIPE940210032",
+            "offers": 2,
+            "scroll": 1280,
+            "source": "FR:labornebleue_direct",
+            "stationId": "tcc:003bf581fc15a85ad4916ff28f285936cb6709731d78041be6c33f013acb6540",
+            "unassignedReason": null,
+            "viewport": 1280
+          },
+          {
+            "evseId": "FRDRVE22011A00018201P1",
+            "offers": 0,
+            "scroll": 1280,
+            "source": "FR:driveco_evse_tariffs",
+            "stationId": "tcc:0d6348c8dbef66cdcc96bd20acf5823e3b15710a7fbb588f04f8cfcf02d76224",
+            "unassignedReason": null,
+            "viewport": 1280
+          },
+          {
+            "evseId": "CH*EWD*E123*0012",
+            "offers": 1,
+            "scroll": 1280,
+            "source": "CH:ewd_official",
+            "stationId": "tcc:077c4aa62dbb998fb1bcea130f019d0bc387840eebc3cbac3323f17b2eef5b1c",
+            "unassignedReason": null,
+            "viewport": 1280
+          },
+          {
+            "evseId": "CHFASE4140202",
+            "offers": 1,
+            "scroll": 1280,
+            "source": "CH:fastned_official",
+            "stationId": "tcc:05c102e96669b529e64596307589fe6d207fdbdae4166cbdca1e3512f7356e4e",
+            "unassignedReason": null,
+            "viewport": 1280
+          }
+        ]
+      },
+      "reviewed-mobile": {
+        "reportSha256": "88449f4e0ec2c8c67cb53524f8ad89f61deeeea31526cc40e4f366c2ed9c0856",
+        "cases": [
+          {
+            "evseId": "FRSIPE940210032",
+            "offers": 2,
+            "scroll": 390,
+            "source": "FR:labornebleue_direct",
+            "stationId": "tcc:003bf581fc15a85ad4916ff28f285936cb6709731d78041be6c33f013acb6540",
+            "unassignedReason": null,
+            "viewport": 390
+          },
+          {
+            "evseId": "FRDRVE22011A00018201P1",
+            "offers": 0,
+            "scroll": 390,
+            "source": "FR:driveco_evse_tariffs",
+            "stationId": "tcc:0d6348c8dbef66cdcc96bd20acf5823e3b15710a7fbb588f04f8cfcf02d76224",
+            "unassignedReason": null,
+            "viewport": 390
+          },
+          {
+            "evseId": "CH*EWD*E123*0012",
+            "offers": 1,
+            "scroll": 390,
+            "source": "CH:ewd_official",
+            "stationId": "tcc:077c4aa62dbb998fb1bcea130f019d0bc387840eebc3cbac3323f17b2eef5b1c",
+            "unassignedReason": null,
+            "viewport": 390
+          },
+          {
+            "evseId": "CHFASE4140202",
+            "offers": 1,
+            "scroll": 390,
+            "source": "CH:fastned_official",
+            "stationId": "tcc:05c102e96669b529e64596307589fe6d207fdbdae4166cbdca1e3512f7356e4e",
+            "unassignedReason": null,
+            "viewport": 390
+          }
+        ]
+      },
+      "g9-labels": {
+        "reportSha256": "9659e3f4d30212c0a005a9246da1eb2afac31a0c437c93c586e67bbc4c3f02df",
+        "formLabels": {
+          "simCondition": "État de la batterie en DC",
+          "simDate": "Date",
+          "simMaxDistance": "Distance maximale depuis le départ (km)",
+          "simNow": "Batterie actuelle (%)",
+          "simOrigin": "Adresse de départ",
+          "simProfile": "Profil de calcul",
+          "simRanking": "Priorité de classement",
+          "simTarget": "Objectif (%)",
+          "simTime": "Heure de branchement",
+          "simUnplugTime": "Heure prévue de débranchement"
+        },
+        "geolocationCallbacks": {
+          "denialPreservesOrigin": true,
+          "success": true
+        },
+        "keyboardMapZoom": true,
+        "controls": {
+          "emptySocBlocked": true,
+          "feedbackAccessible": true,
+          "invalidBatteryBlocked": true,
+          "maxRadius": 100,
+          "missingSocPlannerUnpriced": true,
+          "networks": {
+            "observed": [
+              "totalenergies-marketing-france",
+              "bouygues-energies-services"
+            ],
+            "selected": [
+              "totalenergies-marketing-france",
+              "bouygues-energies-services"
+            ]
+          },
+          "powerFiltered": 28,
+          "teslaFiltered": 1,
+          "unqualifiedSubscriptionsExcluded": true,
+          "vehicle": {
+            "ac": 22,
+            "capacity": 90,
+            "consumption": 18,
+            "dc": 180
+          }
+        }
+      },
+      "electroverse-bethune": {
+        "reportSha256": "6aafe4da814a4ef05f0214b35bc161e82e0886ac81ed1b53571e115aef9f1c98"
+      },
+      "electroverse-ajaccio": {
+        "reportSha256": "a6a46c00fcffd479bb8c13adbf6a2fbca2c58a5b8a92fce1a9dcac221bd48bd2"
+      },
+      "integrity": {
+        "reportSha256": "dcb8c2fecf72e12e724f518b710c8c77720f2507156ddf4265daab88790b1b2c"
+      },
+      "tesla": {
+        "reportSha256": "e56cb04399008c3f9e37a854113b343a3cfef869bd1809eef32733d8c61be073"
+      },
+      "tariffs-reference": {
+        "reportSha256": "cb345af591cfa0fd2d15bfb3a77eb7ca5e53bbeb663c9c4cb162502967bf7544"
+      },
+      "electric55": {
+        "reportSha256": "06991f76b71210e0c3d194f55ee0fafebe9eb6c55c59a9232bdfc65b0f53aa23"
+      },
+      "swiss-ambiguous": {
+        "reportSha256": "078187663356ccc0557d518ac4f924e8da3e6e1a96349a33e24212dfd9c42142"
+      },
+      "waat": {
+        "reportSha256": "0bcdcf8fcb21d5b95e3ef0f80e5a9866740c9eaffd92bfdf611876570e36a6c9",
+        "cases": [
+          {
+            "evseId": "FRWA2E4384004",
+            "offers": 0,
+            "scroll": 1280,
+            "source": "FR:waat_monta_sharded",
+            "stationId": "tcc:33d73cc8816d8c57ffa834bd2b35e5e58fa0dbcfaf752870111ec6c611f9dca3",
+            "unassignedReason": "monta_group_scope_and_complete_charge_require_proof",
+            "viewport": 1280
+          }
+        ]
+      }
+    },
+    "fragmentProof": {
+      "previousSnapshot": "f07f4ebccfa4be951c34dc1976bbfc1c4ff5c0a8c2049133201011b0b2fc59ec",
+      "previousProof": "g9-electric55-netlify-20261128.json",
+      "reusedShards": 3324,
+      "changedShards": [
+        {
+          "path": "shards/CH__ewd_official__0000.json.bin",
+          "sha256": "d7b96c7b6569583c903f9c0e2fcb6d1c17b3668d21f8b061b54c9bfb1faa6ccb"
+        },
+        {
+          "path": "shards/CH__fastned_official__0000.json.bin",
+          "sha256": "93c170aa3685cf9d0429f174e06a36a8aa0b088628b20388445277362a30fb41"
+        },
+        {
+          "path": "shards/FR__driveco_evse_tariffs__0000.json.bin",
+          "sha256": "422402d320fda9f07eacd0d4282b7059e934aea44bd324d047d7186f8a015735"
+        },
+        {
+          "path": "shards/FR__driveco_evse_tariffs__0001.json.bin",
+          "sha256": "5973f0b5197b3e98926f54c0cd3071ede13162deee15f5a4c43d68d29fc85d14"
+        },
+        {
+          "path": "shards/FR__labornebleue_direct__0000.json.bin",
+          "sha256": "ad3a6969a77ee13d0814b4090f68f899aafbaa271cd977f9235452b0688f40d0"
+        },
+        {
+          "path": "shards/FR__labornebleue_direct__0001.json.bin",
+          "sha256": "b99b040b36854cbcfb528080c340b2dba676603ad010ee565b2e745f44517556"
+        }
+      ],
+      "changedNonShardFiles": [
+        {
+          "bytes": 1618,
+          "path": "g66-preview/descriptor.json",
+          "sha256": "057855d07181509b46a7efdf3d18cd927080cd8c957b4d2f2980671e64cbac38"
+        },
+        {
+          "bytes": 845650,
+          "path": "prepared-v9/index.json",
+          "sha256": "afe57f01a09e65eafec9ac7540ebc750cce3e2b0e9b6e59ccd301dddd607b9f0"
+        },
+        {
+          "bytes": 16823206,
+          "path": "prepared-v9/joins/FR__irve_static.json.bin",
+          "sha256": "b179166205d9afeb58dd6bbd9fcf44569c3abc2af72f8d4b9b26b1c3681f5d3c"
+        },
+        {
+          "bytes": 73452,
+          "path": "runtime/assets/v9/adapters/canonical-v9.js",
+          "sha256": "0294bcdfed62d555fb593e202b12e1afd76d8516498b0b8969eb72ffea306273"
+        },
+        {
+          "bytes": 33791,
+          "path": "runtime/assets/v9/preproduction-candidate-loader.js",
+          "sha256": "3c8a2685804dffbf2173c90f358639fc1808f9aa9d39fc3598d0b8f6131a24e6"
+        },
+        {
+          "bytes": 76301,
+          "path": "runtime/assets/v9/pricing-engine.js",
+          "sha256": "319769138abbbd0009be1b83e53ed49fe0de04f2d827d92eb988776d9b71637c"
+        },
+        {
+          "bytes": 162917,
+          "path": "v9-production-shell/bridge.js",
+          "sha256": "e2752fb9e7c7715b5691d083836b0a9a56b2bafbcfbfbedc0de6cbfcf7a10111"
+        },
+        {
+          "bytes": 14555,
+          "path": "v9-production-shell/national-catalogue-policy.json",
+          "sha256": "8c2b2f39f3a011c678d90f3bf7511bad08cf43a2916cb6d087b48ba1eed8059b"
+        },
+        {
+          "bytes": 1642,
+          "path": "v9-production-shell/shell-config.json",
+          "sha256": "4b19e85e5b33ef2ea800e949310274b4bdadfae610f2acc87f2f59351eb8a332"
+        }
+      ],
+      "nationalLedgers": {
+        "FR:irve_static": {
+          "sha256": "b179166205d9afeb58dd6bbd9fcf44569c3abc2af72f8d4b9b26b1c3681f5d3c",
+          "bySource": {
+            "FR:allego_direct": 1116,
+            "FR:archived_direct_exact": 926,
+            "FR:bump_national_exact": 1353,
+            "FR:driveco_evse_tariffs": 1599,
+            "FR:electra_emsp_exact": 95848,
+            "FR:electric55_chain": 1990,
+            "FR:emsp_exact": 30825,
+            "FR:labornebleue_direct": 2376,
+            "FR:ozecar_monta": 465
+          }
+        }
+      }
+    },
+    "integrity": {
+      "browserVerified": false,
+      "bundleId": "8ba4ae83fc0e80c580d8898a3b7bdb0e5ab2331be2fbd1a7f845976f9d59e087",
+      "checkedAssets": [
+        "index.html",
+        "robots.txt",
+        "v9-production-shell/index.html",
+        "v9-production-shell/shell-config.json",
+        "v9-production-shell/bridge.js",
+        "prepared-v9/index.json",
+        "manifest.json",
+        "provenance/base-snapshot-manifest.json",
+        "runtime/assets/v9/data-engine.js",
+        "runtime/assets/v9/preproduction-candidate-loader.js",
+        "runtime/assets/v9/adapters/canonical-v9.js",
+        "runtime/assets/v9/adapters/tesla-json.js",
+        "runtime/assets/v9/pricing-engine.js",
+        "runtime/assets/v9/session-engine.js",
+        "runtime/assets/v9/charge-model-engine.js",
+        "runtime/assets/v9/session-planner-engine.js",
+        "runtime/data/tesla_stations.json",
+        "data/tesla_stations.json",
+        "runtime/assets/v9/runtime-engine.js",
+        "data/exchange_rates.json",
+        "runtime/assets/v9/offer-engine.js",
+        "runtime/assets/v9/runtime-engine.js",
+        "v9-production-shell/national-catalogue-policy.json",
+        "runtime/assets/v9/g66-preview.js",
+        "g66-preview/descriptor.json",
+        "g66-preview/LICENSE",
+        "g66-preview/LICENSE-CPython",
+        "g66-preview/bindings.bin",
+        "g66-preview/calculator.zip",
+        "g66-preview/pyodide-lock.json",
+        "g66-preview/pyodide.asm.js",
+        "g66-preview/pyodide.asm.wasm",
+        "g66-preview/pyodide.js",
+        "g66-preview/python_stdlib.zip",
+        "g66-preview/rates.bin",
+        "g66-preview/runner.js",
+        "g66-preview/tariff-engine.js",
+        "g66-preview/worker.js",
+        "prepared-v9/joins/FR__irve_static.json.bin",
+        "runtime/data/v9/france-crosswalk.json",
+        "prepared-v9/shards/BE__nap_static__0000.json.bin"
+      ],
+      "fragmentReceiptSha256": null,
+      "githubHandoffVerified": false,
+      "previouslyVerifiedFragmentsReused": 0,
+      "servedFileManifestVerified": true,
+      "signedFragmentsVerified": 1,
+      "status": "remote_static_verified"
+    }
+  },
+  "renewalReceiptReview": {
+    "dataLabTrackerSha": "7b2de4d174c89f264fe551078fb8f6142bd73950",
+    "detailedProof": "cli-independent-review-20261128.json"
+  },
+  "performance": {
+    "final-paris-local-1280": {
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 83,
+      "completeStationEvaluations": 160,
+      "durationMs": 20901,
+      "globallyRankedStations": 3746,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 3746,
+      "matchingStations": 3746,
+      "nextPage": true,
+      "operatorOptionCount": 83,
+      "pageStations": 160,
+      "pricedOffers": 2608,
+      "radiusKm": 20,
+      "rawLabelVisible": true,
+      "rawOffers": 310,
+      "scrollWidth": 1280,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 1280,
+      "visibleCalculatedTariffs": 276,
+      "visibleMarkers": 8,
+      "pagination": {
+        "durationMs": 403,
+        "firstPage": 20,
+        "mapMarkers": 35,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    },
+    "final-paris-local-390": {
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 83,
+      "completeStationEvaluations": 160,
+      "durationMs": 18342,
+      "globallyRankedStations": 3746,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 3746,
+      "matchingStations": 3746,
+      "nextPage": true,
+      "operatorOptionCount": 83,
+      "pageStations": 160,
+      "pricedOffers": 2608,
+      "radiusKm": 20,
+      "rawLabelVisible": true,
+      "rawOffers": 310,
+      "scrollWidth": 390,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 390,
+      "visibleCalculatedTariffs": 276,
+      "visibleMarkers": 8,
+      "pagination": {
+        "durationMs": 361,
+        "firstPage": 20,
+        "mapMarkers": 37,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    },
+    "final-paris-remote-1280": {
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 83,
+      "completeStationEvaluations": 160,
+      "durationMs": 19857,
+      "globallyRankedStations": 3746,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 3746,
+      "matchingStations": 3746,
+      "nextPage": true,
+      "operatorOptionCount": 83,
+      "pageStations": 160,
+      "pricedOffers": 2608,
+      "radiusKm": 20,
+      "rawLabelVisible": true,
+      "rawOffers": 310,
+      "scrollWidth": 1280,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 1280,
+      "visibleCalculatedTariffs": 276,
+      "visibleMarkers": 8,
+      "pagination": {
+        "durationMs": 474,
+        "firstPage": 20,
+        "mapMarkers": 35,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    },
+    "final-paris-remote-390": {
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 83,
+      "completeStationEvaluations": 160,
+      "durationMs": 18197,
+      "globallyRankedStations": 3746,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 3746,
+      "matchingStations": 3746,
+      "nextPage": true,
+      "operatorOptionCount": 83,
+      "pageStations": 160,
+      "pricedOffers": 2608,
+      "radiusKm": 20,
+      "rawLabelVisible": true,
+      "rawOffers": 310,
+      "scrollWidth": 390,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 390,
+      "visibleCalculatedTariffs": 276,
+      "visibleMarkers": 8,
+      "pagination": {
+        "durationMs": 409,
+        "firstPage": 20,
+        "mapMarkers": 37,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    },
+    "final-london-local-390": {
+      "requestedRadiusKm": 10,
+      "availableOperatorCount": 5,
+      "completeStationEvaluations": 160,
+      "durationMs": 4459,
+      "globallyRankedStations": 8029,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 8029,
+      "matchingStations": 8029,
+      "nextPage": true,
+      "operatorOptionCount": 5,
+      "pageStations": 160,
+      "pricedOffers": 177,
+      "radiusKm": 10,
+      "rawLabelVisible": true,
+      "rawOffers": 1,
+      "scrollWidth": 390,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 390,
+      "visibleCalculatedTariffs": 22,
+      "visibleMarkers": 13,
+      "pagination": {
+        "durationMs": 180,
+        "firstPage": 20,
+        "mapMarkers": 37,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    },
+    "final-london-remote-390": {
+      "requestedRadiusKm": 10,
+      "availableOperatorCount": 5,
+      "completeStationEvaluations": 160,
+      "durationMs": 5445,
+      "globallyRankedStations": 8029,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 8029,
+      "matchingStations": 8029,
+      "nextPage": true,
+      "operatorOptionCount": 5,
+      "pageStations": 160,
+      "pricedOffers": 177,
+      "radiusKm": 10,
+      "rawLabelVisible": true,
+      "rawOffers": 1,
+      "scrollWidth": 390,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 390,
+      "visibleCalculatedTariffs": 22,
+      "visibleMarkers": 13,
+      "pagination": {
+        "durationMs": 150,
+        "firstPage": 20,
+        "mapMarkers": 37,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      }
+    }
+  },
+  "functionalMaximumRadius": {
+    "reportSha256": "caca2f4a42a461b13c6b031d6367f92bb562faced2359e1d28f2545095f2bbf7",
+    "comparison": "Exact parity with existing five-mode ranking oracle, when run with matching data and scenario."
+  },
+  "scope": {
+    "localAndRemoteCandidateVerified": true,
+    "globalG2toG8Pass": false,
+    "G9Accepted": false,
+    "open": [
+      "Remaining source qualifications in cli-source-admission-20261128.csv",
+      "GitHub transfers and recurrence tracked by the Data Lab owner",
+      "Historical 721-row exact inputs unavailable"
+    ]
+  }
+}
