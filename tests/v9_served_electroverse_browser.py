@@ -12,8 +12,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 cli = argparse.ArgumentParser()
 cli.add_argument("--site", required=True, type=pathlib.Path)
 cli.add_argument("--url")
+cli.add_argument("--mobile", action="store_true", help="Exercise the same signed quote inside a 390px viewport")
+cli.add_argument("--bethune", action="store_true", help="Check the archived BUMP, Electra and Electroverse overlap")
 args = cli.parse_args()
 station = {'id': 'tcc:03dc369436c24a824b0e39d801eda725ddb52d8a8de73680689f0e85be44914e', 'name': 'ALTENSYS/66a37ca424218b8d9e8e9e56', 'latitude': 41.94567, 'longitude': 8.75445}
+if args.bethune:
+    station = {'id':'tcc:d0593b9ebac735a209023aae637350f87b012f654bafed93fba0284553f6078d','name':'Bump - Vivalto Santé - Béthune','latitude':50.53934,'longitude':2.62869}
 url = args.url
 if not url:
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(args.site))
@@ -22,7 +26,13 @@ if not url:
     url = f"http://127.0.0.1:{server.server_port}/"
 o=Options();o.add_argument('-headless');o.binary_location='/Applications/Firefox.app/Contents/MacOS/firefox'
 with webdriver.Firefox(options=o) as b:
- b.get(url);b.set_script_timeout(120)
+ b.get(url.rstrip('/')+'/v9-production-shell/' if args.mobile else url);b.set_script_timeout(120)
+ if args.mobile:
+  WebDriverWait(b,40).until(lambda x:x.execute_script('return window.__TCC_V9_SHELL__?.ready'))
+  frame=b.execute_script("""const frame=document.createElement('iframe');
+    frame.style.cssText='width:390px;height:844px;border:0';frame.src=arguments[0];
+    document.body.append(frame);return frame;""", url.rstrip('/')+'/v9-production-shell/')
+  b.switch_to.frame(frame)
  WebDriverWait(b,40).until(lambda x:x.execute_script('return window.__TCC_V9_SHELL__?.ready'))
  result=b.execute_async_script("""const [s,done]=arguments;(async()=>{
 const lat=s.latitude,lon=s.longitude;
@@ -32,10 +42,16 @@ document.getElementById('simOrigin').value=s.name;document.getElementById('simMa
 const a=await window.compare();if(!a)throw Error(localStorage.getItem('tccV9ProductionShellDiagnosticsV1'));
 const st=a.stations.find(x=>x.id===s.id);
 const card=[...document.querySelectorAll('.v9-result-card')].find(x=>x.dataset.v9StationId===s.id);
-return {sourceErrors:a.diagnostics?.errors,offers:st?.offers?.filter(o=>o.metadata?.g66Dynamic).length,
+const groups=[...(card?.querySelectorAll('.v9-pdc-detail .v9-tariffs')||[])].map(group=>[...group.querySelectorAll('.v9-tariff-row')].map(row=>({channel:row.dataset.v9LaneLabel,state:row.dataset.v9TariffState,total:row.dataset.v9EffectiveTotal})));
+return {groups,width:innerWidth,scrollWidth:document.documentElement.scrollWidth,sourceErrors:a.diagnostics?.errors,offers:st?.offers?.filter(o=>o.metadata?.g66Dynamic).length,
  lines:[...(card?.querySelectorAll('.v9-tariff-row')||[])].filter(e=>e.innerText.includes('Electroverse')||e.textContent.includes('Electroverse')).map(e=>({text:e.textContent,total:e.dataset.v9EffectiveTotal})), assets:performance.getEntriesByType('resource').filter(x=>x.name.includes('/g66-preview')).map(x=>new URL(x.name).pathname)};
 })().then(done).catch(e=>done({error:String(e)}));""",station)
  print(json.dumps(result),flush=True)
  assert not result.get('error') and not result['sourceErrors'] and result['offers']
- assert any(x.get('total')=='22.8' and '21,60' in x['text'] and '1,20' in x['text'] for x in result['lines'])
+ if args.bethune:
+  assert any({row['channel'] for row in group if row['state']=='priced' and float(row['total'])>0}=={'Direct','Electra','Electroverse'} for group in result['groups']), result
+ else:
+  assert any(x.get('total')=='22.8' and '21,60' in x['text'] and '1,20' in x['text'] for x in result['lines'])
+ if args.mobile:
+  assert result['width']==390 and result['scrollWidth']<=390, result
  assert '/g66-preview/worker.js' in result['assets']

@@ -1,0 +1,1256 @@
+{
+  "deployment": {
+    "id": "6b0ad1b2d87666f9aec31b2a",
+    "site_id": "c4df2a8f-f57a-4d59-9e8f-df6da40f713f",
+    "state": "ready",
+    "context": "deploy-preview",
+    "deploy_ssl_url": "https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app",
+    "published_at": null
+  },
+  "servedBundle": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+  "snapshot": "5e482c97a3336c900f59bf1894aa2453903bc44f063fa1d6ded7f021676356f0",
+  "sourceImport": {
+    "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+    "base": "6e49cc1d5ab35d00ae79078cbf81e1a8b55fe40f69cc63fa2ca101591d791f8b",
+    "scheduledImport": "7abdd172b0b09bd3c681ed94765d182c2a900925de1b8eb1922f9b15ace832e3",
+    "runId": 46143979010,
+    "sources": [
+      "DE:ionity_direct",
+      "FR:ionity_direct",
+      "GB:ionity_direct",
+      "IT:ionity_direct"
+    ]
+  },
+  "fxSha": "caef1b80c8c0140266f997a13ebdb682dceaaf502d573245483400cff0d7f0bd",
+  "gate": {
+    "bound": 24102,
+    "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+    "catalogueSha256": "d08ec68d959ae7c032edbad343940a90128d3017a3cb14153f994cdb613f7777",
+    "gateCodeSha": "d268712f7e87c78ce1ce65c343505662687adcfe",
+    "ledgerArtifact": 15059529583,
+    "matched": 24115,
+    "nationalCanonicalSha256": "0316341183ff3fe58c53a0b69316e4ad44b459b53ecf8c49a6c6d342e4fc0ce2",
+    "recoverySha256": "cc8f947aaf9946a9c08e650d43f186a3f55816418f2a18b740adc1ad1f667bd4",
+    "signatures": 262,
+    "unbound": 13
+  },
+  "hostedGateDescriptorSha": "3e78b7132861332734da3b6b286dcefce03517216d188e9520b1e281d661e3b8",
+  "integrity": {
+    "browserVerified": false,
+    "bundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+    "checkedAssets": [
+      "index.html",
+      "robots.txt",
+      "v9-production-shell/index.html",
+      "v9-production-shell/shell-config.json",
+      "v9-production-shell/bridge.js",
+      "prepared-v9/index.json",
+      "manifest.json",
+      "provenance/base-snapshot-manifest.json",
+      "runtime/assets/v9/data-engine.js",
+      "runtime/assets/v9/preproduction-candidate-loader.js",
+      "runtime/assets/v9/adapters/canonical-v9.js",
+      "runtime/assets/v9/adapters/tesla-json.js",
+      "runtime/assets/v9/pricing-engine.js",
+      "runtime/assets/v9/session-engine.js",
+      "runtime/assets/v9/charge-model-engine.js",
+      "runtime/assets/v9/session-planner-engine.js",
+      "runtime/data/tesla_stations.json",
+      "data/tesla_stations.json",
+      "runtime/assets/v9/runtime-engine.js",
+      "data/exchange_rates.json",
+      "runtime/assets/v9/offer-engine.js",
+      "runtime/assets/v9/runtime-engine.js",
+      "v9-production-shell/national-catalogue-policy.json",
+      "runtime/assets/v9/g66-preview.js",
+      "g66-preview/descriptor.json",
+      "g66-preview/LICENSE",
+      "g66-preview/LICENSE-CPython",
+      "g66-preview/bindings.bin",
+      "g66-preview/calculator.zip",
+      "g66-preview/pyodide-lock.json",
+      "g66-preview/pyodide.asm.js",
+      "g66-preview/pyodide.asm.wasm",
+      "g66-preview/pyodide.js",
+      "g66-preview/python_stdlib.zip",
+      "g66-preview/rates.bin",
+      "g66-preview/runner.js",
+      "g66-preview/tariff-engine.js",
+      "g66-preview/worker.js",
+      "prepared-v9/joins/FR__irve_static.json.bin",
+      "runtime/data/v9/france-crosswalk.json",
+      "prepared-v9/shards/BE__nap_static__0000.json.bin"
+    ],
+    "fragmentReceiptSha256": "e3035f0a1bba2e06cc9cbb5970f0bacba89a9cf5a9c1f29cc15d28b9d232d416",
+    "githubHandoffVerified": false,
+    "previouslyVerifiedFragmentsReused": 0,
+    "servedFileManifestVerified": true,
+    "signedFragmentsVerified": 3243,
+    "status": "remote_static_verified"
+  },
+  "searches": [
+    {
+      "country": "FR",
+      "name": "Fécamp Carrefour Allego",
+      "matching": 17,
+      "priced": 6,
+      "initialCards": 17,
+      "afterMore": 17,
+      "rankingSha256": "e8f1591a09c66316ac4855568252acd20a306ab1719add85d2b07bd633b93049"
+    },
+    {
+      "country": "FR",
+      "name": "Rouen",
+      "matching": 210,
+      "priced": 45,
+      "initialCards": 20,
+      "afterMore": 40,
+      "rankingSha256": "576d909f2a7785ea826f59f2311f6fc839d7b02217a73426ea942fce2b494e6e"
+    },
+    {
+      "country": "FR",
+      "name": "Lyon",
+      "matching": 231,
+      "priced": 139,
+      "initialCards": 20,
+      "afterMore": 40,
+      "rankingSha256": "907effbad05f4c37e17c24f73faac7bb0fee2b4eb49cf64da0c9a0caadf756a4"
+    },
+    {
+      "country": "IT",
+      "name": "Milan",
+      "matching": 11,
+      "priced": 11,
+      "initialCards": 11,
+      "afterMore": 11,
+      "rankingSha256": "d844fad9bbc0758aebc1634f309c296d36679d80a6c7132ee713d1dbb3fc2b8c"
+    },
+    {
+      "country": "DE",
+      "name": "Berlin",
+      "matching": 813,
+      "priced": 2,
+      "initialCards": 20,
+      "afterMore": 40,
+      "rankingSha256": "1a897dd39bdb43794c71deed2d9ad4ab9bd52388e2625aa9609103b5672b0e99"
+    },
+    {
+      "country": "NL",
+      "name": "Amsterdam",
+      "matching": 1369,
+      "priced": 297,
+      "initialCards": 20,
+      "afterMore": 40,
+      "rankingSha256": "246980b2987e5ca1c6b3a5d24eab3ff5b6d544818922f131b213708d267ca534"
+    },
+    {
+      "country": "GB",
+      "name": "London",
+      "matching": 2406,
+      "priced": 636,
+      "initialCards": 20,
+      "afterMore": 40,
+      "rankingSha256": "4ab16241ac192a0328bec98acb3192929323ef075b04c357d4e91d41d18327ec"
+    },
+    {
+      "country": "BE",
+      "name": "Brussels",
+      "matching": 955,
+      "priced": 119,
+      "initialCards": 20,
+      "afterMore": 40,
+      "rankingSha256": "a175f714085bfb4788d943c39a283941763e8077ec623531ccf7a55f53321de4"
+    },
+    {
+      "country": "CH",
+      "name": "Zurich",
+      "matching": 188,
+      "priced": 25,
+      "initialCards": 20,
+      "afterMore": 40,
+      "rankingSha256": "3a596859b39927f60fd1ed10e519b3b8548479fc5b8661dbbfed5f989c1642ec"
+    },
+    {
+      "country": "ES",
+      "name": "Madrid",
+      "matching": 323,
+      "priced": 2,
+      "initialCards": 20,
+      "afterMore": 40,
+      "rankingSha256": "464e0e1238077ee137a9f8ec36e3a5d57b15d74382c84a9d6fb2f23c782aad5c"
+    },
+    {
+      "country": "MA",
+      "name": "Agadir",
+      "matching": 2,
+      "priced": 1,
+      "initialCards": 2,
+      "afterMore": 2,
+      "rankingSha256": "c6a9f46a5e02ae5c98d9eef775e53dbbe522fbe3705a0ca40e78270fc8a7f457"
+    }
+  ],
+  "candidateSearchHashesIdenticalToLocal": true,
+  "tariffJourneys": [
+    {
+      "badScope": false,
+      "calculated": [
+        16.2,
+        16.323231,
+        16.2,
+        16.323231
+      ],
+      "channels": true,
+      "complete": 2,
+      "compound": false,
+      "family": "zewatt",
+      "feeDetail": true,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 2,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "FR:archived_direct_exact",
+      "sourceErrors": 0,
+      "stationId": "tcc:003b55a29152b2d6d19e628773afe0cd029cb89fe5702cbce66c9693e1fe771c"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        18.900044
+      ],
+      "channels": true,
+      "complete": 1,
+      "compound": false,
+      "family": "zephyre",
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 1,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "FR:archived_direct_exact",
+      "sourceErrors": 0,
+      "stationId": "tcc:d0cfc5b50b53436d6af1bfd0fcde00b339406cab3693819bf3d04b76ca9abf61"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        7.270735,
+        7.270735
+      ],
+      "channels": true,
+      "complete": 2,
+      "compound": true,
+      "family": null,
+      "feeDetail": true,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 2,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": true,
+      "source": "FR:electra_emsp_exact",
+      "sourceErrors": 0,
+      "stationId": "tcc:e4234d7b0631e9a26badeebb6c762a7ec02d67b484c78a6d7c34023905dd5615"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        20.700028,
+        20.520027,
+        20.700028,
+        20.520027,
+        20.700028,
+        20.700028
+      ],
+      "channels": true,
+      "complete": 2,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 2,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "FR:bump_national_exact",
+      "sourceErrors": 0,
+      "stationId": "tcc:012c9ab4f13df815b56c6b39dfc05f42e01342268c973cd4d2fa4672ade04dc9"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        27.225,
+        27.225
+      ],
+      "channels": true,
+      "complete": 2,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 2,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "BE:nap_static",
+      "sourceErrors": 0,
+      "stationId": "tcc:0006794c52bc41173ba03764e9f6562419a01fabbe90511486f5441dd1150e68"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        26.5464,
+        26.5464,
+        41.4018,
+        41.4018
+      ],
+      "channels": true,
+      "complete": 4,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 4,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "GB:gridserve_pcpr_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:00cd4903c5eac26b76427f1c79fffc1ade36464abe4447724c532b22566d70c9"
+    },
+    {
+      "badScope": false,
+      "calculated": [],
+      "channels": true,
+      "complete": 0,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 0,
+      "page": 0,
+      "raw": 8,
+      "rawLabel": true,
+      "source": "GB:blink_pcpr_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:000f02591f06a23f97b7c3a21afdd9133c7d6c43e1f9a7473120e0c34a3137c0"
+    },
+    {
+      "badScope": false,
+      "calculated": [],
+      "channels": true,
+      "complete": 0,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 0,
+      "page": 0,
+      "raw": 2,
+      "rawLabel": true,
+      "source": "GB:allego_pcpr_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:011e8baa05b9c097ae1be99e01e87129ff0b80f9109c5ddfbadaf77fc652aac8"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        27.224
+      ],
+      "channels": true,
+      "complete": 1,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 1,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "GB:ubitricity_pcpr_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:00082d084db090c2be0c15e6a825bea1f6326b3169136a54f78582ca53f51691"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        26.55,
+        26.55,
+        26.55,
+        26.55,
+        26.55,
+        26.55
+      ],
+      "channels": true,
+      "complete": 6,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 6,
+      "page": 0,
+      "raw": 2,
+      "rawLabel": true,
+      "source": "FR:allego_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:d480f617b103f7e182c759cc576f33626ed50b62251e6c89606c592750ed4f88"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        30.810005,
+        30.810005,
+        30.810005,
+        30.810005,
+        30.810005
+      ],
+      "channels": true,
+      "complete": 5,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 15,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": true,
+      "source": "FR:belib_stations",
+      "sourceErrors": 0,
+      "stationId": "tcc:eed79d445198cda74dd9cd2d41be92168720a58a1a963f41849cf00b2b5b092b"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        18
+      ],
+      "channels": true,
+      "complete": 1,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 1,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "CH:swiss_integration",
+      "sourceErrors": 0,
+      "stationId": "tcc:00070c2c708a29442585226c4f7c8e220b488eedf02fc165ef09466dd14fe552"
+    },
+    {
+      "archived": 4,
+      "source": "FR:emsp_exact",
+      "sourceErrors": 0,
+      "superseded": true
+    },
+    {
+      "excluded": true,
+      "matching": 48,
+      "reason": "exact_national_scope_unproved",
+      "source": "FR:atlante_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:00953058a34da6d79d426238bfa7520bd7d7b45e1dd34125e861a8375b1570b9"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        26.55,
+        26.55
+      ],
+      "channels": true,
+      "complete": 2,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 2,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "IT:atlante_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:0008db53c8952038b087a97807d62a797012f05cabdb58f0c7e8c1b5f49951ff"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        38.25,
+        38.25,
+        38.25,
+        38.25,
+        38.25,
+        38.25,
+        38.25,
+        38.25,
+        38.25,
+        38.25,
+        38.25,
+        38.25
+      ],
+      "channels": true,
+      "complete": 12,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 12,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "IT:ionity_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:0435fc9f3eccdc4221590b0d5d791fa138ccccc710332a631a157c11a5c5c3fe"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        37.35,
+        37.35,
+        37.35,
+        37.35,
+        37.35,
+        37.35
+      ],
+      "channels": true,
+      "complete": 6,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 6,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "GB:ionity_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:045f7546175a577d5ba7fa17d3b01f5054169761f1f62e21fbdcadd8baff0e7e"
+    },
+    {
+      "excluded": true,
+      "matching": 13,
+      "reason": "exact_national_scope_unproved",
+      "source": "DE:ionity_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:009b98608fdc47844efebaaa374fefb9cbb8cacac5ba12c6ae270d57646c12ec"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        24.3,
+        24.3
+      ],
+      "channels": true,
+      "complete": 2,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 2,
+      "page": 0,
+      "raw": 9,
+      "rawLabel": true,
+      "source": "GB:source_ev_pcpr_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:1ce81b4f7d4c101412bc8236af9a577f73d19a7cb29e9798bd210e83cd409964"
+    },
+    {
+      "badScope": false,
+      "calculated": [],
+      "channels": true,
+      "complete": 0,
+      "compound": false,
+      "family": "held",
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 0,
+      "page": 0,
+      "raw": 5,
+      "rawLabel": true,
+      "source": "GB:source_ev_pcpr_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:057551d7ca5b1b14faf5f0282af39fc1ae963b00f25dd8de28f9dd4124bee017"
+    },
+    {
+      "badScope": false,
+      "calculated": [
+        26.11664,
+        26.11664
+      ],
+      "channels": true,
+      "complete": 2,
+      "compound": true,
+      "family": null,
+      "feeDetail": true,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 2,
+      "page": 0,
+      "raw": 0,
+      "rawLabel": false,
+      "source": "NL:dotnl_static",
+      "sourceErrors": 0,
+      "stationId": "tcc:00a5750b8fff0bd7b61c7209cd934172dd92f94a39bb23c328b93e338077a237"
+    },
+    {
+      "badScope": false,
+      "calculated": [],
+      "channels": true,
+      "complete": 0,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 0,
+      "page": 0,
+      "raw": 5,
+      "rawLabel": true,
+      "source": "NL:electra_direct_exact",
+      "sourceErrors": 0,
+      "stationId": "tcc:0a78201650d2eb69598b9d49322602e06fe00f92f2db8452940cf80ecd2ca6a1"
+    },
+    {
+      "badScope": false,
+      "calculated": [],
+      "channels": true,
+      "complete": 0,
+      "compound": false,
+      "family": null,
+      "feeDetail": false,
+      "missingOfferIds": [],
+      "missingRawIds": [],
+      "offers": 0,
+      "page": 0,
+      "raw": 6,
+      "rawLabel": true,
+      "source": "GB:eco_movement_pcpr_raw",
+      "sourceErrors": 0,
+      "stationId": "tcc:020256201f07c971aa9c10339ec22697bc25d6b048b4f1772877c154064f3bad"
+    },
+    {
+      "excluded": true,
+      "matching": 13,
+      "reason": "exact_national_scope_unproved",
+      "source": "FR:powerdot_direct",
+      "sourceErrors": 0,
+      "stationId": "tcc:00124c57aab2e6fe8a323bbac2f4cb5b6c8a51ee2b0a834954817b80de4ac4f4"
+    }
+  ],
+  "mobile": {
+    "feedback": true,
+    "initialCards": 20,
+    "mapMarkers": 13,
+    "sameGroup": true,
+    "scrollWidth": 390,
+    "width": 390
+  },
+  "controls": {
+    "emptySocBlocked": true,
+    "feedbackAccessible": true,
+    "invalidBatteryBlocked": true,
+    "maxRadius": 100,
+    "missingSocPlannerUnpriced": true,
+    "networks": {
+      "observed": [
+        "totalenergies-marketing-france",
+        "bouygues-energies-services"
+      ],
+      "selected": [
+        "totalenergies-marketing-france",
+        "bouygues-energies-services"
+      ]
+    },
+    "powerFiltered": 28,
+    "teslaFiltered": 1,
+    "unqualifiedSubscriptionsExcluded": true,
+    "vehicle": {
+      "ac": 22,
+      "capacity": 90,
+      "consumption": 18,
+      "dc": 180
+    }
+  },
+  "selectedStations": [
+    {
+      "name": "Buc",
+      "initial": 20,
+      "target": {
+        "evseIds": [
+          "FRPD1EITMBUCBBC0014",
+          "FRPD1EITMBUCBBC0013",
+          "FRPD1EITMBUCBBC0011",
+          "FRPD1EITMBUCBBP0012",
+          "FRPD1EITMBUCBBP0011",
+          "FRPD1EITMBUCALF0011"
+        ],
+        "id": "tcc:65a4419836d7213884ef581d66a51a526ccf8e82970bdd8bd017c8f3c8ac8ded",
+        "offers": 0,
+        "raw": 0
+      },
+      "markers": 11,
+      "pageRoundtrip": false
+    },
+    {
+      "name": "Milan Arduino",
+      "initial": 3,
+      "target": {
+        "complete": true,
+        "currency": "EUR",
+        "id": "tesla-milan-italy",
+        "offers": 1,
+        "total": 21.6
+      },
+      "markers": 2,
+      "pageRoundtrip": false
+    },
+    {
+      "name": "Le Chesnay",
+      "initial": 16,
+      "target": {
+        "complete": true,
+        "currency": "EUR",
+        "id": "tesla-le-chesnay-france",
+        "total": 18
+      },
+      "markers": 8,
+      "pageRoundtrip": false
+    },
+    {
+      "name": "Paris",
+      "initial": 20,
+      "target": null,
+      "markers": 14,
+      "pageRoundtrip": true
+    }
+  ],
+  "ajaccio": {
+    "dynamicOffers": 9,
+    "amount": "22.8",
+    "label": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5813"
+  },
+  "mobileElectroverse": {
+    "width": 390,
+    "scrollWidth": 390,
+    "offers": 9,
+    "lines": [
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5813",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5805",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5808",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5809",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5807",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5806",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5812",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5811",
+        "total": "22.8"
+      },
+      {
+        "text": "ElectroversePrix calculé · 22,80 €ElectroverseTarif incalculable · 1 autre(s) offre(s) brute(s) conservée(s) pour ce PDC, sans montant simulé.Détail du tarif · ElectroverseÉnergie : 21,60 €Frais fixes : 1,20 €Source : Electroverse · correspondance IRVE vérifiéeOffre : g66-5810",
+        "total": "22.8"
+      }
+    ]
+  },
+  "tesla": {
+    "url": "https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app",
+    "status": "pass",
+    "countries": [
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "FR",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-le-chesnay-france",
+        "total": 18
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "IT",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-milan-italy",
+        "total": 21.6
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "CH",
+        "currency": "CHF",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-affoltern-switzerland",
+        "total": 20.25
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "DE",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-aachen-germany",
+        "total": 19.8
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "ES",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-aguadulce-spain",
+        "total": 15.75
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "NL",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-s-hertogenbosch-netherlands",
+        "total": 18.45
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "GB",
+        "currency": "GBP",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-aberdeen-uk",
+        "total": 21.6
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "MA",
+        "currency": "MAD",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-agadir-morocco",
+        "total": 76.629483
+      },
+      {
+        "complete": true,
+        "configurations": 1,
+        "country": "BE",
+        "currency": "EUR",
+        "offers": 1,
+        "sources": [
+          "tesla-global"
+        ],
+        "stationId": "tesla-aalst-belgium",
+        "total": 25.2
+      }
+    ]
+  },
+  "swiss": {
+    "url": "https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app",
+    "status": "pass",
+    "officialEvseId": "CH*CCC*E50049",
+    "records": [
+      {
+        "evse": "tcc:0139c162fa42d25c6778a555af8425eb9698aab549545d6be6ae446dc3b7a591",
+        "priced": 0,
+        "raw": 0,
+        "station": "tcc:78e1f1c3388e3a3f5fd306526674e3853e0b8fadd6ffeaaee3b381ce328bf517"
+      },
+      {
+        "evse": "tcc:2cb146a04810895474229cc99e842f2eca1ca897b85f738e13b0c3fc252fae52",
+        "priced": 0,
+        "raw": 0,
+        "station": "tcc:84af0bece9b0623929ef0aa1383b2e29e7ce465f61922b492f8fe71d82f41105"
+      }
+    ]
+  },
+  "dense": {
+    "elapsedMs": 53483,
+    "matching": 64019,
+    "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+    "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca"
+  },
+  "denseEquivalent": true,
+  "denseOracle": {
+    "baseline": {
+      "cpuProfile": {
+        "TCCV9OfferEngine.dedupeOffers": {
+          "calls": 0,
+          "cpuMs": 0
+        },
+        "TCCV9SessionEngine.evaluateStation": {
+          "calls": 100399,
+          "cpuMs": 9330
+        },
+        "TCCV9SessionPlannerEngine.planStation": {
+          "calls": 100239,
+          "cpuMs": 2842
+        },
+        "TCCV9StationScoreEngine.scoreStation": {
+          "calls": 100399,
+          "cpuMs": 1015
+        }
+      },
+      "elapsedMs": 106939,
+      "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca",
+      "mapCount": 64019,
+      "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+      "matching": 64019,
+      "pageSha": "3c800d097c7ab4f6cb67b5a93b2fd40570040f83d8dcc7bf1bbcb8cd638b78a5",
+      "rankCount": 64019,
+      "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+      "shardCount": 92,
+      "shardLastResponseMs": 46452,
+      "sourceErrors": [],
+      "visible": 160
+    },
+    "candidate": {
+      "cpuProfile": {
+        "TCCV9OfferEngine.dedupeOffers": {
+          "calls": 0,
+          "cpuMs": 0
+        },
+        "TCCV9SessionEngine.evaluateStation": {
+          "calls": 100399,
+          "cpuMs": 8113
+        },
+        "TCCV9SessionPlannerEngine.planStation": {
+          "calls": 100239,
+          "cpuMs": 2438
+        },
+        "TCCV9StationScoreEngine.scoreStation": {
+          "calls": 100399,
+          "cpuMs": 1057
+        }
+      },
+      "elapsedMs": 53483,
+      "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca",
+      "mapCount": 64019,
+      "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+      "matching": 64019,
+      "pageSha": "3c800d097c7ab4f6cb67b5a93b2fd40570040f83d8dcc7bf1bbcb8cd638b78a5",
+      "rankCount": 64019,
+      "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+      "shardCount": 92,
+      "shardLastResponseMs": 16024,
+      "sourceErrors": [],
+      "visible": 160
+    },
+    "sameBusinessResult": true,
+    "differences": {},
+    "candidateUrl": "https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app",
+    "deployed": true,
+    "historicalDifferences": {
+      "mapSha": [
+        "f0367c073b490ba76ab0534f99de6459c44b01eae7ac0822c6322defef753445",
+        "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371"
+      ],
+      "rankSha": [
+        "56bbf630ccf22e63e6083b06f5437e21c8d2108396314f044050fa341f969087",
+        "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6"
+      ]
+    },
+    "oracle": "Previous immutable 21 November catalogue with only the approved 26 November deterministic rankRows implementation from e500517 applied in a separate local copy. No other code or data changed in oracle.",
+    "comparedIndividualStationValues": 64019,
+    "localDifferingPositionsDueOnlyToExactTies": 1669,
+    "rankFunctionSha256": "31c3cceef180acb49cf9902f7cd8513344faa9a439bc93488cd574e0d409c127",
+    "rankFunctionCommit": "e5005177ba3fe0659301a3169dfb6e3b2f1a8d84"
+  },
+  "threeChannelsInSameConnector": [
+    [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ],
+    [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ],
+    [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ],
+    [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ],
+    [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ],
+    [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ],
+    [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ],
+    [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ]
+  ],
+  "rollback": {
+    "browserVerified": false,
+    "bundleId": "afee49dcb53ef7b6a648334688862021371c518cfbbcc9cdaa61f273332e4454",
+    "checkedAssets": [
+      "index.html",
+      "robots.txt",
+      "v9-production-shell/index.html",
+      "v9-production-shell/shell-config.json",
+      "v9-production-shell/bridge.js",
+      "prepared-v9/index.json",
+      "manifest.json",
+      "provenance/base-snapshot-manifest.json",
+      "runtime/assets/v9/data-engine.js",
+      "runtime/assets/v9/preproduction-candidate-loader.js",
+      "runtime/assets/v9/adapters/canonical-v9.js",
+      "runtime/assets/v9/adapters/tesla-json.js",
+      "runtime/assets/v9/pricing-engine.js",
+      "runtime/assets/v9/session-engine.js",
+      "runtime/assets/v9/charge-model-engine.js",
+      "runtime/assets/v9/session-planner-engine.js",
+      "runtime/data/tesla_stations.json",
+      "data/tesla_stations.json",
+      "runtime/assets/v9/runtime-engine.js",
+      "data/exchange_rates.json",
+      "runtime/assets/v9/offer-engine.js",
+      "runtime/assets/v9/runtime-engine.js",
+      "v9-production-shell/national-catalogue-policy.json",
+      "prepared-v9/joins/FR__irve_static.json.bin",
+      "runtime/data/v9/france-crosswalk.json",
+      "prepared-v9/shards/BE__nap_static__0000.json.bin"
+    ],
+    "fragmentReceiptSha256": null,
+    "githubHandoffVerified": false,
+    "previouslyVerifiedFragmentsReused": 0,
+    "servedFileManifestVerified": true,
+    "signedFragmentsVerified": 1,
+    "status": "remote_static_verified"
+  },
+  "publicResources": {
+    "publicResources": {
+      "index.html": {
+        "url": "https://yass3705.github.io/tesla-charge-companion-production/index.html",
+        "status": 200,
+        "sha256": "36ded0763fd1dac257b2e019180730e9ed0d3a6668705a5b14fdcee3a3c37aa1"
+      },
+      "manifest.json": {
+        "url": "https://yass3705.github.io/tesla-charge-companion-production/manifest.json",
+        "status": 200,
+        "sha256": "965a4570ec9724cdcfeeace9f927107e3619b5c127622a2b5c43cde8259237e9"
+      }
+    }
+  },
+  "safety": {
+    "changedReviewed": 702,
+    "unchanged": 3813,
+    "findings": []
+  },
+  "G2": "fail",
+  "G2Issues": [
+    "active workflow set differs from the two approved read-only workflows",
+    "workflow write/trigger risk: v9-electroverse-resume.yml",
+    "workflow write/trigger risk: v9-electroverse-status-rebuild.yml",
+    "workflow write/trigger risk: v9-tariff-restoration-pilot.yml",
+    "GitHub artifact handoffs remain unverified: 58",
+    "execution registry remains explicitly partial"
+  ],
+  "remainingHandoffs": 58,
+  "automaticGlobalPromotion": false,
+  "G9": "awaiting_user_review",
+  "rankingRegression": {
+    "command": "node --test tests/v9-global-ranking-pages.test.mjs",
+    "result": "PASS"
+  },
+  "rollbackUrl": "https://6b01a403ef31f5a551927fa2--tcc-v9-preproduction-20261028.netlify.app",
+  "rollbackScope": "Previous immutable URL revalidated for critical resources and one signed fragment; its earlier full verification is retained. No change of site alias.",
+  "previewScenario": {
+    "station": "Bump - Vivalto Santé - Béthune",
+    "latitude": 50.53934,
+    "longitude": 2.62869,
+    "radiusKm": 2,
+    "localDate": "2026-11-26",
+    "localTime": "14:00",
+    "vehicle": "unchanged shell defaults",
+    "samePlugDisplayedLanes": [
+      {
+        "channel": "Direct",
+        "state": "priced",
+        "total": "17.955"
+      },
+      {
+        "channel": "Electra",
+        "state": "priced",
+        "total": "18"
+      },
+      {
+        "channel": "Electroverse",
+        "state": "priced",
+        "total": "18"
+      }
+    ]
+  },
+  "mobileScope": "Firefox desktop at a 390 CSS pixel viewport, including a real served worker quote; no physical phone test claimed."
+}
