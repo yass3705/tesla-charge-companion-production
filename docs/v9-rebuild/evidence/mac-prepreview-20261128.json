@@ -688,5 +688,42 @@
       "city": "Londres",
       "country": "GB"
     }
-  ]
+  ],
+  "ordinaryParisProfileLocal": {
+    "elapsedMs": 31829,
+    "phases": {
+      "electroverse": {
+        "count": 2,
+        "firstMs": 6413,
+        "lastMs": 10049
+      },
+      "external": {
+        "count": 147,
+        "firstMs": 9068,
+        "lastMs": 9964
+      },
+      "local": {
+        "count": 2,
+        "firstMs": -53,
+        "lastMs": 102
+      },
+      "shards": {
+        "count": 53,
+        "firstMs": 9,
+        "lastMs": 7406
+      }
+    },
+    "routing": 899,
+    "matching": 3746,
+    "sourceErrors": []
+  },
+  "vianeoMacIntake": {
+    "runId": 46158889229,
+    "artifactId": 15269107003,
+    "zipSha256": "6e16c08f076b1f4ad0cf0f9c10e112228f11c18f56ff4ea31d6e351589feb733",
+    "artifactSetSha256": "827ed6e856d796b80686fecf4b0a4ee6ea257fc33d054610a6aa1fd14919d6ac",
+    "integrity": "PASS",
+    "exactStationPricing": "requires_station_lookup",
+    "use": "official rules evidence only"
+  }
 }

@@ -217,3 +217,7 @@ Une seconde comparaison Firefox confirme les mêmes listes, montants et pages de
 La mesure de l’interface par paliers part de 100 km et confirme à chaque rayon l’intégralité des résultats, l’absence de recouvrement entre les pages et la conservation du zoom. À 100 km, le premier rendu avec carte prend 42,248 s et le changement de page 715 ms, sans instrumentation par appel. Le manifeste et tous les fichiers du paquet de rollback ont été revérifiés localement.
 
 La recette des usages courants confirme la couverture complète et la pagination locale sur Paris à 20 km, Amsterdam à 20 km et Londres à 10 km sur mobile. Les premiers rendus ont pris respectivement 44,5 s, 10,6 s et 5,7 s sur Firefox. Paris reste un point de performance à traiter et à mesurer de nouveau, avec contrôle des montants et du classement. [Mesures locales](evidence/mac-prepreview-20261128.json)
+
+Le profil de reprise Paris à 20 km mesure 31,8 s pour 3 746 stations. Les fragments arrivent jusqu’à 7,4 s, les ressources observées du moteur Electroverse jusqu’à 10,0 s et les itinéraires prennent 0,9 s. Ce profil laisse une part importante après les chargements. Mesurer séparément la préparation et l’évaluation des lots FR lors de la prochaine recette des usages courants.
+
+Le Mac a téléchargé et vérifié le ZIP Vianeo 15269107003, son CRC, son manifeste et les SHA de ses deux fichiers. Le document officiel exige une preuve tarifaire locale à la station et exclut un tarif public national garanti. Il est conservé comme preuve documentaire. La composition du paquet reste identique.
