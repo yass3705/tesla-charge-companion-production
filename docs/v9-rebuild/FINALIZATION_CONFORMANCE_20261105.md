@@ -1,3 +1,7 @@
+## 28 novembre — Catalogue national complet et périmètre Electroverse distincts
+
+La recette a refusé le paquet local expérimental `d791233d` car son catalogue national était réduit aux PDC en service audités, masquant Carrefour Fécamp. Ce paquet a été écarté avant déploiement. Le bundle de remplacement `6e49cc1d5ab35d00ae79078cbf81e1a8b55fe40f69cc63fa2ca101591d791f8b` conserve tout le catalogue statique du même artefact IRVE 14937133575. Les identités, la puissance, la prise et la portée Electroverse des enregistrements audités sont contrôlées contre cette base complète. Fécamp retrouve ses huit EVSE, Buc ses six. Aucune liaison Electroverse n’y est prouvée. Les empreintes du catalogue complet et du sous-ensemble tarifaire figurent dans `docs/v9-rebuild/evidence/g66-full-irve-20261128.json`.
+
 ## Recette distante du candidat suisse du 21 novembre
 
 ## 28 novembre 2026 — Intégration locale de la génération Electroverse au candidat complet

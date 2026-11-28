@@ -411,7 +411,7 @@ def package(site: Path, candidate: Path, destination: Path, fx: Path | None = No
             if set(files) - {"LICENSE", "LICENSE.md", "LICENSE-CPython"} != expected:
                 raise ValueError("Unexpected Electroverse runtime files")
             national = next(r for r in index["sources"] if r["source"] == "FR:irve_static")
-            if descriptor["bundleId"] != index["bundleId"] or descriptor["nationalCanonicalSha256"] != national["sourceSha256"]:
+            if descriptor["bundleId"] != index["bundleId"] or descriptor["catalogueSha256"] != national["sourceSha256"]:
                 raise ValueError("Electroverse generation differs from the signed catalogue")
             projection.mkdir()
             for name, sha in files.items():

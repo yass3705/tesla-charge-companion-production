@@ -1,0 +1,52 @@
+{
+  "bundleId": "6e49cc1d5ab35d00ae79078cbf81e1a8b55fe40f69cc63fa2ca101591d791f8b",
+  "previous": "afee49dcb53ef7b6a648334688862021371c518cfbbcc9cdaa61f273332e4454",
+  "nationalSha256": "d08ec68d959ae7c032edbad343940a90128d3017a3cb14153f994cdb613f7777",
+  "auditedNationalSha256": "0316341183ff3fe58c53a0b69316e4ad44b459b53ecf8c49a6c6d342e4fc0ce2",
+  "privateRecoveryManifestSha256": "cc8f947aaf9946a9c08e650d43f186a3f55816418f2a18b740adc1ad1f667bd4",
+  "alignmentArtifact": 15137656729,
+  "ledgerArtifact": 15059529583,
+  "ledgerZipSha256": "e52d5d4fd5a0a9923e4a5f6137cd65643dd6777d42c2c27ecbb311a893cf5b2d",
+  "crosswalkSha256": "b7123566e8560d72af73267351eb5f5d48a10faea09d6aa40ffe3d9bccab975a",
+  "otherSourcesPreserved": 32,
+  "projection": {
+    "bundleId": "6e49cc1d5ab35d00ae79078cbf81e1a8b55fe40f69cc63fa2ca101591d791f8b",
+    "nationalCanonicalSha256": "0316341183ff3fe58c53a0b69316e4ad44b459b53ecf8c49a6c6d342e4fc0ce2",
+    "catalogueSha256": "d08ec68d959ae7c032edbad343940a90128d3017a3cb14153f994cdb613f7777",
+    "gateCodeSha": "d268712f7e87c78ce1ce65c343505662687adcfe",
+    "recoverySha256": "cc8f947aaf9946a9c08e650d43f186a3f55816418f2a18b740adc1ad1f667bd4",
+    "ledgerArtifact": 15059529583,
+    "matched": 24115,
+    "bound": 24102,
+    "unbound": 13,
+    "signatures": 262
+  },
+  "regression": {
+    "FRPD1PITMBUC": {
+      "nationalStationId": "tcc:65a4419836d7213884ef581d66a51a526ccf8e82970bdd8bd017c8f3c8ac8ded",
+      "official": [
+        "FRPD1EITMBUCALF0011",
+        "FRPD1EITMBUCBBC0011",
+        "FRPD1EITMBUCBBC0013",
+        "FRPD1EITMBUCBBC0014",
+        "FRPD1EITMBUCBBP0011",
+        "FRPD1EITMBUCBBP0012"
+      ],
+      "bindings": []
+    },
+    "FRALLPEVCARSFCAMP": {
+      "nationalStationId": "tcc:9b113cb493f52405cda4d54933f6865d47b224bad46fec7c1a5e15fe946d51f9",
+      "official": [
+        "FRALLEGO9004281",
+        "FRALLEGO9004282",
+        "FRALLEGO9004341",
+        "FRALLEGO9004342",
+        "FRALLEGO9007021",
+        "FRALLEGO9007022",
+        "FRALLEGO9007331",
+        "FRALLEGO9007332"
+      ],
+      "bindings": []
+    }
+  }
+}

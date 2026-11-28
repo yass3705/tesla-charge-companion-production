@@ -5,7 +5,7 @@ import argparse
 import gzip
 import hashlib
 import json
-import shutil
+from package_v9_preproduction_map import copy_preview_file
 import tempfile
 import zipfile
 from pathlib import Path
@@ -20,7 +20,7 @@ def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def prepare(base, restored, directory):
+def prepare(base, restored, directory, full_national):
     base, restored, directory = (p.resolve() for p in (base, restored, directory))
     checkout = Path(__file__).resolve().parents[1]
     if directory == checkout or checkout in directory.parents:
@@ -41,6 +41,23 @@ def prepare(base, restored, directory):
         raw = gzip.decompress(z.read("g66b2-national-active-canonical.json.gz")) + b"\n"
         if entry["source"] != SOURCE or digest(raw) != entry["sha256"] or entry["sha256"] != report["nationalCanonicalSha256"]:
             raise ValueError("Canonical bytes differ from audited generation")
+    audit_sha = entry["sha256"]
+    audited = json.loads(raw)
+    full_manifest = verify(full_national)
+    entry, = full_manifest["sources"]
+    raw = (full_national / entry["path"]).read_bytes()
+    full = json.loads(raw)
+    if entry["source"] != SOURCE or entry["sourceArtifactSha256"] != report["sourcePin"]["allSha256"]:
+        raise ValueError("Full catalogue and audited subset have different static sources")
+    for name, keys in (("stations", ("sourceStationId","cpoId","publicAccessDecision")),
+                       ("evses", ("stationId","sourceEvseId","officialEvseId")),
+                       ("connectors", ("evseId","plugType","powerKw","kind","officialConnectorId"))):
+        reference = {r["id"]:r for r in full[name]}
+        for row in audited[name]:
+            exact = reference.get(row["id"])
+            if exact is None or any(row.get(k) != exact.get(k) for k in keys):
+                raise ValueError("Audited identity differs in full national catalogue: " + name)
+    del audited, full, reference
     manifest = verify(base)
     original, = [r for r in manifest["sources"] if r["source"] == SOURCE]
     if original["path"] != entry["path"]:
@@ -58,13 +75,14 @@ def prepare(base, restored, directory):
                 if row["source"] == SOURCE:
                     target.write_bytes(raw)
                 else:
-                    shutil.copyfile(base / row["path"], target)
+                    copy_preview_file(base / row["path"], target)
             (stage / "manifest.json").write_bytes(encoded)
             verify(stage)
             stage.rename(bundle)
     else:
         verify(bundle)
     return dict(bundleId=bundle.name, previous=base.name, nationalSha256=entry["sha256"],
+                auditedNationalSha256=audit_sha,
                 privateRecoveryManifestSha256=MANIFEST_SHA, alignmentArtifact=15137656729,
                 ledgerArtifact=15059529583, ledgerZipSha256=sources[15059529583]["zipSha256"],
                 crosswalkSha256=report["exportSha256"]["g66b2-november-crosswalk.json.gz"],
@@ -73,7 +91,7 @@ def prepare(base, restored, directory):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    for arg in ("base", "restored", "directory"):
+    for arg in ("base", "restored", "directory", "full-national"):
         parser.add_argument("--"+arg, required=True, type=Path)
     args = parser.parse_args()
-    print(json.dumps(prepare(args.base, args.restored, args.directory)))
+    print(json.dumps(prepare(args.base, args.restored, args.directory, args.full_national)))

@@ -33,7 +33,7 @@ const a=await window.compare();if(!a)throw Error(localStorage.getItem('tccV9Prod
 const st=a.stations.find(x=>x.id===s.id);
 const card=[...document.querySelectorAll('.v9-result-card')].find(x=>x.dataset.v9StationId===s.id);
 return {sourceErrors:a.diagnostics?.errors,offers:st?.offers?.filter(o=>o.metadata?.g66Dynamic).length,
- lines:[...(card?.querySelectorAll('.v9-tariff-row')||[])].filter(e=>e.innerText.includes('Electroverse')||e.textContent.includes('Electroverse')).map(e=>({text:e.textContent.slice(0,150),total:e.dataset.v9EffectiveTotal})), assets:performance.getEntriesByType('resource').filter(x=>x.name.includes('/g66-preview')).map(x=>new URL(x.name).pathname)};
+ lines:[...(card?.querySelectorAll('.v9-tariff-row')||[])].filter(e=>e.innerText.includes('Electroverse')||e.textContent.includes('Electroverse')).map(e=>({text:e.textContent,total:e.dataset.v9EffectiveTotal})), assets:performance.getEntriesByType('resource').filter(x=>x.name.includes('/g66-preview')).map(x=>new URL(x.name).pathname)};
 })().then(done).catch(e=>done({error:String(e)}));""",station)
  print(json.dumps(result),flush=True)
  assert not result.get('error') and not result['sourceErrors'] and result['offers']

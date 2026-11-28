@@ -17,7 +17,7 @@
     let bindingPromise,worker,sequence=0;
     const pending=new Map();
     async function attach(fragments,entry){
-      if(entry.sourceSha256!==d.nationalCanonicalSha256)throw Error('Catalogue IRVE incompatible');
+      if(entry.sourceSha256!==d.catalogueSha256)throw Error('Catalogue IRVE incompatible');
       bindingPromise??=(async()=>{
         const raw=await bytes('bindings.bin',d.files['bindings.bin']);
         const table=new Map();
