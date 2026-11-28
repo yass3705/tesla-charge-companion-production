@@ -168,5 +168,53 @@
       "v9_tesla_autonomous_browser": "2f1344e38e119a2431fb6ffc827a81192195d9f5949736eae3603408e3254dbc",
       "local-tariff-tests": "cb345af591cfa0fd2d15bfb3a77eb7ca5e53bbeb663c9c4cb162502967bf7544"
     }
+  },
+  "afterSkippingUnusedPowerGroupsAndLocalRouting": {
+    "cpuProfile": {
+      "TCCV9CanonicalAdapter.toFragments": {
+        "calls": 92,
+        "cpuMs": 2279
+      },
+      "TCCV9ChargeModelEngine.estimate": {
+        "calls": 100399,
+        "cpuMs": 1679
+      },
+      "TCCV9OfferEngine.eligibleOffers": {
+        "calls": 100399,
+        "cpuMs": 904
+      },
+      "TCCV9OfferEngine.prepareOffers": {
+        "calls": 64179,
+        "cpuMs": 5149
+      },
+      "TCCV9PricingEngine.evaluateOffer": {
+        "calls": 100749,
+        "cpuMs": 5027
+      },
+      "TCCV9SessionEngine.evaluateStation": {
+        "calls": 100399,
+        "cpuMs": 10157
+      },
+      "TCCV9SessionPlannerEngine.planStation": {
+        "calls": 100239,
+        "cpuMs": 3535
+      },
+      "TCCV9StationScoreEngine.scoreStation": {
+        "calls": 100399,
+        "cpuMs": 905
+      }
+    },
+    "elapsedMs": 50281,
+    "evaluationSha": "8ce7cc850856e1a0d017f40d073cb167dc25828c836aae469c2e799087bf1eca",
+    "mapCount": 64019,
+    "mapSha": "53580ef20ebf59b915c3eb068aa33fb1c07b64c11628f188916c1cdf548ba371",
+    "matching": 64019,
+    "pageSha": "3c800d097c7ab4f6cb67b5a93b2fd40570040f83d8dcc7bf1bbcb8cd638b78a5",
+    "rankCount": 64019,
+    "rankSha": "cd073631d2a942f97c35ac9c353f378196312afb533081689af488c017be42e6",
+    "shardCount": 92,
+    "shardLastResponseMs": 12357,
+    "sourceErrors": [],
+    "visible": 160
   }
 }

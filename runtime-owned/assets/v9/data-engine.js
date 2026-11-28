@@ -325,7 +325,7 @@
       // A prepared source with no separate offer rules already carries its
       // canonical offers. Keep the resolved station objects read-only and
       // reuse them across bounded ranking batches and page navigation.
-      const filtered=ruleItems.length?applyOfferRules(selected,ruleItems):selected,operators=deriveOperators(filtered),routingCandidates=selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
+      const filtered=ruleItems.length?applyOfferRules(selected,ruleItems):selected,operators=deriveOperators(filtered),routingCandidates=query.globalRouting&&query.omitLocalRoutingCandidates?[]:selectRoutingCandidates(filtered,{origin:query.origin,budget:query.routingBudget??80,perOperatorFloor:query.perOperatorFloor??2});
       let globalRoutingCandidates=null;
       if(query.globalRouting){
         const routeKey=JSON.stringify([query.routingBudget??80,query.perOperatorFloor??2]);

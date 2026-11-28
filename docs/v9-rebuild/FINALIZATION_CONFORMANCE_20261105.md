@@ -197,3 +197,5 @@ Preuves finales de ce lot : [recette distante](evidence/g9-finalization-preview-
 ## Recette locale du 28 novembre après optimisation du classement
 
 Firefox a vérifié 11 recherches sur neuf pays, 24 parcours tarifaires, le catalogue Tesla autonome et les contrôles G9 sur ordinateur et mobile. Le candidat local utilise le code Production 19c90bb. La mesure Amsterdam à 100 km reste de 51,432 s à froid. G8 reste ouverte. [Mesures et empreintes des rapports locaux](evidence/dense-ranking-local-20261128.json)
+
+Une seconde mesure locale Firefox réduit Amsterdam à 50,281 s à froid (51,432 s sur le candidat local précédent). Le calcul des groupes de puissance sans filtre et la sélection locale des itinéraires quand l’itinéraire global s’applique sont évités uniquement dans les lots de classement. Les signatures des 64 019 stations, des montants, du classement, de la carte et de la pagination sont identiques. Les quatre suites ciblées de classement, de périmètre national et de transport G6.6b passent. La latence reste une limite G8.

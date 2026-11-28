@@ -1276,15 +1276,16 @@
     if(!cached||cached.key!==key||cached.transport!==transport){
       const pending=(async()=>{
         const summaries=[];let inventory=[],count=Infinity,lastYield=performance.now();
+        const filterPower=Boolean(input.connectorKinds?.length||input.minPowerKw!=null||input.maxPowerKw!=null);
         for(let offset=0;offset<count;offset+=40){
-          const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitSubscriptionOptions:true,omitMapInventory:offset>0});
+          const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitSubscriptionOptions:true,omitMapInventory:offset>0,omitLocalRoutingCandidates:true});
           if(offset===0){count=Number(batch.diagnostics?.sourceStationCount) || batch.stations.length;inventory=batch.mapStations||[];}
           const baseRows=rowsFromArea(batch,origin),pricedStations=baseRows.filter(row=>row.station.offers?.length),unpriced=baseRows.filter(row=>!row.station.offers?.length);
           const evaluated=await evaluateRows(pricedStations,batch,true);
           const byId=new Map(evaluated.map(card=>[card.station.id,rankingSummary(card)]));
           for(const row of unpriced){
-            const lines=powerLines(row);
-            if((lines.length?lines:[{kind:'UNKNOWN',powerKw:null}]).some(powerLine=>variantMatchesFilters({powerLine},input)))
+            const lines=filterPower?powerLines(row):[];
+            if(!filterPower||(lines.length?lines:[{kind:'UNKNOWN',powerKw:null}]).some(powerLine=>variantMatchesFilters({powerLine},input)))
               byId.set(row.station.id,rankingSummary({...row,evaluation:null,total:null,costPerKm:null}));
           }
           summaries.push(...baseRows.map(row=>byId.get(row.station.id)).filter(Boolean));
