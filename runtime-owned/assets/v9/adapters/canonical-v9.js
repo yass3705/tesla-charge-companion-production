@@ -322,6 +322,71 @@
       metadata:{verified:true,identityMode:'archived_exact_swiss_evse_complete_energy',sourceId:data.source.id,
         artifactSha256:data.source.artifactSha256,sourceFile:offer.sourceFile,sourceEvseId:offer.sourceEvseId,timeZone:'Europe/Zurich'}};
   }
+  function provedReviewedSwissOffer(data,offer,index){
+    const source=data.source?.id,owner={'CH:ewd_official':'CH*EWD','CH:fastned_official':'CH*FASTNED'}[source];
+    if(!owner||offer.channel!=='Direct'||offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const raw=offer.rawOffer,evse=index.evses.get(offer.scope.evseId),station=index.stations.get(evse?.stationId);
+    const alias=value=>/^[A-Za-z0-9*]+$/.test(value||'')?value.replace(/\*/g,'').toUpperCase():null;
+    if(!evse?.officialEvseId||!alias(raw?.evseId)||offer.sourceEvseId!==raw.evseId||
+       alias(raw.evseId)!==alias(evse.officialEvseId)||station?.sourceStationId!==raw.chargingStationId||
+       index.cpos.get(evse.cpoId)?.sourceOperatorId!==owner||raw.currency!=='CHF')return null;
+    const plugs=index.connectors.get(evse.id)||[];
+    if(!plugs.length||plugs.some(p=>!(p.powerKw>0)))return null;
+    const ewd=owner==='CH*EWD';
+    const rate=ewd?raw.pricePerKwh:raw.standardPricePerKwh;
+    if(ewd){
+      if(raw.startFee!==1||rate!==0.58||raw.source!=='EWD official FAQ public charging tariff'||
+         Object.keys(raw).sort().join(',')!=='chargingStationId,currency,evseId,pricePerKwh,source,startFee')return null;
+    }else if(rate!==0.75||raw.goldPricePerKwh!==0.53||raw.source!=='https://www.fastnedcharging.com/en/charging/tariffs'||
+      Object.keys(raw).sort().join(',')!=='address,appDiscount,chargingStationId,currency,evseId,geo,goldPricePerKwh,source,standardPricePerKwh')return null;
+    return{id:offer.id,provider:ewd?'EWD Direct':'Fastned Standard',kind:'direct',currency:'CHF',countries:['CH'],
+      evseIds:[evse.id],connectorIds:plugs.map(p=>p.id),
+      pricing:{type:'rules',rules:[{scope:'allDay',start:'00:00',end:'24:00',currency:'CHF',
+        pricePerKwh:rate,...(ewd?{connectionFee:raw.startFee}:{})}]},
+      metadata:{verified:true,sourceId:source,source:raw.source,artifactSha256:data.source.artifactSha256,
+        sourceEvseId:raw.evseId,timeZone:'Europe/Zurich',generatedAt:data.source.generatedAt}};
+  }
+  function provedBorneBleueOffer(data,offer,index){
+    if(data.source?.id!=='FR:labornebleue_direct'||offer.channel!=='Direct'||
+       offer.calculationStatus!=='not_evaluated'||offer.calculationHold||offer.scope?.connectorId!=null||
+       data.source.pricingBasisSha256!=='44c6ca3f981bf2ac71ab3a452a5cbf19df28348af56b695332e3ee01c76c9242')return null;
+    const raw=offer.rawOffer,evse=index.evses.get(offer.scope.evseId),pricing=raw?.pricing;
+    const station=index.stations.get(evse?.stationId);
+    if(!/^FRSIPE[A-Z0-9]+$/.test(raw?.officialEvseId||'')||evse?.officialEvseId!==raw.officialEvseId||
+       station?.sourceStationId!==raw.sourceStationId||raw.kind!=='AC'||
+       !Number.isFinite(raw.powerKw)||raw.powerKw<=0||pricing?.currency!=='EUR'||
+       ![null,'labornebleue-annual'].includes(raw.subscriptionId))return null;
+    const plugs=index.connectors.get(evse.id)||[];
+    const connectorIds=plugs.filter(c=>c.kind==='AC'&&Number.isFinite(c.powerKw)&&
+      Math.round(c.powerKw*10)===Math.round(raw.powerKw*10)).map(c=>c.id).sort();
+    if(!connectorIds.length||JSON.stringify(connectorIds)!==JSON.stringify(raw.nationalConnectorIds))return null;
+    const subscriber=raw.subscriptionId!==null,low=raw.powerKw>=3.7&&raw.powerKw<=7.4,normal=raw.powerKw<=22.1;
+    const common={scope:'allDay',start:'00:00',end:'24:00',currency:'EUR'};
+    const keys=(row,...names)=>row&&Object.keys(row).sort().join(',')===names.sort().join(',');
+    let rules;
+    if(low||(subscriber&&normal)){
+      if(!keys(pricing,'model','currency','windows')||pricing.model!=='time_windows'||pricing.windows?.length!==2)return null;
+      const [day,night]=pricing.windows;
+      const dayRate=(subscriber?(low?3.5:5.5):4.5)/60;
+      const nightRate=(subscriber?(low?2.5:5.5):3.5)/60;
+      if(!keys(day,'start','end','ratePerMinute')||day.start!=='08:00'||day.end!=='20:00'||day.ratePerMinute!==dayRate||
+         !keys(night,'start','end','ratePerMinute',...(subscriber?['capEur']:[]))||night.start!=='20:00'||
+         night.end!=='08:00'||night.ratePerMinute!==nightRate||(subscriber&&night.capEur!==12))return null;
+      rules=subscriber?[{...common,afterMinutesRate:nightRate,afterMinutesThreshold:0,afterMinutesComponent:'CONNECTED_TIME',
+        afterMinutesCap:night.capEur,afterMinutesCapMode:'night_window_local_single_night',
+        afterMinutesCapStart:night.start,afterMinutesCapEnd:night.end,afterMinutesCapDayRate:dayRate}]:
+        [day,night].map(w=>({...common,scope:'timeWindow',start:w.start,end:w.end,connectedTimePerMinuteEur:w.ratePerMinute}));
+    }else{
+      const rate=(subscriber?11:normal?6.5:12)/60;
+      if(!keys(pricing,'model','currency','ratePerMinute')||pricing.model!=='per_minute'||pricing.ratePerMinute!==rate)return null;
+      rules=[{...common,connectedTimePerMinuteEur:rate}];
+    }
+    return{id:offer.id,provider:'La Borne Bleue',kind:subscriber?'subscription':'direct',
+      subscriptionId:raw.subscriptionId,currency:'EUR',countries:['FR'],evseIds:[evse.id],connectorIds,
+      pricing:{type:'rules',rules},metadata:{verified:true,sourceId:data.source.id,artifactSha256:data.source.artifactSha256,
+        sourceEvseId:raw.officialEvseId,timeZone:'Europe/Paris',generatedAt:data.source.generatedAt,
+        ...(subscriber?{annualFeeEur:10,subscriptionName:'La Borne Bleue · Abonnement annuel'}:{})}};
+  }
   function provedElectric55Offer(data,offer,index){
     if(data.source?.id!=='FR:electric55_chain'||offer.channel!=='Direct'||
        offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
@@ -681,7 +746,7 @@
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
     }
-    if(['FR:archived_direct_exact','FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct','FR:electric55_chain'].includes(data.source?.id)){
+    if(['FR:archived_direct_exact','FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct','FR:electric55_chain','FR:labornebleue_direct','CH:ewd_official','CH:fastned_official'].includes(data.source?.id)){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];
         list.push(row);proofIndex.connectors.set(row.evseId,list);}
     }
@@ -707,7 +772,7 @@
       if(!evse)throw new Error('canonical offer EVSE missing');
       const proved=provedArchivedDirectProfile(data,offer,proofIndex)||provedUbitricityOffer(data,offer,proofIndex)||provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
-        provedRawUkOcpiOffer(data,offer,proofIndex)||provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex)||provedElectric55Offer(data,offer,proofIndex);
+        provedRawUkOcpiOffer(data,offer,proofIndex)||provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex)||provedElectric55Offer(data,offer,proofIndex)||provedBorneBleueOffer(data,offer,proofIndex)||provedReviewedSwissOffer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
@@ -734,5 +799,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments,proveRawUkOcpiOffer:provedRawUkOcpiOffer,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer,proveElectric55Offer:provedElectric55Offer};
+  return{toFragments,proveRawUkOcpiOffer:provedRawUkOcpiOffer,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer,proveElectric55Offer:provedElectric55Offer,proveBorneBleueOffer:provedBorneBleueOffer,proveReviewedSwissOffer:provedReviewedSwissOffer};
 });

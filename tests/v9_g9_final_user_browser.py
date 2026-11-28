@@ -25,6 +25,24 @@ def check_form_labels(browser, *, check_focus=False):
     return labels
 
 
+def check_position_button(browser):
+    evidence = browser.execute_script("""
+const button=document.getElementById('v9UseCurrentPosition'),input=document.getElementById('simOrigin');
+const geolocation=navigator.geolocation,previous=geolocation.getCurrentPosition;
+const start=input.value;
+try{
+  geolocation.getCurrentPosition=accept=>accept({coords:{latitude:48.8566,longitude:2.3522}});
+  button.click();
+  const success=input.value==='48.856600, 2.352200'&&input.dataset.v9Coordinates==='true'&&!button.disabled;
+  geolocation.getCurrentPosition=(_accept,refuse)=>refuse({message:'permission denied'});
+  button.click();
+  return {success,denialPreservesOrigin:input.value==='48.856600, 2.352200'&&!button.disabled};
+}finally{geolocation.getCurrentPosition=previous;input.value=start;delete input.dataset.v9Coordinates;}
+""")
+    assert all(evidence.values()), evidence
+    return evidence
+
+
 def run(site, url=None, *, require_form_labels=False):
     # Independent 45 kWh, 14:00 Paris oracle for each immutable Mac input.
     catalogue = (site / "runtime/data/tesla_stations.json").read_bytes()
@@ -53,6 +71,7 @@ def run(site, url=None, *, require_form_labels=False):
             WebDriverWait(browser,30).until(lambda b:b.execute_script('return window.__TCC_V9_SHELL__?.ready'))
             if require_form_labels:
                 output['formLabels'] = check_form_labels(browser, check_focus=True)
+            output['geolocationCallbacks'] = check_position_button(browser)
             layout=browser.execute_script('''
 const save=document.getElementById('v9SaveDefaultOrigin'),gps=document.getElementById('v9UseCurrentPosition'),input=document.getElementById('simOrigin');
 if(!save||!gps||save.parentElement!==gps.parentElement||!input.parentElement.contains(save))throw Error('Address actions misplaced');
@@ -157,6 +176,7 @@ const done=arguments[0];
             WebDriverWait(browser,30).until(lambda b:b.execute_script('return window.__TCC_V9_SHELL__?.ready'))
             if require_form_labels:
                 assert check_form_labels(browser) == output['formLabels']
+            assert check_position_button(browser) == output['geolocationCallbacks']
             browser.execute_async_script("""const done=arguments[0];window.resolveOrigin=async()=>({lat:48.8566,lon:2.3522,label:'Paris mobile'});sessionStorage.setItem('tcc-v9-country:48.857,2.352','FR');document.getElementById('simOrigin').value='Paris mobile';document.getElementById('simMaxDistance').value='5';document.getElementById('simOperatorFilter').dataset.v9Mode='all';compare().then(a=>{document.querySelector('.v9-view-map')?.click();done(!!a);}).catch(e=>done(String(e)));""")
             mobile=browser.execute_script('''
 const d=document.documentElement,save=document.getElementById('v9SaveDefaultOrigin'),gps=document.getElementById('v9UseCurrentPosition');

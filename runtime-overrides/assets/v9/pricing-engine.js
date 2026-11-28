@@ -9,7 +9,7 @@
   // Monetary rule fields must be interpreted or rejected. A newly archived
   // surcharge cannot silently disappear while the rest of a rule is ranked.
   const knownRuleFields=new Set([
-    'afterMinutesCap','afterMinutesCapEnd','afterMinutesCapMode','afterMinutesCapStart',
+    'afterMinutesCap','afterMinutesCapDayRate','afterMinutesCapEnd','afterMinutesCapMode','afterMinutesCapStart',
     'afterMinutesComponent','afterMinutesRate','afterMinutesThreshold','billing',
     'chargePerMinute','chargingTimePerMinuteEur','chargingTimeStepSeconds',
     'congestionStartSoc','congestionThresholdSource','congestionTimePerMinute',
@@ -197,7 +197,7 @@
         rule?.connectedTimePerMinuteEur,rule?.idlePerMinute,rule?.connectionFee,
         rule?.connectedTimeBlockMinutes,rule?.connectedTimeBlockEur,rule?.sessionFeeEur,
         rule?.minimumSessionEur,rule?.ocpiDurationBands,rule?.powerBands,
-        rule?.afterMinutesRate,rule?.afterMinutesThreshold,rule?.afterMinutesComponent,rule?.afterMinutesCap,rule?.afterMinutesCapMode,rule?.afterMinutesCapStart,rule?.afterMinutesCapEnd,
+        rule?.afterMinutesRate,rule?.afterMinutesThreshold,rule?.afterMinutesComponent,rule?.afterMinutesCap,rule?.afterMinutesCapMode,rule?.afterMinutesCapStart,rule?.afterMinutesCapEnd,rule?.afterMinutesCapDayRate,
         rule?.congestionTimePerMinute,rule?.congestionStartSoc,rule?.congestionTimeStepSeconds,rule?.ocpiCongestionDurationBands,
         rule?.connectedTimeFreeMinutes,rule?.connectedTimePerMinuteAfterFreeEur,rule?.connectedTimeAfterFreeStepSeconds
       ]);
@@ -218,6 +218,32 @@
     }
     const ruleDays=rule?.daysOfWeek??rule?.days;const daySensitive=Array.isArray(ruleDays)&&ruleDays.length||rule?.holidayOnly===true||rule?.excludeHolidays===true||rule?.mustEndSameLocalDay===true;
     if(daySensitive)delta=Math.min(delta,1440-minute);
+    if(timeZone&&Number.isFinite(delta)&&typeof startAt!=='number'){
+      const target=(minute+delta)%1440;
+      const start=new Date(startAt).getTime();
+      const compare=ms=>{
+        const local=minuteOfDay(new Date(ms),timeZone);
+        return local==null?null:((local-target+2160)%1440)-720;
+      };
+      const nominal=start+Math.round(delta*60000);
+      const difference=compare(nominal);
+      if(difference==null)return null;
+      if(Math.abs(difference)<1/120)return delta;
+      // The absolute interval and the local clock diverge across DST.
+      const corrected=nominal-Math.round(difference*60000);
+      if(corrected<=start)return null;
+      const atCorrected=compare(corrected);
+      if(atCorrected==null)return null;
+      if(Math.abs(atCorrected)<1/120)return (corrected-start)/60000;
+      // A skipped wall time starts at the first instant after the forward jump.
+      if(difference<=0||atCorrected>=0)return null;
+      let left=corrected,right=nominal;
+      while(right-left>1){
+        const mid=Math.floor((left+right)/2);
+        if(compare(mid)<0)left=mid;else right=mid;
+      }
+      return (right-start)/60000;
+    }
     return delta;
   }
   function durationBandRate(rule,dimension,fallback,durationMinutes){
@@ -301,6 +327,11 @@
       durationBands:bands.length, included:true,totalEur:money(cost)};
   }
   function evaluateRule(rule,session={}){
+    if(rule?.afterMinutesCapDayRate!=null&&
+       (num(rule.afterMinutesCapDayRate)==null||num(rule.afterMinutesCapDayRate)<0||
+        rule.afterMinutesCapMode!=='night_window_local_single_night'||
+        !(num(rule.afterMinutesCap)>0)||!(num(rule.afterMinutesRate)>0)))
+      return{complete:false,reason:'invalid_night_cap_day_rate'};
     if(rule?.billing==='powerMinute')return{complete:false,reason:'power_minute_requires_full_profile'};
     // Legacy afterMinutesRate is not enough: the source must say whether it
     // applies to charging TIME or idle PARKING_TIME. Do not return an exact
@@ -741,8 +772,11 @@
       const cost=money(Math.min(cap,Math.max(0,duration-threshold)*rate));
       return{complete:true,costEur:cost,mode,chargedMinutes:money(Math.max(0,duration-threshold))};
     }
-    if(mode!=='night_window_local_per_night')
+    const singleNight=mode==='night_window_local_single_night';
+    if(mode!=='night_window_local_per_night'&&!singleNight)
       return{complete:false,reason:'after_minutes_cap_window_requires_source_confirmation'};
+    const dayRate=singleNight?num(rule.afterMinutesCapDayRate):rate;
+    if(dayRate==null||dayRate<0)return{complete:false,reason:'invalid_night_cap_day_rate'};
     if(!timeZone||!session.startAt)
       return{complete:false,reason:'after_minutes_cap_requires_timezone_and_start'};
     const from=hm(rule.afterMinutesCapStart,null),to=hm(rule.afterMinutesCapEnd,null);
@@ -767,13 +801,15 @@
         const date=new Date(Date.UTC(get('year'),get('month')-1,get('day')-(minute<to?1:0))).toISOString().slice(0,10);
         nightTotals.set(date,(nightTotals.get(date)||0)+cost);
         nightMinutes+=slice;
-      }else daytime+=cost;
+      }else daytime+=slice*dayRate;
       elapsed+=slice;
     }
+    if(singleNight&&nightTotals.size>1)
+      return{complete:false,reason:'multiple_night_caps_require_source_confirmation'};
     const nights=[...nightTotals.values()].reduce((a,v)=>a+Math.min(cap,v),0);
     return{complete:true,costEur:money(daytime+nights),mode,chargedMinutes:money(chargedMinutes),
       nightMinutes:money(nightMinutes),nightWindowCount:nightTotals.size,
-      uncappedCostEur:money(chargedMinutes*rate)};
+      uncappedCostEur:money(daytime+nightMinutes*rate)};
   }
   // Restored from the archived 2026-10-10 Tesla extension. Split at exact
   // delivered-power and tariff boundaries, not at sampled minute midpoints.
@@ -947,6 +983,8 @@
     }
     const match=matchingRuleDetailed(pricing,session.startAt,timeZone,session);if(match.unknown)return{complete:false,reason:match.reason,offerId:offer?.id||null,timeZone};const rule=match.rule;if(!rule)return{complete:false,reason:'no_matching_time_rule',offerId:offer?.id||null,timeZone};
     const duration=Math.max(0,num(session.durationMinutes)??0),boundary=minutesUntilRuleBoundary(rule,session.startAt,timeZone);
+    if(needsLocalTime&&boundary==null)
+      return{complete:false,reason:'unresolved_tariff_boundary',offerId:offer?.id||null,timeZone};
     const cappedAfterMinutes=(num(rule?.afterMinutesRate)??0)>0&&(num(rule?.afterMinutesCap)??0)>0;
     if(cappedAfterMinutes&&boundary!=null&&Number.isFinite(boundary)&&duration>boundary+1e-9&&pricing.priceSelectionBasis!=='session_start_local_time')
       return{complete:false,reason:'after_minutes_cap_crosses_rule_boundary',offerId:offer?.id||null};
@@ -968,7 +1006,7 @@
       if(gross==null)return{complete:false,reason:'after_minutes_uncapped_component_missing',offerId:offer?.id||null};
       base={...base,totalEur:money(base.totalEur-gross+capped.costEur),
         components:{...base.components,afterMinutes:{...base.components.afterMinutes,
-          costEur:capped.costEur,uncappedCostEur:gross,capEur:rule.afterMinutesCap,
+          costEur:capped.costEur,uncappedCostEur:capped.uncappedCostEur??gross,capEur:rule.afterMinutesCap,
           capMode:capped.mode,chargedMinutes:capped.chargedMinutes,
           nightMinutes:capped.nightMinutes,nightWindowCount:capped.nightWindowCount}}};
       const minimum=num(rule.minimumSessionEur);
