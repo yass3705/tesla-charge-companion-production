@@ -72,8 +72,9 @@ const targets=sources.filter(source=>!selected||selected.has(source)).flatMap(so
  const candidates=fragments.filter(calculable).map(st=>({st,targetIds:[...st.offers.map(o=>targetScope(st,reference,o,false)),...st.unparsedOffers.map(o=>targetScope(st,reference,o,true))]}));
  const chosen=candidates.find(x=>x.targetIds.length&&x.targetIds.every(id=>id&&id===x.targetIds[0])&&compound(x.st))||
    candidates.find(x=>x.targetIds.length&&x.targetIds.every(id=>id&&id===x.targetIds[0]))||candidates[0];
+ const superseded=source==='FR:emsp_exact'&&Boolean(JSON.parse(fs.readFileSync(path.join(process.argv[1],'v9-production-shell/shell-config.json'))).g66DescriptorSha256);
  const st=chosen.st,excluded=chosen.targetIds.some(id=>!id)||!chosen.targetIds.length;
- return{source,family,date:family==='held'?'2026-11-14':'2026-10-15',excluded,exclusionReason:excluded?'exact_national_scope_unproved':null,id:excluded?st.canonicalId:chosen.targetIds[0],sourceStationId:st.canonicalId,lat:st.latitude,lon:st.longitude,country:st.countryCode,rawOnly,compound:compound(st),pricedIds:st.offers.map(o=>o.id),rawIds:st.unparsedOffers.map(o=>o.id)};
+ return{source,family,superseded,date:family==='held'?'2026-11-14':'2026-10-15',excluded,exclusionReason:excluded?'exact_national_scope_unproved':null,id:excluded?st.canonicalId:chosen.targetIds[0],sourceStationId:st.canonicalId,lat:st.latitude,lon:st.longitude,country:st.countryCode,rawOnly,compound:compound(st),pricedIds:st.offers.map(o=>o.id),rawIds:st.unparsedOffers.map(o=>o.id)};
 });
 console.log(JSON.stringify(targets));
 '''
@@ -132,6 +133,11 @@ const target=arguments[0],done=arguments[1];
  }
  const card=[...document.querySelectorAll('.v9-result-card')].find(el=>el.dataset.v9StationId===target.id);
  if(!card)throw Error('Target card not rendered');
+ if(target.superseded){
+   const held=target.pricedIds.every(id=>raw.some(o=>o.id===id&&o.calculationHold==='superseded_electroverse_generation'));
+   if(!held||offers.length||badScope)throw Error('Superseded quotes must remain scoped and unranked');
+   return {source:target.source,superseded:true,archived:target.pricedIds.length,sourceErrors:area.diagnostics?.errors?.length||0};
+ }
  card.querySelectorAll('details').forEach(el=>el.open=true);
  const text=card.textContent;
  const calculated=[...card.querySelectorAll('[data-v9-effective-total]')].map(el=>Number(el.dataset.v9EffectiveTotal));
@@ -143,6 +149,9 @@ const target=arguments[0],done=arguments[1];
 })().then(done).catch(error=>done({error:String(error),source:target.source}));
 ''', target)
                 print(json.dumps(result, ensure_ascii=False), file=sys.stderr, flush=True)
+                if result.get('superseded') and target.get('superseded') and not result.get('sourceErrors'):
+                    results.append(result)
+                    continue
                 if result.get('excluded'):
                     if not target['excluded'] or result.get('sourceErrors'):
                         raise AssertionError(result)

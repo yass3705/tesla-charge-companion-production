@@ -264,7 +264,9 @@
       // NEVER blend unevaluated candidate tariffs into the historical priced catalog.
       if(cfg.mode!=='candidate'||cfg.preproductionIsolated!==true||!/^[a-f0-9]{64}$/.test(String(cfg.nationalPolicySha256||''))||!w.TCCV9PreparedCandidate?.loadPrepared||!w.TCCV9CanonicalAdapter?.toFragments)
         throw new Error('isolated preproduction candidate not configured safely');
+      if(cfg.g66DescriptorSha256)cfg.g66DiagnosticTransport=await w.TCCV9G66Preview.create(w,cfg);
       const preview=await w.TCCV9PreparedCandidate.loadPrepared({
+        g66Transport:cfg.g66DiagnosticTransport,
         baseUrl:cfg.preproductionCandidateBase,fetchImpl:w.fetch.bind(w),adapter:w.TCCV9CanonicalAdapter,
         cryptoImpl:w.crypto,origin:w.location.href,expectedIndexSha256:cfg.preparedIndexSha256,expectedNationalPolicySha256:cfg.nationalPolicySha256
       });
@@ -1259,8 +1261,11 @@
   async function rankedPage(w,engine,query,input,origin,selected,diagnosticOptions={}){
     const transport=diagnosticOptions.g66QuoteTransport;
     const key=JSON.stringify({...query,stationOffset:0,g66:transport?[diagnosticOptions.g66NationalSha256,diagnosticOptions.g66GateCodeSha]:null});
-    const cardsFor=area=>stationCards(variantsByPower(w,rowsFromArea(area,origin),area.effectiveSession||query.session,selected,diagnosticOptions)
-      .filter(row=>variantMatchesFilters(row,input)),selected);
+    async function evaluateRows(rows,area,compact=false){
+      const calculate=quote=>stationCards(variantsByPower(w,rows,area.effectiveSession||query.session,selected,
+        quote?{...diagnosticOptions,g66QuoteTransport:quote}:diagnosticOptions).filter(row=>variantMatchesFilters(row,input)),selected,compact);
+      return diagnosticOptions.evaluateBatch?diagnosticOptions.evaluateBatch(calculate):calculate(null);
+    }
     let cached=searchRankingCache.get(engine);
     if(!cached||cached.key!==key||cached.transport!==transport){
       const pending=(async()=>{
@@ -1269,8 +1274,7 @@
           const batch=await engine.queryArea({...query,stationOffset:offset,stationLimit:40,skipSessionEvaluation:true,omitSubscriptionOptions:true,omitMapInventory:offset>0});
           if(offset===0){count=Number(batch.diagnostics?.sourceStationCount) || batch.stations.length;inventory=batch.mapStations||[];}
           const baseRows=rowsFromArea(batch,origin),pricedStations=baseRows.filter(row=>row.station.offers?.length),unpriced=baseRows.filter(row=>!row.station.offers?.length);
-          const evaluated=stationCards(variantsByPower(w,pricedStations,batch.effectiveSession||query.session,selected,diagnosticOptions)
-            .filter(row=>variantMatchesFilters(row,input)),selected,true);
+          const evaluated=await evaluateRows(pricedStations,batch,true);
           const byId=new Map(evaluated.map(card=>[card.station.id,rankingSummary(card)]));
           for(const row of unpriced){
             const lines=powerLines(row);
@@ -1300,7 +1304,7 @@
     }
     const snapshot=calculated.order,selectedRows=snapshot.ranked.slice(query.stationOffset,query.stationOffset+160);
     const area=await engine.queryArea({...query,stationIds:selectedRows.map(row=>row.station.id),omitMapInventory:true});
-    const byId=new Map(cardsFor(area).map(row=>[row.station.id,row]));
+    const byId=new Map((await evaluateRows(rowsFromArea(area,origin),area)).map(row=>[row.station.id,row]));
     const rows=selectedRows.map(row=>byId.get(row.station.id)).filter(Boolean);
     area.mapStations=snapshot.inventory;area.mapRankingRows=snapshot.ranked;
     area.diagnostics={...area.diagnostics,spatialStationCount:snapshot.count,sourceStationCount:snapshot.ranked.length,globallyRankedStationCount:snapshot.ranked.length};
@@ -1319,7 +1323,7 @@
     const diagnosticOptions=d?.enabled===true&&typeof d.quote==='function'&&
       /^[a-f0-9]{64}$/.test(d.nationalCanonicalSha256||'')&&/^[a-f0-9]{40}$/.test(d.gateCodeSha||'')?
       {g66DiagnosticEnabled:true,g66PlannerProtocol:true,g66SessionZeroTemporalProof:true,
-       g66NationalSha256:d.nationalCanonicalSha256,g66GateCodeSha:d.gateCodeSha,g66QuoteTransport:d.quote}:{};
+       evaluateBatch:d.evaluate,g66NationalSha256:d.nationalCanonicalSha256,g66GateCodeSha:d.gateCodeSha,g66QuoteTransport:d.quote}:{};
     if(diagnosticOptions.g66DiagnosticEnabled){
       session.timeZone='Europe/Paris';
       session.includeCongestionFees=input.includeCongestionFees!==false;

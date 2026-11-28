@@ -61,6 +61,7 @@
       dependencies.push('assets/v9/adapters/uk-open-feeds.js','assets/v9/adapters/canonical-v9.js',
         'assets/v9/preproduction-candidate-loader.js','assets/v9/map-price-engine.js');
     }
+    if(cfg.g66DescriptorSha256)dependencies.push('assets/v9/g66-preview.js');
     for(const path of dependencies){const script=parsed.createElement('script');script.defer=true;script.src=`${runtimeBase}/${path}`;parsed.body.append(script);}
     const bridge=parsed.createElement('script');bridge.defer=true;bridge.src='v9-production-shell/bridge.js';parsed.body.append(bridge);
 

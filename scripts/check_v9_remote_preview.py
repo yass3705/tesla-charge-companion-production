@@ -75,6 +75,16 @@ def verify(site: Path, base_url: str, read, *, allow_local: bool = False,
     assets=list(ASSETS)+[path for path in additional if (site/path).is_file()]
     if config.get("nationalPolicySha256"):
         assets.append("v9-production-shell/national-catalogue-policy.json")
+    if config.get("g66DescriptorSha256"):
+        raw = (site / "g66-preview/descriptor.json").read_bytes()
+        descriptor = json.loads(raw)
+        if hashlib.sha256(raw).hexdigest() != config["g66DescriptorSha256"] or descriptor["bundleId"] != package["bundleId"]:
+            raise ValueError("Invalid Electroverse projection in package")
+        assets.extend(["runtime/assets/v9/g66-preview.js", "g66-preview/descriptor.json"])
+        for name, sha in descriptor["files"].items():
+            if Path(name).name != name or hashlib.sha256((site / "g66-preview" / name).read_bytes()).hexdigest() != sha:
+                raise ValueError("Invalid Electroverse asset")
+            assets.append("g66-preview/" + name)
     for path in assets:
         expected = (site / path).read_bytes()
         body, headers = read(urljoin(base_url.rstrip("/") + "/", path))

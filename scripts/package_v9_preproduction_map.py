@@ -314,7 +314,7 @@ def verify_preview_manifest(site: Path, bundle_id: str) -> bool:
     return True
 
 
-def package(site: Path, candidate: Path, destination: Path, fx: Path | None = None, fx_sha256: str | None = None, *, tesla_mac: Path | None = None, tesla_sha256: str | None = None) -> dict:
+def package(site: Path, candidate: Path, destination: Path, fx: Path | None = None, fx_sha256: str | None = None, *, tesla_mac: Path | None = None, tesla_sha256: str | None = None, g66_engine: Path | None = None) -> dict:
     fx_bytes = None
     if fx is not None or fx_sha256 is not None:
         if fx is None or not re.fullmatch(r"[a-f0-9]{64}", fx_sha256 or ""):
@@ -397,10 +397,36 @@ def package(site: Path, candidate: Path, destination: Path, fx: Path | None = No
             historical_offers.unlink()
         shutil.copytree(candidate, stage / "prepared-v9", copy_function=copy_preview_file)
         assets = stage / runtime / "assets/v9"
+        projection = stage / "g66-preview"
+        if projection.exists():
+            shutil.rmtree(projection)
+        config.pop("g66DescriptorSha256", None)
+        if g66_engine:
+            raw = (g66_engine / "descriptor.json").read_bytes()
+            descriptor = json.loads(raw)
+            expected = {"bindings.bin", "calculator.zip", "pyodide-lock.json", "pyodide.asm.js",
+                        "pyodide.asm.wasm", "pyodide.js", "python_stdlib.zip", "rates.bin",
+                        "runner.js", "tariff-engine.js", "worker.js"}
+            files = descriptor["files"]
+            if set(files) - {"LICENSE", "LICENSE.md", "LICENSE-CPython"} != expected:
+                raise ValueError("Unexpected Electroverse runtime files")
+            national = next(r for r in index["sources"] if r["source"] == "FR:irve_static")
+            if descriptor["bundleId"] != index["bundleId"] or descriptor["nationalCanonicalSha256"] != national["sourceSha256"]:
+                raise ValueError("Electroverse generation differs from the signed catalogue")
+            projection.mkdir()
+            for name, sha in files.items():
+                src = g66_engine / name
+                if src.is_symlink() or digest(src.read_bytes()) != sha:
+                    raise ValueError("Electroverse file integrity: " + name)
+                copy_preview_file(src, projection / name)
+            (projection / "descriptor.json").write_bytes(raw)
+            config["g66DescriptorSha256"] = digest(raw)
+
         for source, target in (
             ("runtime-owned/assets/v9/adapters/canonical-v9.js", "adapters/canonical-v9.js"),
             ("runtime-owned/assets/v9/preproduction-candidate-loader.js", "preproduction-candidate-loader.js"),
             ("runtime-owned/assets/v9/data-engine.js", "data-engine.js"),
+            ("runtime-owned/assets/v9/g66-preview.js", "g66-preview.js"),
             ("runtime-owned/assets/v9/runtime-engine.js", "runtime-engine.js"),
             ("runtime-owned/assets/v9/charge-model-engine.js", "charge-model-engine.js"),
             ("runtime-owned/assets/v9/session-planner-engine.js", "session-planner-engine.js"),
@@ -466,8 +492,9 @@ def main() -> None:
     parser.add_argument("--fx-sha256")
     parser.add_argument("--tesla-mac", type=Path)
     parser.add_argument("--tesla-sha256")
+    parser.add_argument("--g66-engine", type=Path)
     args = parser.parse_args()
-    print(json.dumps(package(args.site, args.prepared, args.out, args.fx, args.fx_sha256, tesla_mac=args.tesla_mac, tesla_sha256=args.tesla_sha256), ensure_ascii=False))
+    print(json.dumps(package(args.site, args.prepared, args.out, args.fx, args.fx_sha256, tesla_mac=args.tesla_mac, tesla_sha256=args.tesla_sha256, g66_engine=args.g66_engine), ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@
     const hash=new Uint8Array(await impl.subtle.digest('SHA-256',bytes));
     return Array.from(hash,b=>b.toString(16).padStart(2,'0')).join('');
   }
-  async function loadPrepared({baseUrl,fetchImpl,adapter,cryptoImpl,origin,expectedIndexSha256,expectedNationalPolicySha256,nationalCatalogues={FR:'FR:irve_static',BE:'BE:nap_static',CH:'CH:swiss_integration',DE:'DE:bnetza_afir_archive',ES:'ES:reve_static',NL:'NL:dotnl_static'}}={}){
+  async function loadPrepared({baseUrl,fetchImpl,adapter,cryptoImpl,origin,expectedIndexSha256,expectedNationalPolicySha256,g66Transport,nationalCatalogues={FR:'FR:irve_static',BE:'BE:nap_static',CH:'CH:swiss_integration',DE:'DE:bnetza_afir_archive',ES:'ES:reve_static',NL:'NL:dotnl_static'}}={}){
     if(!adapter?.toFragments)throw new Error('canonical adapter missing');
     const base=new URL(String(baseUrl||''),origin||root?.location?.href||'http://localhost/');
     if(base.protocol!=='https:'&&base.hostname!=='localhost'&&base.hostname!=='127.0.0.1')
@@ -391,6 +391,18 @@
           if(fragments.some(f=>f.countryCode!==id.slice(0,2)||
              f.offers.some(offer=>!provedOffer(f,offer))))
             throw new Error('candidate pricing isolation violated');
+          if(g66Transport?.attach&&id==='FR:irve_static')return g66Transport.attach(fragments,entry);
+          if(g66Transport?.attach&&id==='FR:emsp_exact'){
+            for(const fragment of fragments){
+              fragment.offers=fragment.offers.filter(offer=>offer.provider!=='Electroverse');
+              const physical=new Set(fragment.evses.map(e=>e.id));
+              for(const raw of data.offers.filter(o=>physical.has(o.scope?.evseId)&&o.channel==='Electroverse')){
+                if(!fragment.unparsedOffers.some(o=>o.id===raw.id))fragment.unparsedOffers.push({
+                  ...raw,calculationStatus:'not_evaluated',calculationHold:'superseded_electroverse_generation'
+                });
+              }
+            }
+          }
           return fragments;
       };
       loaders[registryId]=async function(query){
