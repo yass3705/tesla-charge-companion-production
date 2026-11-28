@@ -1,0 +1,603 @@
+{
+  "date": "2026-11-28",
+  "dataLabReceiptCommit": "3e432c6fe11d2036f604c33e71c63fd624447578",
+  "runtimeSourceCommit": "870bcc86cfcd31a50e7d314eba6242e050ded864",
+  "reviewedImport": {
+    "bundleId": "d7940193804248ee7a55573043766d778c1882f664a106c0766f3afdde2b01a3",
+    "parentBundleId": "0402c18fb416e552ffa79d132852d7712eb8bd8758eb05d2c3cf1ccb55ef03ff",
+    "nationalSha256": "d08ec68d959ae7c032edbad343940a90128d3017a3cb14153f994cdb613f7777",
+    "electric55CanonicalSha256": "8cf043d56cb2f1ade38720924debf4e6437228dbd368046b04341f071e1bd304",
+    "artifactId": 15273375355,
+    "runId": 46168460992,
+    "artifactZipSha256": "76367027b2b5706ad8ca3d979461e89165e764a7aeb916fe735b2fbc60378597",
+    "artifactSetSha256": "886e5587da548586197f3cb4cf9b321e3f64ba34e1637dde902d34510ee1830d",
+    "generatedAt": "2026-11-28T05:40:14.901000+00:00",
+    "sourceCounts": {
+      "stations": 690,
+      "evses": 2069,
+      "pricedStations": 673,
+      "pricedEvses": 2028,
+      "unresolvedEvses": 41,
+      "profiles": 5,
+      "coverageRatio": 0.980184,
+      "previousStations": 650,
+      "previousEvses": 1979,
+      "previousPricedEvses": 1923,
+      "addedIdentityTuples": 97,
+      "removedIdentityTuples": 7,
+      "normalizedCaseOnlyLinkDifferences": 1,
+      "externalMapLinksExcluded": 7,
+      "tariffFetchFailures": 0
+    },
+    "counts": {
+      "structuredSource": 2028,
+      "exactEnrichments": 1990,
+      "withoutSourceTariff": 41,
+      "no_exact_irve_evse": 72,
+      "no_source_tariff": 6,
+      "conflicting_source_evse_identifiers": 1
+    },
+    "profiles": {
+      "e55c-own-emsp-fallback-653f339c973546a8": 1183,
+      "e55c-own-emsp-fallback-584ac48145a63ad4": 728,
+      "e55c-own-emsp-fallback-d3000d2fd1974267": 29,
+      "e55c-own-emsp-fallback-6d70ec4d6d770429": 48,
+      "e55c-own-emsp-fallback-a3446acf389257db": 2
+    },
+    "nationalStationsEnriched": 673
+  },
+  "tariffCheckedAt": "2026-11-28T17:08:29.066320Z",
+  "structuredTariffsNotAssigned": {
+    "no_exact_irve_evse": 37,
+    "conflicting_source_evse_identifiers": 1
+  },
+  "local": {
+    "tariffProfilesExercised": 5,
+    "sessions": 15,
+    "receiptsSha256": {
+      "oracle-packaged": "e6813c518b384bb2baa687f8b07f90c11fdfcb47e3d83d60ed51581c3068f5d9",
+      "local-e55": "92d20464169cf3e5aeb2d37e2bd40c4f4040ead7a1bea0fe7818f941931a1ebf",
+      "local-e55-mobile": "06991f76b71210e0c3d194f55ee0fafebe9eb6c55c59a9232bdfc65b0f53aa23",
+      "local-g9": "0e28c7d343c4574c533c0b922e3c443617bb122d8b63a6bb5d72546080092838"
+    }
+  },
+  "deployment": {
+    "id": "6b0b14279b8a6a39bc6e93b2",
+    "site_id": "c4df2a8f-f57a-4d59-9e8f-df6da40f713f",
+    "state": "ready",
+    "context": "deploy-preview",
+    "deploy_ssl_url": "https://6b0b14279b8a6a39bc6e93b2--tcc-v9-preproduction-20261028.netlify.app",
+    "published_at": null,
+    "rollbackUrls": [
+      "https://6b0b0a928b626934e4f9cacf--tcc-v9-preproduction-20261028.netlify.app",
+      "https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app"
+    ],
+    "snapshot": "f07f4ebccfa4be951c34dc1976bbfc1c4ff5c0a8c2049133201011b0b2fc59ec",
+    "bundle": "d7940193804248ee7a55573043766d778c1882f664a106c0766f3afdde2b01a3",
+    "publicResources": {
+      "index.html": {
+        "url": "https://yass3705.github.io/tesla-charge-companion-production/index.html",
+        "status": 200,
+        "sha256": "36ded0763fd1dac257b2e019180730e9ed0d3a6668705a5b14fdcee3a3c37aa1"
+      },
+      "manifest.json": {
+        "url": "https://yass3705.github.io/tesla-charge-companion-production/manifest.json",
+        "status": 200,
+        "sha256": "965a4570ec9724cdcfeeace9f927107e3619b5c127622a2b5c43cde8259237e9"
+      }
+    }
+  },
+  "servedManifestSha256": "5876d3efa3d795369a3853c0ffa30f1592e47ab317e10ca277f7a00fcd041f80",
+  "packageDelta": {
+    "snapshot": "f07f4ebccfa4be951c34dc1976bbfc1c4ff5c0a8c2049133201011b0b2fc59ec",
+    "previous": "bcf66be21850606181e56835af142029fe0d352a2f883a66029ccac3b60b290c",
+    "newShards": 83,
+    "changed": [
+      "g66-preview/descriptor.json",
+      "prepared-v9/index.json",
+      "prepared-v9/joins/FR__irve_static.json.bin",
+      "runtime/assets/v9/adapters/canonical-v9.js",
+      "runtime/assets/v9/preproduction-candidate-loader.js",
+      "v9-production-shell/bridge.js",
+      "v9-production-shell/national-catalogue-policy.json",
+      "v9-production-shell/shell-config.json"
+    ]
+  },
+  "remote": {
+    "integrity": {
+      "browserVerified": false,
+      "bundleId": "d7940193804248ee7a55573043766d778c1882f664a106c0766f3afdde2b01a3",
+      "checkedAssets": [
+        "index.html",
+        "robots.txt",
+        "v9-production-shell/index.html",
+        "v9-production-shell/shell-config.json",
+        "v9-production-shell/bridge.js",
+        "prepared-v9/index.json",
+        "manifest.json",
+        "provenance/base-snapshot-manifest.json",
+        "runtime/assets/v9/data-engine.js",
+        "runtime/assets/v9/preproduction-candidate-loader.js",
+        "runtime/assets/v9/adapters/canonical-v9.js",
+        "runtime/assets/v9/adapters/tesla-json.js",
+        "runtime/assets/v9/pricing-engine.js",
+        "runtime/assets/v9/session-engine.js",
+        "runtime/assets/v9/charge-model-engine.js",
+        "runtime/assets/v9/session-planner-engine.js",
+        "runtime/data/tesla_stations.json",
+        "data/tesla_stations.json",
+        "runtime/assets/v9/runtime-engine.js",
+        "data/exchange_rates.json",
+        "runtime/assets/v9/offer-engine.js",
+        "runtime/assets/v9/runtime-engine.js",
+        "v9-production-shell/national-catalogue-policy.json",
+        "runtime/assets/v9/g66-preview.js",
+        "g66-preview/descriptor.json",
+        "g66-preview/LICENSE",
+        "g66-preview/LICENSE-CPython",
+        "g66-preview/bindings.bin",
+        "g66-preview/calculator.zip",
+        "g66-preview/pyodide-lock.json",
+        "g66-preview/pyodide.asm.js",
+        "g66-preview/pyodide.asm.wasm",
+        "g66-preview/pyodide.js",
+        "g66-preview/python_stdlib.zip",
+        "g66-preview/rates.bin",
+        "g66-preview/runner.js",
+        "g66-preview/tariff-engine.js",
+        "g66-preview/worker.js",
+        "prepared-v9/joins/FR__irve_static.json.bin",
+        "runtime/data/v9/france-crosswalk.json",
+        "prepared-v9/shards/BE__nap_static__0000.json.bin"
+      ],
+      "fragmentReceiptSha256": null,
+      "githubHandoffVerified": false,
+      "previouslyVerifiedFragmentsReused": 0,
+      "servedFileManifestVerified": true,
+      "signedFragmentsVerified": 1,
+      "status": "remote_static_verified"
+    },
+    "electric55Fragments": {
+      "newShards": 83,
+      "shards": [
+        {
+          "path": "shards/FR__electric55_chain__0000.json.bin",
+          "sha256": "feab8d774d9e7d321a5634b217a23613d112f007d083dfea8021e604b3be401b"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0001.json.bin",
+          "sha256": "7e5a00905b70aa441bc2ffca7d9e51b23c788d86a65e75966a6184d8ffd46a5f"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0002.json.bin",
+          "sha256": "4a7f91b28891e669076140617cd6afac7e4401213738f7eeebbdf9d2e4fdfa37"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0003.json.bin",
+          "sha256": "b7d6901e634bdfbdfa667072f405a75e031d84a41ea0eb2ce061df1807bbcd9a"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0004.json.bin",
+          "sha256": "f2fb74b882e3e11f76c97e5771b9efae548cfff6367d1decab5a99247e39d361"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0005.json.bin",
+          "sha256": "d22087a35f5c8aa0d703e027cb77633fa4971dcb17e942642faa2853f5ef43dc"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0006.json.bin",
+          "sha256": "4808630fc575c0386f9b776abbd9d67dfc92a59ad0f18717904611809b8c036f"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0007.json.bin",
+          "sha256": "c56b444d516ef0b8e33ff8cab4777cf19f58645bc8f08eb509b558cf3ed258d9"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0008.json.bin",
+          "sha256": "3a41cc9a224f596e5edcb10c57fbbfa8d9fa39031a0ed7cbd8ab835993eef449"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0009.json.bin",
+          "sha256": "11171dd947bd382449ac31c97041dc06baea0a301d7ea17af8a28e053fa156bd"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0010.json.bin",
+          "sha256": "a816b0441b4776353115b548dc0fc7353bb6e248f3cee8e845560ae910dd8211"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0011.json.bin",
+          "sha256": "bcaec93d4e68380af245772b5acda38c71c5f791f2265084118f7466efffeec2"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0012.json.bin",
+          "sha256": "5623d20da46c2ca20bb9d94aecfbdd3d6920f019d64cfab28d52f803a2122990"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0013.json.bin",
+          "sha256": "26030776f50e22c8582f877c5b0e36a79e27c4e66084811de94f6cc343d0b2fa"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0014.json.bin",
+          "sha256": "6ac26d3641a7a99c7e89ad60b4f2c053f58922f36ed9e4e0b3d810454a34960a"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0015.json.bin",
+          "sha256": "c6bd464d578d8fdc8a104c56e828012ebb3a687b055d3d760fa4adb5d13b3dad"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0016.json.bin",
+          "sha256": "5b426459fa241e15df3f948ec2e0dd291227e8cd4fc4dc93a3a9a335d030d92e"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0017.json.bin",
+          "sha256": "97f63dbff096f79881eee601c021066dff187d88165bbae599037e69e9fd8844"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0018.json.bin",
+          "sha256": "366ca2b932a815b3f2ab7ffe9193eea2b6cd8d91319f5b57af814c251118b11d"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0019.json.bin",
+          "sha256": "f5e3d8b9e98ff1f1484e0d53cfa29d06c6dd7ac2e7cd07ade38a18f804c8e69e"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0020.json.bin",
+          "sha256": "efa8e47f15d8bf5675574bcd94b83cd065b884941a38a7df812297e1d2c8120d"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0021.json.bin",
+          "sha256": "db390fe47c3b9526bb4af9f5979b213e9407722f5936984b2407a5b30270737a"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0022.json.bin",
+          "sha256": "f12d6736b9618501999eb55f085cc01078bc40c53d94016698d5791edb6e9e18"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0023.json.bin",
+          "sha256": "e1174c7b471224ad9b1951fbfec3b9da5c1dade577de1ec7cbe80f4c92e593a1"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0024.json.bin",
+          "sha256": "727da8642eaa43ac2a9fd54c289dab7d197332eb8932a750e80fcadbf09d65f2"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0025.json.bin",
+          "sha256": "8788112e156427690aafa244c40594ac38dfcf1b808b07cae15d2cec42c64173"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0026.json.bin",
+          "sha256": "299da5349fa9fe3e7de4fa7c8f8c779dbacb52975b5f1b277bb550920bc2e07e"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0027.json.bin",
+          "sha256": "0398f8192910ad332bb1cd3a1afc1879386efc3d1f7092ab0097423e82f1a3bf"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0028.json.bin",
+          "sha256": "014eaa5830d73f8a00102ba0dfa16c7fab604805d29761cdd67a1e93cb2a543a"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0029.json.bin",
+          "sha256": "ccb18dd786d1c7ef6b2cb22a31345da7491253be216ab9c6bc8e222bccf7fea3"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0030.json.bin",
+          "sha256": "76fb336f5499b7e4fb455934bf23bf5afaa1c0662cd3904b8a780e7266192bd7"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0031.json.bin",
+          "sha256": "2b3249d23d7b09b0a28347f7378a7ecea41e004fda7a547ecfb0b87fd826785f"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0032.json.bin",
+          "sha256": "d669c5ed92e8ee3e95afe33c02e08b3b1b3474071d383a2c61a485c7c5267999"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0033.json.bin",
+          "sha256": "f28e1986d5721d930d3adc11a9d3b9534b77e44da19a96e9bd5c6fe1cf6e6568"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0034.json.bin",
+          "sha256": "07133dc2d45b4f041f3c3880095ad25aa09b9233e1305966646c5f0dca40bf36"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0035.json.bin",
+          "sha256": "bd638cbdeeb30476e6d5a9d34be46868030689ce91377e0ce7b9b9bbc795d761"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0036.json.bin",
+          "sha256": "11f1df9e19db1aede14db03ad5daf04e042fd93a7e4e098f85be89f2fff32988"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0037.json.bin",
+          "sha256": "982534b546e1cce8fe0389029c6d576bab2ea2dbf46ed5f19b5f4963983ab269"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0038.json.bin",
+          "sha256": "c1e6dcdadc5c75804dab0a31c766181a9e1e246f0f26210cdb02f3d8a6ab35f5"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0039.json.bin",
+          "sha256": "f814486a2ee4351d9a16bc1f022670a7ac5407dfae0ac86f59a6135fc44c16ca"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0040.json.bin",
+          "sha256": "bbfd5686bce07654451e66dfeac01130d9c43714cc64bc4af2eb2a9573f7dade"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0041.json.bin",
+          "sha256": "07d73b79603f912d94bcbe22750f295a84cd92e9dcb46cc93de1231e2984d454"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0042.json.bin",
+          "sha256": "bd89d9e93e59eaeb4c78ce0bddc659071932f5e326b2f99c4b31164fc55ce08b"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0043.json.bin",
+          "sha256": "e2dfc1d3ceddc6efce86daf00827236796edd8874ceff9ad2d65e4dd72064272"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0044.json.bin",
+          "sha256": "2fc1b44a10412f2f3de855365a47ec49b93e14ca724bfb603fe45eff742495cd"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0045.json.bin",
+          "sha256": "6adac2c3468c594118086112c9ee89dbf37589b6e91b5524d884fd9dc5d9fe2a"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0046.json.bin",
+          "sha256": "ddfac671c364e4e7c1838bd721f3495dd5540188ddaaae8a2d7ec33bd8ae9ece"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0047.json.bin",
+          "sha256": "794c7a05a27e78c1fc31597a645e0ba3feebbdf2e7174e4ab99a03d1b3ef044d"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0048.json.bin",
+          "sha256": "b0ee50dcca0bd3cce63c7a126c0c26afb1aa9b84391f9e72a79a7cbf2719c5aa"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0049.json.bin",
+          "sha256": "47b28ba1301296730d459c0386c771a8ed3d3a32e6f52e1615303a94b552438e"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0050.json.bin",
+          "sha256": "7d7eec7be43181325611bf5b91dd35ba1ef8853d9dbcda07dc739aaa2665cf40"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0051.json.bin",
+          "sha256": "c0319ab9fe01993a3dddcdd06bceb91fd65af65478c959e40be2b9d1adaa019c"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0052.json.bin",
+          "sha256": "1c725949bb4808ad2453f6b57140d44bf0bf01537b71ad56091c86a306588949"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0053.json.bin",
+          "sha256": "7bf61daada4119a51c83c987cf13c6ac4bbe89f37c96338fc955c362d97903a3"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0054.json.bin",
+          "sha256": "ccd9cb016880f98ea02f14a9663218e28e13c0e08c11f1982bbcf16745bd8f02"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0055.json.bin",
+          "sha256": "693b8b8190d43b81f89adae9726ea4c670c3e4b9246f56c346984dd17c719c40"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0056.json.bin",
+          "sha256": "99312c3188550ac8ba42055ed6265fa7e2dd564969414f93326dfb215b17d1b0"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0057.json.bin",
+          "sha256": "160187695e62b5ff0b5f79500291b9fb420558779eee643e387b95770bb6457c"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0058.json.bin",
+          "sha256": "7799726dbd32f2676114837d4e4391d480375571d7b8343d0d947a76b3c29fc6"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0059.json.bin",
+          "sha256": "0df04473dea67d9d8c68939f75ad8dd981fbc6aedb970305a1bb955dd91984b2"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0060.json.bin",
+          "sha256": "a1630f37b4464ff1865dfb32cf64b7e5ba014f30fa4e0ddc156f9dc2875cde8a"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0061.json.bin",
+          "sha256": "8ab9eb6f720f9c3efb8c8dbcc74362e82f2d5bd3098a7ba3e3c6ee760099bf47"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0062.json.bin",
+          "sha256": "503fb31747acc16da65c58eb2610355f683ef58a27e5caf82d06df85b1e6f95f"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0063.json.bin",
+          "sha256": "5cd18e2d3a15e4ddf9ed8e6984b9cb38afffa701cdcca6f96d7a92ee93b07b77"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0064.json.bin",
+          "sha256": "d3781f0877505a3888791ba1e7205a427a8d797d95a71bb8a4ea9346d77f5e23"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0065.json.bin",
+          "sha256": "a9b88181728918c7527a46fa9471ca3681542332432f7610e2211f1fa0a58ce9"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0066.json.bin",
+          "sha256": "0e1615583e2ccd5e5198415a01cdd069a4060f965f5838b763adc78e52a49227"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0067.json.bin",
+          "sha256": "033f53999f55a6905e9a3f9542797b75ebb3aa4ef5fff19f420f3fa96dd4b3e7"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0068.json.bin",
+          "sha256": "076c958f9d66bbb49bd8728ff522091ae3787f6ef61185031b4f85cf00021fd5"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0069.json.bin",
+          "sha256": "8c5a7b97c4f06f9ac0a80a4ee75bc087a50aad368fb9d9ecaacd43ed47b49a2d"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0070.json.bin",
+          "sha256": "a73aefabd370d26acd4dba4f1c64f7a3e52f8a3cdcb0fa41cfc7fa90adafabb2"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0071.json.bin",
+          "sha256": "a980f875fbbf604abb47161ef73640ab5e99fa87a0f497bf6f6f1b5ce9505c5a"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0072.json.bin",
+          "sha256": "bf71426073ba2a0a39040539eb0514caaf138d80703a69944a13831f8bb41d79"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0073.json.bin",
+          "sha256": "56e56a4459b5a35f93e46e09cef69a569be946327651225dff47bc9ad1e5feb3"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0074.json.bin",
+          "sha256": "bc715a6f14473168335de502ee0d9ed98691009bc46fba40f2a808a39fa71781"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0075.json.bin",
+          "sha256": "34b569950dcdc35a4fb7c5bb3e1a9dc627646207b67f3f009c7a5b1ccbfb12bd"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0076.json.bin",
+          "sha256": "e737dc2a744034966fd8546144332acd5a30b37fa01261314f560bfa442976b0"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0077.json.bin",
+          "sha256": "8297bf5ae8c256856e923ec679a204a8b10a5a396b9a19136c63ccd1542d1156"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0078.json.bin",
+          "sha256": "341c3b4eea0cec212329610844b01472c0ad4b1fc31ffd0639c7179a1b53f8e2"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0079.json.bin",
+          "sha256": "f181bf1462e22020acb6284ad6617d243403ac5b3e138bcf28d9d771b6f19efe"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0080.json.bin",
+          "sha256": "7a3923db3e923af355a7e346b1e8376d348391fdb32d38bbb860fcfab8817e27"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0081.json.bin",
+          "sha256": "73f891546dde00e53821f883d428d4f7a9910ba43cde2222a2f80011832c1725"
+        },
+        {
+          "path": "shards/FR__electric55_chain__0082.json.bin",
+          "sha256": "dddb008604b20f160633aec2cc6eb0df01f71505dd099a9a589b71fec4d237f3"
+        }
+      ],
+      "canonicalSourcesReused": 33,
+      "electric55ExactJoinCount": 1990,
+      "ledgerSha256": "d05ccc83f319ebc0d01c62d1788a679d0708a00d9da0da1aa5aad9843a612828"
+    },
+    "electric55Browser": [
+      {
+        "evseId": "FR55CEFR39000P7PPFG1",
+        "offerCount": 1,
+        "scrollWidth": 1280,
+        "stationId": "tcc:000b19aef6ee95dfc3291dac6eb081f0b9beb9e2ffdcedf97b2b5c2859b322f1",
+        "width": 1280,
+        "profileId": "e55c-own-emsp-fallback-653f339c973546a8"
+      },
+      {
+        "evseId": "FR55CEFR84300M0UL1N3",
+        "offerCount": 1,
+        "scrollWidth": 1280,
+        "stationId": "tcc:0249a975da9aaf23e934d8ae770286b88a5f0e936db900f273077eef22dd51fd",
+        "width": 1280,
+        "profileId": "e55c-own-emsp-fallback-584ac48145a63ad4"
+      },
+      {
+        "evseId": "FR55CEFR06000G0RBELLA5",
+        "offerCount": 1,
+        "scrollWidth": 1280,
+        "stationId": "tcc:204fb6ae45ce26e7dbe753cd16f0c934aca58926a905fb98d9942c2206cd658a",
+        "width": 1280,
+        "profileId": "e55c-own-emsp-fallback-d3000d2fd1974267"
+      },
+      {
+        "evseId": "FR55CEFR06000C0RVESYC",
+        "offerCount": 1,
+        "scrollWidth": 1280,
+        "stationId": "tcc:3aca6567953f748c2eb23c7fc43dc0daf6c5d0f34ed58f2a8ca0012dbb4dff9b",
+        "width": 1280,
+        "profileId": "e55c-own-emsp-fallback-6d70ec4d6d770429"
+      },
+      {
+        "evseId": "FR55CEFR83310A1RESTP0NS1",
+        "offerCount": 1,
+        "scrollWidth": 1280,
+        "stationId": "tcc:a28e8299d62355d616ad4a68581d56950cb3c342a0b5709d6c54595c829f8132",
+        "width": 1280,
+        "profileId": "e55c-own-emsp-fallback-a3446acf389257db"
+      },
+      {
+        "evseId": "FR55CEFR84760P2PP1",
+        "offerCount": 0,
+        "scrollWidth": 1280,
+        "stationId": "tcc:ce4292db9cec802694699a4ce21ce4704843236f8e7aedf34527bfa72a2785db",
+        "width": 1280,
+        "profileId": null
+      }
+    ],
+    "mobileViewport": 390,
+    "countries": [
+      "BE",
+      "CH",
+      "DE",
+      "ES",
+      "FR",
+      "GB",
+      "IT",
+      "MA",
+      "NL"
+    ],
+    "ordinaryCasesByViewport": 11,
+    "ordinaryStationCountsComparedWithPrevious": {
+      "Fécamp Carrefour Allego": 17,
+      "Rouen": 210,
+      "Lyon": 231,
+      "Milan": 11,
+      "Berlin": 813,
+      "Amsterdam": 1369,
+      "London": 2406,
+      "Brussels": 955,
+      "Zurich": 188,
+      "Madrid": 323,
+      "Agadir": 2
+    },
+    "ordinaryRankingMatchesPrevious": true,
+    "formLabels": {
+      "simCondition": "État de la batterie en DC",
+      "simDate": "Date",
+      "simMaxDistance": "Distance maximale depuis le départ (km)",
+      "simNow": "Batterie actuelle (%)",
+      "simOrigin": "Adresse de départ",
+      "simProfile": "Profil de calcul",
+      "simRanking": "Priorité de classement",
+      "simTarget": "Objectif (%)",
+      "simTime": "Heure de branchement",
+      "simUnplugTime": "Heure prévue de débranchement"
+    },
+    "threeChannelsStillVerifiedInBethune": true,
+    "referenceTariffCases": 24,
+    "receiptsSha256": {
+      "desktop": "97818bddf5491fc5c91d2ae5a137486bd80fe33f104122cc2e88c87f04a381a0",
+      "mobile": "15ace535b5b309fb8519fd65eb055452d3f1971236ed10f84f5fabab70957200",
+      "electric55-desktop": "92d20464169cf3e5aeb2d37e2bd40c4f4040ead7a1bea0fe7818f941931a1ebf",
+      "electric55-mobile": "06991f76b71210e0c3d194f55ee0fafebe9eb6c55c59a9232bdfc65b0f53aa23",
+      "g9-labels": "2dc2cf1b1ffa371a79dd9e06badc7a98f85713499076656720e8d572c1f655dd",
+      "electroverse": "6aafe4da814a4ef05f0214b35bc161e82e0886ac81ed1b53571e115aef9f1c98",
+      "integrity": "964b278c2fcf85356bbf72b2ab3038ec26e736d59ab50deade9377bce579a6e7",
+      "electric55-shards": "5c5f4c5c48c6ee92dee028f1c1a46eb71aef88adc971cddd27ddbdc85c3c6732",
+      "tariffs-reference": "cb345af591cfa0fd2d15bfb3a77eb7ca5e53bbeb663c9c4cb162502967bf7544"
+    }
+  }
+}

@@ -1,3 +1,7 @@
+## 28 novembre — Brouillon Electric 55 et libellés accessibles
+
+Le [brouillon Electric 55](https://6b0b14279b8a6a39bc6e93b2--tcc-v9-preproduction-20261028.netlify.app) sert le snapshot `f07f4ebccfa4be951c34dc1976bbfc1c4ff5c0a8c2049133201011b0b2fc59ec` en contexte `deploy-preview`. Les 33 sources précédentes et les fichiers de calcul Electroverse sont repris. Le catalogue IRVE est identique. Les deux brouillons précédents restent indépendants et disponibles comme points de retour arrière. [Reçu](evidence/g9-electric55-netlify-20261128.json).
+
 ## 28 novembre — Brouillon optimisé pour les recherches courantes
 
 Le [brouillon Netlify 6b0b0a92](https://6b0b0a928b626934e4f9cacf--tcc-v9-preproduction-20261028.netlify.app) est prêt en contexte `deploy-preview`, sans publication. Le paquet Mac `nov28-followup/site-paris-optimized` conserve les 33 sources et les manifestes signés du candidat. Le [brouillon 6b0ad1b2](https://6b0ad1b2d87666f9aec31b2a--tcc-v9-preproduction-20261028.netlify.app) répond séparément et son intégrité critique a été revérifiée pour le retour arrière. Le reçu relie les deux URL à leurs paquets locaux et aux deux empreintes témoins du site public. [Recette distante](evidence/g9-paris-netlify-20261128.json).
