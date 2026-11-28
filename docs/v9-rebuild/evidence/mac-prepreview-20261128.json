@@ -488,7 +488,8 @@
           "overlap": 0
         }
       }
-    ]
+    ],
+    "finalizationDecision": "Optimization suspended and tracked after finalization. Dense 100 km latency does not block G7/G8. Retain full coverage and result precision."
   },
   "tests": {
     "activeNodeFilesPassed": 31,
@@ -577,12 +578,115 @@
     ]
   },
   "limitations": [
-    "Single cold paired profile; dense latency remains open.",
     "Some older tests require specific archives and old build layouts.",
     "Legacy raw IZIVIA FAST connectedTimeRounding is still rejected on the recorded old payload.",
     "Legacy Electra full-evaluation assertion conflicts with the present raw-offer hold policy.",
     "Legacy Matosinhos presentation URL assertion is outside the nine-country preview and remains unverified for its original build.",
     "New source integration requires verified receipts from the GitHub workstream."
   ],
-  "rollbackManifestLocalVerified": true
+  "rollbackManifestLocalVerified": true,
+  "ordinarySearchPerformanceLocal": [
+    {
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 83,
+      "completeStationEvaluations": 160,
+      "durationMs": 44466,
+      "globallyRankedStations": 3746,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 3746,
+      "matchingStations": 3746,
+      "nextPage": true,
+      "operatorOptionCount": 83,
+      "pageStations": 160,
+      "pricedOffers": 2002,
+      "radiusKm": 20,
+      "rawLabelVisible": true,
+      "rawOffers": 266,
+      "scrollWidth": 1280,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 1280,
+      "visibleCalculatedTariffs": 279,
+      "visibleMarkers": 8,
+      "pagination": {
+        "durationMs": 3266,
+        "firstPage": 20,
+        "mapMarkers": 35,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      },
+      "city": "Paris",
+      "country": "FR"
+    },
+    {
+      "requestedRadiusKm": 20,
+      "availableOperatorCount": 36,
+      "completeStationEvaluations": 160,
+      "durationMs": 10561,
+      "globallyRankedStations": 7138,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 7138,
+      "matchingStations": 7138,
+      "nextPage": true,
+      "operatorOptionCount": 36,
+      "pageStations": 160,
+      "pricedOffers": 1177,
+      "radiusKm": 20,
+      "rawLabelVisible": false,
+      "rawOffers": 0,
+      "scrollWidth": 1280,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 1280,
+      "visibleCalculatedTariffs": 98,
+      "visibleMarkers": 10,
+      "pagination": {
+        "durationMs": 578,
+        "firstPage": 20,
+        "mapMarkers": 39,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      },
+      "city": "Amsterdam",
+      "country": "NL"
+    },
+    {
+      "requestedRadiusKm": 10,
+      "availableOperatorCount": 5,
+      "completeStationEvaluations": 160,
+      "durationMs": 5711,
+      "globallyRankedStations": 8029,
+      "iziviaMapOffers": 0,
+      "iziviaMapStations": 0,
+      "mapStations": 8029,
+      "matchingStations": 8029,
+      "nextPage": true,
+      "operatorOptionCount": 5,
+      "pageStations": 160,
+      "pricedOffers": 177,
+      "radiusKm": 10,
+      "rawLabelVisible": true,
+      "rawOffers": 1,
+      "scrollWidth": 390,
+      "sourceErrors": 0,
+      "unavailableLabelVisible": true,
+      "viewportWidth": 390,
+      "visibleCalculatedTariffs": 33,
+      "visibleMarkers": 13,
+      "pagination": {
+        "durationMs": 251,
+        "firstPage": 20,
+        "mapMarkers": 37,
+        "mapViewPreserved": true,
+        "nextPage": 20,
+        "overlap": 0
+      },
+      "city": "Londres",
+      "country": "GB"
+    }
+  ]
 }
