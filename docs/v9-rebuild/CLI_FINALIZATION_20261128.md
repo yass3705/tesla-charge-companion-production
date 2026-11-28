@@ -70,3 +70,5 @@ Le [registre des 135 instances](evidence/cli-source-admission-20261128.csv) cons
 | G8 | HTTPS, noindex, SHA et navigateurs sur l’URL réelle ; deux fragments ajoutés, 3 330 fragments à empreinte préservée et journal IRVE vérifiés ; témoins du site public préservés. |
 
 [Reçu de la recette à 38 sources](evidence/cli-metropolis-preview-20261128.json). Les contrôles du candidat et les preuves de renouvellement, de qualification et de transfert récurrent restent des critères distincts. Les portes G2 à G8 restent ouvertes globalement. La validation G9 revient à l’utilisateur.
+
+Le profilage apparié à froid de Paris 20 km sur le Mac affiche les premières fiches en 19,040 s puis 18,397 s. Les deux compositions gardent 3 746 stations et 1 610 requêtes Electroverse en 27 lots. Le temps cumulé d’aller-retour du worker reste proche de 11 s. Les trois traitements locaux profilés restent sous 2,2 s cumulées. La différence observée sur une mesure Netlify ne s’est pas reproduite dans cet essai apparié.

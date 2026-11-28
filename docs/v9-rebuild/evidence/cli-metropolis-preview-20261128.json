@@ -1115,5 +1115,137 @@
       "GitHub transfers and recurrence tracked by the Data Lab owner",
       "Historical 721-row exact inputs unavailable"
     ]
+  },
+  "pairedParisProfile": {
+    "37": {
+      "cpuProfile": {
+        "TCCV9OfferEngine.dedupeOffers": {
+          "calls": 0,
+          "cpuMs": 0
+        },
+        "TCCV9SessionEngine.evaluateStation": {
+          "calls": 16134,
+          "cpuMs": 1492
+        },
+        "TCCV9SessionPlannerEngine.planStation": {
+          "calls": 15974,
+          "cpuMs": 427
+        },
+        "TCCV9StationScoreEngine.scoreStation": {
+          "calls": 16134,
+          "cpuMs": 150
+        }
+      },
+      "elapsedMs": 19210,
+      "evaluationSha": "8cbd2f4d1613c9d4684db201fbe731e9b96fca06f64809ef1d9846045261dc8d",
+      "firstCardsMs": 19040,
+      "mapCount": 3746,
+      "mapSha": "07edd16ea9e7fc06f0bea66006759e89ef15d4920004ad37bd429c1bd5966449",
+      "matching": 3746,
+      "pageSha": "27bd4b42fd1ae79fa4d9a1402c4d68f4f6d4918966bb56f084051a302efd82e0",
+      "phases": {
+        "electroverse": {
+          "count": 3,
+          "firstMs": -10,
+          "lastMs": 5781
+        },
+        "external": {
+          "count": 147,
+          "firstMs": 8626,
+          "lastMs": 9482
+        },
+        "local": {
+          "count": 6,
+          "firstMs": -207,
+          "lastMs": 316
+        },
+        "shards": {
+          "count": 57,
+          "firstMs": 155,
+          "lastMs": 6925
+        }
+      },
+      "rankCount": 3746,
+      "rankSha": "fe44458a46dca81f141a86571ccbbed2253deb637d90329bf330974f9f1eac53",
+      "routing": 858,
+      "shardCount": 57,
+      "shardLastResponseMs": 6925,
+      "sourceErrors": [],
+      "visible": 160,
+      "workerPhases": {
+        "batches": 27,
+        "errors": 0,
+        "firstRoundTripMs": 6102,
+        "firstStartMs": 154,
+        "lastResponseMs": 18214,
+        "requests": 1610,
+        "roundTripMs": 11262
+      }
+    },
+    "38": {
+      "cpuProfile": {
+        "TCCV9OfferEngine.dedupeOffers": {
+          "calls": 0,
+          "cpuMs": 0
+        },
+        "TCCV9SessionEngine.evaluateStation": {
+          "calls": 16235,
+          "cpuMs": 1615
+        },
+        "TCCV9SessionPlannerEngine.planStation": {
+          "calls": 16075,
+          "cpuMs": 421
+        },
+        "TCCV9StationScoreEngine.scoreStation": {
+          "calls": 16235,
+          "cpuMs": 122
+        }
+      },
+      "elapsedMs": 18563,
+      "evaluationSha": "8cbd2f4d1613c9d4684db201fbe731e9b96fca06f64809ef1d9846045261dc8d",
+      "firstCardsMs": 18397,
+      "mapCount": 3746,
+      "mapSha": "614270f944ee1c8d6d9ac7a33b65a10ad6b44c9ae6b2a611be66075e5c6af6fb",
+      "matching": 3746,
+      "pageSha": "27bd4b42fd1ae79fa4d9a1402c4d68f4f6d4918966bb56f084051a302efd82e0",
+      "phases": {
+        "electroverse": {
+          "count": 3,
+          "firstMs": -315,
+          "lastMs": 5699
+        },
+        "external": {
+          "count": 147,
+          "firstMs": 8196,
+          "lastMs": 9007
+        },
+        "local": {
+          "count": 6,
+          "firstMs": -458,
+          "lastMs": 234
+        },
+        "shards": {
+          "count": 59,
+          "firstMs": 103,
+          "lastMs": 6551
+        }
+      },
+      "rankCount": 3746,
+      "rankSha": "b7a6a703399f1bfff6402694399e16956474884865d9cd926d4b8f03565b758f",
+      "routing": 813,
+      "shardCount": 59,
+      "shardLastResponseMs": 6551,
+      "sourceErrors": [],
+      "visible": 160,
+      "workerPhases": {
+        "batches": 27,
+        "errors": 0,
+        "firstRoundTripMs": 6126,
+        "firstStartMs": 102,
+        "lastResponseMs": 17580,
+        "requests": 1610,
+        "roundTripMs": 11155
+      }
+    }
   }
 }
