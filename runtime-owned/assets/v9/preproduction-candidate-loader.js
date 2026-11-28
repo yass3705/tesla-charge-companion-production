@@ -106,6 +106,10 @@
              !Array.isArray(data.stations)||!Array.isArray(data.evses)||
              !Array.isArray(data.connectors)||!Array.isArray(data.offers))
             throw new Error('candidate source schema or identity invalid');
+          if(id==='FR:electric55_chain'&&(index.schemaVersion!==2||!shaPattern.test(data.source.nationalCanonicalSha256||'')||
+             data.source.nationalCanonicalSha256!==
+             index.sources.find(source=>source.source==='FR:irve_static')?.sourceSha256))
+            throw new Error('Electric 55 national catalogue SHA mismatch');
           const fragments=adapter.toFragments(data);
           const rawOffers=new Map(data.offers.map(row=>[row.id,row]));
           const rawEvses=new Map(data.evses.map(row=>[row.id,row]));
@@ -113,7 +117,7 @@
           const rawCpos=new Map((data.cpos||[]).map(row=>[row.id,row]));
           const bumpIndex={cpos:rawCpos,evses:rawEvses,connectors:new Map(),connectorsById:rawConnectors,stations:new Map(data.stations.map(s=>[s.id,s])),connectorOfferCounts:new Map()};
           if(['GB:ubitricity_pcpr_direct','GB:gridserve_pcpr_direct'].includes(id))for(const o of data.offers)bumpIndex.connectorOfferCounts.set(o.scope?.connectorId,(bumpIndex.connectorOfferCounts.get(o.scope?.connectorId)||0)+1);
-          if(['FR:archived_direct_exact','FR:bump_national_exact','FR:electra_emsp_exact','FR:emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct'].includes(id))for(const row of data.connectors){
+          if(['FR:archived_direct_exact','FR:bump_national_exact','FR:electra_emsp_exact','FR:emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct','FR:electric55_chain'].includes(id))for(const row of data.connectors){
             const list=bumpIndex.connectors.get(row.evseId)||[];
             list.push(row);bumpIndex.connectors.set(row.evseId,list);
           }
@@ -123,6 +127,11 @@
           if(id==='NL:dotnl_static')for(const row of data.offers)
             connectorOfferCounts.set(row.scope?.connectorId,(connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
           const provedOffer=(fragment,offer)=>{
+            if(id==='FR:electric55_chain'){
+              const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveElectric55Offer?.(data,raw,bumpIndex);
+              return Boolean(expected&&fragment.countryCode==='FR'&&
+                fragment.evses.some(e=>e.id===raw.scope?.evseId)&&JSON.stringify(offer)===JSON.stringify(expected));
+            }
             if(id==='FR:archived_direct_exact'){
               const raw=rawOffers.get(offer?.id),expected=raw&&adapter.proveArchivedDirectProfile?.(data,raw,bumpIndex);
               return Boolean(expected&&fragment.countryCode==='FR'&&fragment.evses.some(e=>e.id===raw.scope?.evseId)&&JSON.stringify(offer)===JSON.stringify(expected));

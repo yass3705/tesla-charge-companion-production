@@ -322,6 +322,64 @@
       metadata:{verified:true,identityMode:'archived_exact_swiss_evse_complete_energy',sourceId:data.source.id,
         artifactSha256:data.source.artifactSha256,sourceFile:offer.sourceFile,sourceEvseId:offer.sourceEvseId,timeZone:'Europe/Zurich'}};
   }
+  function provedElectric55Offer(data,offer,index){
+    if(data.source?.id!=='FR:electric55_chain'||offer.channel!=='Direct'||
+       offer.calculationStatus!=='not_evaluated'||offer.scope?.connectorId!=null)return null;
+    const raw=offer.rawOffer,evse=index.evses.get(offer.scope.evseId),profile=raw?.profile;
+    if(!/^FR55C[A-Z0-9]+$/.test(raw?.sourceEvseId||'')||evse?.officialEvseId!==raw.sourceEvseId||
+       !/^FR\*55C\*[A-Z0-9*]+$/i.test(raw.sourceLocalEvseId||'')||
+       raw.sourceLocalEvseId.replace(/\*/g,'').toUpperCase()!==evse.officialEvseId||
+       profile?.currency!=='EUR'||profile.taxIncluded!==true||profile.adHocDirectVerified!==true||
+       profile.tariffChannel!=='cpo_direct_sole_e55c_source'||profile.globalScopeEvidence!==true||
+       profile.classificationBasis!=='national_sole_E55C_ROAMING_EMPS'||
+       profile.sourceMethods?.length!==1||profile.sourceMethods[0]!=='ROAMING_EMPS'||!Array.isArray(profile.rules))return null;
+    const types={EF:'EF',TYPE_2:'Type 2',CCS:'CCS'};
+    if(!['AC','DC'].includes(raw.kind)||!Array.isArray(raw.standards)||!raw.standards.length||
+       raw.standards.some(s=>!Object.hasOwn(types,s)))return null;
+    const connectors=index.connectors.get(evse.id)||[],standards=new Set();
+    for(const connector of connectors){
+      const standard=/^IRVE · (Type 2|CCS|EF)(?:\s|$)/.exec(connector.plugType||'')?.[1];
+      if(!standard||standards.has(standard)||connector.kind!==raw.kind||!(connector.powerKw>0)||
+         !raw.standards.some(s=>types[s]===standard))return null;
+      standards.add(standard);
+    }
+    const connectorIds=connectors.map(c=>c.id).sort();
+    if(!connectorIds.length||JSON.stringify(connectorIds)!==JSON.stringify(raw.nationalConnectorIds))return null;
+    const finite=n=>Number.isFinite(n)&&n>=0;
+    const costFields={flat:'flatEur',energy:'energyEurPerKwh',
+      charging_time:'chargingTimeEurPerMinute',parking_time:'parkingTimeEurPerMinute'};
+    const ruleFields=new Set(['scope','start','end','currency','taxIncluded','billingDimensions',
+      'vatPercentByDimension','sourceDefinitionId','isDiscount']);
+    const dimensions=(rule,...dims)=>rule&&JSON.stringify(rule.billingDimensions)===JSON.stringify(dims)&&
+      Object.keys(rule).every(key=>ruleFields.has(key)||dims.some(d=>costFields[d]===key)||
+        (key==='roundingByDimension'&&dims[0]!=='flat'))&&
+      rule.currency==='EUR'&&rule.taxIncluded===true&&rule.isDiscount===false&&
+      Object.keys(rule.vatPercentByDimension||{}).length===dims.length&&dims.every(d=>rule.vatPercentByDimension[d]===20);
+    const fullDay=rule=>rule?.scope==='allDay'&&rule.start==='00:00'&&rule.end==='24:00';
+    const [fee,...usage]=profile.rules;
+    if(!fee||!fullDay(fee)||!dimensions(fee,'flat')||!finite(fee.flatEur))return null;
+    const rateRounding=(rule,...dims)=>Object.keys(rule.roundingByDimension||{}).length===dims.length&&
+      dims.every(d=>rule.roundingByDimension[d]==='nearest_thousandth');
+    const common={currency:'EUR',connectionFee:fee.flatEur};
+    let rules;
+    if(usage.length===1&&fullDay(usage[0])&&dimensions(usage[0],'energy','parking_time')&&
+       rateRounding(usage[0],'energy','parking_time')&&finite(usage[0].energyEurPerKwh)&&finite(usage[0].parkingTimeEurPerMinute)){
+      rules=[{...common,scope:'allDay',start:'00:00',end:'24:00',billing:'kwh',
+        pricePerKwh:usage[0].energyEurPerKwh,idlePerMinute:usage[0].parkingTimeEurPerMinute}];
+    }else if(profile.chargingAndParkingDimensionsMustRemainSeparate===true&&usage.length===2&&usage[0]?.start==='07:00'&&usage[0].end==='23:00'&&
+      usage[1]?.start==='23:00'&&usage[1].end==='07:00'&&usage.every(rule=>rule.scope==='timeWindow'&&
+        dimensions(rule,'charging_time','parking_time')&&rateRounding(rule,'charging_time','parking_time')&&
+        finite(rule.chargingTimeEurPerMinute)&&finite(rule.parkingTimeEurPerMinute))){
+      rules=usage.map(rule=>({...common,scope:rule.scope,start:rule.start,end:rule.end,billing:'minute',
+        chargePerMinute:rule.chargingTimeEurPerMinute,idlePerMinute:rule.parkingTimeEurPerMinute}));
+    }else return null;
+    return{id:offer.id,provider:'Electric 55 Direct',kind:'direct',currency:'EUR',countries:['FR'],
+      evseIds:[evse.id],connectorIds,pricing:{type:'rules',rules},metadata:{verified:true,
+        identityMode:'exact_irve_evse_verified_standards',sourceId:data.source.id,
+        artifactSha256:data.source.artifactSha256,sourceStationId:raw.sourceStationId,
+        sourceEvseId:raw.sourceEvseId,profileId:profile.profileId,taxIncluded:true,timeZone:'Europe/Paris',
+        source:'Electric 55 Scan Pay',generatedAt:data.source.generatedAt||null}};
+  }
   function provedArchivedEmspOffer(data,offer,index){
     const expected={'FR:emsp_exact':['Electroverse','exact_unique_national_irve_pdc'],
       'FR:electra_emsp_exact':['Electra','exact_national_irve_evse']}[data.source?.id];
@@ -623,7 +681,7 @@
       for(const row of data.offers)proofIndex.connectorOfferCounts.set(row.scope?.connectorId,
         (proofIndex.connectorOfferCounts.get(row.scope?.connectorId)||0)+1);
     }
-    if(['FR:archived_direct_exact','FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct'].includes(data.source?.id)){
+    if(['FR:archived_direct_exact','FR:emsp_exact','FR:bump_national_exact','FR:electra_emsp_exact','CH:swiss_integration','FR:belib_stations','FR:allego_direct','FR:electric55_chain'].includes(data.source?.id)){
       for(const row of data.connectors){const list=proofIndex.connectors.get(row.evseId)||[];
         list.push(row);proofIndex.connectors.set(row.evseId,list);}
     }
@@ -649,7 +707,7 @@
       if(!evse)throw new Error('canonical offer EVSE missing');
       const proved=provedArchivedDirectProfile(data,offer,proofIndex)||provedUbitricityOffer(data,offer,proofIndex)||provedAllegoOffer(data,offer,proofIndex)||provedBelibOffer(data,offer,proofIndex)||provedSwissOffer(data,offer,proofIndex)||provedArchivedEmspOffer(data,offer,proofIndex)||provedDirectOffer(data,offer)||provedBelgiumOffer(data,offer,proofIndex)||
         provedNetherlandsOffer(data,offer,proofIndex)||provedElectroverseOffer(data,offer,proofIndex)||
-        provedRawUkOcpiOffer(data,offer,proofIndex)||provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex);
+        provedRawUkOcpiOffer(data,offer,proofIndex)||provedUkPcprOffer(data,offer,proofIndex)||provedBumpOffer(data,offer,proofIndex)||provedElectraOffer(data,offer,proofIndex)||provedElectric55Offer(data,offer,proofIndex);
       if(proved)evse.station.pricedOffers.push(proved);
       else evse.station.offers.push({...offer,calculationStatus:'not_evaluated'});
     }
@@ -676,5 +734,5 @@
           generatedAt:data.source?.generatedAt||null}]};
     }).sort((a,b)=>a.canonicalId.localeCompare(b.canonicalId));
   }
-  return{toFragments,proveRawUkOcpiOffer:provedRawUkOcpiOffer,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer};
+  return{toFragments,proveRawUkOcpiOffer:provedRawUkOcpiOffer,proveArchivedDirectProfile:provedArchivedDirectProfile,proveUbitricityOffer:provedUbitricityOffer,proveAllegoOffer:provedAllegoOffer,proveBelibOffer:provedBelibOffer,proveBumpOffer:provedBumpOffer,proveElectraOffer:provedElectraOffer,proveArchivedEmspOffer:provedArchivedEmspOffer,proveSwissOffer:provedSwissOffer,proveElectric55Offer:provedElectric55Offer};
 });
